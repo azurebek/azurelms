@@ -1,5 +1,12 @@
 # Backoffice islohoti — uch asosiy ishni osonlashtirish
 
+**2026-10-12 — faol navbat: [BACKOFFICE-02 — kundalik ishlarni yakunlash](#backoffice-02).**
+Owner shaxsiy tekshiruvini keyinga qoldirib, takomillashtirish uchun yangi phase
+rejasini so‘radi. Bu qabulni o‘tdi deb belgilamaydi va yangi ishni boshlashni
+to‘xtatmaydi. Birinchi islohotning tayyor qismlari [asosiy lokal bazada ON](BACKOFFICE-LOCAL-ROLLOUT.md).
+Quyidagi 2026-10-10 xaritasi tarixiy tayanch; hali mavjud bo‘lmagan capability
+va qolgan ishlarga oid joriy qaror hujjat oxiridagi BACKOFFICE-02 bo‘limida.
+
 2026-10-10. **Birinchi bosqich xaritasi va 2–5-bosqich runtime kesimlari qurildi; 6-bosqich ekspert tekshiruvi bajarildi.**
 [Ikkinchi bosqich](BACKOFFICE-REFORM-STAGE-2.md): Boshqaruv, modul/dars yaratish,
 material, namuna va guruhga ochishga ulanish. Flag default OFF; owner usability
@@ -217,3 +224,170 @@ Implementatsiyada yangi har bir capability uchun admission, write/read scope, fa
 
 Rejani tekshirish: local havolalar va source mavjudligi; `git diff --check`. Runtime testlari reja uchun qayta yugurtirilmaydi.
 Yonidagi bosiladigan namuna faqat taklifning navigatsiyasi va uch ish shaklini tushuntiradi; haqiqiy o‘quvchi ma’lumoti yoki backend amali yo‘q.
+
+<a id="backoffice-02"></a>
+## 11. BACKOFFICE-02 — kundalik ishlarni yakunlash
+
+**Holat: REJA, implementatsiya boshlanmagan.** Sana 2026-10-12; kod tayanchi
+`cd2ce2c`. Yangi phase shu hujjatda yuritiladi; parallel roadmap ochilmaydi.
+Owner topshirig‘i: shaxsiy usability sinovini keyinroq bajaradi, shu vaqtgacha
+backoffice’ni takomillashtirish davom etadi. Mavhum menyu so‘rovnomasi yoki
+har bir kichik qadam uchun owner tasdig‘i talab qilinmaydi.
+
+### Nima tugagan, nima qolgan
+
+Yagona menyu, kurs/modul/dars yozish, material qo‘shish, kirish sababini topish,
+kodsiz dizayn qoralama/nashr/tarix va eski formalarni soddalashtirish mavjud.
+2026-10-12 lokal rollout tayyor kodni asosiy bazada yoqdi; yangi authoring
+capability yoki barcha yuzalar dizayn paritetini yaratmagan.
+
+**Faqat owner sinovi qolmagan.** Quyidagi source audit yangi ish uchun tayanch.
+Manbada topilgan xato hali bu turn davomida brauzerda qayta yaratilgan degani emas;
+B2.1 avval uni regressiya testi bilan qayta ko‘rsatadi, keyin tuzatadi.
+
+| Joriy fakt | Manba (`cd2ce2c`) | Yangi ish |
+|---|---|---|
+| Materialning xatoli legacy POST’i redirect qiladi, kiritilgan qiymat yo‘qoladi; reorder validatsiyasi V1 holatiga bog‘langan | [material writerlari](../../library/backoffice_views.py):344–435, [eski dars formasi](../../templates/backoffice/lesson_form.html) | B2.1 — bound xato va rendererga bog‘liq bo‘lmagan validatsiya |
+| Kurs ustaxonasida upload/attach bor; biriktirmaning ko‘rinishi, sanasi, tartibi va uzish amali shu yerda yo‘q | [kurs yuzasi](../../templates/backoffice/workspace/course.html):38–41, [library usage havolasi](../../templates/backoffice/library_form.html):71 | B2.1 — mavjud amallarni dars kontekstida yakunlash |
+| Bo‘limi yo‘q imtihonda section form majburiy tekshiriladi, lekin uning maydonlari/xatolari render qilinmaydi; kirish birinchi imtihonni tanlaydi | [exam view](../../core/views.py):1168–1178, [exam form](../../templates/backoffice/exam_form.html):40–62 | B2.1 — bo‘sh holat va aniq tanlash |
+| Assignment/quiz modellari bor, oddiy backoffice’da ularni yaratish yo‘li yo‘q; admin odatda o‘chiq | [modellar](../../courses/models.py):277,958,981,1010, [eski dars](../../templates/backoffice/lesson_form.html):42–46, [authoring service](../../courses/authoring_service.py) | B2.2 — cheklangan yangi authoring |
+| Ish stoli so‘nggi yaratilgan 6 kursni oladi; oxirgi ochilgan darsni bilmaydi. Kurs qidiruvi faqat kurs nomiga qaraydi | [workspace](../../core/backoffice_workspace.py):104–127, [Ish stoli](../../templates/backoffice/workspace/home.html) | B2.3 — topish va haqiqiy davom ettirish |
+| O‘quvchi kartasi darsga kirish tashxisiga qurilgan; umumiy natija va xabar yetkazish diagnostikasi yo‘q | [support service](../../core/student_support_service.py):53, [karta](../../templates/backoffice/workspace/student.html) | B2.4 — ikkita chegaralangan o‘qish oqimi |
+| Dizayn writeri va 87 typed sozlama mavjud; eski formalar matn/radiuslari ba’zan literal, theme geometry asosan V1/workspace klasslariga ulangan | [editor uslubi](../../static/backoffice/editor-forms.css):2–12,38, [theme projection](../../static/backoffice/design-runtime.css):26–34 | B2.5 — mavjud sozlamalarni eski formalarga ulash |
+
+### Maqsad va qat’iy qamrov
+
+Asosiy natija: owner kursni tayyorlash, o‘quvchining muammosini aniqlash va
+ko‘rinishni moslash ishlarini oddiy backoffice orqali yakunlay oladigan texnik
+imkoniyatlarni to‘ldirish. Yangi menyu tizimi yoki uchinchi backoffice qurilmaydi.
+
+**Asosiy texnik KPI:** quyidagi o‘nta aniq ssenariy dalil bilan bajariladi,
+kiritilgan/saqlangan ma’lumot yo‘qolishi, yolg‘on muvaffaqiyat xabari va
+ruxsatsiz ko‘rinish/yozish — **0**. Bu insonning tezligi yoki yordamsiz
+foydalanish natijasi emas. Oldingi 7/8 va vaqt mezonlari owner sinovi uchun
+keyinga qoldiriladi; o‘lchanmaguncha foizli yaxshilanish da’vo qilinmaydi.
+
+### Olti bosqich va tugash mezoni
+
+| Tartib | Owner ko‘radigan natija | Shu bosqich tugash mezoni |
+|---|---|---|
+| **B2.1 — Kursdagi uzilishlarni yopish** | Tanlangan dars ichida material ko‘rinishi/sanasi/tartibini o‘zgartirish va darsdan uzish. Xato kiritilgan matnni yo‘qotmaydi. Kursga mos imtihonni aniq tanlash yoki birinchi bo‘limi bilan yaratish | Invalid/stale POST’da DB yozuvi va success xabari yo‘q; qiymat va xato ko‘rinadi. Detach umumiy faylni o‘chirmaydi. Bo‘shdan imtihon+bitta bo‘lim saqlanadi; urinishsiz ko‘p bo‘limli imtihonda tanlangan bo‘lim tahriri boshqasini o‘zgartirmaydi. Urinish bor imtihonning baholash/tarkib/vaqt sozlamalari himoyalangan. Kurs/dars/qoralama konteksti saqlanadi |
+| **B2.2 — Topshiriq va oddiy test tayyorlash** | Dars ichida topshiriq nomi/sharti/XP, bir javobli variantli test savollari/variantlari/to‘g‘ri javobini yaratish va ruxsatli tahrirlash | Bitta topshiriq va uch savolli test create→save→reopen→yozuvsiz namuna orqali o‘tadi. Chala savol saqlanmaydi; xato ayni savolda. Boshqa kursga yozish, eskirgan tahrir va takroriy yaratish himoyalangan. Mavjud submission/attempt/baho/XP o‘zgarmaydi |
+| **B2.3 — Topish va davom ettirish** | Boshqaruvda kurs, dars, o‘quvchi va bo‘limni bitta qidiruvdan topish. Ish stolida ayni sessiyada oxirgi ochilgan ishga qaytish | Natija obyekt turi va kursini ko‘rsatib, ayni dars/kartaga olib boradi. Begona scope natijasi chiqmaydi. Filtr, tanlangan dars va Back konteksti saqlanadi. “Davom ettirish” haqiqiy ochilgan ish; yangi yaratilgan kurs soxta recent activity bo‘lmaydi |
+| **B2.4 — O‘quvchiga yordamni kengaytirish** | Mavjud “Darsga kira olmayapti” yonida “Topshiriq/natija” va owner uchun “Bildirishnoma yetmagan” | O‘quvchi/kurs tanlovi yo‘qolmasdan submission holati, tekshiruv va o‘quvchiga ochilgan natija farqlanadi. Xabar yo‘q/navbatda/yuborilgan/xato farqlanadi. Tegishli mavjud amal sahifasidan qaytgach ayni odam qayta tekshiriladi; ko‘rish hech qanday baho, yuborish yoki read belgisini yozmaydi |
+| **B2.5 — Dizaynning ichki formalarda bir xilligi** | Mavjud matn, tugma/maydon/karta shakli va oralig‘i sozlamalari eski imtihon, kutubxona, tarif/guruh, blog va SIT backoffice formalarida ham ishlaydi. Oddiy ustaxonada shu formaning namunasini ko‘rish | Har belgilangan formadagi computed qiymat mavjud typed sozlamaga mos. Yorug‘/qorong‘i, 320px va kattalashtirilgan matnda o‘qiladi. Publish→real forma→rollback o‘tadi; flag OFF statik ko‘rinishni qaytaradi. Logo/kontent dizayn rollback’i bilan o‘zgarmaydi |
+| **B2.6 — Birgalikdagi sifat tekshiruvi** | Yuqoridagi ishlar katta/kichik ekranda, klaviaturada, xato va qaytish holatlarida izchil ishlaydi | O‘nta ssenariy, rol/flag/saqlash regressiyasi, xato matni/fokus, 320/768/1440px, light/dark va 200% matn tekshiruvi dalilli. Texnik tafsilotlar oddiy ishga chiqmaydi. Critical yo‘qolish/ruxsat/yolg‘on success topilmasi qolmaydi; har cheklov aniq qayd etiladi |
+
+B2.1 birinchi real implementatsiya bo‘ladi: qayta inventar yoki yangi maket
+phase’i kerak emas. Qolgan ketma-ketlik yuqoridagicha; har bosqich ishlaydigan
+natija bilan yopiladi. B2.2 ikki kichik kesimda — topshiriq, keyin variantli
+test — topshiriladi; ikkalasi bitmaguncha B2.2 yopilmaydi.
+Topilgan unrelated feature ushbu ro‘yxatga jimgina qo‘shilmaydi.
+
+### Implementatsiya shartnomalari
+
+Reja admissioni: **EXPERIMENT — canonical state yozmaydi**. Ushbu turn faqat
+manba auditi va reja; app kodi, baza, flag, provider va deployment o‘zgarmaydi.
+Quyidagi implementatsiya admissionlari tavsiya, bajarilgan capability emas.
+Har bosqich boshida uning aniq xizmat/ruxsat/failure shartnomasi qayd qilinadi;
+ownerning keyingi “B2.Nni boshla” topshirig‘i shu kesim ishini boshlatadi.
+
+| Kesim | Admission tavsiyasi va asosiy KPI | Canonical manba / writer | Haftalik yuk va qaytish |
+|---|---|---|---|
+| B2.1 | ADMIT — launch-critical; darsdan chiqmay material ishini xatosiz yakunlash | `library.services` va mavjud material writerlari; atomik exam/form yozuvi uchun yagona service ajratish. Web adapter. Yangi baholash/release qoidasi yo‘q | Texnik yordam kamayadi. Workspace flag OFF va eski yo‘l yangi holatni o‘qiydi; validatsiya/ruxsat tuzatishi renderer flagi bilan o‘chmaydi |
+| B2.2 | ADMIT — launch-critical; topshiriq va oddiy testni admin’siz tayyorlash | `Assignment`, `Quiz`, `Question`, `Choice`; yangi authoring komandalarini `courses/authoring_service.py`da birlashtirish. Submission/grading `submission_service`da qoladi | Yashirin admin yuki kamayadi. Yangi writer uchun registryda default-OFF gate; render va POST ikkalasi yopiladi, yaratilgan kontent saqlanadi |
+| B2.3 | ADMIT — launch-critical; qidiruvdan ayni obyektga bevosita kirish | `teacher_course_queryset`, `support_student_queryset`, ruxsatli route registry. Recent state canonical kontent emas; actor+sessiya doirasidagi obyekt IDlari | Qayta qidirish kamayadi. Unified-navigation flag OFF oddiy menyuga qaytaradi; mavjud sahifalar va URLlar qoladi |
+| B2.4 | ADMIT — launch-critical; natija/yetkazish sababini ma’lumot bilan ajratish | `AssignmentSubmission`, quiz attempt, `exam_publication.learner_result`, `Notification` va `TelegramOutbox` read projection. Qaror writerlari o‘z joyida | Qo‘lda bir necha panelni tekshirish kamayadi. Support flag bilan yangi o‘qish yuzasi yopiladi; baho/xabar holati o‘zgarmaydi |
+| B2.5 | ADMIT — launch-critical; bitta mavjud sozlama barcha belgilangan formalarda mos qiymat beradi | `design_schema`/`design_service`/public CSS; mavjud legacy klasslarga token bog‘lash. Yangi theme engine yo‘q | Har forma uchun qo‘lda tuzatish kamayadi. Design flag OFF statik uslub; rollback faqat dizayn versiyasini almashtiradi |
+| B2.6 | ADMIT — launch-critical; 10/10 texnik ssenariy, kritik xato 0 | Yuqoridagi canonical manbalar; QA alohida synthetic baza va browser | Yangi doimiy xizmat/navbatchilik yo‘q. Har kesim o‘z gate’i va oldingi renderer bilan qayta tekshiriladi |
+
+Muhim tafsilotlar:
+
+- **Material:** update/detach/reorder writerlari hali adapterda qolgan joyda
+  workspace uchun nusxa yozilmaydi; umumiy servicega chiqariladi. Bir xil tartib
+  raqamining mavjud deterministic tie qoidasi saqlanadi; duplicate POST kaliti
+  bilan bir xil raqam ikki xil tushuncha. Invalid input ikkala rendererda rad etiladi.
+- **Imtihon:** B2.1 metadata va mavjud section form maydonlari bilan chegaralanadi;
+  savollar, reading/listening bloklari yoki yangi baholash engine’i emas. Exam
+  va section bir transactionda saqlanadi; birinchi obyektni yashirin tanlash yo‘q.
+  Har qanday `ExamAttempt` bor imtihonning baholash, tarkib, vaqt/audio chekloviga
+  ta’sir qiluvchi maydonlari birinchi kesimda read-only; faqat tugagan urinishlar
+  emas. Server yozish va attempt boshlash o‘rtasidagi race’ni ham tekshiradi.
+  Ikki bo‘limni mustaqil tahrirlash sinovi urinishsiz fixture’da bajariladi.
+- **Assignment/test:** mavjud modellar to‘liq draft/publish/version lifecycle’i
+  bor deb olinmaydi. Preview hech qanday attempt, progress yoki XP yaratmaydi.
+  Har qanday `QuizAttempt` — hatto `QuizAnswer` bo‘lmasa ham — quiz/savol/variant/XP
+  tahririni bloklaydi. Assignment uchun har qanday statusdagi submission hisobga
+  olinadi, faqat approved emas. Bu birinchi writerda ishlatilgan kontent xavfli
+  tahrir/o‘chirishga ochilmaydi; read-only sabab va aniq keyingi yo‘l ko‘rsatiladi.
+  Yangi test writeri faqat `lesson`ga bog‘langan quiz, bo‘sh bo‘lmagan savol va
+  variantlar, kamida ikki variant va aynan bitta `is_correct`ni tekshiradi.
+  Bu modelning hozirgi kafolati emas, yangi authoring service validatsiyasi.
+  Exam’ga bog‘langan, ikki ota obyektli yoki mos kelmaydigan eski savollar
+  avtomatik aylantirilmaydi; o‘qish uchun saqlanadi. Saqlashdan oldin
+  amaldagi darsga ta’sir ko‘rsatiladi. Student submit bilan authoring race’i ham
+  tekshiriladi; xizmat lock/revision shartnomasi kerak bo‘lsa additive migration
+  alohida yoziladi. “Faqat UI, migration bo‘lmaydi” degan oldindan kafolat yo‘q.
+- **Qidiruv/recent:** matn va shaxsiy xabar tanalari indekslanmaydi; keyword va
+  parent nomi yetarli. Natija sahifalanadi, qator soniga qarab N+1 so‘rov ko‘paymaydi.
+  Recent state’da qoralama mazmuni/contact yozilmaydi; chiqish/almashtirilgan login,
+  o‘chirilgan obyekt va bekor qilingan ruxsat qayta tekshiriladi. Boshqa qurilmada
+  avtomatik davom ettirish bu kesimga kirmaydi.
+- **O‘quvchi yordami:** teacher faqat o‘z kursidagi ish/natijani ko‘radi; xususiy
+  baholash drafti “o‘quvchi ko‘ryapti” deb berilmaydi. Bildirishnoma modelida
+  majburiy kurs bog‘lanishi yo‘q, shu sabab yetkazish tafsiloti dastlab owner-only.
+  Raw Telegram ID, xabar tanasi, provider error yoki chat mazmuni ochilmaydi.
+  `sent` — yetkazish yozuvi, o‘qiganlik yoki muammo hal bo‘lganligi isboti emas.
+  Bu yerda yuborish/qayta yuborish, bahoni tasdiqlash va account impersonation yo‘q.
+- **Dizayn:** yangi CSS kiritish yoki drag-and-drop builder yo‘q. Mavjud 87 typed
+  parametrdan tegishlisi ishlatiladi. Bitta qo‘shimcha inert legacy-form namuna;
+  nashrsiz haqiqiy o‘quvchi holatiga yozish yo‘q. Uchinchi tomon CKEditor toolbar’i,
+  rasmning o‘zi va print alohida chegaralangan; qamrov UI’da sodda aytiladi.
+
+### O‘nta yakun ssenariysi
+
+1. Materialning noto‘g‘ri sanasini yuborish → yozgan qiymat qoladi → xatoni tuzatish → ayni darsda saqlash.
+2. Material tartibini o‘zgartirish → namuna → darsdan uzish; umumiy kutubxona fayli boshqa darsda qoladi.
+3. Imtihonsiz kursdan yangi imtihon+bitta bo‘lim yaratish; urinishsiz ikki bo‘limli fixture’da ikkinchisini tahrirlash birinchisini o‘zgartirmaydi. Urinish mavjud bo‘lsa xavfli tahrir yozishsiz rad etiladi.
+4. Darsga topshiriq yaratish → saqlash → qayta ochish → yozuvsiz o‘quvchi namunasi.
+5. Uch savolli bir javobli test yaratish → xato javob konfiguratsiyasini tuzatish → saqlash → qayta ochish/namuna; javobsiz attempt ham tahrirdan himoyalaydi, mavjud learner natijasiga tegilmaydi.
+6. Dars nomini qidirish → ayni kurs/dars → boshqa bo‘lim → ayni sessiyadagi “Davom ettirish”; begona rol yozuvi chiqmaydi.
+7. O‘quvchining topshirgan ishi/nashrdagi natijasini topish → kerakli mavjud ko‘rib chiqish sahifasi → ayni kartaga qaytish va recheck.
+8. Owner o‘quvchining bildirishnoma holatini ajratadi; o‘qish hech qanday xabar yubormaydi yoki read belgisini o‘zgartirmaydi.
+9. Matn va tugma shaklini sozlash → nashr → exam/library/catalog/blog/SIT backoffice formalarida computed qiymat → rollback.
+10. Yuqoridagi oqimlarda 320px/klaviatura/200% matn, invalid/stale/Back/reload va flag OFF/ON; saqlangan kontent va ruxsatlar saqlanadi.
+
+Asosiy lokal owner bazasiga sinov topshiriq/natija/xabar yozilmaydi. Read-only
+smoke va faollashtirish nusxadagi isbotdan keyin; real provider chaqirish bu
+phase’ning avtomatik tekshiruviga kirmaydi. Tests: changed-app va canonical
+service regressiyasi, kerakli Node tests, browser action; docs-only rejaga
+`git diff --check` va ichki havolalar tekshiruvi yetarli. Owner/teacher/begona
+teacher/inactive/anonymous, CSRF, replay va stale matritsasi yangi writerlar uchun.
+
+### Qachon tugaydi va nimalar alohida qoladi
+
+**BACKOFFICE-02 texnik jihatdan tayyor** — B2.1–B2.6 natijalari va o‘nta
+ssenariy bajarilgan, tegishli CI/review o‘tgan, qaysi muhitda yoqilgani va
+qaytish yo‘li qayd etilgan. “Hamma uchun qulay” qabuli bilan aralashtirilmaydi.
+Muddati hozir o‘lchanmagan; keyingi kesimning haqiqiy hajmi B2.1 natijasida
+aniqlashadi. Belgilangan olti bosqichni tugatish mezoni cheksiz yangi dizayn
+talablarini qo‘shib surilmaydi.
+
+Quyidagilar alohida kuzatiladi va B2 ishlarini boshlash sharti emas:
+
+- **Owner qabuli:** owner keyinga qoldirdi; so‘ralganida uch asosiy ish bilan
+  qisqa amaliy sinov. Oldingi DC6 ham o‘tdi deb belgilanmaydi.
+- **Haqiqiy qurilma/zoom/AT:** mavjud muhitdagi browser viewport va matn sinovi
+  agent tomonidan bajariladi. Native zoom imkoni bo‘lsa alohida dalil olinadi;
+  shriftni ikki baravar qilish native zoom deb yozilmaydi. Haqiqiy telefon va
+  screen reader dalili olinmagan bo‘lsa OPEN bo‘lib qoladi; owner usability
+  sinovining o‘zi bilan ham avtomatik yopilmaydi.
+- **Production rollout:** internetdagi muhit uchun backup, migration, xizmat
+  konfiguratsiyasi va real smoke alohida reliz. Lokal ON production ON emas.
+
+Keyingi alohida capability navbati: to‘liq ko‘p bo‘limli imtihon savol/reading/
+listening muharriri; ishlatilgan kontentning keng versiyalash siyosati; mustaqil
+SIT/Mini App theme porti; vendor/print moslash; AI sozlamalarining A2 audit qarzi.
+Ular “faqat owner sinovi qoldi” jumlasi bilan yashirilmaydi, lekin B2 scope’iga
+yashirin qo‘shilmaydi. Universal undo, bulk payment/access qarori, CRM ticket,
+AI operator yoki yangi pulli provider ushbu rejada yo‘q.

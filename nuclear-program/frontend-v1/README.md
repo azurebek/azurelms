@@ -1,5 +1,11 @@
 # Frontend V1 — prototipdan ishlaydigan platformaga
 
+**2026-10-12 — keyingi phase rejalashtirildi:** [BACKOFFICE-02](BACKOFFICE-REFORM-PLAN.md#backoffice-02).
+Olti kesim: kurs/material uzilishlari, topshiriq va oddiy test authoring,
+qidiruv/davom ettirish, o‘quvchi natija/yetkazish yordami, eski formalarda
+dizayn bir xilligi va texnik qabul. Holat **REJA**; runtime o‘zgarmadi.
+Owner shaxsiy sinovini keyinga qoldirdi; uni kutish implementatsiya sharti emas.
+
 **2026-10-12 — asosiy lokal backoffice:** [faollashtirish va qaytish dalili](BACKOFFICE-LOCAL-ROLLOUT.md).
 Izchil zaxira va nusxada sinovdan keyin `db.sqlite3`ga 12 mavjud migration
 qo‘llandi, backoffice’ning to‘rtta flagi ON. 21 route va 58 test PASS;
