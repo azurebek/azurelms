@@ -42,7 +42,7 @@ Avval nusxada, so‘ng asosiy bazada ayni 12 migration qo‘llandi:
 - `library.0001_initial`, `0002_libraryresource_edit_revision`;
 - `users.0022_customuser_ai_preferences_version`.
 
-Mustaqil source audit: hammasi `CreateModel`/`AddField`; data backfill,
+Mustaqil source audit: `CreateModel`/`AddField` hamda uchta `AddIndex`; data backfill,
 `RunPython`/`RunSQL`, delete yoki tashqi yon ta’sir yo‘q. SQLite ichki jadval
 ko‘chirishidan keyin eski qiymatlar alohida solishtirildi.
 
@@ -81,7 +81,8 @@ nashr bo‘lmagani uchun zavod qiymatlari ishlatiladi. Dizayn nashr qilinmadi.
   **58/58 PASS**, 23.022s; system check 0 issue. Yangi test/model kodi yo‘q.
 
 Xususiy lokal dalillar `.tools/backoffice-local-rollout/` ichida:
-`before.json`, `rehearse-result.json`, `activate-result.json`, `run.py`.
+`before.json`, `rehearse-result.json`, `activate-result.json`,
+`integrity-result.json`, `run.py`.
 Bazalar va bu papka Gitga kiritilmaydi.
 
 ## Qaytish
@@ -93,7 +94,8 @@ orqaga qaytarish yoki zaxirani asosiy baza ustiga yozish shart emas.
 
 Shu rollout uchun xususiy helper:
 `venv/Scripts/python.exe .tools/backoffice-local-rollout/run.py rollback`.
-U kutilgan lokal baza va zaxira fingerprintini tekshiradi; flaglar ON
+U asosiy lokal bazaning yo‘lini va zaxira faylining SHA-256 qiymatini tekshiradi;
+joriy asosiy bazaning fingerprintini tekshirmaydi. Flaglar ON
 bo‘lmasa taxmin qilib davom etmaydi. Keyingi mustaqil flag o‘zgarishlari bo‘lsa,
 avval ularning sababi tekshirilib, kerakli flaglar canonical UI orqali tanlanadi.
 
