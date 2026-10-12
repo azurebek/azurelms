@@ -16,6 +16,31 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-12 [Codex]: Yangi backoffice asosiy lokal bazada yoqildi
+
+Ownerning “davom et” topshirig‘i bilan tayyor boshqaruv synthetic bazadan
+asosiy lokal `db.sqlite3`da foydalanish bosqichiga o‘tdi. Canonical backup va
+alohida nusxada migration/rollback sinovidan keyin 12 mavjud migration
+qo‘llandi, kurs/support/design/yagona menyuning to‘rtta flagi ON qilindi.
+
+- Branch: `codex/backoffice-local-rollout`; hujjat commiti `51d038d`.
+  [Rollout va qaytish dalili](frontend-v1/BACKOFFICE-LOCAL-ROLLOUT.md).
+- Zaxira: `backups/backoffice-local-20261012-before.sqlite3`; nusxa va asosiy
+  bazada integrity OK, foreign-key xatosi 0, pending migration 0.
+  Mavjud 130 jadval / 358 qator eski qiymatlari saqlandi; boshqa flaglar o‘zgarmadi.
+- Nusxa va asosiy bazada 21 authenticated route 200, 4 anonymous denial;
+  read-probe session/last_login/lazy yozuvlari rollback qilindi. Flag o‘zgarishi
+  canonical `set_flag` bilan atomik, asosiy bazada 4 audit yozuvi.
+- Env-file OFF, Gemini/Telegram bo‘sh: `venv/Scripts/python.exe manage.py test
+  core.test_backoffice_acceptance core.test_backoffice_workspace
+  core.test_student_support_views --verbosity 1`: **58/58 PASS**, 23.022s;
+  system check 0. `git diff --check` PASS. Mahsulot kodi o‘zgarmadi.
+- Lokal kirish: `http://127.0.0.1:8092/backoffice/`; brauzerda mavjud login
+  sahifasi ochildi. Parol/ruxsat, nashr, to‘lov va kontent o‘zgartirilmadi.
+- Qolgan: ownerning yordamsiz qabuli, haqiqiy telefon/native zoom/AT va
+  alohida production rollout. Bu ish AWS/Telegram/Gemini xizmatiga ulanmagan;
+  DC6 va avvalgi keng authoring/design consumer chegaralarini yopmaydi.
+
 ## 2026-10-11 [Codex]: Eski muharrirlarni soddalashtirish va matn reflow’i
 
 Owner topshirig‘i bilan imtihon, blog/SIT, bosh sahifa/brend, kutubxona,

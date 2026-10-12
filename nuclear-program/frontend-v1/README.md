@@ -1,5 +1,11 @@
 # Frontend V1 — prototipdan ishlaydigan platformaga
 
+**2026-10-12 — asosiy lokal backoffice:** [faollashtirish va qaytish dalili](BACKOFFICE-LOCAL-ROLLOUT.md).
+Izchil zaxira va nusxada sinovdan keyin `db.sqlite3`ga 12 mavjud migration
+qo‘llandi, backoffice’ning to‘rtta flagi ON. 21 route va 58 test PASS;
+eski ma’lumotlar saqlandi. Bu lokal pilot; production/native/owner qabuli ochiq.
+Quyidagi “owner DBga qo‘llanmadi” yozuvlari o‘z sanasining tarixiy holatidir.
+
 **2026-10-11 — eski muharrirlar:** [soddalashtirish va telefon/matn tekshiruvi](BACKOFFICE-EDITOR-SIMPLIFICATION.md).
 Imtihon, blog/SIT, bosh sahifa/brend, kutubxona, tarif/guruh va dars materiallari
 qulaylashtirildi; lokal 320px/200% matn tekshiruvi o‘tdi. Native va owner qabuli ochiq.
