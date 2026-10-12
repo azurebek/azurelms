@@ -16,6 +16,28 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-12 [Codex]: BACKOFFICE-02 — keyingi takomillashtirish rejasi
+
+Owner shaxsiy usability tekshiruvini keyinga qoldirib, yangi phase rejasini
+so‘radi. Joriy kod auditi faqat qabul emas, material xatolari, authoring,
+qidiruv/davom ettirish va dizayn formalarida ham ish qolganini ko‘rsatdi.
+Yangi olti kesim mavjud yagona rejaning §11 bo‘limiga qo‘shildi.
+
+- Branch: `codex/backoffice-next-phase-plan`; reja commiti `66f1337`.
+  [BACKOFFICE-02](frontend-v1/BACKOFFICE-REFORM-PLAN.md#backoffice-02).
+- B2.1 material/context va bo‘sh exam tuzatishi; B2.2 assignment/oddiy quiz;
+  B2.3 scoped search/recent; B2.4 learner result/delivery; B2.5 legacy design
+  consumer; B2.6 sifat tekshiruvi. O‘nta aniq ssenariy va texnik tugash mezoni bor.
+- Mustaqil source review asosida javobsiz quiz attempt, barcha assignment
+  submission holatlari va davom etayotgan exam attempt himoyasi aniqlandi;
+  bir javobli quiz service validatsiyasi model kafolatidan farqlandi.
+- `git diff --check`: PASS. Python orqali 107 ichki fayl havolasi va
+  BACKOFFICE-02 anchor tekshirildi: missing 0. Docs-only; runtime testlari
+  qayta yugurilmadi. App kodi, baza, flag va tashqi xizmat o‘zgarmadi.
+- Davomi: B2.1 implementatsiyasi. Owner qabuli kechiktirilgan, ishni boshlash
+  sharti emas. Native qurilma/zoom/AT, production va katta exam/theme capability
+  navbati alohida; oldingi DC6 avtomatik yopilmadi.
+
 ## 2026-10-12 [Codex]: Yangi backoffice asosiy lokal bazada yoqildi
 
 Ownerning “davom et” topshirig‘i bilan tayyor boshqaruv synthetic bazadan
