@@ -16,6 +16,34 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-13 [Codex]: CLASSBOOK-01 — radikal islohotning sakkiz bosqichli rejasi
+
+Owner so‘rovi bo‘yicha [Classbook rejasi](frontend-v1/CLASSBOOK-REFORM-PLAN.md)
+yozildi, umumiy holat va frontend kirishiga bog‘landi. O‘qituvchining tayyorlash,
+jonli dars va hisobot yo‘li hamda o‘quvchining bitta dars xonasi qamrab olindi.
+**Reja tayyor; implementatsiya boshlanmagan.** B3 backoffice rejasi alohida qoladi.
+
+- Branch: `codex/classbook-radical-reform-plan`; reja commit **`7407d76`**;
+  source audit tayanchi `7cf1cae`.
+- Uch mustaqil source audit va reja review’i: 10 tur uchun kodsiz muharrir,
+  dars ichida yaratish/preview/copy, current/next jonli boshqaruv, aniq submit
+  receipt, tarixiy hisobot va xabar yordamining ketma-ketligi yozildi.
+- Muhim source topilmalar: resume yangi order qo‘shishi, finish joriy
+  playbook policy’ni o‘qishi, CSV bugungi enrollmentga bog‘liqligi, poll DM
+  ma’nosi, native admin writerlari va Telegram matni qisqarishi. Ular
+  rejada qabul mezoni; bu task ularni kodda tuzatmadi.
+- CB1.1a session policy/history va adapter/guard contracti birinchi kesim;
+  undan keyin Darslarim. Sakkiz bosqich, 12 E2E ssenariy, rollback va
+  canonical owner/admission chegaralari bor. Yangi video yoki AI platformasi yo‘q.
+- Docs tekshiruvi: `git diff --check` PASS;
+  `venv/Scripts/python.exe .tools/docs-sync/verify_docs.py` — 98 hujjat,
+  689 relative link, 31 anchor, missing0 (reja commitidan oldin).
+  App testlari/browser qayta yugurtirilmadi: docs-only. Ushbu PR uchun
+  required CI/review va standing manual merge tartibi amal qiladi.
+- DB/schema/flag/provider/server/deploy o‘zgarmadi. Mavjud PostgreSQL
+  50-parallel gate yopilgan deb saqlandi; 50 client transport o‘lchovi,
+  real Telegram/native qurilma/AT/owner qabuli va production alohida.
+
 ## 2026-10-13 [Codex]: BACKOFFICE-03 — keyingi yetti bosqich rejasi
 
 Owner shaxsiy tekshiruvini kutmay bajariladigan keyingi ishlar uchun
