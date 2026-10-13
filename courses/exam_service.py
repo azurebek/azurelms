@@ -111,6 +111,13 @@ def start_exam_attempt(*, student, exam):
         # Lock a stable row even before the learner has their first attempt.
         from django.contrib.auth import get_user_model
         get_user_model().objects.select_for_update().get(pk=student.pk)
+        # The first attempt and metadata authoring share this stable parent
+        # lock. Re-read policy after acquiring it: the caller's Exam instance
+        # may predate an authoring transaction that just committed.
+        exam = Exam.objects.select_for_update().get(pk=exam.pk)
+        policy_result = check_exam_entry_policy(student=student, exam=exam)
+        if not policy_result.is_allowed:
+            raise ExamAttemptStartBlocked(policy_result.message, code=policy_result.code or "exam_policy")
         latest_attempt = (
             ExamAttempt.objects.select_for_update()
             .filter(student=student, exam=exam)

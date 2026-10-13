@@ -1,0 +1,38 @@
+{% for material in materials %}
+<details class="ws-disclosure ws-material-card"{% if material.workspace_form.errors %} open{% endif %}>
+  <summary><span><strong>{{ material.title }}</strong><small>{{ material.resource.file_kind_label }} · {{ material.workspace_status }}</small></span><span aria-hidden="true">+</span></summary>
+  <div class="ws-disclosure-body">
+    <p class="ws-help">Bu sozlamalar faqat shu darsga tegishli.</p>
+    <form method="post" action="{{ outline_action_url }}#materials" data-material-form data-workspace-draft data-draft-scope="{{ material.draft_scope }}" data-bound-form="{{ material.workspace_form.is_bound|yesno:'true,false' }}" data-draft-get-url="{{ outline_action_url }}#materials">
+      {% include "backoffice/workspace/recovery.html" %}
+      {% csrf_token %}<input type="hidden" name="action" value="material_update"><input type="hidden" name="lesson_id" value="{{ lesson.pk }}"><input type="hidden" name="material_id" value="{{ material.pk }}"><input type="hidden" name="editor_revision" value="{{ material.save_revision }}">
+      {% if material.workspace_form.non_field_errors %}<div class="ws-notice ws-notice-error" role="alert">{{ material.workspace_form.non_field_errors }}</div>{% endif %}
+      {% include "backoffice/workspace/field.html" with field=material.workspace_form.display_title label="Darsda ko‘rinadigan nom" help="Bo‘sh qoldirsangiz kutubxonadagi nom ishlatiladi." %}
+      {% include "backoffice/workspace/field.html" with field=material.workspace_form.audience label="Kim uchun?" %}
+      {% include "backoffice/workspace/field.html" with field=material.workspace_form.is_visible label="Darsda ko‘rsatish" %}
+      {% if material.workspace_form.available_from.errors %}
+        {% include "backoffice/workspace/field.html" with field=material.workspace_form.available_from label="Qachondan ko‘rinsin?" %}
+      {% else %}
+        {% include "backoffice/workspace/field.html" with field=material.workspace_form.available_from label="Qachondan ko‘rinsin?" help="Bo‘sh qoldirsangiz darhol ko‘rinadi. O‘quvchining darsga kirish huquqi ham bo‘lishi kerak." %}
+      {% endif %}
+      {% include "backoffice/workspace/field.html" with field=material.workspace_form.is_downloadable label="Yuklab olishga ruxsat berish" %}
+      {% include "backoffice/workspace/field.html" with field=material.workspace_form.is_required label="Majburiy material" %}
+      <button class="ws-button ws-button-primary" type="submit">Materialni saqlash</button>
+      <p class="ws-help" data-draft-status aria-live="polite">{% if material.workspace_form.is_bound %}Kiritilgan sozlamalar hali saqlanmagan.{% endif %}</p>
+    </form>
+    <div class="ws-material-footer"><a class="ws-link" href="{% url 'library_backoffice:resource_file' resource_id=material.resource_id %}" target="_blank" rel="noopener">Faylni ko‘rish ↗</a><a class="ws-link" href="{% url 'library_backoffice:resource_edit' resource_id=material.resource_id %}" target="_blank" rel="noopener">Kutubxonada ochish ↗</a></div>
+    <details class="ws-disclosure ws-material-remove"><summary><span>Darsdan olish</span><span aria-hidden="true">+</span></summary><div class="ws-disclosure-body"><p class="ws-help">«{{ material.title }}» bu darsdan olinadi. Fayl kutubxonada va boshqa darslarda saqlanib qoladi.</p><form method="post" action="{{ outline_action_url }}#materials" data-material-form>{% csrf_token %}<input type="hidden" name="action" value="material_detach"><input type="hidden" name="lesson_id" value="{{ lesson.pk }}"><input type="hidden" name="material_id" value="{{ material.pk }}"><input type="hidden" name="editor_revision" value="{{ material.detach_revision }}"><button type="submit" class="ws-button">Shu darsdan olish</button></form></div></details>
+  </div>
+</details>
+{% empty %}<p class="ws-empty-materials">Bu darsga hali fayl qo‘shilmagan.</p>{% endfor %}
+{% if materials %}
+<details class="ws-disclosure ws-editor-disclosure"{% if request.POST.action == 'material_reorder' %} open{% endif %}><summary><span>Materiallar tartibi<small>Darsda qaysi fayl oldin ko‘rinsin?</small></span><span aria-hidden="true">+</span></summary><div class="ws-disclosure-body">
+  <form method="post" action="{{ outline_action_url }}#materials" data-material-form data-workspace-draft data-draft-scope="{{ material_order_scope }}" data-bound-form="{% if request.POST.action == 'material_reorder' %}true{% else %}false{% endif %}" data-draft-get-url="{{ outline_action_url }}#materials">{% csrf_token %}<input type="hidden" name="action" value="material_reorder"><input type="hidden" name="lesson_id" value="{{ lesson.pk }}"><input type="hidden" name="editor_revision" value="{{ reorder_revision }}">
+    {% include "backoffice/workspace/recovery.html" %}
+    <p class="ws-help">Kichik raqamli material oldin chiqadi. Bir xil raqamda oldingi tartib saqlanadi.</p>
+    {% for material in materials %}<div class="ws-field ws-material-order"><label for="material-order-{{ material.pk }}">{{ material.title }}</label><input type="text" inputmode="numeric" pattern="[0-9]+" maxlength="10" id="material-order-{{ material.pk }}" name="order-{{ material.pk }}" value="{{ material.posted_order }}" required></div>{% endfor %}
+    <button type="submit" class="ws-button">Tartibni saqlash</button>
+    <p class="ws-help" data-draft-status aria-live="polite"></p>
+  </form>
+</div></details>
+{% endif %}

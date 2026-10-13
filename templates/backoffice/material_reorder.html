@@ -1,0 +1,17 @@
+{% extends 'backoffice/base.html' %}
+{% block bo_title %}Materiallar tartibi{% endblock %}
+{% block bo_topbar %}Materiallar tartibi{% endblock %}
+{% block bo_content %}
+<section class="bo-editor">
+  <a href="{% url 'backoffice_lesson_edit' lesson.pk %}">← Saqlangan darsga qaytish</a>
+  <div class="bo-editor-heading"><h1>{{ lesson.title }} — materiallar tartibi</h1></div>
+  <div class="bo-err" role="alert" tabindex="-1">{{ editor_error }}</div>
+  <form method="post" action="{% url 'library_backoffice:material_reorder' lesson.pk %}" class="bo-editor-section">
+    {% csrf_token %}<input type="hidden" name="editor_revision" value="{{ editor_revision }}">
+    {% for material in materials %}<div class="bo-editor-field"><label for="order-{{ material.pk }}">{{ material.title }}</label><input id="order-{{ material.pk }}" name="order-{{ material.pk }}" value="{{ material.posted_order }}" inputmode="numeric" required></div>{% endfor %}
+    <p class="bo-editor-help">Raqam bo‘yicha saralanadi. Teng raqamlarda avvalgi tartib saqlanadi.</p>
+    {% if editor_conflict %}<p>Yozgan tartibingizni nusxalab oling, keyin saqlangan darsni oching.</p>{% endif %}
+    <button type="submit" class="bo-editor-save"{% if editor_conflict %} disabled{% endif %}>Tartibni saqlash</button>
+  </form>
+</section>
+{% endblock %}

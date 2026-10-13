@@ -29,7 +29,9 @@ from courses import authoring_service as authoring
 from courses.models import Course, Lesson, Module
 from frontend.templatetags.bleach_tags import sanitize
 from library import services as materials_service
-from library.models import LibraryResource, MaterialAudience
+from library import material_authoring
+from library.backoffice_forms import LessonMaterialForm
+from library.models import LessonMaterial, LibraryResource, MaterialAudience
 
 FLAG = 'backoffice_course_workspace'
 
@@ -231,7 +233,8 @@ def _preview_video(value):
 def course(request, course_id):
     obj = get_object_or_404(teacher_course_queryset(request.user), pk=course_id)
     action = request.POST.get('action') if request.method == 'POST' else None
-    lesson_actions = {'lesson_save', 'lesson_preview', 'material_upload', 'material_attach'}
+    material_actions = {'material_update', 'material_detach', 'material_reorder'}
+    lesson_actions = {'lesson_save', 'lesson_preview', 'material_upload', 'material_attach'} | material_actions
     selected_id = request.POST.get('lesson_id') if action in lesson_actions else request.GET.get('lesson')
     if action in lesson_actions and request.GET.get('lesson') and request.GET['lesson'] != selected_id:
         return HttpResponseBadRequest('Dars manzili mos kelmadi. Hech narsa saqlanmadi.')
@@ -263,6 +266,8 @@ def course(request, course_id):
     outline_token = authoring.outline_revision(request.user, obj)
     lesson_token = authoring.lesson_revision(request.user, lesson) if lesson else outline_token
     material_token = material_revision(request.user, lesson) if lesson else ''
+    bound_material_form, selected_material_id = None, None
+    reorder_token = material_authoring.reorder_revision(request.user, lesson) if lesson else ''
     status, action_error, preview_unsaved = 200, '', False
     preview = {'title': lesson.title if lesson else '', 'content': lesson.content if lesson else '',
                'video_url': lesson.video_url if lesson else ''}
@@ -303,13 +308,46 @@ def course(request, course_id):
                     _write_material(request, obj.pk, lesson.pk, upload_form if action == 'material_upload' else None)
                     messages.success(request, 'Material darsga biriktirildi.')
                     return redirect(f'{request.path}?lesson={lesson.pk}#materials')
+            elif action in material_actions:
+                if lesson is None:
+                    raise Http404
+                revision = request.POST.get('editor_revision', '')
+                if action == 'material_reorder':
+                    reorder_token = revision
+                    material_authoring.reorder_materials(actor=request.user, lesson_id=lesson.pk,
+                        course_id=obj.pk, positions=request.POST, expected_revision=revision, request=request)
+                    _saved(request, draft_scope(request, obj.pk, lesson.pk, kind='material-order'))
+                    messages.success(request, 'Materiallar tartibi saqlandi.')
+                else:
+                    selected_material_id = _id(request.POST.get('material_id'))
+                    selected_material = get_object_or_404(LessonMaterial.objects.select_related('resource'),
+                        pk=selected_material_id, lesson=lesson)
+                    if action == 'material_update':
+                        bound_material_form = LessonMaterialForm(request.POST, instance=selected_material,
+                            auto_id=f'material_{selected_material_id}_%s')
+                        if not bound_material_form.is_valid():
+                            raise ValidationError('Material saqlanmadi. Quyidagi maydonlarni tekshiring.')
+                        material_authoring.update_material(actor=request.user, material_id=selected_material_id,
+                            lesson_id=lesson.pk, course_id=obj.pk, data=request.POST,
+                            expected_revision=revision, request=request)
+                        _saved(request, draft_scope(request, obj.pk, lesson.pk, kind=f'material:{selected_material_id}'))
+                        messages.success(request, 'Material sozlamasi saqlandi.')
+                    else:
+                        material_authoring.detach_material(actor=request.user, material_id=selected_material_id,
+                            lesson_id=lesson.pk, course_id=obj.pk, expected_revision=revision, request=request)
+                        messages.success(request, 'Material darsdan olindi. Kutubxona fayli saqlanib qoldi.')
+                return redirect(f'{request.path}?lesson={lesson.pk}#materials')
             else:
                 action_error = 'Amal tanilmadi. Hech narsa saqlanmadi.'
-        except authoring.AuthoringConflict as error:
+        except (authoring.AuthoringConflict, material_authoring.MaterialConflict) as error:
             action_error, status = ' '.join(error.messages), 409
+            if bound_material_form is not None:
+                _add_errors(bound_material_form, error)
         except ValidationError as error:
             action_error = ' '.join(error.messages)
-        except (Course.DoesNotExist, Module.DoesNotExist, Lesson.DoesNotExist):
+            if bound_material_form is not None and not bound_material_form.errors:
+                _add_errors(bound_material_form, error)
+        except (Course.DoesNotExist, Module.DoesNotExist, Lesson.DoesNotExist, LessonMaterial.DoesNotExist):
             raise Http404
         # A bound ModelForm mutates its instance even on preview/invalid POST.
         if lesson:
@@ -331,6 +369,17 @@ def course(request, course_id):
     preview_materials = []
     visibility_time = timezone.now()
     for material in materials:
+        material.draft_scope = draft_scope(request, obj.pk, lesson.pk, kind=f'material:{material.pk}')
+        material.workspace_form = bound_material_form if material.pk == selected_material_id and bound_material_form is not None else LessonMaterialForm(
+            instance=material, auto_id=f'material_{material.pk}_%s')
+        material.save_revision = material_authoring.material_revision(request.user, material)
+        material.detach_revision = material_authoring.material_revision(request.user, material, 'detach')
+        if material.pk == selected_material_id:
+            if action == 'material_update':
+                material.save_revision = request.POST.get('editor_revision', '')
+            elif action == 'material_detach':
+                material.detach_revision = request.POST.get('editor_revision', '')
+        material.posted_order = request.POST.get(f'order-{material.pk}', '') if action == 'material_reorder' else material.order
         # The canonical predicate decides visibility. The remaining branches
         # only explain its denial; they never grant access independently.
         if materials_service.material_visible_to_student(material, now=visibility_time):
@@ -351,7 +400,8 @@ def course(request, course_id):
         'resources': resources.order_by('-updated_at', '-pk')[:20], 'resource_q': resource_q,
         'cohorts': cohorts, 'outline_revision': outline_token, 'lesson_revision': lesson_token,
         'outline_action_url': outline_action_url,
-        'material_revision': material_token, 'draft_scope': scope,
+        'material_revision': material_token, 'reorder_revision': reorder_token, 'draft_scope': scope,
+        'material_order_scope': draft_scope(request, obj.pk, lesson.pk, kind='material-order') if lesson else '',
         **_saved_context(request),
         'preview_title': preview['title'], 'preview_content': _preview_html(preview['content']),
         'preview_video_url': _preview_video(preview['video_url']), 'preview_unsaved': preview_unsaved,

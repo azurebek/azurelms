@@ -1,0 +1,11 @@
+{% extends "backoffice/base.html" %}
+{% block bo_title %}Imtihonlar{% endblock %}
+{% block bo_topbar %}Imtihonlar{% endblock %}
+{% block bo_content %}
+<div class="bo-editor">
+  <header class="bo-editor-heading"><a href="{{ back_url }}">{% if course %}Kursga{% else %}Boshqaruvga{% endif %} qaytish</a><h1>{% if course %}{{ course.title }} · {% endif %}Imtihonlar</h1><p>Kerakli imtihonni tanlang yoki kurs uchun yangi imtihon tayyorlang.</p></header>
+  <section class="bo-editor-section"><form method="get"><label class="bo-lbl" for="exam-course">Qaysi kurs?</label><select class="field-input" name="course" id="exam-course" required><option value="">Kursni tanlang</option>{% for item in courses %}<option value="{{ item.pk }}"{% if course.pk == item.pk %} selected{% endif %}>{{ item.title }}</option>{% endfor %}</select><div class="bo-editor-actions"><button type="submit" class="bo-editor-save">Imtihonlarni ko‘rsatish</button></div></form>{% if course %}<p><a href="{{ new_url }}">+ Yangi imtihon</a></p>{% endif %}</section>
+  <section class="bo-editor-section"><h2>{% if course %}Kurs imtihonlari{% else %}Mavjud imtihonlar{% endif %}</h2><ul>{% for item in exam_page %}<li><a href="{{ item.editor_url }}">{{ item.title }}</a>{% if not course %} · {{ item.course.title }}{% endif %}</li>{% empty %}<li>Hali imtihon yo‘q. Yuqorida kursni tanlab, yangi imtihon tayyorlang.</li>{% endfor %}</ul></section>
+  {% if exam_page.has_other_pages %}<nav class="bo-editor-actions" aria-label="Imtihon sahifalari">{% if exam_page.has_previous %}<a href="?page={{ exam_page.previous_page_number }}{{ query_suffix }}">← Oldingi</a>{% endif %}<span>{{ exam_page.number }} / {{ exam_page.paginator.num_pages }}</span>{% if exam_page.has_next %}<a href="?page={{ exam_page.next_page_number }}{{ query_suffix }}">Keyingi →</a>{% endif %}</nav>{% endif %}
+</div>
+{% endblock %}

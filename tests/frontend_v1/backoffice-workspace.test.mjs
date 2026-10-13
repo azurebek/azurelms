@@ -259,3 +259,65 @@ test('logout clears workspace drafts without pagehide recreating them or deletin
   assert.equal(h.read('lesson-a'), null);
   assert.equal(h.stored.get('unrelated-preference'), 'keep');
 });
+
+test('material settings, reorder and detach retain unsaved lesson text without acknowledging it', () => {
+  for (const action of ['material_update', 'material_reorder', 'material_detach']) {
+    const form = makeForm('lesson-material-context'), current = harness({forms: [form]});
+    current.edit(form, 'Still preparing this lesson');
+    current.document.events.submit({...event(new Element()), submitter: {value: action}});
+    const saved = current.read('lesson-material-context');
+    assert.equal(saved.values.title, 'Still preparing this lesson');
+    assert.equal(saved.lastSubmission, null);
+    const reopened = makeForm('lesson-material-context');
+    harness({forms: [reopened], stored: current.stored});
+    assert.equal(reopened.controls.recovery.hidden, false);
+    reopened.controls.restore.events.click();
+    assert.equal(reopened.fields[0].value, 'Still preparing this lesson');
+    assert.equal(reopened.querySelector('[name="lesson_revision"]').value, 'server-revision');
+  }
+});
+
+test('material recovery and save receipts stay separate from lesson and other material drafts', () => {
+  const lesson = makeForm('lesson-a'), material = makeForm('material-7');
+  material.fields.push(new Element({name: 'action', type: 'hidden', value: 'material_update'}));
+  material.fields.push(new Element({name: 'display_title', type: 'text', value: 'Edited material'}));
+  material.fields.push(new Element({name: 'available_from', type: 'text', value: 'invalid date'}));
+  const first = harness({forms: [lesson, material]});
+  first.edit(lesson, 'Lesson draft');
+  const materialNonce = first.submit(material, '');
+  // Explicitly submitting a material save must acknowledge only this scope.
+  const materialRecord = first.read('material-7');
+  assert.equal(materialRecord.values.available_from, 'invalid date');
+  assert.equal(first.read('lesson-a').lastSubmission, null);
+  harness({stored: first.stored, receipts: [{scope: 'material-7', nonce: materialNonce}]});
+  assert.equal(first.read('material-7'), null);
+  assert.equal(first.read('lesson-a').values.title, 'Lesson draft');
+});
+
+test('reorder drafts include positions but never revision or hidden control fields', () => {
+  const form = makeForm('order-lesson-a', {bound: true,
+    getUrl: '/backoffice/workspace/courses/3/?lesson=42#materials'});
+  form.fields.push(new Element({name: 'order-7', type: 'text', value: 'invalid'}));
+  form.fields.push(new Element({name: 'editor_revision', type: 'hidden', value: 'material-revision'}));
+  const current = harness({forms: [form], hash: '#materials'});
+  current.submit(form, 'material_reorder');
+  assert.equal(current.read('order-lesson-a').values['order-7'], 'invalid');
+  assert.equal(current.read('order-lesson-a').values.editor_revision, undefined);
+  assert.ok(current.read('order-lesson-a').lastSubmission.id);
+  assert.equal(current.historyCalls[0].url,
+    'http://workspace.test/backoffice/workspace/courses/3/?lesson=42#materials');
+});
+
+test('saving a neighbouring form never overwrites an unresolved recovery choice', () => {
+  const original = makeForm('material-a'), previous = harness({forms: [original]});
+  previous.edit(original, 'Older local draft');
+  const bound = makeForm('material-a', {title: 'Current rejected POST', bound: true});
+  const neighbour = makeForm('material-b');
+  const current = harness({forms: [bound, neighbour], stored: previous.stored});
+  assert.equal(bound.controls.recovery.hidden, false);
+  current.submit(neighbour, 'material_update');
+  assert.equal(current.read('material-a').values.title, 'Older local draft');
+  const leaving = event();
+  current.window.events.beforeunload(leaving);
+  assert.equal(leaving.defaultPrevented, true);
+});
