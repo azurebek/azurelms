@@ -1,5 +1,13 @@
 # Frontend V1 — prototipdan ishlaydigan platformaga
 
+**2026-10-13 — B2.3 lokal tayyor:** [qidiruv/davom ettirish dalili](BACKOFFICE-02-STAGE-3.md).
+Kurs/dars/o‘quvchi/ruxsatli bo‘limni yagona qidiruv, ayni darsga kirish,
+filtrli ro‘yxatga qaytish va sessiyadagi oxirgi uch ish. Recent’da faqat
+ID/tanlovlar, jonli ruxsat tekshiruvi. 1373 Django (1328 PASS, 45 skip),
+155 yakuniy scoped HTTP test va 171 Node PASS;
+320px/200% matn, dark/light va klaviatura sinovi bor. Mavjud gate lokal ON;
+yangi migration/provider yo‘q. B2.4–B2.6 reja; owner qabuli kechiktirilgan.
+
 **2026-10-13 — B2.2 lokal tayyor va yoqilgan:** [topshiriq/test dalili](BACKOFFICE-02-STAGE-2.md).
 Dars ichida topshiriq va bir javobli test, yozuvsiz namuna, qoralama tiklash,
 ishlatilgan kontent himoyasi. 1572 Django test (1525 PASS, 47 skip),

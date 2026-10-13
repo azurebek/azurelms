@@ -1,14 +1,14 @@
 <section id="practice" class="ws-materials" aria-label="Topshiriq va testlar">
   <div class="ws-section-head"><div><h2>Topshiriq va testlar</h2><p class="ws-muted">Darsdan keyin o‘quvchi bilimini mustahkamlash uchun.</p></div></div>
   <div class="ws-inline-actions">
-    <a class="ws-button" href="{% url 'backoffice_workspace_assignment_new' course.pk lesson.pk %}">+ Topshiriq qo‘shish</a>
-    <a class="ws-button" href="{% url 'backoffice_workspace_quiz_new' course.pk lesson.pk %}">+ Test qo‘shish</a>
+    <a class="ws-button" href="{% url 'backoffice_workspace_assignment_new' course.pk lesson.pk %}{% if workspace_return_token %}?return_to={{ workspace_return_token|urlencode }}{% endif %}">+ Topshiriq qo‘shish</a>
+    <a class="ws-button" href="{% url 'backoffice_workspace_quiz_new' course.pk lesson.pk %}{% if workspace_return_token %}?return_to={{ workspace_return_token|urlencode }}{% endif %}">+ Test qo‘shish</a>
   </div>
   {% for assignment in lesson_assignments %}
-  <div class="ws-resource-row"><div><strong>{{ assignment.title }}</strong><p class="ws-help">Topshiriq · {{ assignment.max_xp }} tagacha rag‘bat balli</p></div><a class="ws-button ws-button-small" href="{% url 'backoffice_workspace_assignment_edit' course.pk lesson.pk assignment.pk %}" aria-label="{{ assignment.title }} topshirig‘ini ochish">Ochish →</a></div>
+  <div class="ws-resource-row"><div><strong>{{ assignment.title }}</strong><p class="ws-help">Topshiriq · {{ assignment.max_xp }} tagacha rag‘bat balli</p></div><a class="ws-button ws-button-small" href="{% url 'backoffice_workspace_assignment_edit' course.pk lesson.pk assignment.pk %}{% if workspace_return_token %}?return_to={{ workspace_return_token|urlencode }}{% endif %}" aria-label="{{ assignment.title }} topshirig‘ini ochish">Ochish →</a></div>
   {% endfor %}
   {% for quiz in lesson_quizzes %}
-  <div class="ws-resource-row"><div><strong>{{ quiz.title }}</strong><p class="ws-help">Test · {{ quiz.question_count }} ta savol · {{ quiz.xp_reward }} tagacha rag‘bat balli</p></div><a class="ws-button ws-button-small" href="{% url 'backoffice_workspace_quiz_edit' course.pk lesson.pk quiz.pk %}" aria-label="{{ quiz.title }} testini ochish">Ochish →</a></div>
+  <div class="ws-resource-row"><div><strong>{{ quiz.title }}</strong><p class="ws-help">Test · {{ quiz.question_count }} ta savol · {{ quiz.xp_reward }} tagacha rag‘bat balli</p></div><a class="ws-button ws-button-small" href="{% url 'backoffice_workspace_quiz_edit' course.pk lesson.pk quiz.pk %}{% if workspace_return_token %}?return_to={{ workspace_return_token|urlencode }}{% endif %}" aria-label="{{ quiz.title }} testini ochish">Ochish →</a></div>
   {% endfor %}
   {% if not lesson_assignments and not lesson_quizzes %}<p class="ws-help">Hali topshiriq yoki test yo‘q. Topshiriqda o‘quvchi matn yoki fayl yuboradi. Testda javob variantidan birini tanlaydi.</p>{% endif %}
 </section>

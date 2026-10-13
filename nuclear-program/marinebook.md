@@ -16,6 +16,36 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-13 [Codex]: BACKOFFICE-02 / B2.3 — yagona qidiruv va oxirgi ish
+
+Ownerning «davom et» topshirig‘i bilan kurs/dars/o‘quvchi/ruxsatli bo‘limlar
+qidiruvi, filtrli qaytish va sessiyadagi oxirgi uch ishga kirish qurildi.
+Yangi sahifa `workspace/search/`; ma’lumot/ruxsat manbalari mavjud servicelarda.
+
+- Branch: `codex/backoffice-search-resume`; implementatsiya: `2b19647`.
+  [Shartnoma, admission va dalil](frontend-v1/BACKOFFICE-02-STAGE-3.md).
+- Search fixed-query COUNT/slice, parent label, full name/apostrophe matching.
+  Recent faqat ID/tanlov; fresh scope/flag/parent recheck. Qidiruv matni,
+  kontakt, URL/token va qoralama recent’da saqlanmaydi. Signed return token
+  actor+session bilan bog‘langan, aniq mahalliy source/destinationlarga boradi.
+- Safe env: `venv/Scripts/python.exe manage.py test core courses --verbosity 1`
+  **1373 / 1328 PASS / 45 skip**, 349.015s. Yakuniy scoped 8 modul **155/155**,
+  `node --test tests/frontend_v1/*.test.mjs` **171/171**. Check 0, migration
+  drift yo‘q, staged diff-check va 51 ichki hujjat havolasi PASS.
+- Birinchi broad run o‘rtasida final course-context tuzatishi qo‘shilgani
+  uchun eski Python/yangi template aralashgan bitta assertion yiqildi;
+  tahrir tugagach to‘liq ayni suite qayta o‘tdi. Agent test fixturelaridagi
+  unique-email/required-description xatolari ham fixture darajasida tuzatildi.
+- IAB synthetic 8101: search→lesson→payments→home/recent; learner kurs/dars
+  tanlovi va Back; course settings→ayni lesson→search. 320/1440px, 200%
+  rendered text, dark/light, Tab focus, console0. Material GET, settings va
+  stale Back konteksti hamda clipped focus independent review bilan tuzatildi.
+- Primary lokal 4 authenticated read rollback ichida 200/private/no-store;
+  barcha jadval snapshotlari teng. Yangi flag/migration/provider yoki owner
+  kontent yozuvi yo‘q; mavjud nav flag ON, 8092 server yangilandi.
+- Required CI/review’dan so‘ng standing workflow bo‘yicha manual merge.
+  B2.4 keyingi bosqich; owner/native/AT qabuli va production ochiq qoladi.
+
 ## 2026-10-13 [Codex]: BACKOFFICE-02 / B2.2 — topshiriq va oddiy test tayyorlash
 
 Ownerning «davom et» topshirig‘i bilan dars ichida assignment va bir javobli

@@ -228,8 +228,9 @@ Yonidagi bosiladigan namuna faqat taklifning navigatsiyasi va uch ish shaklini t
 <a id="backoffice-02"></a>
 ## 11. BACKOFFICE-02 — kundalik ishlarni yakunlash
 
-**Holat: B2.1–B2.2 lokal tayyor (2026-10-13); B2.3–B2.6 reja.**
-[B2.1 dalili](BACKOFFICE-02-STAGE-1.md), [B2.2 dalili](BACKOFFICE-02-STAGE-2.md).
+**Holat: B2.1–B2.3 lokal tayyor (2026-10-13); B2.4–B2.6 reja.**
+[B2.1 dalili](BACKOFFICE-02-STAGE-1.md), [B2.2 dalili](BACKOFFICE-02-STAGE-2.md),
+[B2.3 dalili](BACKOFFICE-02-STAGE-3.md).
 Reja sanasi 2026-10-12; kod tayanchi
 `cd2ce2c`. Yangi phase shu hujjatda yuritiladi; parallel roadmap ochilmaydi.
 Owner topshirig‘i: shaxsiy usability sinovini keyinroq bajaradi, shu vaqtgacha
@@ -287,6 +288,27 @@ test — topshiriladi; ikkalasi bitmaguncha B2.2 yopilmaydi.
 Topilgan unrelated feature ushbu ro‘yxatga jimgina qo‘shilmaydi.
 
 ### Implementatsiya shartnomalari
+
+#### B2.3 admission — 2026-10-13
+
+**ADMIT — launch-critical.** Ownerning «davom et» topshirig‘i bilan kurs,
+dars, o‘quvchi va ruxsatli bo‘limni bitta qidiruvdan ochish hamda ayni
+sessiyada oxirgi ochilgan ishga qaytish quriladi. KPI: 6-ssenariy — qidiruv
+→ ayni dars → boshqa bo‘lim → davom ettirish; begona natija va soxta recent 0.
+Canonical manbalar `teacher_course_queryset`, `support_student_queryset`
+va mavjud navigatsiya registri; yangi qidiruv faqat o‘qiydi. Fresh active
+staff/owner ruxsati, ota kurs va destination flaglari tekshiriladi.
+Kontent, baho, enrollment va progress yozilmaydi. Recent faqat actor va
+sessiyaga tegishli obyekt IDlari hamda cheklangan tanlovlardan iborat;
+ism, aloqa ma’lumoti yoki qoralama matni saqlanmaydi. Ochishda ruxsat va
+mavjudlik qayta tekshiriladi. Qidiruv/listga qaytish konteksti URL orqali
+chegaralangan va tasdiqlangan manzilga boradi; tashqi redirect yo‘q.
+Haftalik yuk kamayadi: qayta-qayta bo‘lim va dars qidirish kerak bo‘lmaydi.
+Mavjud `backoffice_unified_navigation` OFF yangi qidiruv/recentni yopadi;
+saqlangan kontent va eski kirishlar qoladi. Noto‘g‘ri so‘rovda sodda xato,
+bo‘sh natijada aniq qaytish yo‘li; sahifalash va chegaralangan so‘rovlar.
+Migration, yangi provider, production va qurilmalararo tarix qamrovda yo‘q.
+Sinovlar alohida synthetic bazada; owner bazasiga sinov kontenti yozilmaydi.
 
 #### B2.2 admission — 2026-10-13
 

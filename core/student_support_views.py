@@ -182,14 +182,15 @@ def student(request, student_id):
         'action_url': _url('backoffice_receipts', enrollment=receipt.enrollment_id, receipt=receipt.pk,
                            lesson=lesson.pk if lesson else ''),
     } for receipt in context['pending_receipts']]
+    from core.backoffice_return import with_return
     context.update(
         display_name=target.get_full_name().strip() or target.username,
         contact_phone=target.phone_number if request.user.is_superuser else '',
         enrollment_rows=enrollment_rows, receipt_rows=receipt_rows,
         next_steps=_resolution_links(request.user, context), list_context=list_context,
         back_url=_url('backoffice_workspace_students', q=list_context['q'], page=list_context['page'], course=list_context['filter_course']),
-        recheck_url=_url('backoffice_workspace_student', kwargs={'student_id': student_id}, **list_context,
-                        course=course.pk if course else '', lesson=lesson.pk if lesson else ''),
+        recheck_url=with_return(request, _url('backoffice_workspace_student', kwargs={'student_id': student_id}, **list_context,
+                        course=course.pk if course else '', lesson=lesson.pk if lesson else '')),
     )
     guidance = {
         'account_inactive': 'Hisob faolligini administrator tekshirishi kerak. Bu sahifa hisobni avtomatik faollashtirmaydi.',
@@ -205,4 +206,10 @@ def student(request, student_id):
             context['support_guidance'] = 'Guruh boshqaruvda nofaol. Administrator guruh sozlamalarini tekshirishi kerak.'
         elif code == 'sequence' and context['previous_assignments_missing']:
             context['support_guidance'] = 'O‘quvchi oldingi darsdagi topshiriqlarni yuborishi kerak. Yuborilgach ustoz tekshiradi.'
-    return _render(request, 'student', context)
+    response = _render(request, 'student', context)
+    from core.backoffice_recent import record_opened
+    return record_opened(request, response, kind='student', student_id=target.pk,
+                         course_id=course.pk if course else None,
+                         lesson_id=lesson.pk if lesson else None,
+                         filter_course_id=list_course.pk if list_course else None,
+                         page=list_context['page'])

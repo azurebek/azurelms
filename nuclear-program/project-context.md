@@ -698,6 +698,18 @@ AI room nomi birinchi prompt'dan avtomatik o'zgarishi mumkin (`maybe_name_ai_roo
 
 ### 4.10 Backoffice
 
+**Topish va davom ettirish (2026-10-13):** mavjud `backoffice_unified_navigation`
+gate’i ortida `/backoffice/workspace/search/` kurs/dars/o‘quvchi va ruxsatli
+bo‘limlar uchun GET qidiruv. `core/backoffice_search.py` fresh actor va
+canonical scope bilan bounded COUNT/slice; nom va ota nomi, contact/body yo‘q.
+`backoffice_return.py` actor/session-bound signed list tokenini faqat
+allowlisted mahalliy sahifalar orqali o‘tkazadi. `backoffice_recent.py`
+successful GET’da session-only oxirgi uch ID/selectionni qayd etadi; home
+ruxsat va jonli nomlarni qayta o‘qiydi. Qidiruv matni recent’da saqlanmaydi.
+Search/list qaytish, selected lesson, course settings, practice va support
+selector konteksti URLda saqlanadi. Yangi migration/provider/business writer
+yo‘q. [B2.3 shartnoma va dalil](frontend-v1/BACKOFFICE-02-STAGE-3.md).
+
 **Dars topshirig‘i va oddiy test (2026-10-13):** `backoffice_practice_authoring`
 default OFF, lokal ON. `/backoffice/workspace/courses/<course>/lessons/<lesson>/`
 ostida `assignments/new/`, `assignments/<id>/`, `quizzes/new/`, `quizzes/<id>/`.

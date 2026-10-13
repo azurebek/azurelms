@@ -4,7 +4,7 @@
 {% block workspace_section %}O‘quvchilar{% endblock %}
 {% block workspace_content %}
 <div class="sp-page sp-person-page">
-  <a class="ws-back sp-back" href="{{ back_url }}">← O‘quvchilar ro‘yxatiga qaytish</a>
+  {% if not workspace_return_url %}<a class="ws-back sp-back" href="{{ back_url }}">← O‘quvchilar ro‘yxatiga qaytish</a>{% endif %}
   <header class="sp-person-card">
     <div class="sp-person-identity"><span class="sp-avatar" aria-hidden="true">{{ display_name|first|upper }}</span><div><p class="ws-eyebrow">O‘QUVCHIGA YORDAM</p><h1>{{ display_name }}</h1><div class="sp-contact-line"><span>@{{ student.username }}</span>{% if student.email %}<span>{{ student.email }}</span>{% endif %}{% if contact_phone %}<span>{{ contact_phone }}</span>{% endif %}</div></div></div>
     <div class="sp-account-status"><span>Hisobga kirish</span><strong{% if not student.is_active %} class="sp-account-disabled"{% endif %}><span class="sp-status-dot" aria-hidden="true"></span>{% if student.is_active %}Yoqilgan{% else %}O‘chirilgan{% endif %}</strong></div>
@@ -13,12 +13,12 @@
   <section class="sp-question" aria-labelledby="support-question-title">
     <div class="sp-question-heading"><span class="sp-question-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2V4Z"></path><path d="M5 16h13M9 8h5M9 11h3"></path></svg></span><div><h2 id="support-question-title">Darsga kira olmayapti</h2><p>Qaysi kurs va darsda yordam kerak?</p></div></div>
     <div class="sp-selection">
-      <form method="get" class="sp-selector">
+      <form method="get" class="sp-selector">{% if workspace_return_token %}<input type="hidden" name="return_to" value="{{ workspace_return_token }}">{% endif %}
         <input type="hidden" name="q" value="{{ list_context.q }}"><input type="hidden" name="page" value="{{ list_context.page }}"><input type="hidden" name="filter_course" value="{{ list_context.filter_course }}">
         <label for="support-course">1. Kursni tanlang</label><div class="sp-selector-controls"><select name="course" id="support-course" required><option value="">Kursni tanlang</option>{% for course in course_options %}<option value="{{ course.pk }}"{% if selected_course.pk == course.pk %} selected{% endif %}>{{ course.title }}</option>{% endfor %}</select><button type="submit" class="ws-button"{% if not course_options %} disabled{% endif %}>Tanlash</button></div>
       </form>
       {% if selected_course and lessons %}
-      <form method="get" class="sp-selector">
+      <form method="get" class="sp-selector">{% if workspace_return_token %}<input type="hidden" name="return_to" value="{{ workspace_return_token }}">{% endif %}
         <input type="hidden" name="q" value="{{ list_context.q }}"><input type="hidden" name="page" value="{{ list_context.page }}"><input type="hidden" name="filter_course" value="{{ list_context.filter_course }}"><input type="hidden" name="course" value="{{ selected_course.pk }}">
         <label for="support-lesson">2. Darsni tanlang</label><div class="sp-selector-controls"><select name="lesson" id="support-lesson" required><option value="">Darsni tanlang</option>{% regroup lessons by module as module_groups %}{% for group in module_groups %}<optgroup label="{{ group.grouper.title }}">{% for lesson in group.list %}<option value="{{ lesson.pk }}"{% if selected_lesson.pk == lesson.pk %} selected{% endif %}>{{ lesson.title }}</option>{% endfor %}</optgroup>{% endfor %}</select><button type="submit" class="ws-button ws-button-primary">Tekshirish</button></div>
       </form>
