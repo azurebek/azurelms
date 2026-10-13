@@ -243,11 +243,12 @@
   .bo-editor:is(.bo-exam-editor,.catalog-form,.blog-editor) :is(.bo-editor-section,.bo-editor-details) h2:not(.ck *) { font-size: var(--dc-text-lg, 1.125rem); line-height: var(--dc-heading-leading, 1.4); }
   .bo-editor.lib-editor .lib-editor-heading { font-size: var(--dc-text-lg, 1.25rem); line-height: var(--dc-heading-leading, inherit); }
   .bo-editor.sit-bo-wrap :is(.sit-bo-form-section h2,.sit-bo-related summary h3):not(.ck *) { font-size: var(--dc-text-lg, 1.125rem); line-height: var(--dc-heading-leading, 1.5); }
-  .bo-editor:is(.bo-exam-editor,.lib-editor,.catalog-form,.blog-editor,.sit-bo-wrap) :is(.bo-lbl,.se-lbl,.bo-editor-check,.bo-check,.brand-field > label,.sit-bo-label,.sit-bo-checkline,.sit-bo-confirm):not(.ck *) {
+  .bo-editor:is(.bo-exam-editor,.lib-editor,.catalog-form,.blog-editor,.sit-bo-wrap) :is(.bo-lbl,.se-lbl,.bo-editor-check,.bo-check,.content-editor-check,.brand-field > label,.sit-bo-label,.sit-bo-checkline,.sit-bo-confirm):not(.ck *) {
     font-family: inherit; font-size: var(--dc-text-sm, 1rem); font-weight: var(--dc-label-weight, inherit); line-height: var(--dc-label-leading, 1.5);
   }
   .bo-editor.blog-editor label.se-lbl:not(.ck *),
   .workspace-body .bo-editor:is(.bo-exam-editor,.lib-editor) label.bo-lbl:not(.ck *) { font-weight: var(--dc-label-weight, 600); }
+  .bo-editor.blog-editor label.content-editor-check:not(.ck *) { line-height: var(--dc-label-leading, 1.6); }
   .bo-editor:is(.bo-exam-editor,.catalog-form,.blog-editor) :is(.bo-editor-help,.bo-help,.se-help) { font-size: var(--dc-text-xs, .875rem); line-height: var(--dc-body-leading, 1.6); }
   .bo-editor.lib-editor .bo-help { font-size: var(--dc-text-xs, .875rem); line-height: var(--dc-body-leading, 1.6); }
   .bo-editor.lib-editor .lib-sub { font-size: var(--dc-text-xs, .9375rem); line-height: var(--dc-body-leading, 1.6); }

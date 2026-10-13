@@ -134,6 +134,12 @@ Mahalliy rasmlar/loglar Gitga kirmaydi: `.tools/backoffice-b25/` ichida
   sinov kontenti saqlanmadi. Dalil: `.tools/backoffice-b25/local-smoke-report.json`.
 - Required CI va PR review integratsiya gate’i; yashil bo‘lgach standing
   workflow bo‘yicha merge qilinadi. Native/production qabuli deb hisoblanmaydi.
+- PR188 reviewda blog checkbox yorliqlarining label tokenlari qamrab
+  olinmagani topildi va tuzatildi. Haqiqiy blogda oddiy va checkbox
+  yorliqlari `text-sm=16`, `label-weight=700`, `label-leading=1.8`
+  bilan bir xil 16px/700/28.8px bo‘ldi; default leading1.6 saqlandi
+  (before/after farq0). Runtime testi **10/10 PASS**. Sinov nashr9,
+  default10dan so‘ng boshlang‘ich qiymatlar nashr11da yana tiklandi.
 
 ## Flaglar va chegaralar
 

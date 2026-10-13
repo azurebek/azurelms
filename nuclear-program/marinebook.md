@@ -46,6 +46,10 @@ Maydonlar tanlovi va haqiqiy klasslarni ishlatadigan inert forma namunasi bor.
   **149 jadval / 1316 qator** hash teng. Kontent/auth/flag o‘zgarmadi.
 - Required CI/review’dan keyin standing workflow bo‘yicha manual merge.
   B2.6 birgalikdagi sifat tekshiruvi, owner/native/AT va production qabuli qolgan.
+- PR188 P2 review: blog checkbox yorliqlari label tokenlariga qo‘shildi;
+  default leading1.6 saqlandi. Browser explicit16px/700/28.8px va default
+  before/after0 tasdiqlandi, runtime10/10 PASS; fixture original qiymatlari
+  nashr11da qayta tiklandi.
 
 ## 2026-10-13 [Codex]: BACKOFFICE-02 / B2.4 — natija va bildirishnoma yordami
 
