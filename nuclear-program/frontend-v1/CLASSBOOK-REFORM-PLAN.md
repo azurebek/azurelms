@@ -31,11 +31,18 @@ Asosiy o‘zgarishlar:
 chiqadi; hamma bosqich tugashini kutadigan alohida katta prototip davri yo‘q.
 Ownerning keyinga qoldirilgan shaxsiy sinovi texnik ishlarni to‘xtatmaydi.
 
-**Admission:** owner so‘rovi bo‘yicha **ADMIT — rejalashtirish**. Kodlash
-bu taskda boshlanmaydi; har bosqich boshlanganda quyidagi canonical chegara,
-schema va rollout contracti uning implementatsiya daliliga bog‘lanadi.
-Asosiy KPI — o‘qituvchining darsni texnik sintaksissiz tayyorlab, jonli oqimni
-tugatishi va learnerning o‘z javob holatini aniq bilishi. Texnik maqsad:
+**Admission natijasi: ADMIT — post-launch.** Bu sakkiz bosqich mavjud
+Classbook ustidagi keyingi mahsulot islohoti; avvalgi A3b launch-critical
+minimumini qaytadan ochmaydi yoki yangi launch to‘sig‘iga aylantirmaydi.
+Bu tasnif production/owner qabuli tugagan degani emas: eski real Telegram,
+qurilma va owner gate’lari o‘z holatida qoladi. Owner so‘rovi bilan hozir
+reja tayyorlandi; kodlash bu taskda boshlanmaydi. Har bosqich boshlanganda
+quyidagi canonical chegara, schema va rollout contracti uning implementatsiya
+daliliga bog‘lanadi. CB1.1a shu islohotning birinchi lokal kesimi.
+
+Asosiy KPI — o‘qituvchining darsni texnik yordamsiz tayyorlab, jonli oqimni
+muvaffaqiyatli tugatish ulushi; haqiqiy owner o‘lchovi keyingi qabulda.
+Learnerning javob holatini aniq bilishi alohida qabul ssenariysi. Texnik maqsad:
 §6dagi 12/12 ssenariy, 10/10 muharrir turi, noaniq muvaffaqiyat/data-loss0.
 Amal/vaqt baseline bilan solishtiriladi; owner usability natijasi alohida.
 

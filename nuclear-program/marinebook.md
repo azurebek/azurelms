@@ -35,6 +35,9 @@ jonli dars va hisobot yo‘li hamda o‘quvchining bitta dars xonasi qamrab olin
 - CB1.1a session policy/history va adapter/guard contracti birinchi kesim;
   undan keyin Darslarim. Sakkiz bosqich, 12 E2E ssenariy, rollback va
   canonical owner/admission chegaralari bor. Yangi video yoki AI platformasi yo‘q.
+- PR192 review tuzatishi: admission **ADMIT — post-launch** deb aniqlandi;
+  mavjud A3b launch-critical minimumi va ochiq owner/device gate’lari
+  qayta tasniflanmaydi. Rejalashtirish holati bilan ustuvorlik ajratildi.
 - Docs tekshiruvi: `git diff --check` PASS;
   `venv/Scripts/python.exe .tools/docs-sync/verify_docs.py` — 98 hujjat,
   689 relative link, 31 anchor, missing0 (reja commitidan oldin).
