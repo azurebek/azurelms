@@ -1,5 +1,7 @@
 """Owner boundary, strict input and durable browser reconciliation contracts."""
 import json
+from html.parser import HTMLParser
+import re
 from unittest.mock import patch
 from uuid import uuid4
 
@@ -60,6 +62,36 @@ class DesignViewsTests(TestCase):
         self.client.force_login(self.owner)
         get_user_model().objects.filter(pk=self.owner.pk).update(is_superuser=False)
         self.assertEqual(self.save().status_code, 403)
+        self.assertEqual(self.counts(), (0, 0, 0, 0, 0))
+
+    def test_editor_preview_is_inert_and_cannot_submit_real_content(self):
+        response = self.client.get(reverse('backoffice_design'))
+        self.assertContains(response, '<option value="editor">')
+        html = response.content.decode()
+        sample = re.search(r'<template id="design-sample-editor">(.*?)</template>', html, re.S)
+        self.assertIsNotNone(sample)
+
+        class Elements(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.tags = []
+
+            def handle_starttag(self, tag, attrs):
+                self.tags.append((tag, dict(attrs)))
+
+        elements = Elements()
+        elements.feed(sample.group(1))
+        self.assertTrue(any(tag == 'input' for tag, _ in elements.tags))
+        for tag, attrs in elements.tags:
+            self.assertNotIn(tag, {'script', 'form', 'iframe', 'object', 'embed', 'img'})
+            self.assertFalse(any(key.startswith('on') for key in attrs))
+            self.assertNotIn('formaction', attrs)
+            if tag in {'input', 'textarea'}:
+                self.assertTrue('readonly' in attrs or 'disabled' in attrs)
+                self.assertNotIn('name', attrs)
+            if tag == 'button':
+                self.assertEqual(attrs.get('type'), 'button')
+        self.assertIn('sandbox=""', html)
         self.assertEqual(self.counts(), (0, 0, 0, 0, 0))
 
     def test_flag_off_disables_editor_and_in_flight_request(self):

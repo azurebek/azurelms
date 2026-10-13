@@ -225,4 +225,117 @@
     body[data-frontend="v1"] .s-mw-message { max-width: min(94%, var(--dc-reading-width, var(--az-reading))); }
     body[data-frontend="v1"] .s-mw-composer { padding-inline: var(--dc-composer-pad, var(--az-space-3)); }
   }
+
+  /* The admitted legacy editors consume the same published values. Each
+     fallback is the existing form's value; lists, other editors and vendor
+     controls are outside this adapter. Text aliases are absent when unset. */
+  .bo-editor:is(.bo-exam-editor,.lib-editor,.catalog-form,.blog-editor,.sit-bo-wrap) {
+    font-family: var(--az-font, inherit); font-size: var(--dc-text-md, 1rem);
+    font-weight: var(--dc-body-weight, inherit); line-height: var(--dc-body-leading, 1.6);
+  }
+  .bo-editor:is(.bo-exam-editor,.lib-editor,.catalog-form,.blog-editor,.sit-bo-wrap) :is(h1,h2,h3):not(.ck *) {
+    font-family: var(--dc-heading-font, inherit); font-weight: var(--dc-heading-weight, var(--az-weight-bold, 700));
+  }
+  .bo-editor.lib-editor :is(.lib-editor-title,.lib-editor-heading):not(.ck *),
+  .bo-editor.sit-bo-wrap .sit-bo-head h1:not(.ck *) { font-weight: var(--dc-heading-weight, var(--az-weight-bold, 600)); }
+  .bo-editor:is(.bo-exam-editor,.blog-editor,.sit-bo-wrap) :is(.bo-editor-heading,.content-editor-head,.sit-bo-head) h1 { font-size: var(--dc-text-title, 1.75rem); line-height: var(--dc-heading-leading, 1.3); }
+  .bo-editor.lib-editor .lib-editor-title { font-size: var(--dc-text-title, 1.5rem); line-height: var(--dc-heading-leading, inherit); }
+  .bo-editor:is(.bo-exam-editor,.catalog-form,.blog-editor) :is(.bo-editor-section,.bo-editor-details) h2:not(.ck *) { font-size: var(--dc-text-lg, 1.125rem); line-height: var(--dc-heading-leading, 1.4); }
+  .bo-editor.lib-editor .lib-editor-heading { font-size: var(--dc-text-lg, 1.25rem); line-height: var(--dc-heading-leading, inherit); }
+  .bo-editor.sit-bo-wrap :is(.sit-bo-form-section h2,.sit-bo-related summary h3):not(.ck *) { font-size: var(--dc-text-lg, 1.125rem); line-height: var(--dc-heading-leading, 1.5); }
+  .bo-editor:is(.bo-exam-editor,.lib-editor,.catalog-form,.blog-editor,.sit-bo-wrap) :is(.bo-lbl,.se-lbl,.bo-editor-check,.bo-check,.brand-field > label,.sit-bo-label,.sit-bo-checkline,.sit-bo-confirm):not(.ck *) {
+    font-family: inherit; font-size: var(--dc-text-sm, 1rem); font-weight: var(--dc-label-weight, inherit); line-height: var(--dc-label-leading, 1.5);
+  }
+  .bo-editor.blog-editor label.se-lbl:not(.ck *),
+  .workspace-body .bo-editor:is(.bo-exam-editor,.lib-editor) label.bo-lbl:not(.ck *) { font-weight: var(--dc-label-weight, 600); }
+  .bo-editor:is(.bo-exam-editor,.catalog-form,.blog-editor) :is(.bo-editor-help,.bo-help,.se-help) { font-size: var(--dc-text-xs, .875rem); line-height: var(--dc-body-leading, 1.6); }
+  .bo-editor.lib-editor .bo-help { font-size: var(--dc-text-xs, .875rem); line-height: var(--dc-body-leading, 1.6); }
+  .bo-editor.lib-editor .lib-sub { font-size: var(--dc-text-xs, .9375rem); line-height: var(--dc-body-leading, 1.6); }
+  .bo-editor.lib-editor :is(.lib-editor-intro,.lib-editor-notice,.lib-editor-error) { font-size: var(--dc-text-md, 1rem); line-height: var(--dc-body-leading, 1.6); }
+  .bo-editor.lib-editor :is(.lib-sub,.lib-editor-error) { line-height: var(--dc-body-leading, 1.5); }
+  .bo-editor.catalog-form .brand-field small { font-size: var(--dc-text-xs, .875rem); line-height: var(--dc-body-leading, 1.6); }
+  .bo-editor.sit-bo-wrap :is(.sit-bo-help,.sit-bo-head p,.sit-bo-form-section > p,.sit-bo-related summary p,.sit-bo-audit-item) { font-size: var(--dc-text-xs, .9375rem); line-height: var(--dc-body-leading, 1.6); }
+  .bo-editor.sit-bo-wrap .sit-bo-kicker { font-size: var(--dc-text-sm, 1rem); line-height: var(--dc-label-leading, 1.5); }
+  .bo-editor:is(.bo-exam-editor,.lib-editor,.catalog-form,.blog-editor) :is(.bo-err,.se-err,.errorlist) { font-size: var(--dc-text-sm, .9375rem); line-height: var(--dc-body-leading, 1.5); }
+  .bo-editor.sit-bo-wrap .sit-bo-error { font-size: var(--dc-text-sm, 1rem); line-height: var(--dc-body-leading, 1.5); }
+  .bo-editor:is(.bo-exam-editor,.catalog-form,.blog-editor,.sit-bo-wrap) .bo-editor-details > summary,
+  .bo-editor.lib-editor .lib-editor-details > summary { font-size: var(--dc-text-sm, 1rem); line-height: var(--dc-label-leading, 1.5); font-weight: var(--dc-label-weight, 650); }
+  .bo-editor.lib-editor .lib-editor-details > summary { font-weight: var(--dc-label-weight, 600); }
+  .bo-editor:is(.bo-exam-editor,.catalog-form,.blog-editor,.sit-bo-wrap) .bo-editor-details > summary :is(small,span) { font-size: var(--dc-text-xs, .875rem); line-height: var(--dc-body-leading, inherit); }
+
+  /* The catalog heading is the adjacent sibling of its form, not its child. */
+  .brand-hero:has(+ .catalog-form.bo-editor) { font-family: var(--az-font, inherit); }
+  .brand-hero:has(+ .catalog-form.bo-editor) h1 { font-family: var(--dc-heading-font, inherit); font-size: var(--dc-text-title, clamp(25px,3vw,34px)); font-weight: var(--dc-heading-weight, var(--az-weight-bold, 700)); line-height: var(--dc-heading-leading, inherit); }
+  .brand-hero:has(+ .catalog-form.bo-editor) p { font-size: var(--dc-text-md, 13.5px); line-height: var(--dc-body-leading, 1.65); }
+  .brand-hero:has(+ .catalog-form.bo-editor) .brand-kicker { font-size: var(--dc-text-xs, 9.5px); }
+  .brand-hero:has(+ .catalog-form.bo-editor) .brand-back { font-size: var(--dc-text-sm, 12px); border-radius: var(--dc-button-radius, 9px); }
+
+  .bo-editor:is(.bo-exam-editor,.lib-editor,.catalog-form,.blog-editor,.sit-bo-wrap) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="range"]),select,textarea):not(.ck *) {
+    font-family: inherit; font-size: var(--dc-text-md, 1rem); line-height: var(--dc-body-leading, 1.5);
+    min-height: var(--dc-field-height, 2.75rem); border-width: var(--dc-field-border, 1px);
+  }
+  .bo-editor:is(.bo-exam-editor,.lib-editor,.sit-bo-wrap) .bo-form :where(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="range"]),select,textarea):not(.ck *) {
+    border-radius: var(--dc-field-radius, 10px); padding: var(--dc-field-pad, 0px) var(--dc-field-pad, 13px);
+  }
+  .bo-editor:is(.bo-exam-editor,.lib-editor,.sit-bo-wrap) .bo-form :is(textarea,input[type="file"]):not(.ck *) { padding: var(--dc-field-pad, 11px) var(--dc-field-pad, 13px); }
+  .workspace-body .bo-editor:is(.bo-exam-editor,.lib-editor,.sit-bo-wrap) .bo-form :is(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="range"]),select,textarea):not(.ck *) { padding: var(--dc-field-pad, 9px) var(--dc-field-pad, 13px); }
+  .bo-editor.catalog-form .brand-input { border-radius: var(--dc-field-radius, 9px); padding: var(--dc-field-pad, 9px) var(--dc-field-pad, 11px); }
+  .bo-editor.blog-editor .content-editor-field :is(input:not([type="checkbox"]):not([type="hidden"]),select,textarea):not(.ck *) { border-radius: var(--dc-field-radius, .625rem); padding: var(--dc-field-pad, .625rem) var(--dc-field-pad, .75rem); }
+
+  .bo-editor:is(.bo-exam-editor,.lib-editor,.catalog-form,.blog-editor,.sit-bo-wrap) :is(.bo-editor-save,.catalog-save,.content-editor-button,.sit-bo-btn,.lib-primary,.lib-action) {
+    font-family: inherit; font-size: var(--dc-text-sm, 1rem); font-weight: var(--dc-label-weight, 600); line-height: var(--dc-label-leading, 1.5);
+    min-height: var(--dc-button-height, 2.75rem); border-radius: var(--dc-button-radius, 10px);
+  }
+  .bo-editor.bo-exam-editor .bo-editor-save { font-weight: var(--dc-label-weight, inherit); padding: var(--dc-button-pad-y, .75rem) var(--dc-button-pad-x, 1.25rem); }
+  .bo-editor.catalog-form .catalog-save { padding: var(--dc-button-pad-y, .65rem) var(--dc-button-pad-x, 24px); }
+  .bo-editor:is(.blog-editor,.sit-bo-wrap) :is(.content-editor-button,.sit-bo-btn) { padding: var(--dc-button-pad-y, .625rem) var(--dc-button-pad-x, 1rem); border-width: var(--dc-button-border, 1px); }
+  .bo-editor.blog-editor .content-editor-button { border-radius: var(--dc-button-radius, .625rem); }
+  .workspace-body .bo-editor.blog-editor .content-editor-button { padding-block: var(--dc-button-pad-y, .65rem); }
+  .bo-editor.sit-bo-wrap .sit-bo-btn { border-radius: var(--dc-button-radius, 9px); }
+  .bo-editor.lib-editor :is(.lib-primary,.lib-action) { padding: var(--dc-button-pad-y, .65rem) var(--dc-button-pad-x, 1rem); font-weight: var(--dc-label-weight, 700); }
+  .bo-editor.lib-editor .lib-action { border-radius: var(--dc-button-radius, 9px); border-width: var(--dc-button-border, 1px); }
+  .bo-editor.lib-editor .lib-editor-back { min-width: var(--dc-icon-size, 2.75rem); min-height: var(--dc-icon-size, 2.75rem); border-radius: var(--dc-button-radius, .625rem); border-width: var(--dc-button-border, 1px); font-size: var(--dc-text-sm, 1rem); }
+  .bo-editor:is(.bo-exam-editor,.catalog-form,.lib-editor) :is(.bo-editor-save,.catalog-save,.lib-primary) { border-style: solid; border-width: var(--dc-button-border, 0px); border-color: var(--azure); }
+
+  .bo-editor:is(.bo-exam-editor,.catalog-form,.blog-editor,.sit-bo-wrap) :is(.bo-editor-section,.bo-editor-details),
+  .bo-editor.lib-editor .bo-card,
+  .bo-editor.sit-bo-wrap :is(.sit-bo-form-section,.sit-bo-related) { border-radius: var(--dc-card-radius, 14px); border-width: var(--dc-card-border, 1px); box-shadow: var(--dc-card-shadow, none); }
+  .bo-editor.catalog-form { border-radius: var(--dc-card-radius, 15px); border-width: var(--dc-card-border, 1px); box-shadow: var(--dc-card-shadow, none); padding: var(--dc-card-pad, 19px); }
+  .bo-editor:is(.bo-exam-editor,.catalog-form,.blog-editor,.sit-bo-wrap) :is(.bo-editor-section,.bo-editor-details) { padding: var(--dc-card-pad, 1.25rem); }
+  .bo-editor.lib-editor .bo-card { padding: var(--dc-card-pad, 22px); }
+  .bo-editor.lib-editor .lib-editor-details { border-radius: var(--dc-card-radius, .75rem); border-width: var(--dc-card-border, 1px); padding: var(--dc-card-pad, 1rem); }
+  .workspace-body .bo-editor.lib-editor .bo-card.lib-editor-details { border-radius: var(--dc-card-radius, 14px); padding: var(--dc-card-pad, 22px); }
+  .bo-editor.sit-bo-wrap .sit-bo-form-section { padding: var(--dc-card-pad, 20px); }
+  .bo-editor.sit-bo-wrap .sit-bo-formset-row { border-radius: var(--dc-card-radius, 11px); border-width: var(--dc-card-border, 1px); padding: var(--dc-card-pad, 13px); }
+
+  /* Density controls spacing between form sections; card padding is independent. */
+  .bo-editor:is(.bo-exam-editor,.catalog-form,.blog-editor,.sit-bo-wrap) :is(.bo-editor-section,.bo-editor-details) { margin-bottom: var(--dc-density, 1.25rem); }
+  .bo-editor:is(.bo-exam-editor,.catalog-form,.blog-editor) :is(.bo-editor-grid,.bo-editor-fields,.content-editor-layout,.content-editor-stack) { gap: var(--dc-density, 1.25rem); }
+  .bo-editor.lib-editor .lib-editor-layout { gap: var(--dc-density, 1.5rem); }
+  .bo-editor.catalog-form { gap: var(--dc-density, 18px); }
+  .bo-editor.sit-bo-wrap :is(.sit-bo-form-stack,.sit-bo-fields) { gap: var(--dc-density, 14px); }
+  .bo-editor.sit-bo-wrap .sit-bo-form-layout { gap: var(--dc-density, 16px); }
+  .bo-editor.sit-bo-wrap .sit-bo-formset-row { gap: var(--dc-density, 1rem); }
+  /* The unified shell's existing runtime wins over page heading leading.
+     Keep that baseline when the owner has not chosen a heading override. */
+  .workspace-body .bo-editor:is(.bo-exam-editor,.lib-editor,.catalog-form,.blog-editor,.sit-bo-wrap) h1:not(.ck *),
+  .workspace-body .brand-hero:has(+ .catalog-form.bo-editor) h1 { line-height: var(--dc-heading-leading, var(--az-leading-tight)); }
+  .workspace-body .bo-editor:is(.bo-exam-editor,.lib-editor,.catalog-form,.blog-editor,.sit-bo-wrap) h2:not(.ck *) { line-height: var(--dc-heading-leading, 1.35); }
+  .workspace-body .bo-editor.sit-bo-wrap .sit-bo-form-section h2:not(.ck *) { line-height: var(--dc-heading-leading, 1.35); }
+  .workspace-body .bo-editor.sit-bo-wrap .sit-bo-related summary h3:not(.ck *) { line-height: var(--dc-heading-leading, var(--dc-body-leading, var(--az-leading))); }
+  .bo-editor.bo-exam-editor label.bo-editor-check:not(.ck *),
+  .bo-editor.bo-exam-editor .bo-editor-save { line-height: var(--dc-label-leading, var(--dc-body-leading, 1.6)); }
+  @media (max-width: 720px) {
+    .workspace-body .bo-editor.lib-editor .bo-card,
+    .workspace-body .bo-editor.lib-editor .bo-card.lib-editor-details { padding: var(--dc-card-pad, 18px); }
+  }
+  @media (max-width: 45rem) {
+    .bo-editor:is(.bo-exam-editor,.catalog-form,.blog-editor,.sit-bo-wrap) :is(.bo-editor-section,.bo-editor-details) { padding: var(--dc-card-pad, 1rem); }
+  }
+  @media (max-width: 680px) {
+    .bo-editor.catalog-form { padding: var(--dc-card-pad, 15px); }
+  }
+  @media (max-width: 620px) {
+    .bo-editor.sit-bo-wrap .sit-bo-form-section { padding: var(--dc-card-pad, 16px); }
+  }
 }
