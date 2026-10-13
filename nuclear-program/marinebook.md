@@ -16,6 +16,36 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-13 [Codex]: BACKOFFICE-02 / B2.4 — natija va bildirishnoma yordami
+
+O‘quvchi kartasida topshiriq/test/imtihon natijalari va owner uchun shaxsiy
+bildirishnomalar tekshiruvi qurildi. Bitta mavzu/tur ko‘rinadi; aniq mavjud
+review/replay sahifasidan ayni o‘quvchi, kurs, dars va filtrga qaytiladi.
+
+- Branch: `codex/backoffice-student-results`; implementatsiya `6bfed14`.
+  [Admission, shartnoma va dalil](frontend-v1/BACKOFFICE-02-STAGE-4.md).
+- Bounded read projection: learner publication bahosi, oldingi/oxirgi urinish,
+  account-wide sayt/Telegram holati, eski failed xabarlarni alohida topish.
+  Signed return actor/session/scope bilan tekshiriladi; recent faqat ID/enum.
+  Yangi baholash yoki yuborish writeri yo‘q; mavjud sabab/tasdiq/audit saqlanadi.
+- Safe env: `venv/Scripts/python.exe manage.py test core courses bot --verbosity 1`
+  **1698 / 1651 PASS / 47 skip**, 381.616s. Yakuniy to‘rtta yangi modul
+  **74/74 PASS**; `node --test tests/frontend_v1/*.test.mjs` **171/171 PASS**.
+  Check 0, migration drift yo‘q, diff-check PASS; 148 hujjat havolasi missing0.
+- IAB synthetic 8102: assignment/exam reviewdan qaytish, quiz0 va published
+  exam82.50, eski failed xabar → focused replay → return/recheck/recent.
+  320/1440px, dark/light, 200% rendered text, Tab fokus va console0.
+  Qaror POSTlari integratsiya testlarida; brauzerdan real xabar yuborilmadi.
+- Reviewdagi uch topilma tuzatildi: stale exam support havolasi legacy GET
+  writerga tushishi, umumiy tizim havolasidan learner return yo‘qolishi,
+  focused sahifadagi raw provider error. Xato audit dalilida saqlanadi.
+  Takroriy Back va texnik replay matni ham soddalashtirildi.
+- Primary lokal 7 GET rollback ichida 200/private/no-store; **149 jadval /
+  1315 qator** snapshotlari teng. Yangi migration/flag/provider, sinov kontenti
+  yoki auth o‘zgarishi yo‘q; 8092 lokal server yangilandi.
+- Required CI/review’dan so‘ng standing workflow bo‘yicha manual merge.
+  B2.5–B2.6 qolgan; owner/native/AT qabuli va production alohida.
+
 ## 2026-10-13 [Codex]: BACKOFFICE-02 / B2.3 — yagona qidiruv va oxirgi ish
 
 Ownerning «davom et» topshirig‘i bilan kurs/dars/o‘quvchi/ruxsatli bo‘limlar
