@@ -29,6 +29,9 @@
 .ws-practice-preview img { max-width: 100%; height: auto; }
 .ws-practice-preview table { display: block; max-width: 100%; overflow-x: auto; }
 .ws-practice-form .ck-editor, .ws-practice-form .django-ckeditor-widget { min-width: 0; max-width: 100%; }
+.ws-practice-form .ck.ck-toolbar { flex-wrap: wrap; }
+.ws-practice-form .ck-toolbar__items { min-width: 0; max-width: 100%; flex-wrap: wrap !important; }
+.ws-practice-form .ck-toolbar__items > .ck-dropdown { max-width: 100%; }
 .ws-practice-form .ck-content { min-height: 8rem; overflow-wrap: anywhere; color: var(--az-text); background: var(--az-surface); }
 .ws-practice-form .ws-inline-actions { flex-wrap: wrap; }
 @media (max-width: 600px) {

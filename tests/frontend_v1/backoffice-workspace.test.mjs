@@ -109,6 +109,27 @@ test('preview after attaching material opens the preview pane instead of the ret
   }
 });
 
+test('native validation reveals the pane containing the invalid field without losing edits', () => {
+  for (const paneName of ['outline', 'editor']) {
+    const workbench = new Element({dataset: {activePane: 'preview'}});
+    const pane = new Element({dataset: {pane: paneName}, parentElement: workbench});
+    const disclosure = new Element({tagName: 'DETAILS', open: false, parentElement: pane});
+    const field = new Element({value: 'Unfinished module or lesson', parentElement: disclosure,
+      closest: selector => selector === '[data-pane]' ? pane : null});
+    const buttons = ['outline', 'editor', 'preview'].map(name => new Element({
+      dataset: {paneTarget: name}, setAttribute(key, value) { this[key] = value; },
+    }));
+    const switcher = new Element({querySelectorAll: () => buttons});
+    const h = harness({workbench, switcher});
+    workbench.events.invalid(event(field));
+    assert.equal(workbench.dataset.activePane, paneName);
+    assert.equal(buttons.find(button => button.dataset.paneTarget === paneName)['aria-pressed'], 'true');
+    assert.equal(disclosure.open, true);
+    assert.equal(field.value, 'Unfinished module or lesson');
+    assert.equal(h.stored.size, 0);
+  }
+});
+
 test('preview history returns to a GET selection without clearing or auto-restoring its draft', () => {
   const first = makeForm('lesson-a'), original = harness({forms: [first]});
   original.edit(first, 'Preview only');

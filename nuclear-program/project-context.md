@@ -698,6 +698,14 @@ AI room nomi birinchi prompt'dan avtomatik o'zgarishi mumkin (`maybe_name_ai_roo
 
 ### 4.10 Backoffice
 
+**BACKOFFICE-02 birgalikdagi tekshiruv (B2.6, 2026-10-13):** o‘nta lokal
+ssenariy PASS. Qidiruvdan kontekstli imtihon tabiga o‘tish va undan qaytishda
+signed return saqlanadi; mobile native invalid o‘z panelini ochadi; practice
+CKEditor toolbar kattalashtirilgan matnda o‘raladi. Writer/model/migration
+o‘zgarmadi. Primary 23 GET smoke’da 149 jadval/1316 qator va 3 media fayli
+hashlari teng. Owner/native/AT va production qabuli alohida ochiq.
+[B2.6 dalili](frontend-v1/BACKOFFICE-02-STAGE-6.md).
+
 **Eski formalar dizayni (B2.5, 2026-10-13):** mavjud design runtime
 exam/library/plan/cohort/blog/SIT `.bo-editor` ildizlarida typography,
 button/field/card geometry va density qiymatlarini o‘qiydi. Yangi schema

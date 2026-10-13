@@ -16,6 +16,36 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-13 [Codex]: BACKOFFICE-02 / B2.6 — birgalikdagi yakuniy tekshiruv
+
+Rejadagi o‘nta lokal ssenariy tekshirildi. Imtihondan qaytishda qidiruv
+konteksti yo‘qolishi, mobile invalid modul maydoni yashirilishi va practice
+toolbar’ning katta matnda sig‘masligi tuzatildi.
+
+- Branch: `codex/backoffice-quality-verification`; implementatsiya
+  `9287427`, `02823b5`. [Yakuniy dalil va chegaralar](frontend-v1/BACKOFFICE-02-STAGE-6.md).
+- Safe env `venv/Scripts/python.exe manage.py test core courses library bot
+  --verbosity 1` — **1784 / 1735 PASS / 49 skip**, 148.214s. Skip: row-lock21,
+  PostgreSQL backup10, disk SQLite/bot concurrency17, Windows/POSIX1.
+  Focused return/exam46 PASS; support/design139 /137 PASS /2PGskip.
+  `node --test tests/frontend_v1/*.test.mjs` **172/172 PASS**; check0,
+  migration drift yo‘q, diff-check PASS. Independent diff review actionable0.
+- IAB synthetic8104: material update/reorder/preview/detach (shared fayl
+  saqlangan), yangi exam/aniq section, assignment/3question quiz xato/save/
+  reload/preview, search→exam→Back/recent, results→review→return,
+  delivery→exact failed target. Learner natijasi/xabariga browser write yo‘q.
+- 320/768/1440px, representative light/dark/keyboard va rendered text200.
+  8 legacy form 320/768pxda overflow0; quiz toolbar468→305px, dropdown/fokus
+  ko‘rinadi. Bu native telefon/zoom/AT dalili emas.
+- Design stale rebase→publish12→8 computed forma→rollback11 qiymatlari yangi13
+  nashrida teng. To‘rt gate OFF’da oldingi home200 va gated route404; ON tiklandi.
+  Synthetic148jadval/1261qator:134jadval immutable,46ruxsatli row-change,
+  unexpected0; shared PDFs teng. Primary23GET200,149jadval/1316qator va
+  3media hash teng; vaqtinchalik GET/login/recent rollback, auth/flag saqlangan.
+- Server8092 yangi kod bilan qayta yoqildi. CI/review gate’dan keyin standing
+  workflow bilan manual merge. B2.1–B2.6 lokal tayyor; owner qabuli,
+  native/AT/production va oldindan belgilangan builder/versioning chegaralari ochiq.
+
 ## 2026-10-13 [Codex]: BACKOFFICE-02 / B2.5 — eski formalarda yagona dizayn
 
 Imtihon, kutubxona, tarif/guruh, blog va SIT formalariga mavjud matn,

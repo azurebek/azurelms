@@ -13,6 +13,7 @@ DESTINATIONS = {
     'backoffice_workspace_student', 'backoffice_workspace_assignment_new',
     'backoffice_workspace_assignment_edit', 'backoffice_workspace_quiz_new',
     'backoffice_workspace_quiz_edit',
+    'backoffice_exams', 'backoffice_exam_edit',
 }
 
 

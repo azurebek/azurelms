@@ -1193,6 +1193,7 @@ def backoffice_exam_editor(request, exam_id=None):
     from courses import exam_authoring_service as authoring
     from courses.authoring_service import AuthoringConflict
     from core.flags import flag_enabled
+    from core.backoffice_return import with_return
 
     def object_id(value):
         result = _safe_int(value)
@@ -1216,7 +1217,7 @@ def backoffice_exam_editor(request, exam_id=None):
     query = {"course": course.pk} if course else {}
     if lesson:
         query["lesson"] = lesson.pk
-    list_url = reverse("backoffice_exams") + ("?" + urlencode(query) if query else "")
+    list_url = with_return(request, reverse("backoffice_exams") + ("?" + urlencode(query) if query else ""))
     back_url = reverse("backoffice_dashboard")
     if course:
         if flag_enabled("backoffice_course_workspace"):
@@ -1225,6 +1226,7 @@ def backoffice_exam_editor(request, exam_id=None):
                 back_url += "?" + urlencode({"lesson": lesson.pk})
         else:
             back_url = reverse("backoffice_course_edit", kwargs={"course_id": course.pk})
+    back_url = with_return(request, back_url)
     creating = not exam and request.GET.get("new") == "1" and course is not None
     if not exam and not creating:
         if request.method != "GET":
@@ -1235,11 +1237,13 @@ def backoffice_exam_editor(request, exam_id=None):
             item.editor_url = reverse("backoffice_exam_edit", kwargs={"exam_id": item.pk})
             if lesson:
                 item.editor_url += "?" + urlencode({"lesson": lesson.pk})
+            item.editor_url = with_return(request, item.editor_url)
         return render(request, "backoffice/exam_list.html", {
             **_backoffice_context("exams", request.user), "exam": None, "courses": courses,
             "course": course, "lesson": lesson, "exam_page": page, "back_url": back_url,
-            "new_url": list_url + ("&" if query else "?") + "new=1", "list_url": list_url,
-            "query_suffix": "&" + urlencode(query) if query else "",
+            "new_url": with_return(request, reverse("backoffice_exams") + "?" + urlencode({**query, "new": 1})),
+            "list_url": list_url,
+            "query_suffix": "&" + list_url.split("?", 1)[1] if "?" in list_url else "",
         })
     if request.method not in {"GET", "POST"}:
         return HttpResponseNotAllowed(["GET", "POST"])
@@ -1281,13 +1285,14 @@ def backoffice_exam_editor(request, exam_id=None):
             saved_query = {"section": saved_section.pk} if saved_section else {}
             if lesson:
                 saved_query["lesson"] = lesson.pk
-            return redirect(reverse("backoffice_exam_edit", kwargs={"exam_id": saved.pk}) +
-                            ("?" + urlencode(saved_query) if saved_query else ""))
+            return redirect(with_return(request, reverse("backoffice_exam_edit", kwargs={"exam_id": saved.pk}) +
+                            ("?" + urlencode(saved_query) if saved_query else "")))
     for item in sections:
         section_query = {"section": item.pk}
         if lesson:
             section_query["lesson"] = lesson.pk
-        item.editor_url = reverse("backoffice_exam_edit", kwargs={"exam_id": exam.pk}) + "?" + urlencode(section_query)
+        item.editor_url = with_return(request,
+            reverse("backoffice_exam_edit", kwargs={"exam_id": exam.pk}) + "?" + urlencode(section_query))
     if request.method == "POST":
         for form in (exam_form, section_form):
             if form is not None:

@@ -78,14 +78,15 @@
       showPane("outline", true);
       workbench.querySelector(".ws-outline")?.scrollIntoView({block: "nearest"});
     }));
-    // Keep field validation visible when a required select lives in a disclosure.
+    // Native validation must reveal its own pane, including module forms in
+    // the outline, before the browser focuses the invalid control.
     workbench.addEventListener("invalid", event => {
       let parent = event.target.parentElement;
       while (parent && parent !== workbench) {
         if (parent.tagName === "DETAILS") parent.open = true;
         parent = parent.parentElement;
       }
-      showPane("editor");
+      showPane(event.target.closest("[data-pane]")?.dataset.pane || "editor");
     }, true);
   }
 

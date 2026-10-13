@@ -1,6 +1,6 @@
 # Backoffice islohoti — uch asosiy ishni osonlashtirish
 
-**2026-10-12 — faol navbat: [BACKOFFICE-02 — kundalik ishlarni yakunlash](#backoffice-02).**
+**2026-10-13 — [BACKOFFICE-02](#backoffice-02): olti bosqich lokal texnik tekshiruvdan o‘tdi.**
 Owner shaxsiy tekshiruvini keyinga qoldirib, takomillashtirish uchun yangi phase
 rejasini so‘radi. Bu qabulni o‘tdi deb belgilamaydi va yangi ishni boshlashni
 to‘xtatmaydi. Birinchi islohotning tayyor qismlari [asosiy lokal bazada ON](BACKOFFICE-LOCAL-ROLLOUT.md).
@@ -228,11 +228,14 @@ Yonidagi bosiladigan namuna faqat taklifning navigatsiyasi va uch ish shaklini t
 <a id="backoffice-02"></a>
 ## 11. BACKOFFICE-02 — kundalik ishlarni yakunlash
 
-**Holat: B2.1–B2.5 lokal tayyor (2026-10-13); B2.6 reja.**
+**Holat: B2.1–B2.6 lokal tayyor (2026-10-13); 10/10 birgalikdagi ssenariy PASS.**
+Integratsiya required CI/review gate’i bilan; owner/native/AT va production
+qabuli alohida ochiq. Shu olti bosqichning qamrovi kengaytirilmaydi.
 [B2.1 dalili](BACKOFFICE-02-STAGE-1.md), [B2.2 dalili](BACKOFFICE-02-STAGE-2.md),
 [B2.3 dalili](BACKOFFICE-02-STAGE-3.md),
 [B2.4 shartnoma va tekshiruv holati](BACKOFFICE-02-STAGE-4.md),
-[B2.5 shartnoma va tekshiruv holati](BACKOFFICE-02-STAGE-5.md).
+[B2.5 shartnoma va tekshiruv holati](BACKOFFICE-02-STAGE-5.md),
+[B2.6 yakuniy dalil va chegaralar](BACKOFFICE-02-STAGE-6.md).
 Reja sanasi 2026-10-12; kod tayanchi
 `cd2ce2c`. Yangi phase shu hujjatda yuritiladi; parallel roadmap ochilmaydi.
 Owner topshirig‘i: shaxsiy usability sinovini keyinroq bajaradi, shu vaqtgacha
@@ -290,6 +293,25 @@ test — topshiriladi; ikkalasi bitmaguncha B2.2 yopilmaydi.
 Topilgan unrelated feature ushbu ro‘yxatga jimgina qo‘shilmaydi.
 
 ### Implementatsiya shartnomalari
+
+#### B2.6 admission — 2026-10-13
+
+**ADMIT — launch-critical.** Ownerning «davom et» topshirig‘i bilan B2.1–B2.5
+oqimlari yuqoridagi doira va quyidagi o‘nta ssenariy bo‘yicha birgalikda
+tekshiriladi. KPI: 10/10 texnik ssenariy, kritik ma’lumot yo‘qolishi,
+ruxsatsiz yozish yoki yolg‘on success topilmasi 0. Aniqlangan nuqsonlar
+mavjud canonical servicelarda yoki ularni iste’mol qiluvchi adapterda
+minimal tuzatiladi; yangi capability, writer yoki operatsion xizmat yo‘q.
+Material/exam/practice, support va design state avvalgi servicelarda qoladi.
+Mavjud flag OFF/ON, invalid/stale/replay, Back/reload, owner/teacher/begona/
+inactive/anonymous va saqlash himoyalari regressiyada tekshiriladi.
+Haftalik qo‘lda qayta tekshirish yuki kamayadi; har qadamning dalili va
+chegarasi [B2.6 qaydida](BACKOFFICE-02-STAGE-6.md) jamlanadi.
+Brauzer yozishlari faqat synthetic nusxada; asosiy lokal bazada rollback
+ichidagi read-only smoke. Provider chaqirish/yuborish yo‘q. 320/768/1440px,
+light/dark, klaviatura va 200% rendered text tekshiruvi native telefon,
+brauzer zoom yoki AT qabuli deb hisoblanmaydi. Owner qabuli kechiktirilgan,
+production rollout alohida. B2.6 natijasi bu cheklovlarni avtomatik yopmaydi.
 
 #### B2.5 admission — 2026-10-13
 
