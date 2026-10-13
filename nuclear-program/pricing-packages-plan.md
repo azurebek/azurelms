@@ -1,5 +1,10 @@
 # Economic / Standard / Intensive — implementation ledger
 
+> Joriy umumiy holat: [README.md](README.md). Bu ledger owner tarif
+> contracti va sanali implementatsiya dalillarini saqlaydi. Quyidagi dastlabki
+> ketma-ketlik butun loyiha uchun bugungi task navbati emas; keyingi sanali
+> tuzatishlar oldingi taxminlarni almashtiradi.
+
 Owner admission: 2026-09-04, `writing-block.md` rejasidan keyin «boshla qurishni».
 Status: **ADMIT — launch-critical**. Payment foundation va keyingi tuzatishlar
 main'da (#67–69). Catalog + delivery **IMPLEMENTED/TESTED — LOCAL REGRESSION
@@ -24,9 +29,11 @@ taqiqlash emas, kafolatlangan xizmat darajasi.
 
 ## Ketma-ketlik va scope
 
-1. **IMPLEMENTED/TESTED — payment foundation (ushbu PR).** `Enrollment.plan` faol
-   tarif; `pending_plan` faqat niyat. Chekda tanlangan plan va narx/davr
-   snapshoti. Tasdiqlashgina faol tarifni o'zgartiradi; rad etish niyatni
+1. **IMPLEMENTED/TESTED — payment foundation (#67–69).** Bugungi faol tarif
+   `Enrollment.active_plan()` orqali olinadi; `plan` denormalizatsiyalangan
+   ustun, `pending_plan` faqat niyat. Chekda tanlangan plan va narx/davr
+   snapshoti. Tasdiqlangan tarif to'langan davri boshlanganda kuchga kiradi;
+   rad etish niyatni
    tozalaydi. Web/Telegram bir canonical yozuv yo'lidan foydalanadi.
    Eski tasdiqlangan cheklarga hozirgi enrollmentdan tarix to'qilmaydi;
    legacy metadata yo'qligi ochiq ko'rsatiladi.
@@ -37,8 +44,11 @@ taqiqlash emas, kafolatlangan xizmat darajasi.
 3. **PLANNED — service workflows.** Standard individual feedback;
    Intensive personal assignment, progress review, priority queue. Marketing
    hali ishlamaydigan xizmatni va'da qilmaydi. Mavjud core ruxsatlar saqlanadi.
-4. **PLANNED — presentation + analytics.** Pricing, checkout, dashboard,
-   backoffice; occupancy/revenue/usage/review workload/renewal metrikalari.
+4. **Dastlabki reja — presentation + analytics.** Pricing, checkout va
+   backoffice yuzalari keyingi ishlarda qurilgan; [frontend ledgeri](frontend-v1/PORT-LEDGER.md)
+   amaldagi ko'chirish dalilini beradi. Occupancy/revenue/usage/review
+   workload/renewal metrikalarining to'liq paketi shu UI dalili bilan
+   bajarilgan deb belgilanmaydi.
 
 ## Birinchi slice admission
 

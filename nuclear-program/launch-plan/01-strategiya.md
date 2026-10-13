@@ -1,5 +1,9 @@
 # 01 — Strategiya: bozor, pozitsiyalash, farqlash
 
+> **Joriy holat:** [loyiha holati va hujjatlar xaritasi](../README.md).
+> Bu strategiya owner qarorlarini saqlaydi. Pastdagi sanalar va bozor
+> kuzatuvlari sanalangan manbalardir; kod/deploy yoki launch qabuli emas.
+
 *2026-07-11 da jonli kurs modeli aniqlandi. 2026-07-22 audit rebaseline'i solo-owner control plane, Learner Outcome Loop va AI evidence gate'ini qo'shdi. 2026-08-14 rebaseline'i local-first ish rejimi, DigitalOcean `HOLD` va Gemini free-tier supply gate'ini belgiladi. Manbalar hujjat oxirida.*
 
 ---

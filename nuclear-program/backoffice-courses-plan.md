@@ -1,6 +1,11 @@
 # Backoffice kurslar ro'yxati
 
-Owner admission: 2026-09-05 — mavjud kurslar sonini ko'rish va ularni tahrirlashga kirish hozir backoffice'da yo'q.
+> **Tarixiy admission — 2026-09-05.** Quyidagi ro'yxat yangi ochiq task emas.
+> Kurslar ro'yxati va workspace joriy kodda bor: [route'lar](../core/urls.py),
+> [backoffice rejasi](frontend-v1/BACKOFFICE-REFORM-PLAN.md). Joriy umumiy
+> holat va qolgan chegaralar [README.md](README.md)da.
+
+Owner admission: 2026-09-05 — o'sha paytda mavjud kurslar sonini ko'rish va ularni tahrirlashga kirish backoffice'da yo'q edi.
 
 ## Feature admission
 

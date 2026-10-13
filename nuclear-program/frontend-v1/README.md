@@ -1,5 +1,19 @@
 # Frontend V1 — prototipdan ishlaydigan platformaga
 
+**Joriy kirish — 2026-10-13:** [loyihaning yagona holat markazi](../README.md).
+[BACKOFFICE-02](BACKOFFICE-REFORM-PLAN.md#backoffice-02)ning B2.1–B2.6 bosqichlari
+lokal texnik jihatdan tayyor; [B2.6 dalili](BACKOFFICE-02-STAGE-6.md) 10/10
+ssenariy va tekshiruv chegaralarini beradi. [PR #189](https://github.com/azurebek/azurelms/pull/189)
+uchta required CI muvaffaqiyatli o‘tgach `62dd358` bilan `main`ga birlashdi.
+Owner qabuli, haqiqiy qurilma/zoom/AT va production rollout alohida ochiq;
+lokal yoqilgan runtime butun prototipning real porti tugaganini anglatmaydi.
+
+## Tarixiy qaydlar
+
+Quyidagi sanali natijalar va eski kirish yo‘riqnomalari o‘z davridagi holatni
+saqlaydi. Ulardagi “reja”, “keyingi” va “joriy reliz” iboralari bugungi navbat
+emas; joriy qaror uchun yuqoridagi holat markazi va bosqich dalillariga qarang.
+
 **2026-10-13 — B2.4 lokal tayyor:**
 [o‘quvchi natijalari va bildirishnomalar](BACKOFFICE-02-STAGE-4.md).
 Kartada alohida topshiriq/test/imtihon holati, owner uchun hisob bo‘yicha
@@ -393,7 +407,7 @@ UI+adapter+test bitta mantiqiy bo‘lakda. Test va ruxsatlar evaziga tezlashtiri
 - Ruxsatli kosmetik qarz alohida ro‘yxatda; broken submit, data loss, access
   buzilishi va real bo‘lmagan success “V1 mukammal emas” bahonasi bilan qolmaydi.
 
-## 8. Keyingi agent/turn uchun kirish
+## 8. Tarixiy agent kirishi — I5d davri
 
 Avval git/flag/live SHA holatini fresh tekshiring va
 [R1-public reliz dalili](R1-PUBLIC-RELEASE.md)ni o‘qing. I4a PR125 main’da

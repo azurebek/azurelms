@@ -3,8 +3,12 @@
 Sana: 2026-10-13. Tayanch: `de3bfa0` (B2.5). Ownerning «davom et»
 topshirig‘i bilan [yagona rejadagi](BACKOFFICE-REFORM-PLAN.md#backoffice-02)
 o‘nta ssenariy birgalikda tekshirildi. Holat: **10/10 lokal texnik ssenariy
-PASS**. Integratsiya uchta required CI va review gate’idan keyin; ownerning
-shaxsiy qabuli bu natijaga qo‘shilmagan.
+PASS**. [PR #189](https://github.com/azurebek/azurelms/pull/189) 2026-10-13 da
+`62dd358` bilan `main`ga birlashdi. [CI 38443075952](https://github.com/azurebek/azurelms/actions/runs/38443075952)
+uchala required ishda muvaffaqiyatli: SQLite to‘liq suite/checks,
+PostgreSQL+pgvector/Valkey smoke va sir/bog‘liqlik skani.
+Ownerning shaxsiy qabuli bu natijaga qo‘shilmagan.
+Umumiy joriy holat: [loyiha markazi](../README.md).
 
 Mavjud canonical state va writerlar o‘zgarmaydi. Zarur nuqson tuzatishlari
 shu oqimlar bilan chegaralanadi. Yangi funksiya, provider yoki operatsion

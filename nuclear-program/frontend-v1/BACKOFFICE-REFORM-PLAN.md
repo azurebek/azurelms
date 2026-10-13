@@ -1,9 +1,10 @@
 # Backoffice islohoti — uch asosiy ishni osonlashtirish
 
 **2026-10-13 — [BACKOFFICE-02](#backoffice-02): olti bosqich lokal texnik tekshiruvdan o‘tdi.**
-Owner shaxsiy tekshiruvini keyinga qoldirib, takomillashtirish uchun yangi phase
-rejasini so‘radi. Bu qabulni o‘tdi deb belgilamaydi va yangi ishni boshlashni
-to‘xtatmaydi. Birinchi islohotning tayyor qismlari [asosiy lokal bazada ON](BACKOFFICE-LOCAL-ROLLOUT.md).
+Joriy umumiy holat [yagona markazda](../README.md), yakuniy integratsiya va
+tekshiruv dalili [B2.6 qaydida](BACKOFFICE-02-STAGE-6.md). Owner shaxsiy
+tekshiruvini keyinga qoldirgan; texnik yakun uning qabulini anglatmaydi.
+Birinchi islohotning tayyor qismlari [asosiy lokal bazada ON](BACKOFFICE-LOCAL-ROLLOUT.md).
 Quyidagi 2026-10-10 xaritasi tarixiy tayanch; hali mavjud bo‘lmagan capability
 va qolgan ishlarga oid joriy qaror hujjat oxiridagi BACKOFFICE-02 bo‘limida.
 
@@ -229,31 +230,32 @@ Yonidagi bosiladigan namuna faqat taklifning navigatsiyasi va uch ish shaklini t
 ## 11. BACKOFFICE-02 — kundalik ishlarni yakunlash
 
 **Holat: B2.1–B2.6 lokal tayyor (2026-10-13); 10/10 birgalikdagi ssenariy PASS.**
-Integratsiya required CI/review gate’i bilan; owner/native/AT va production
-qabuli alohida ochiq. Shu olti bosqichning qamrovi kengaytirilmaydi.
+[PR #189](https://github.com/azurebek/azurelms/pull/189) uchta required CI
+muvaffaqiyatli o‘tgach `62dd358` bilan `main`ga birlashdi. Owner/native/AT va
+production qabuli alohida ochiq. Shu olti bosqichning qamrovi kengaytirilmaydi.
 [B2.1 dalili](BACKOFFICE-02-STAGE-1.md), [B2.2 dalili](BACKOFFICE-02-STAGE-2.md),
 [B2.3 dalili](BACKOFFICE-02-STAGE-3.md),
 [B2.4 shartnoma va tekshiruv holati](BACKOFFICE-02-STAGE-4.md),
 [B2.5 shartnoma va tekshiruv holati](BACKOFFICE-02-STAGE-5.md),
 [B2.6 yakuniy dalil va chegaralar](BACKOFFICE-02-STAGE-6.md).
-Reja sanasi 2026-10-12; kod tayanchi
-`cd2ce2c`. Yangi phase shu hujjatda yuritiladi; parallel roadmap ochilmaydi.
+Boshlang‘ich reja sanasi 2026-10-12; o‘sha auditning kod tayanchi `cd2ce2c`.
+BACKOFFICE-02 qamrovi shu hujjatda yuritiladi; parallel roadmap ochilmaydi.
 Owner topshirig‘i: shaxsiy usability sinovini keyinroq bajaradi, shu vaqtgacha
 backoffice’ni takomillashtirish davom etadi. Mavhum menyu so‘rovnomasi yoki
 har bir kichik qadam uchun owner tasdig‘i talab qilinmaydi.
 
-### Nima tugagan, nima qolgan
+### 2026-10-12 boshlang‘ich audit — tarixiy tayanch
 
 Yagona menyu, kurs/modul/dars yozish, material qo‘shish, kirish sababini topish,
 kodsiz dizayn qoralama/nashr/tarix va eski formalarni soddalashtirish mavjud.
 2026-10-12 lokal rollout tayyor kodni asosiy bazada yoqdi; yangi authoring
 capability yoki barcha yuzalar dizayn paritetini yaratmagan.
 
-**Faqat owner sinovi qolmagan.** Quyidagi source audit yangi ish uchun tayanch.
-Manbada topilgan xato hali bu turn davomida brauzerda qayta yaratilgan degani emas;
-B2.1 avval uni regressiya testi bilan qayta ko‘rsatadi, keyin tuzatadi.
+Quyidagi jadval B2 boshlanishidan oldingi kamchiliklarni qayd etadi; hozirgi
+ochiq ishlar ro‘yxati emas. Ular B2.1–B2.5 da bajarilib, B2.6 da birgalikda
+tekshirildi. Joriy dalillar yuqorida; alohida qolgan ishlar hujjat oxirida.
 
-| Joriy fakt | Manba (`cd2ce2c`) | Yangi ish |
+| Boshlang‘ich fakt | Manba (`cd2ce2c`) | Rejalangan kesim |
 |---|---|---|
 | Materialning xatoli legacy POST’i redirect qiladi, kiritilgan qiymat yo‘qoladi; reorder validatsiyasi V1 holatiga bog‘langan | [material writerlari](../../library/backoffice_views.py):344–435, [eski dars formasi](../../templates/backoffice/lesson_form.html) | B2.1 — bound xato va rendererga bog‘liq bo‘lmagan validatsiya |
 | Kurs ustaxonasida upload/attach bor; biriktirmaning ko‘rinishi, sanasi, tartibi va uzish amali shu yerda yo‘q | [kurs yuzasi](../../templates/backoffice/workspace/course.html):38–41, [library usage havolasi](../../templates/backoffice/library_form.html):71 | B2.1 — mavjud amallarni dars kontekstida yakunlash |
@@ -286,13 +288,16 @@ keyinga qoldiriladi; o‘lchanmaguncha foizli yaxshilanish da’vo qilinmaydi.
 | **B2.5 — Dizaynning ichki formalarda bir xilligi** | Mavjud matn, tugma/maydon/karta shakli va oralig‘i sozlamalari eski imtihon, kutubxona, tarif/guruh, blog va SIT backoffice formalarida ham ishlaydi. Oddiy ustaxonada shu formaning namunasini ko‘rish | Har belgilangan formadagi computed qiymat mavjud typed sozlamaga mos. Yorug‘/qorong‘i, 320px va kattalashtirilgan matnda o‘qiladi. Publish→real forma→rollback o‘tadi; flag OFF statik ko‘rinishni qaytaradi. Logo/kontent dizayn rollback’i bilan o‘zgarmaydi |
 | **B2.6 — Birgalikdagi sifat tekshiruvi** | Yuqoridagi ishlar katta/kichik ekranda, klaviaturada, xato va qaytish holatlarida izchil ishlaydi | O‘nta ssenariy, rol/flag/saqlash regressiyasi, xato matni/fokus, 320/768/1440px, light/dark va 200% matn tekshiruvi dalilli. Texnik tafsilotlar oddiy ishga chiqmaydi. Critical yo‘qolish/ruxsat/yolg‘on success topilmasi qolmaydi; har cheklov aniq qayd etiladi |
 
-B2.1 birinchi real implementatsiya bo‘ladi: qayta inventar yoki yangi maket
-phase’i kerak emas. Qolgan ketma-ketlik yuqoridagicha; har bosqich ishlaydigan
-natija bilan yopiladi. B2.2 ikki kichik kesimda — topshiriq, keyin variantli
-test — topshiriladi; ikkalasi bitmaguncha B2.2 yopilmaydi.
+B2.1 material va imtihon oqimlarini qurdi; B2.2 topshiriq va bir javobli testning
+ikkala kesimini yakunladi. Olti bosqich yuqoridagi mezonlar bilan lokal texnik
+tekshiruvdan o‘tdi; yakuniy dalil B2.6 qaydida.
 Topilgan unrelated feature ushbu ro‘yxatga jimgina qo‘shilmaydi.
 
 ### Implementatsiya shartnomalari
+
+Quyidagi sanali admissionlar har kesim boshlangan paytdagi ruxsat va qamrov
+shartnomalarini saqlaydi. Kelasi zamondagi jumlalar bajarilmagan ishni
+anglatmaydi; ijro natijasi yuqoridagi B2.1–B2.6 dalillarida qayd etilgan.
 
 #### B2.6 admission — 2026-10-13
 
@@ -414,12 +419,12 @@ kontent mavjud modellarda eski yo‘ldan o‘qiladi. Xavfli tahrirni qayta ochuv
 kod rollback’i bu qaytish shartnomasiga kirmaydi. Tekshiruvlar synthetic bazada;
 production/provider amali, yangi grading qoidasini joriy qilish qamrovda yo‘q.
 
-2026-10-12 reja admissioni: **EXPERIMENT — canonical state yozmaydi**. O‘sha
-turn faqat manba auditi va reja edi; runtime o‘zgarmagan. B2.1 yuqoridagi
-aniq admission bilan boshlandi. Quyidagi qolgan admissionlar tavsiya,
-bajarilgan capability emas.
-Har bosqich boshida uning aniq xizmat/ruxsat/failure shartnomasi qayd qilinadi;
-ownerning keyingi “B2.Nni boshla” topshirig‘i shu kesim ishini boshlatadi.
+#### 2026-10-12 dastlabki admission xaritasi — tarixiy
+
+Reja admissioni **EXPERIMENT — canonical state yozmaydi** edi: o‘sha turn
+faqat manba auditi va reja bo‘lib, runtime o‘zgarmagan. Quyidagi tavsiyalar
+va tafsilotlar shu boshlang‘ich qarorni saqlaydi. B2.1–B2.6 keyinchalik owner
+topshiriqlari bilan yuqoridagi aniq admissionlar asosida bajarildi.
 
 | Kesim | Admission tavsiyasi va asosiy KPI | Canonical manba / writer | Haftalik yuk va qaytish |
 |---|---|---|---|
@@ -498,11 +503,11 @@ teacher/inactive/anonymous, CSRF, replay va stale matritsasi yangi writerlar uch
 **BACKOFFICE-02 texnik jihatdan tayyor** — B2.1–B2.6 natijalari va o‘nta
 ssenariy bajarilgan, tegishli CI/review o‘tgan, qaysi muhitda yoqilgani va
 qaytish yo‘li qayd etilgan. “Hamma uchun qulay” qabuli bilan aralashtirilmaydi.
-Muddati hozir o‘lchanmagan; keyingi kesimning haqiqiy hajmi B2.1 natijasida
-aniqlashadi. Belgilangan olti bosqichni tugatish mezoni cheksiz yangi dizayn
-talablarini qo‘shib surilmaydi.
+Texnik yakun va integratsiya 2026-10-13 da qayd etildi. Ownerning vazifani
+bajarish vaqti hali o‘lchanmagan. Belgilangan olti bosqichga yangi dizayn
+talablari qo‘shib, yakun mezoni surilmaydi.
 
-Quyidagilar alohida kuzatiladi va B2 ishlarini boshlash sharti emas:
+Quyidagilar alohida kuzatiladi va texnik yakun bilan avtomatik yopilmaydi:
 
 - **Owner qabuli:** owner keyinga qoldirdi; so‘ralganida uch asosiy ish bilan
   qisqa amaliy sinov. Oldingi DC6 ham o‘tdi deb belgilanmaydi.
