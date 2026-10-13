@@ -1,5 +1,10 @@
 # Frontend V1 — prototipdan ishlaydigan platformaga
 
+**Keyingi reja — 2026-10-13:** [BACKOFFICE-03](BACKOFFICE-REFORM-PLAN.md#backoffice-03)
+owner shaxsiy tekshiruvidan mustaqil yetti texnik/mahsulot bosqichini belgilaydi.
+Reja tayyor, implementatsiya boshlanmagan; dastlabki kesim B3.1a — global
+AI sozlamasini yashirin qiymatlarni yo‘qotmasdan, audit bilan saqlash.
+
 **Joriy kirish — 2026-10-13:** [loyihaning yagona holat markazi](../README.md).
 [BACKOFFICE-02](BACKOFFICE-REFORM-PLAN.md#backoffice-02)ning B2.1–B2.6 bosqichlari
 lokal texnik jihatdan tayyor; [B2.6 dalili](BACKOFFICE-02-STAGE-6.md) 10/10
