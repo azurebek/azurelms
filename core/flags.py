@@ -44,6 +44,12 @@ class FlagDefinition:
 
 FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
     FlagDefinition(
+        slug="backoffice_practice_authoring", label="Boshqaruv — topshiriq va test tayyorlash",
+        description="Dars ichida topshiriq va bir javobli test yaratish, tahrirlash va namuna ko‘rish.",
+        default=False, category="Frontend",
+        runbook="OFF yangi muharrirlar va yozishlarni yopadi. Saqlangan topshiriq, test va o‘quvchi natijalari qoladi. Ishlatilgan yoki murakkab eski kontent o‘zgartirilmaydi. Production release alohida.",
+    ),
+    FlagDefinition(
         slug="backoffice_unified_navigation", label="Boshqaruv — yagona menyu",
         description="To‘lovlar, guruhlar, sayt va sozlamalarni bir xil boshqaruv menyusiga ulash.",
         default=False, category="Frontend",

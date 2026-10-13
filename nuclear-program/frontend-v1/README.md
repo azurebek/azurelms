@@ -1,5 +1,11 @@
 # Frontend V1 — prototipdan ishlaydigan platformaga
 
+**2026-10-13 — B2.2 lokal tayyor va yoqilgan:** [topshiriq/test dalili](BACKOFFICE-02-STAGE-2.md).
+Dars ichida topshiriq va bir javobli test, yozuvsiz namuna, qoralama tiklash,
+ishlatilgan kontent himoyasi. 1572 Django test (1525 PASS, 47 skip),
+171 Node PASS. Yangi gate default OFF; lokal backup va readback bilan ON.
+B2.3–B2.6 reja; quyidagi yozuvlar o‘z sanasidagi tarixiy holat.
+
 **2026-10-13 — B2.1 lokal tayyor:** [kurs/material va imtihon oqimi dalili](BACKOFFICE-02-STAGE-1.md).
 Dars ichida material sozlash/tartiblash/olish, xatoda qiymat/qoralama saqlanishi,
 aniq exam/section tanlovi va bo‘shdan yaratish. Started attempt tahriri himoyalangan.

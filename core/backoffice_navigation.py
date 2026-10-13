@@ -11,6 +11,8 @@ COURSE_ROUTES = {
     'backoffice_cohort_create', 'backoffice_cohort_edit', 'backoffice_cohort_members',
     'backoffice_workspace_courses', 'backoffice_workspace_course_create',
     'backoffice_workspace_course_edit', 'backoffice_workspace_course', 'backoffice_workspace_groups',
+    'backoffice_workspace_assignment_new', 'backoffice_workspace_assignment_edit',
+    'backoffice_workspace_quiz_new', 'backoffice_workspace_quiz_edit',
 }
 DESIGN_ROUTES = {'backoffice_brand', 'backoffice_landing', 'backoffice_design', 'backoffice_workspace_site'}
 PAYMENT_ROUTES = {'backoffice_receipts', 'backoffice_plan_edit', 'backoffice_workspace_payments', 'backoffice_workspace_plans'}
@@ -106,6 +108,10 @@ def section_links(request, section):
         'blog:studio_create': 'blog:studio', 'blog:studio_edit': 'blog:studio',
         'backoffice_exam_edit': 'backoffice_exams', 'backoffice_workspace_course': 'backoffice_workspace_courses',
         'backoffice_workspace_course_create': 'backoffice_workspace_courses', 'backoffice_workspace_course_edit': 'backoffice_workspace_courses',
+        'backoffice_workspace_assignment_new': 'backoffice_workspace_courses',
+        'backoffice_workspace_assignment_edit': 'backoffice_workspace_courses',
+        'backoffice_workspace_quiz_new': 'backoffice_workspace_courses',
+        'backoffice_workspace_quiz_edit': 'backoffice_workspace_courses',
     }
     if match and match.namespace == 'sit_backoffice':
         selected = 'sit_backoffice:dashboard'

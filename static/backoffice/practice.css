@@ -1,0 +1,39 @@
+/* Lesson practice uses the existing workspace palette and field components. */
+.ws-practice-form, .ws-practice-preview { max-width: 58rem; margin-inline: auto; }
+.ws-practice-form > *, .ws-practice-form [data-practice-fields] > * { margin-bottom: 1.25rem; }
+.ws-practice-form h2 { margin-bottom: 1rem; }
+.ws-practice-form .ws-help { line-height: 1.65; }
+.ws-practice-form .ws-button, .ws-practice-form .ws-link-button { min-height: 44px; max-width: 100%; overflow-wrap: anywhere; }
+.ws-practice-questions { display: grid; gap: 1rem; min-width: 0; }
+.ws-practice-questions > .ws-button { justify-self: start; }
+.ws-practice-questions .ws-editor-heading { padding: 1rem .25rem 0; }
+.ws-practice-question { min-width: 0; }
+.ws-practice-question summary { min-height: 44px; }
+.ws-practice-question summary > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.ws-practice-question summary small { white-space: normal; }
+.ws-practice-choices, .ws-practice-preview-question { border: 0; padding: 0; margin: 0 0 1rem; min-width: 0; }
+.ws-practice-choices > legend { font-weight: 650; margin-bottom: 1rem; width: 100%; }
+.ws-practice-choices > legend .ws-help { display: block; font-weight: 400; }
+.ws-practice-choice { padding: 1rem; margin-bottom: .75rem; border: 1px solid var(--az-border); border-radius: var(--ws-radius); background: var(--az-soft); min-width: 0; }
+.ws-practice-choice .ws-field { margin-bottom: .25rem; }
+.ws-practice-correct { display: flex; align-items: center; gap: .6rem; min-height: 44px; margin-bottom: .4rem; cursor: pointer; font-weight: 600; }
+.ws-practice-correct input[type=radio], .ws-practice-preview-choice input[type=radio] { width: 1.15em; height: 1.15em; flex-shrink: 0; accent-color: var(--az-action); }
+.ws-practice-form input:focus-visible, .ws-practice-form summary:focus-visible, .ws-practice-form button:focus-visible { outline: 3px solid var(--az-action); outline-offset: 3px; }
+.ws-practice-save > p { margin-bottom: 1rem; color: var(--az-muted); line-height: 1.7; }
+.ws-practice-save .ws-field label { line-height: 1.6; }
+.ws-practice-preview { padding: clamp(1rem, 3vw, 2rem); overflow-wrap: anywhere; }
+.ws-practice-preview-question { padding-block: 1rem; border-top: 1px solid var(--az-border); }
+.ws-practice-preview-question legend { padding-top: 1rem; font-weight: 650; }
+.ws-practice-preview-choice { display: flex; align-items: center; gap: .75rem; min-height: 44px; padding: .75rem; margin-top: .5rem; border: 1px solid var(--az-border); border-radius: var(--ws-radius); }
+.ws-practice-preview .ws-lesson-content { line-height: 1.75; margin-bottom: 1rem; }
+.ws-practice-preview img { max-width: 100%; height: auto; }
+.ws-practice-preview table { display: block; max-width: 100%; overflow-x: auto; }
+.ws-practice-form .ck-editor, .ws-practice-form .django-ckeditor-widget { min-width: 0; max-width: 100%; }
+.ws-practice-form .ck-content { min-height: 8rem; overflow-wrap: anywhere; color: var(--az-text); background: var(--az-surface); }
+.ws-practice-form .ws-inline-actions { flex-wrap: wrap; }
+@media (max-width: 600px) {
+  .ws-practice-form .ws-form-section, .ws-practice-form .ws-disclosure-body { padding: 1rem; }
+  .ws-practice-choice { padding: .75rem; }
+  .ws-practice-form .ws-inline-actions { align-items: stretch; }
+  .ws-practice-form .ws-inline-actions > .ws-button { flex: 1 1 12rem; }
+}

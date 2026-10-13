@@ -228,7 +228,8 @@ Yonidagi bosiladigan namuna faqat taklifning navigatsiyasi va uch ish shaklini t
 <a id="backoffice-02"></a>
 ## 11. BACKOFFICE-02 — kundalik ishlarni yakunlash
 
-**Holat: B2.1 lokal tayyor (2026-10-13); B2.2–B2.6 reja.** [B2.1 dalili](BACKOFFICE-02-STAGE-1.md).
+**Holat: B2.1–B2.2 lokal tayyor (2026-10-13); B2.3–B2.6 reja.**
+[B2.1 dalili](BACKOFFICE-02-STAGE-1.md), [B2.2 dalili](BACKOFFICE-02-STAGE-2.md).
 Reja sanasi 2026-10-12; kod tayanchi
 `cd2ce2c`. Yangi phase shu hujjatda yuritiladi; parallel roadmap ochilmaydi.
 Owner topshirig‘i: shaxsiy usability sinovini keyinroq bajaradi, shu vaqtgacha
@@ -286,6 +287,27 @@ test — topshiriladi; ikkalasi bitmaguncha B2.2 yopilmaydi.
 Topilgan unrelated feature ushbu ro‘yxatga jimgina qo‘shilmaydi.
 
 ### Implementatsiya shartnomalari
+
+#### B2.2 admission — 2026-10-13
+
+**ADMIT — launch-critical.** Ownerning «davom et» topshirig‘i bilan darsga
+topshiriq va bir javobli test tayyorlash yo‘li quriladi. KPI: 4–5 ssenariy
+create → save → reopen → yozuvsiz namuna orqali o‘tadi; chala savol,
+ruxsatsiz yoki eskirgan tahrir va takroriy yaratishda noto‘g‘ri yozuv 0.
+`courses/authoring_service.py` Assignment/Quiz/Question/Choice uchun yagona
+writer; yangi scoped HTTP adapter faqat uni iste’mol qiladi. Submission va
+grading `submission_service`da qolib, birinchi topshirish ham authoring bilan
+bir parent lock ostida tekshiriladi. Har qanday submission/attempt mavjud
+kontentni o‘qish rejimiga o‘tkazadi; murakkab eski testlar o‘zgartirilmaydi.
+Audit va kontent bir transactionda. Saqlash amaldagi dars kontentini yangilashi
+oldindan ko‘rsatiladi; preview progress/attempt/XP/release yaratmaydi.
+Haftalik admin yuki kamayadi; yangi xizmat yoki provider ishlatilmaydi.
+`backoffice_practice_authoring` registry gate’i default OFF; render va yangi
+writer ikkalasini yopadi. OFF saqlangan learner kontentini o‘chirmaydi.
+Invalid/stale so‘rovda bound maydonlar va sabab qaytadi, yozuv yo‘q.
+Rollback shu gate bilan; tekshiruv synthetic bazada, asosiy lokal yoqish
+faqat nusxadagi dalildan keyin. Production va ishlatilgan kontentni
+versiyalash bu kesimga kirmaydi.
 
 #### B2.1 admission — 2026-10-13
 

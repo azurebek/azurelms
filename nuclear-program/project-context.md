@@ -698,6 +698,17 @@ AI room nomi birinchi prompt'dan avtomatik o'zgarishi mumkin (`maybe_name_ai_roo
 
 ### 4.10 Backoffice
 
+**Dars topshirig‘i va oddiy test (2026-10-13):** `backoffice_practice_authoring`
+default OFF, lokal ON. `/backoffice/workspace/courses/<course>/lessons/<lesson>/`
+ostida `assignments/new/`, `assignments/<id>/`, `quizzes/new/`, `quizzes/<id>/`.
+`core/backoffice_practice.py` + `practice_forms.py` HTTP adapteri;
+`courses/authoring_service.py` assignment/quiz/tree writer va pure preview
+validatsiyasini boshqaradi. Actor/scope/signed snapshot, atomik audit va
+any-submission/attempt read-only; `submission_service` ota yozuvni learner
+write’dan oldin qulflaydi va yangidan o‘qiydi. SessionStorage qoralama va
+inert preview haqiqiy draft/publish lifecycle emas. Exam/aralash eski quiz
+avtomatik aylantirilmaydi. Migration/provider yo‘q. [B2.2 dalili](frontend-v1/BACKOFFICE-02-STAGE-2.md).
+
 **Kurs ish maydoni (2026-10-10):** `backoffice_course_workspace` default-OFF flag
 ortida `/backoffice/workspace/`, `/courses/`, `/courses/new/`,
 `/courses/<id>/` va `/courses/<id>/settings/` (barchasi workspace prefiksida).
