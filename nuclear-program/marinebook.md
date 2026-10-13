@@ -16,6 +16,36 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-13 [Codex]: BACKOFFICE-02 / B2.2 — topshiriq va oddiy test tayyorlash
+
+Ownerning «davom et» topshirig‘i bilan dars ichida assignment va bir javobli
+quiz yaratish/tahrirlash, yozuvsiz namuna va nested qoralama tiklash qurildi.
+Chala savol o‘z joyida tuzatiladi; ishlatilgan kontent oldingi natijalarni saqlaydi.
+
+- Branch: `codex/backoffice-assignment-quiz`; implementatsiya: `81b2db4`.
+  [Natija, admission va dalil](frontend-v1/BACKOFFICE-02-STAGE-2.md).
+- Canonical `courses/authoring_service`: fresh actor/scope, parent/tree lock,
+  signed revision, replay/no-op va atomic audit. `submission_service` ham
+  Assignment/Quiz parentni first learner write oldidan lock/refresh qiladi.
+  Any submission/attempt va cross-record javob mavjud bo‘lsa writer yopiq.
+- Env-file OFF, Gemini/Telegram bo‘sh: `venv/Scripts/python.exe manage.py test
+  core courses bot --verbosity 1`: **1572 / 1525 PASS / 47 skip**, 273.768s.
+  `node --test tests/frontend_v1/*.test.mjs`: **171/171 PASS**. Check 0,
+  migration drift yo‘q, diff-check PASS. Uch PG overlap testi CI uchun.
+- IAB synthetic 8100: assignment save/reopen/preview; uch savol → inline
+  xato → tuzatish → preview → reload/restore (radio ham) → save/readback;
+  javobsiz attempt read-only. 320/1440px, dark/light, 200% rendered text,
+  Tab fokus va console0. Sinov kontenti asosiy bazaga yozilmadi.
+- Review/browser topgan invalid numeric retention, form-budget, raced used
+  POST retention, `form.action` shadow va CKEditor false recovery tuzatildi.
+  Legacy admin/bulk/SQL va tashqi ABA global revision kafolatiga kirmaydi.
+- Yangi flag default OFF; canonical backup va rollback-only 3 GETdan keyin
+  asosiy lokal bazada ON. Backup bilan barcha eski qatorlar o‘zgarmagani,
+  faqat 1 flag + 1 audit qo‘shilgani tekshirildi; integrity/FK OK.
+- Production, owner/native/AT qabuli va ishlatilgan kontentni versiyalash
+  alohida. Required CI/review’dan keyin standing workflow bo‘yicha manual
+  merge. Keyingi kesim B2.3 — topish va davom ettirish.
+
 ## 2026-10-13 [Codex]: BACKOFFICE-02 / B2.1 — dars materiallari va imtihon tayyorlash
 
 Ownerning «boshla unda» topshirig‘i bilan birinchi implementatsiya yakunlandi.
