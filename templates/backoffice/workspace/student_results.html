@@ -1,0 +1,21 @@
+<section class="sp-evidence" aria-labelledby="results-title">
+  <header class="sp-evidence-heading"><h2 id="results-title">Topshiriq va natijalar</h2><p>Yuborilgan ish, tekshiruv holati va o‘quvchiga ochilgan natijani tekshiring. Darsga kirish imkoniyati “Darsga kirish” bo‘limida tekshiriladi.</p></header>
+  {% if selected_course %}
+    <nav class="sp-result-kinds" aria-label="Natija turi">{% for item in result_groups %}<a href="{{ item.url }}"{% if item.active %} aria-current="page"{% endif %}>{{ item.label }} <span>{{ item.count }}{% if item.key != 'assignments' %} urinish{% endif %}</span></a>{% endfor %}</nav>
+    <div class="sp-evidence-scope"><h3>{{ result_label }}</h3><p>{{ result_scope }}</p></div>
+    <div class="sp-evidence-list">
+    {% for row in result_rows %}
+      <article class="sp-evidence-row">
+        <div class="sp-evidence-row-heading"><div><h4>{{ row.title }}</h4>{% if row.lesson_title %}<p class="sp-evidence-meta">{{ row.lesson_title }}</p>{% endif %}{% if row.attempt_number %}<p class="sp-evidence-meta">{{ row.attempt_number }}-urinish</p>{% endif %}</div><strong class="sp-evidence-status">{{ row.status_label }}</strong></div>
+        <p>{{ row.detail }}</p>
+        <dl class="sp-evidence-facts"><div><dt>O‘quvchiga ko‘rinishi</dt><dd>{{ row.learner_label }}</dd></div>{% if row.score != None %}<div><dt>Natija</dt><dd>{{ row.score|floatformat:'-2' }}%</dd></div>{% endif %}{% if row.updated_at %}<div><dt>Yangilangan</dt><dd><time datetime="{{ row.updated_at|date:'c' }}">{{ row.updated_at|date:'d.m.Y · H:i' }}</time></dd></div>{% endif %}</dl>
+        {% if row.action_url %}<a class="ws-button" href="{{ row.action_url }}">{{ row.action_label }} <span aria-hidden="true">→</span></a>{% endif %}{% if row.action_note %}<p class="sp-evidence-meta">{{ row.action_note }}</p>{% endif %}
+      </article>
+    {% empty %}
+      <div class="sp-evidence-empty"><h4>{% if result_kind == 'assignments' %}Bu darsda topshiriq yo‘q{% elif result_kind == 'quizzes' %}Hali test natijasi yo‘q{% else %}Hali imtihon urinishi yo‘q{% endif %}</h4><p>{% if result_kind == 'assignments' %}Boshqa darsni tanlang yoki kurs ustaxonasida topshiriq tayyorlang.{% elif result_kind == 'quizzes' %}O‘quvchi shu darsdagi testni topshirgach, natijasi shu yerda chiqadi.{% else %}Tanlangan kursdagi imtihon boshlanganida holati shu yerda chiqadi.{% endif %}</p></div>
+    {% endfor %}
+    </div>
+    {% if result_page.paginator.num_pages > 1 %}<nav class="sp-evidence-pagination" aria-label="{{ result_label }} sahifalari">{% if result_previous_url %}<a class="ws-button" href="{{ result_previous_url }}">← Oldingi</a>{% endif %}<span>{{ result_page.number }} / {{ result_page.paginator.num_pages }}-sahifa</span>{% if result_next_url %}<a class="ws-button" href="{{ result_next_url }}">Keyingi →</a>{% endif %}</nav>{% endif %}
+  {% else %}<div class="sp-evidence-empty"><h3>Avval kursni tanlang</h3><p>Topshiriq va natijalar tanlangan kurs bo‘yicha tekshiriladi.</p></div>{% endif %}
+  {% include "backoffice/workspace/student_recheck.html" %}
+</section>

@@ -10,6 +10,7 @@
 {% block t_topbar %}Imtihonni tekshirish{% endblock %}
 
 {% block t_content %}
+{% if support_return_url %}<p><a class="brand-back" style="display:inline-flex;align-items:center;min-height:44px;overflow-wrap:anywhere;" href="{{ support_return_url }}">← {{ support_return_label }}</a></p>{% endif %}
 <form method="post" style="max-width:900px;">
   {% csrf_token %}
   <p>“Saqlash” qoralamani saqlaydi. O‘quvchiga faqat “Tasdiqlash” bilan e’lon qilingan natija ko‘rinadi. Oldin tasdiqlangan natija yangi qoralama bilan almashtirilmaydi.</p>
@@ -17,7 +18,7 @@
   <!-- Sarlavha -->
   <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:18px;">
     <div style="display:flex;align-items:center;gap:12px;min-width:0;">
-      <a href="{% url 'teacher_grading' %}" aria-label="Orqaga" style="width:38px;height:38px;border-radius:10px;border:1px solid var(--line);color:var(--ink-2);display:grid;place-items:center;font-size:15px;flex:0 0 auto;"><i class="bi bi-arrow-left"></i></a>
+      {% if not support_return_url %}<a href="{% url 'teacher_grading' %}" aria-label="Orqaga" style="width:38px;height:38px;border-radius:10px;border:1px solid var(--line);color:var(--ink-2);display:grid;place-items:center;font-size:15px;flex:0 0 auto;"><i class="bi bi-arrow-left"></i></a>{% endif %}
       <span style="width:42px;height:42px;border-radius:11px;background:var(--violet-soft, var(--azure-soft));color:var(--violet, var(--azure));display:grid;place-items:center;font-weight:700;font-size:14px;flex:0 0 auto;">{{ attempt.student.first_name.0|default:attempt.student.username.0|upper }}{{ attempt.student.last_name.0|upper }}</span>
       <div style="min-width:0;">
         <div style="font-size:16px;font-weight:600;color:var(--ink);">{{ attempt.student.get_full_name|default:attempt.student.username }}</div>

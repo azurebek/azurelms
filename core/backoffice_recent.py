@@ -44,7 +44,8 @@ def _entry(value):
         return None
     required, optional = {
         'course': ({'course_id'}, {'lesson_id', 'module_id', 'view'}),
-        'student': ({'student_id'}, {'course_id', 'lesson_id', 'filter_course_id', 'page'}),
+        'student': ({'student_id'}, {'course_id', 'lesson_id', 'filter_course_id', 'page', 'topic',
+                                   'result_kind', 'delivery_filter', 'assignment_page', 'quiz_page', 'exam_page', 'delivery_page'}),
         'design': (set(), set()),
     }.get(kind, (None, None))
     if required is None or set(value) - {'kind'} - required - optional or not required <= set(value):
@@ -55,7 +56,13 @@ def _entry(value):
             if key in required:
                 return None
             continue
-        if key == 'view':
+        if key in {'topic', 'result_kind', 'delivery_filter'}:
+            allowed = {'topic': {'access', 'results', 'delivery'}, 'result_kind': {'assignments', 'quizzes', 'exams'},
+                       'delivery_filter': {'all', 'failed'}}[key]
+            if not isinstance(value[key], str) or value[key] not in allowed:
+                return None
+            result[key] = value[key]
+        elif key == 'view':
             if value[key] != 'preview':
                 return None
             result[key] = 'preview'
@@ -122,17 +129,25 @@ def _project(actor, item, enabled):
             params['view'] = item['view']
         url = reverse('backoffice_workspace_course', kwargs={'course_id': course.pk})
     else:
+        if item.get('topic') == 'delivery' and not actor.is_superuser:
+            return None
         student = support_student_queryset(actor).only('pk', 'first_name', 'last_name', 'username').filter(pk=item['student_id']).first()
         if student is None:
             return None
         params = {key: item[source] for source, key in (
             ('course_id', 'course'), ('lesson_id', 'lesson'),
             ('filter_course_id', 'filter_course'), ('page', 'page'),
+            ('topic', 'topic'), ('result_kind', 'result_kind'),
+            ('delivery_filter', 'delivery_filter'),
+            ('assignment_page', 'assignment_page'), ('quiz_page', 'quiz_page'),
+            ('exam_page', 'exam_page'), ('delivery_page', 'delivery_page'),
         ) if source in item}
         if item.get('filter_course_id') and not teacher_course_queryset(actor).filter(pk=item['filter_course_id']).exists():
             return None
         title = student.get_full_name().strip() or student.username
         subtitle = ' · '.join(part for part in (course.title if course else '', lesson.title if lesson else '') if part) or 'O‘quvchiga yordam'
+        if item.get('topic') in {'results', 'delivery'}:
+            subtitle = ('Topshiriq va natijalar' if item['topic'] == 'results' else 'Bildirishnomalar') + ' · ' + subtitle
         label = 'O‘quvchi'
         url = reverse('backoffice_workspace_student', kwargs={'student_id': student.pk})
     return {'title': title, 'subtitle': subtitle, 'label': label,

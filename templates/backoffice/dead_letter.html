@@ -7,6 +7,8 @@
 {% block page_css %}<link rel="stylesheet" href="{% static 'css/brand-control.css' %}">{% endblock %}
 
 {% block bo_content %}
+{% if support_return_url %}<p><a class="brand-back" href="{{ support_return_url }}">← {{ support_return_label }}</a></p>{% endif %}
+{% if delivery_student %}<section class="brand-panel"><h2>{{ delivery_student.get_full_name|default:delivery_student.username }}</h2><p>{% if delivery_notification %}Faqat tanlangan bildirishnoma tekshirilmoqda.{% else %}Faqat shu o‘quvchining yuborilishi to‘xtagan xabarlari ko‘rsatilmoqda.{% endif %} Qaytarish uchun xabarni o‘zingiz belgilang va sababini yozing.</p></section>{% endif %}
 <section class="brand-hero">
   <div>
     <span class="brand-kicker">{% if backoffice_unified_enabled %}XABARLAR{% else %}DEAD-LETTER{% endif %}</span>
@@ -14,7 +16,7 @@
     <p>{% if backoffice_unified_enabled %}Bu xabarlarni yuborish to‘xtagan. Avval ko‘rsatilgan muammoni hal qiling, so‘ng qayta yuboriladigan xabarlarni belgilang.{% else %}Urinishlari tugagan yoki tuzalmaydigan xato olgan xabar navbatda <strong>terminal</strong> bo'ladi — o'zi hech qachon qaytmaydi. Sabab bartaraf etilgach (token tuzatildi, tarmoq tiklandi, blok yechildi) uni shu yerdan qaytarasiz.{% endif %}</p>
     <p>{% if backoffice_unified_enabled %}Navbatga qaytarilgach, yuborish urinishlari boshidan boshlanadi. Har amal sababi bilan tarixga yoziladi.{% else %}Qaytarish urinish hisoblagichini <strong>noldan</strong> boshlaydi va xabar keyingi worker siklida olinadi. Har amal sababi bilan audit tarixiga yoziladi.{% endif %}</p>
   </div>
-  <a class="brand-back" href="{% if backoffice_unified_enabled %}{% url 'backoffice_workspace_settings' %}{% else %}{% url 'backoffice_control' %}{% endif %}"><i class="bi bi-arrow-left"></i> {% if backoffice_unified_enabled %}Sozlamalar{% else %}Control Center{% endif %}</a>
+  {% if not support_return_url %}<a class="brand-back" href="{% if backoffice_unified_enabled %}{% url 'backoffice_workspace_settings' %}{% else %}{% url 'backoffice_control' %}{% endif %}"><i class="bi bi-arrow-left"></i> {% if backoffice_unified_enabled %}Sozlamalar{% else %}Control Center{% endif %}</a>{% endif %}
 </section>
 
 <div class="brand-layout">
@@ -28,7 +30,9 @@
           <span>01</span>
           <div>
             <h2>{% if backoffice_unified_enabled %}Qayta yuborishni kutayotganlar{% else %}Terminal navbat{% endif %}</h2>
-            {% if summary.total %}
+            {% if delivery_student %}
+              <p>O‘quvchi: <strong>{{ delivery_student.get_full_name|default:delivery_student.username }}</strong>. Yuborilishi to‘xtagan {{ summary.total }} ta xabar topildi.</p>
+            {% elif summary.total %}
               <p>Jami <strong>{{ summary.total }}</strong> ta: {{ summary.dm }} shaxsiy, {{ summary.group }} guruh. Shundan <strong>{{ summary.permanent }}</strong> tasi {% if backoffice_unified_enabled %}sababini tuzatish talab qilinadigan turda{% else %}«hech qachon tuzalmaydi» turida{% endif %}.</p>
             {% else %}
               <p>{% if backoffice_unified_enabled %}Yetkazilishi to‘xtagan xabar yo‘q.{% else %}Navbatda terminal xabar yo'q.{% endif %}</p>
@@ -41,6 +45,16 @@
             <p class="brand-empty">Ro'yxat <strong>{{ limit }}</strong> qator bilan cheklangan — yana {{ truncated }} tasi ko'rinmayapti. Bularni qaytargach sahifani qayta ochsangiz keyingi guruh chiqadi. Chegara <a class="brand-link" href="{% url 'backoffice_runtime_settings' %}">operatsion sozlamalarda</a>.</p>
           {% endif %}
           {% for error in form.rows.errors %}<em class="brand-check-error">{{ error }}</em>{% endfor %}
+          {% if delivery_student %}
+            {% for checkbox, row in form.selectable_rows %}
+              <article class="brand-panel">
+                <label class="brand-field brand-field--check">{{ checkbox.tag }} <span><strong>{{ row.preview }}</strong></span></label>
+                <p>{{ delivery_student.get_full_name|default:delivery_student.username }} · {{ row.created_at|date:"d.m.Y H:i" }}</p>
+                <p>{% if row.is_permanent %}Avval o‘quvchi botni bloklamaganini va Telegram hisobi ishlayotganini aniqlashtiring.{% else %}Yuborish urinishlari to‘xtagan. Sabab bartaraf etilgan bo‘lsa, xabarni qayta navbatga qo‘yishingiz mumkin.{% endif %}</p>
+                <p>Yuborishga {{ row.attempts }} marta urinilgan.</p>
+              </article>
+            {% endfor %}
+          {% else %}
           <table class="brand-table">
             <thead>
               <tr>
@@ -72,19 +86,20 @@
               {% endfor %}
             </tbody>
           </table>
+          {% endif %}
         {% else %}
-          <p class="brand-empty">Qaytariladigan narsa yo'q — bu yaxshi holat. Xabar bu yerga faqat urinishlari tugaganda yoki tuzalmaydigan xato olganda tushadi.</p>
+          <p class="brand-empty">{% if delivery_notification %}Tanlangan xabar hozir yuborilishi to‘xtagan holatda emas. O‘quvchi kartasiga qaytib, joriy holatini tekshiring.{% else %}Qaytariladigan narsa yo'q — bu yaxshi holat. Xabar bu yerga faqat urinishlari tugaganda yoki tuzalmaydigan xato olganda tushadi.{% endif %}</p>
         {% endif %}
       </section>
 
       {% if rows %}
         <section class="brand-panel">
-          <div class="brand-panel-head"><span>02</span><div><h2>Sabab va tasdiq</h2><p>Audit tarixiga yoziladi.</p></div></div>
+          <div class="brand-panel-head"><span>02</span><div><h2>Sabab va tasdiq</h2><p>Amal tarixida saqlanadi.</p></div></div>
           <div class="brand-fields">
             <label class="brand-field">
               <span>{{ form.change_reason.label }}</span>
               {{ form.change_reason }}
-              {% if form.change_reason.help_text %}<small>{{ form.change_reason.help_text }}</small>{% endif %}
+              {% if delivery_student %}<small>Masalan: o‘quvchi botni qayta ochdi, yuborishga to‘sqinlik qilgan muammo bartaraf etildi.</small>{% elif form.change_reason.help_text %}<small>{{ form.change_reason.help_text }}</small>{% endif %}
               {% for error in form.change_reason.errors %}<em>{{ error }}</em>{% endfor %}
             </label>
             <label class="brand-field brand-field--check">
@@ -93,8 +108,8 @@
             </label>
             {% if form.permanent_available %}
               <label class="brand-field brand-field--check">
-                {{ form.acknowledge_permanent }} <span>{{ form.acknowledge_permanent.label }}</span>
-                <small>{{ form.acknowledge_permanent.help_text }}</small>
+                {{ form.acknowledge_permanent }} <span>{% if delivery_student %}Sabab tuzatilmagan bo‘lsa, xabar yana yetib bormasligini tushunaman{% else %}{{ form.acknowledge_permanent.label }}{% endif %}</span>
+                <small>{% if delivery_student %}Bot bloklangan bo‘lsa, avval o‘quvchi uni qayta ochishi kerak.{% else %}{{ form.acknowledge_permanent.help_text }}{% endif %}</small>
                 {% for error in form.acknowledge_permanent.errors %}<em>{{ error }}</em>{% endfor %}
               </label>
             {% endif %}
@@ -107,6 +122,7 @@
   </div>
 
   <aside class="brand-side">
+    {% if not delivery_student %}
     <section class="brand-panel">
       <div class="brand-panel-head"><span><i class="bi bi-clock-history"></i></span><div><h2>So'nggi qaytarishlar</h2></div></div>
       <ul class="brand-history">
@@ -122,14 +138,21 @@
         {% endfor %}
       </ul>
     </section>
+    {% endif %}
 
     <section class="brand-panel">
       <div class="brand-panel-head"><span><i class="bi bi-info-circle"></i></span><div><h2>Nima o'zgaradi</h2></div></div>
       <ul class="brand-history">
+        {% if delivery_student %}
+        <li><span>Tanlangan xabar qayta yuborish navbatiga qo‘yiladi. Bu hali yetkazildi degani emas.</span></li>
+        <li><span>Yuborish to‘xtatilgan bo‘lsa, xabar navbatda kutadi. O‘quvchi kartasiga qaytib holatini tekshiring.</span></li>
+        <li><span>Amal sababi va oldingi holat tarixda saqlanadi.</span></li>
+        {% else %}
         <li><span>Urinish hisoblagichi <strong>nolga</strong> qaytadi — aks holda xabar birinchi xatoda darhol yana to'xtardi.</span></li>
         <li><span>Kutish vaqti tozalanadi: xabar keyingi siklda darhol olinadi.</span></li>
         <li><span>Eski xato matni o'chiriladi, ammo audit yozuvining <strong>oldingi holati</strong>da saqlanib qoladi.</span></li>
         <li><span>Ikki marta bosilsa xabar ikki marta ketmaydi: faqat hamon to'xtagan qatorlar qaytariladi.</span></li>
+        {% endif %}
       </ul>
     </section>
   </aside>

@@ -1,0 +1,22 @@
+<section class="sp-evidence" aria-labelledby="delivery-title">
+  <header class="sp-evidence-heading"><h2 id="delivery-title">Bildirishnoma yetib bormaganmi?</h2><p>{{ delivery.scope_label }}. {{ delivery.scope_note }}</p></header>
+  <div class="sp-delivery-overview">
+    <p><strong>Telegram:</strong> {% if delivery.telegram_connected %}Hisob bog‘langan{% else %}Hisob bog‘lanmagan{% endif %}.</p>
+    {% if not delivery.sending_enabled %}<p>Telegramga yuborish hozir boshqaruvda to‘xtatilgan. Navbatdagi xabarlar bu holatda yuborilmaydi.</p>{% endif %}
+    <p>Saytdagi bildirishnoma va Telegramga yuborish alohida qayd etiladi. “Yuborilgan” xabar o‘qilganini bildirmaydi.</p>
+  </div>
+  <nav class="sp-result-kinds" aria-label="Bildirishnomalarni saralash">{% for item in delivery_filters %}<a href="{{ item.url }}"{% if item.active %} aria-current="page"{% endif %}>{{ item.label }} <span>{{ item.count }}</span></a>{% endfor %}</nav>
+  <div class="sp-evidence-scope"><h3>{% if delivery_filter == 'failed' %}Yuborish to‘xtagan xabarlar{% else %}Oxirgi bildirishnomalar{% endif %}</h3><p>Eng yangisi tepada.</p></div>
+  <div class="sp-evidence-list">
+  {% for row in delivery.rows %}
+    <article class="sp-evidence-row">
+      <div class="sp-evidence-row-heading"><div><h4>{{ row.title }}</h4><p class="sp-evidence-meta">{{ row.category_label }} · <time datetime="{{ row.created_at|date:'c' }}">{{ row.created_at|date:'d.m.Y · H:i' }}</time></p></div><strong class="sp-evidence-status">{{ row.status_label }}</strong></div>
+      <dl class="sp-evidence-facts"><div><dt>Saytda</dt><dd>{{ row.website_label }}</dd></div><div><dt>Telegramda</dt><dd>{{ row.status_label }}</dd></div>{% if row.sent_at %}<div><dt>Yuborilgan vaqt</dt><dd>{{ row.sent_at|date:'d.m.Y · H:i' }}</dd></div>{% endif %}</dl>
+      <p>{{ row.detail }}</p>{% if row.target_warning %}<p class="sp-evidence-warning">{{ row.target_warning }}</p>{% endif %}
+      {% if row.action_url %}<a class="ws-button" href="{{ row.action_url }}">{{ row.action_label }} <span aria-hidden="true">→</span></a>{% endif %}
+    </article>
+  {% empty %}<div class="sp-evidence-empty"><h3>{% if delivery_filter == 'failed' %}Yuborish to‘xtagan xabar yo‘q{% else %}Bildirishnoma topilmadi{% endif %}</h3><p>{% if delivery_filter == 'failed' %}Navbatdagi yoki yuborilgan xabarlarni “Hammasi” bo‘limida ko‘rishingiz mumkin.{% else %}{{ delivery.empty_message }}{% endif %}</p></div>{% endfor %}
+  </div>
+  {% if delivery.page_obj.paginator.num_pages > 1 %}<nav class="sp-evidence-pagination" aria-label="Bildirishnoma sahifalari">{% if delivery_previous_url %}<a class="ws-button" href="{{ delivery_previous_url }}">← Oldingi</a>{% endif %}<span>{{ delivery.page_obj.number }} / {{ delivery.page_obj.paginator.num_pages }}-sahifa</span>{% if delivery_next_url %}<a class="ws-button" href="{{ delivery_next_url }}">Keyingi →</a>{% endif %}</nav>{% endif %}
+  {% include "backoffice/workspace/student_recheck.html" %}
+</section>

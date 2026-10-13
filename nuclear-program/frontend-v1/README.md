@@ -1,5 +1,16 @@
 # Frontend V1 — prototipdan ishlaydigan platformaga
 
+**2026-10-13 — B2.4 lokal tayyor:**
+[o‘quvchi natijalari va bildirishnomalar](BACKOFFICE-02-STAGE-4.md).
+Kartada alohida topshiriq/test/imtihon holati, owner uchun hisob bo‘yicha
+bildirishnoma va “Yuborish to‘xtagan” filtri. Aniq mavjud amal sahifasidan
+ayni o‘quvchi/kurs/darsga qaytish; recent mavzu va filtrni saqlaydi.
+Support GET canonical yozuv yaratmaydi. Yangi migration/provider/flag yo‘q.
+1698 Django (1651 PASS, 47 skip), yakuniy focused 74 va Node 171 PASS.
+320/1440px, 200% matn, dark/light va klaviatura tekshirildi; primary lokal
+7 GET rollbackda, barcha 149 jadval o‘zgarmagan. B2.5–B2.6 reja; owner qabuli keyinroq.
+Quyidagi qaydlar o‘z bosqichi tugagan paytdagi tarixiy holat.
+
 **2026-10-13 — B2.3 lokal tayyor:** [qidiruv/davom ettirish dalili](BACKOFFICE-02-STAGE-3.md).
 Kurs/dars/o‘quvchi/ruxsatli bo‘limni yagona qidiruv, ayni darsga kirish,
 filtrli ro‘yxatga qaytish va sessiyadagi oxirgi uch ish. Recent’da faqat

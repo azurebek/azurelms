@@ -698,6 +698,23 @@ AI room nomi birinchi prompt'dan avtomatik o'zgarishi mumkin (`maybe_name_ai_roo
 
 ### 4.10 Backoffice
 
+**O‘quvchi natijalari va bildirishnomalar (B2.4, 2026-10-13):** mavjud
+support kartasida `topic=access|results|delivery`. `student_support_results.py`
+fresh staff/student/course/lesson scope bilan assignment, quiz va exam tarixini
+6 tadan o‘qiydi; exam bali canonical `exam_publication.learner_result`dan,
+draft feedback chiqarilmaydi. `student_support_delivery.py` fresh owner-only,
+Notification’da course FK yo‘qligi sabab hisob bo‘yicha 10 tadan; all/failed
+filtri, alohida sayt/o‘qilgan/Telegram holati, current pause/quiet-hours va
+o‘zgargan yuborish manzili izohi. Body/error/Telegram ID supportga chiqmaydi.
+`student_support_return.py` actor/session/obyektga bog‘langan token bilan
+review/replaydan ayni mavzu/filtr/sahifaga qaytaradi; upstream search token
+URLda, recent’da faqat ID/enumlar. Dead-letter `student` + `notification`
+filtri GET va forma tanlovini aniq DM bilan chegaralaydi; mavjud replay,
+tasdiq va audit saqlanadi. Support GET baho/progress/attempt/read/yuborish
+yozmaydi; qarorlar mavjud writerlarda. Mavjud support flagi va exam review
+renderer gate’i qo‘llanadi, yangi migration/flag/provider yo‘q.
+[B2.4 shartnoma va tekshiruv holati](frontend-v1/BACKOFFICE-02-STAGE-4.md).
+
 **Topish va davom ettirish (2026-10-13):** mavjud `backoffice_unified_navigation`
 gate’i ortida `/backoffice/workspace/search/` kurs/dars/o‘quvchi va ruxsatli
 bo‘limlar uchun GET qidiruv. `core/backoffice_search.py` fresh actor va
