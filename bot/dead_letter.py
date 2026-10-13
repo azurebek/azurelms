@@ -22,7 +22,7 @@ qaytadi, ikkinchi chaqiruv nol qator o'zgartiradi va yuza hech narsa
 yozmaydi. Bu naqsh outbox'ning o'z claim'ida ham shunday.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime
 
 from django.db import transaction
@@ -59,12 +59,18 @@ def queue_model(queue):
     raise ValueError(f"Noma'lum navbat: {queue!r}")
 
 
-def dead_letter_queryset(queue):
+def dead_letter_queryset(queue, *, student_id=None, notification_id=None):
     """Shu navbatdagi terminal qatorlar, yangisidan boshlab."""
     model = queue_model(queue)
     queryset = model.objects.filter(status=model.STATUS_FAILED)
     if queue == QUEUE_DM:
         queryset = queryset.select_related("notification", "notification__recipient")
+        if student_id is not None:
+            queryset = queryset.filter(notification__recipient_id=student_id)
+        if notification_id is not None:
+            queryset = queryset.filter(notification_id=notification_id)
+    elif student_id is not None or notification_id is not None:
+        queryset = queryset.none()
     return queryset.order_by("-id")
 
 
@@ -153,7 +159,7 @@ def _group_row(item):
 ROW_BUILDERS = {QUEUE_DM: _dm_row, QUEUE_GROUP: _group_row}
 
 
-def visible_rows(*, limit):
+def visible_rows(*, limit, student_id=None, notification_id=None):
     """Ikki navbatdan eng yangi `limit` ta terminal qator.
 
     Chegara **owner sozlamasida** (`BotRuntimeSettings.dead_letter_replay_limit`):
@@ -165,12 +171,20 @@ def visible_rows(*, limit):
     rows = []
     for queue in QUEUE_SLUGS:
         builder = ROW_BUILDERS[queue]
-        rows.extend(builder(item) for item in dead_letter_queryset(queue)[:limit])
+        for item in dead_letter_queryset(queue, student_id=student_id, notification_id=notification_id)[:limit]:
+            row = builder(item)
+            if student_id is not None:
+                # A focused learner workflow needs a name/title, never a raw
+                # delivery address or a private body when the title is blank.
+                recipient = item.notification.recipient
+                row = replace(row, target=recipient.get_full_name().strip() or recipient.username,
+                              preview=_preview(item.notification.title) or 'Bildirishnoma')
+            rows.append(row)
     rows.sort(key=lambda row: row.created_at, reverse=True)
     return rows[:limit]
 
 
-def counts():
+def counts(*, student_id=None, notification_id=None):
     """Chiroq va sahifa sarlavhasi uchun sonlar.
 
     `permanent` alohida: «hech qachon tuzalmaydi» bilan «o'zi tuzaladi»
@@ -179,7 +193,7 @@ def counts():
     """
     result = {"total": 0, "permanent": 0}
     for queue in QUEUE_SLUGS:
-        queryset = dead_letter_queryset(queue)
+        queryset = dead_letter_queryset(queue, student_id=student_id, notification_id=notification_id)
         total = queryset.count()
         result[queue] = total
         result["total"] += total

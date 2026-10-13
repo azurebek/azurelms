@@ -544,10 +544,43 @@ def backoffice_dead_letter(request):
     from bot.dead_letter import counts, replay, snapshot_for_audit, visible_rows
     from bot.runtime_settings import current_policy
     from core.dead_letter_forms import DeadLetterReplayForm
+    from core.student_support_return import support_return_context
+    from core.student_support_service import support_student_queryset
+    from django.http import HttpResponseBadRequest
+    from django.utils.cache import patch_cache_control
+    from urllib.parse import urlencode
+    from users.models import Notification
+
+    selected_student = None
+    selected_notification = None
+    filters = {}
+    try:
+        for key in ('student', 'notification'):
+            values = request.GET.getlist(key)
+            if values:
+                if (len(values) != 1 or not values[0].isascii() or not values[0].isdecimal()
+                        or len(values[0]) > 18 or int(values[0]) < 1):
+                    raise ValueError
+                filters[key] = int(values[0])
+        if 'notification' in filters and 'student' not in filters:
+            raise ValueError
+    except ValueError:
+        response = HttpResponseBadRequest('Xabar tanlovi noto‘g‘ri. O‘quvchi kartasidan qayta oching.')
+        patch_cache_control(response, private=True, no_store=True)
+        return response
+    if 'student' in filters:
+        selected_student = get_object_or_404(support_student_queryset(request.user), pk=filters['student'])
+    if 'notification' in filters:
+        selected_notification = get_object_or_404(
+            Notification.objects.only('pk'), pk=filters['notification'], recipient=selected_student)
+    support_context = (support_return_context(request, selected_student.pk)
+                       if selected_student is not None else {})
+    scope = {'student_id': selected_student.pk if selected_student else None,
+             'notification_id': selected_notification.pk if selected_notification else None}
 
     limit = current_policy().dead_letter_replay_limit
-    rows = visible_rows(limit=limit)
-    summary = counts()
+    rows = visible_rows(limit=limit, **scope)
+    summary = counts(**scope)
 
     if request.method == "POST":
         form = DeadLetterReplayForm(request.POST, available=rows, limit=limit)
@@ -602,7 +635,9 @@ def backoffice_dead_letter(request):
                     request,
                     "Tanlangan xabarlar allaqachon navbatda; hech narsa yozilmadi.",
                 )
-            return redirect("backoffice_dead_letter")
+            if support_context:
+                return redirect(support_context['support_return_url'])
+            return redirect(reverse('backoffice_dead_letter') + ('?' + urlencode(filters) if filters else ''))
     else:
         form = DeadLetterReplayForm(available=rows, limit=limit)
 
@@ -618,8 +653,13 @@ def backoffice_dead_letter(request):
         # aks holda «hammasini qaytardim» degan xato xulosa chiqarardi.
         "truncated": max(0, summary["total"] - len(rows)),
         "recent_replays": audit_trail_for_action("telegram.dead_letter.replay"),
+        "delivery_student": selected_student,
+        "delivery_notification": selected_notification,
+        **support_context,
     }
-    return render(request, "backoffice/dead_letter.html", context)
+    response = render(request, "backoffice/dead_letter.html", context)
+    patch_cache_control(response, private=True, no_store=True)
+    return response
 
 
 @login_required

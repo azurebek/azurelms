@@ -294,8 +294,18 @@ def teacher_grade_exam(request, attempt_id):
         exam__course__in=context["teacher_courses"],
         is_completed=True,
     )
+    from core.student_support_return import support_return_context
+    support_context = support_return_context(request, attempt.student_id, attempt.exam.course_id)
+    context.update(support_context)
     review_data = request.POST
     v1_review = flag_enabled('frontend_v1_exam_review')
+    if 'support_from' in request.GET and not v1_review and request.method in ('GET', 'HEAD'):
+        # A previously opened support link must not enter the legacy GET
+        # initializer if the review renderer was switched off in the meantime.
+        if support_context:
+            messages.info(request, 'Imtihon tekshiruvi hozir yopiq. O‘quvchining saqlangan natijasini shu kartada ko‘rishingiz mumkin.')
+            return redirect(support_context['support_return_url'])
+        return HttpResponseBadRequest('Bu tekshiruv havolasi eskirgan. O‘quvchi kartasidan qayta oching.')
     if v1_review:
         from core.frontend_v1_exam_review import prepare_review
         review_data, response = prepare_review(request, context, attempt)
@@ -358,11 +368,15 @@ def teacher_grade_exam(request, attempt_id):
             if created and certificate:
                 note += " Sertifikat berildi."
             messages.success(request, note)
+            if support_context:
+                return redirect(support_context['support_return_url'])
             if v1_review:
                 return redirect(request.get_full_path())
             return redirect("teacher_grading")
 
         messages.success(request, "Baholar saqlandi (hali tasdiqlanmadi).")
+        if support_context:
+            return redirect(support_context['support_return_url'])
         if v1_review:
             return redirect(request.get_full_path())
         return redirect("teacher_grade_exam", attempt_id=attempt.id)
@@ -418,6 +432,10 @@ def teacher_grade_assignment(request, submission_id):
         id=submission_id,
         assignment__lesson__module__course__in=context["teacher_courses"],
     )
+    from core.student_support_return import support_return_context
+    support_context = support_return_context(
+        request, submission.student_id, submission.assignment.lesson.module.course_id)
+    context.update(support_context)
 
     if flag_enabled('frontend_v1_teacher'):
         from django.core.exceptions import ValidationError
@@ -456,6 +474,8 @@ def teacher_grade_assignment(request, submission_id):
                         'values': {name: request.POST.get(name, '') for name in ('action', 'teacher_feedback', 'awarded_xp')},
                     }
                     messages.success(request, 'Qaror saqlandi. O‘quvchidagi holat va XP yangilandi.')
+                    if support_context:
+                        return redirect(support_context['support_return_url'])
                     return redirect(request.get_full_path())
             if response_status == 400:
                 # Browser validation is not authority; never retain consent
@@ -495,6 +515,8 @@ def teacher_grade_assignment(request, submission_id):
             request,
             "Tasdiqlandi — keyingi dars ochildi." if action == "approve" else "Qayta ishlashga qaytarildi.",
         )
+        if support_context:
+            return redirect(support_context['support_return_url'])
         return redirect("teacher_grading")
 
     context["submission"] = submission

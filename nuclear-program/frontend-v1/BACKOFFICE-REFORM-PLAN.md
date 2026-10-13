@@ -228,9 +228,10 @@ Yonidagi bosiladigan namuna faqat taklifning navigatsiyasi va uch ish shaklini t
 <a id="backoffice-02"></a>
 ## 11. BACKOFFICE-02 — kundalik ishlarni yakunlash
 
-**Holat: B2.1–B2.3 lokal tayyor (2026-10-13); B2.4–B2.6 reja.**
+**Holat: B2.1–B2.4 lokal tayyor (2026-10-13); B2.5–B2.6 reja.**
 [B2.1 dalili](BACKOFFICE-02-STAGE-1.md), [B2.2 dalili](BACKOFFICE-02-STAGE-2.md),
-[B2.3 dalili](BACKOFFICE-02-STAGE-3.md).
+[B2.3 dalili](BACKOFFICE-02-STAGE-3.md),
+[B2.4 shartnoma va tekshiruv holati](BACKOFFICE-02-STAGE-4.md).
 Reja sanasi 2026-10-12; kod tayanchi
 `cd2ce2c`. Yangi phase shu hujjatda yuritiladi; parallel roadmap ochilmaydi.
 Owner topshirig‘i: shaxsiy usability sinovini keyinroq bajaradi, shu vaqtgacha
@@ -288,6 +289,28 @@ test — topshiriladi; ikkalasi bitmaguncha B2.2 yopilmaydi.
 Topilgan unrelated feature ushbu ro‘yxatga jimgina qo‘shilmaydi.
 
 ### Implementatsiya shartnomalari
+
+#### B2.4 admission — 2026-10-13
+
+**ADMIT — launch-critical.** Owner topshirig‘i bilan o‘quvchi kartasida
+topshiriq/test/imtihon natijalari va owner uchun bildirishnoma yetkazish
+holati quriladi. KPI: 7–8 ssenariy — ayni o‘quvchi/kursdan ishni topish,
+mavjud tekshiruv yuzasiga o‘tish va qaytib holatni yangidan o‘qish;
+ruxsatsiz natija, nashr qilinmagan bahoni ochiq deb ko‘rsatish va o‘qish
+oqimidagi canonical yozuvlar 0.
+`AssignmentSubmission`, `QuizAttempt`, `exam_publication.learner_result`,
+`Notification` va `TelegramOutbox` yagona manbalar. Yangi projection va
+GET adapter baho, progress, attempt, yuborish yoki read belgisini yozmaydi.
+Qarorlar mavjud review/replay service, tasdiq va audit bilan qoladi.
+Fresh actor/student/course/lesson scope; delivery owner-only va hisob
+bo‘yicha, chunki Notification’da course FK yo‘q. Xabar tanasi, raw Telegram
+ID va provider error support kartasida ko‘rsatilmaydi. Sahifalangan natija,
+aniq bo‘sh holat, yozilgan/yuborilgan/o‘qilgan holatlari alohida.
+`backoffice_student_support` OFF yangi kartani va qaytish kontekstini yopadi;
+saqlangan ishlar va mavjud qaror yuzalari qoladi. Imzolangan qaytish
+actor/session/obyektga bog‘lanadi. Haftalik qo‘lda tekshirish yuki kamayadi;
+yangi model/provider/background xizmat yo‘q. Synthetic sinov bazasi,
+owner bazasida faqat rollback bilan o‘qish tekshiruvi; production alohida.
 
 #### B2.3 admission — 2026-10-13
 
