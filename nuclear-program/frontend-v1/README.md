@@ -1,6 +1,12 @@
 # Frontend V1 — prototipdan ishlaydigan platformaga
 
-**Keyingi reja — 2026-10-13:** [BACKOFFICE-03](BACKOFFICE-REFORM-PLAN.md#backoffice-03)
+**Classbook rejasi — 2026-10-13:** [CLASSBOOK-01](CLASSBOOK-REFORM-PLAN.md)
+tayyorlash → jonli dars → natija oqimini sakkiz bosqichda isloh qiladi.
+Source audit, sahifalar xaritasi, session/tarix himoyasi, kodsiz 10 tur
+muharriri va aniq tugash mezonlari yozildi. Implementatsiya boshlanmagan;
+birinchi kesim CB1.1a. Bu reja I9a/I9b portini qaytadan bajarilmagan demaydi.
+
+**Backoffice rejasi — 2026-10-13:** [BACKOFFICE-03](BACKOFFICE-REFORM-PLAN.md#backoffice-03)
 owner shaxsiy tekshiruvidan mustaqil yetti texnik/mahsulot bosqichini belgilaydi.
 Reja tayyor, implementatsiya boshlanmagan; dastlabki kesim B3.1a — global
 AI sozlamasini yashirin qiymatlarni yo‘qotmasdan, audit bilan saqlash.
