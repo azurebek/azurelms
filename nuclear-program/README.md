@@ -4,7 +4,7 @@
 tafsilotni qayerdan topishni jamlaydi. AI agentlar avval [AGENTS.md](../AGENTS.md)
 va [ish qoidalarini](rules-for-agents.md) o‘qiydi.
 
-Oxirgi solishtirish: **2026-10-13**, kod tayanchi `main`dagi **`62dd358`**.
+Oxirgi solishtirish: **2026-10-13**, kod tayanchi `main`dagi **`13a615b`**.
 Bu sana va commit quyidagi holat qaydining chegarasi; keyingi ishda Git va
 yangi dalillar bilan yangilanadi. Tarixiy rejadagi checkbox yoki eski test
 soni o‘z-o‘zidan bugungi ishlar ro‘yxati hisoblanmaydi.
@@ -15,6 +15,7 @@ soni o‘z-o‘zidan bugungi ishlar ro‘yxati hisoblanmaydi.
 |---|---|---|
 | Asosiy platforma | Django LMS: kurs/dars, topshiriq/test/imtihon, o‘qituvchi tekshiruvi, guruh/to‘lov, kutubxona, Classbook, messenger, Telegram va AI qatlamlari kodda mavjud. Har birining ishlashi ruxsat, sozlama va muhitga bog‘liq. | [Arxitektura va kod xaritasi](project-context.md) |
 | Backoffice islohoti | Dastlabki olti bosqich, eski muharrirlarni soddalashtirish va **B2.1–B2.6 lokal texnik ishlari bajarilgan**. B2.6 [PR #189](https://github.com/azurebek/azurelms/pull/189) orqali `62dd358`ga qo‘shilgan; [uchta majburiy CI tekshiruvi](https://github.com/azurebek/azurelms/actions/runs/38443075952) muvaffaqiyatli. | [Yagona backoffice rejasi](frontend-v1/BACKOFFICE-REFORM-PLAN.md), [B2.6 dalili](frontend-v1/BACKOFFICE-02-STAGE-6.md) |
+| Keyingi backoffice bosqichi | **BACKOFFICE-03 rejalashtirildi, implementatsiya boshlanmagan.** Yetti bosqich: xavfsiz sozlamalar, exam qoralama/nashri, to‘liq exam muharriri, qayta foydalanish, ko‘rinadigan landing kontenti, qolgan dizayn consumerlari va texnik qabul/reliz paketi. Birinchi ish B3.1a; owner shaxsiy testi old shart emas. | [B3 qamrov va tugash mezonlari](frontend-v1/BACKOFFICE-REFORM-PLAN.md#backoffice-03) |
 | Lokal backoffice | B2.6 yakunida `8092` serverida avval yoqilgan beshta B2 gate ON saqlangan. Registrdagi default qiymatlar OFF. Bu qayd barcha muhitda funksiyalar yoqilganini anglatmaydi. | [Lokal yoqish chegarasi](frontend-v1/BACKOFFICE-LOCAL-ROLLOUT.md), [flag registri](../core/flags.py) |
 | AWS | **Oxirgi hujjatlashtirilgan reliz — 2026-09-26 R2, `8bb6b95`**, o‘sha tekshiruvda 19 ta V1 renderer flagi ON. Oktabrdagi B2 ishlarining serverga chiqarilgani shu dalildan kelib chiqmaydi. | [R2 reliz qaydi](frontend-v1/R2-READY-V1-AWS.md), [deploy yo‘riqnomasi](../deploy/README.md) |
 | Dizayn prototipi va haqiqiy ilova | DESIGN-01 ustaxonasi va uning dalillari bor; haqiqiy Django backoffice dizayn oqimi alohida qurilgan. Prototip, kodga ko‘chirish, lokal test va owner qabuli turli holatlar. | [Frontend indeksi](frontend-v1/README.md), [ko‘chirish ledgeri](frontend-v1/PORT-LEDGER.md), [DC6 qabuli](frontend-v1/DESIGN-01-DC6-ACCEPTANCE.md) |
@@ -36,6 +37,10 @@ saqlaydi. [B2.1–B2.6 tafsilotlari](frontend-v1/BACKOFFICE-REFORM-PLAN.md#backo
 har bir imkoniyatning chegarasini ko‘rsatadi.
 
 ## Hali ochiq qolganlar
+
+Quyidagi ishlarning agent bajaradigan keyingi qamrovi [B3 rejasida](frontend-v1/BACKOFFICE-REFORM-PLAN.md#backoffice-03)
+ajratilgan. Reja yozilishi ularning bajarilganini anglatmaydi; keng versioning,
+public UX va production masalalari o‘z chegaralarida qoladi.
 
 - **Azurbekning shaxsiy foydalanish qabuli** keyinga qoldirilgan. Lokal
   texnik yakun uni bajarilgan deb belgilamaydi.

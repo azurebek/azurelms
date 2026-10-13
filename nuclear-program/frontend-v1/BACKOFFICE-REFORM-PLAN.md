@@ -1,12 +1,17 @@
 # Backoffice islohoti — uch asosiy ishni osonlashtirish
 
+**Keyingi reja — [BACKOFFICE-03](#backoffice-03), 2026-10-13:** yetti bosqich
+rejalashtirildi; implementatsiya boshlanmagan. Ownerning shaxsiy tekshiruvi
+keyinga qoldirilganicha qoladi va bu ishlarni boshlash sharti emas.
+
 **2026-10-13 — [BACKOFFICE-02](#backoffice-02): olti bosqich lokal texnik tekshiruvdan o‘tdi.**
 Joriy umumiy holat [yagona markazda](../README.md), yakuniy integratsiya va
 tekshiruv dalili [B2.6 qaydida](BACKOFFICE-02-STAGE-6.md). Owner shaxsiy
 tekshiruvini keyinga qoldirgan; texnik yakun uning qabulini anglatmaydi.
 Birinchi islohotning tayyor qismlari [asosiy lokal bazada ON](BACKOFFICE-LOCAL-ROLLOUT.md).
 Quyidagi 2026-10-10 xaritasi tarixiy tayanch; hali mavjud bo‘lmagan capability
-va qolgan ishlarga oid joriy qaror hujjat oxiridagi BACKOFFICE-02 bo‘limida.
+va qolgan ishlarga oid joriy reja hujjat oxiridagi BACKOFFICE-03 bo‘limida;
+BACKOFFICE-02 o‘z tugagan qamrovi va dalillarini saqlaydi.
 
 2026-10-10. **Birinchi bosqich xaritasi va 2–5-bosqich runtime kesimlari qurildi; 6-bosqich ekspert tekshiruvi bajarildi.**
 [Ikkinchi bosqich](BACKOFFICE-REFORM-STAGE-2.md): Boshqaruv, modul/dars yaratish,
@@ -525,3 +530,267 @@ SIT/Mini App theme porti; vendor/print moslash; AI sozlamalarining A2 audit qarz
 Ular “faqat owner sinovi qoldi” jumlasi bilan yashirilmaydi, lekin B2 scope’iga
 yashirin qo‘shilmaydi. Universal undo, bulk payment/access qarori, CRM ticket,
 AI operator yoki yangi pulli provider ushbu rejada yo‘q.
+
+<a id="backoffice-03"></a>
+## 12. BACKOFFICE-03 — qolgan boshqaruv imkoniyatlarini yakunlash
+
+**Holat: REJA, implementatsiya boshlanmagan.** Sana: 2026-10-13.
+Kod tayanchi: `13a615b`. Owner topshirig‘i: shaxsiy foydalanish tekshiruvidan
+tashqari qolgan ishlar uchun keyingi bosqich rejasini tuzish.
+
+B2.1–B2.6 tugaganligicha qoladi. B3 mavjud uch ustuvorlikni davom ettiradi:
+kurs/dars tayyorlash, o‘quvchiga yordam va platformani texnik bilimsiz
+boshqarish. Yangi menyu islohoti, yordam ticket tizimi yoki AI operator
+yaratilmaydi. Bosqich nomlari va B3 raqamlari oddiy interfeysga chiqmaydi.
+
+### Koddan aniqlangan qolgan ishlar
+
+Bu manba auditi; ushbu reja turnida browser reproduksiya, DB yozuvi,
+provider chaqiruvi yoki yangi runtime testi bajarilmadi.
+
+| Hozirgi chegara | Manba | Rejadagi javob |
+|---|---|---|
+| AI limit formasida yuborilmaydigan `default_model/default_effort` saqlashda bo‘shatiladi; uchta AI mutation yo‘li bir xil audit/validatsiya shartnomasiga ega emas | [view](../../core/views.py) `backoffice_ai_control`, [forma](../../templates/backoffice/ai_control.html), [admin](../../aicontrol/admin.py) | B3.1: yashirin qiymatlar saqlanishi va uch yozish yo‘lini alohida xavfsiz qilish |
+| Xizmat holatidagi “Nima qilish mumkin?” matni terminal/broker atamalarini ko‘rsatadi | [registry](../../core/control_center/registry.py), [template](../../templates/backoffice/control_center.html) | B3.1: oddiy ta’sir va keyingi amal, texnik dalil alohida |
+| Imtihonda qoralama/nashr holati yo‘q; yaratilgan exam kurs ro‘yxatiga kiradi | [Exam modeli](../../courses/models.py), [learner view’lar](../../courses/views.py), [start service](../../courses/exam_service.py) | B3.2: yangi builderdan oldin yagona visibility/publication shartnomasi |
+| Muharrir exam metama’lumoti va birinchi/tanlangan bo‘limni saqlaydi; ikkinchi bo‘lim va savol daraxtini boshqarish to‘liq emas | [writer](../../courses/exam_authoring_service.py), [formalar](../../core/backoffice_forms.py), [exam formasi](../../templates/backoffice/exam_form.html) | B3.3: ko‘p bo‘lim va mavjud savol turlari uchun bosqichli muharrir |
+| B2 canonical writerlarida ishlatilgan assignment/quiz/exam tahriri himoyalangan; admin uchun umumiy used-lock kafolati yo‘q, oddiy qayta foydalanish yo‘li yo‘q | [authoring](../../courses/authoring_service.py), [practice](../../core/backoffice_practice.py), [exam writer](../../courses/exam_authoring_service.py), [admin](../../courses/admin.py) | B3.2: exam lifecycle/admin chegarasi; B3.4: manbani saqlagan holda yangi nusxa tayyorlash |
+| Landing matn formasi faqat scalar maydonlarni beradi; ayrim ko‘rinadigan media/kartalar admin orqali boshqariladi. V1 CTA matnlari qotirilgan | [landing forma](../../core/landing_forms.py), [public reader](../../frontend/views.py), [V1 landing](../../templates/frontend_v1/public/index.html) | B3.5: faqat haqiqiy renderer iste’mol qiladigan matn, hero media va jarayon qadamlari |
+| V1 SIT umumiy tema oladi; legacy SIT va Mini App mustaqil tema bilan qolgan | [legacy SIT](../../templates/sit/base.html), [Mini App](../../templates/bot/miniapp_base.html), [dizayn xizmati](../../core/design_service.py) | B3.6: qolgan ikki consumerga mavjud dizaynni ulash |
+| Viewport/text200 dalili bor; semantik yordam/xato bog‘lanishi va native/AT dalili alohida | [field partial](../../templates/backoffice/workspace/field.html), [B2.6](BACKOFFICE-02-STAGE-6.md) | B3.7: yangi oqimlar va umumiy boshqaruv uchun aniq sifat matritsasi |
+
+### Yetti bosqich va tugash mezoni
+
+#### B3.1 — Sozlamalarni xavfsiz va tushunarli qilish
+
+Avval bu kesim: oddiy limitni saqlash boshqa yashirin qiymatni o‘zgartirishi
+mumkinligi manbada topildi. Bu yangi AI funksiyasini qurish emas.
+
+- **B3.1a:** global AI sozlamalari uchun bound forma, range validatsiya,
+  majburiy sabab/tasdiq, oldingi-keyingi qiymat auditi, no-op va stale himoyasi.
+  Formada yo‘q maydon o‘zgarmaydi. Backoffice va legacy admin yozuvi bitta
+  xizmatdan o‘tadi yoki admin shu sozlamalarni faqat o‘qiydi.
+- **B3.1b:** mavjud tarif siyosati va reset/bonus alohida shartnoma bilan:
+  scope, miqdor, kimga ta’siri, explicit tasdiq, takroriy POST himoyasi va audit.
+  Reset/bonus uchun mavjud `aicontrol.service.apply_reset_event` canonical
+  yo‘l bo‘lib qoladi; yangi ommaviy to‘lov/access amali qo‘shilmaydi.
+  Adminning policy/event/allowance reset/unblock yozish yo‘llari ham shu
+  contractga ulanadi yoki read-only bo‘ladi. `AIUserAllowance`ning oddiy
+  change-form’i ham (override/blocked/bonus/reset maydonlari) shu qoidadan
+  o‘tadi; faqat admin action tugmalarini tuzatish yetarli emas.
+- Xizmat holatlari oddiy tilda **ta’sir → hozirgi holat → mumkin bo‘lgan amal**
+  bilan chiqadi. Mavjud ruxsatli sahifaga havola beriladi; texnik runbook
+  alohida ochiladi. Ko‘rish yoki tavsiyani ochish provider ishini boshlamaydi.
+- **Yakun:** uch mutationning permission/invalid/no-op/stale/replay/audit
+  testlari, yashirin model/effort qiymatlarining saqlanish regressiyasi va
+  barcha registry statuslari uchun oddiy izoh tekshirilgan. Yozuvsiz GET
+  talabini yangi projectionlar bajaradi. A2ning ushbu mutation qarzi yopiladi;
+  A9 AI sifat/latency/cost gate’i alohida qoladi.
+
+#### B3.2 — Imtihonni qoralamada xavfsiz tayyorlash
+
+Builderdan oldingi majburiy poydevor: **qoralama → tayyorlikni tekshirish →
+o‘quvchi namunasini ko‘rish → e’lon qilish**. Imtihonning qoralamasi boshqa
+kontent turlariga avtomatik tatbiq qilinmaydi.
+
+- Exam uchun yagona nashr holati va canonical visibility/publish xizmati.
+  Mavjud examlar migrationda avvalgi ko‘rinish va kirish xulqini saqlaydi;
+  yangi qoralama ro‘yxat, hisob, prerequisite, course completion/certificate
+  va to‘g‘ridan-to‘g‘ri start yo‘llariga ta’sir qilmaydi.
+- Web, V1/legacy, bot/Mini App va tegishli selectorlar bitta qarorni o‘qiydi.
+  Faqat ro‘yxatdan yashirish yetmaydi: direct URL va start ham tekshiriladi.
+- Nashr qilish serverda mavjud model shartlari va to‘liq tarkibni tekshiradi:
+  bo‘sh bo‘lim/savol, variant va kalit soni, accepted answer, reference va
+  section/task turi mosligi uchun publish readiness validatorlari qo‘shiladi.
+  `full_clean()`ning o‘zi butun child daraxtini tekshiradi deb olinmaydi;
+  yangi baholash algoritmi yoki imtihondan o‘tish siyosati ixtiro qilinmaydi.
+  Eski ma’lumotning yangi validator bilan mos kelmasligi uni avtomatik yashirmaydi.
+  Nashrdan oldin kursga yangi imtihon qo‘shilishi va uning mavjud baho/ulush/
+  completion hisobiga ta’siri oddiy tilda ko‘rsatiladi va tasdiqlanadi.
+- Har qanday boshlangan urinishda mavjud kontent himoyasi saqlanadi.
+  Attempt start va publish/edit bitta qulf hamda qayta o‘qilgan policy bilan
+  kelishadi. Eski attempt/natija/sertifikat IDlari va qiymatlari ko‘chirilmaydi.
+  **B3.2 chiqishidan oldin** Exam va uning nested content admin save/delete/
+  bulk/inlinelari lifecycle va used-lockni chetlab o‘ta olmaydi: canonical
+  xizmatga ulanadi yoki o‘sha yozish yo‘li yopiladi. B3.3 child writerlari
+  shu himoyadan foydalanadi; guard keyingi builderga qoldirilmaydi.
+- Ko‘p qadamli builder faqat qoralamani tahrirlaydi. Published-but-unused
+  exam uchun eski metadata writer saqlansa, natija readinessni buzmasligi
+  tekshiriladi. Unpublish, archive va eski examni avtomatik almashtirish bu
+  minimal lifecycle’da yo‘q; published exam draft prerequisite’ga bog‘lanmaydi.
+- API/V1 access tekshiruvi expiry, `ExamActionGate`, receipt yoki runtime state
+  yozuvidan oldin ishlaydi. [Policy](../../courses/policy_service.py),
+  [completion](../../courses/completion_service.py), [exam API](../../courses/exam_api.py),
+  [V1 attempt](../../courses/exam_attempt_v1.py), certificate/teacher/support
+  readerlari va [admin](../../courses/admin.py) alohida consumer matritsasida.
+  Seed/test fixturelar nashrni explicit belgilaydi; yangi exam search qurilmaydi.
+- **Yakun:** migrationning eski kontentni saqlash testi, barcha consumerlarda
+  draft isolation, direct URL denial, publish double-submit/stale va haqiqiy
+  PostgreSQL race testlari o‘tgan. Preview attempt/state/answer/XP yozmaydi.
+  Eski kod qoralamani o‘qishni bilmasa, qaytish faqat CSS/flag o‘chirish emas:
+  draft-aware xavfsizlik tuzatishi bilan qaytish yoki forward fix rejasi bo‘ladi.
+  Builder flagi OFF bo‘lsa ham lifecycle schema va learner access himoyasi
+  saqlanadi. Backfill yangi xabar, qayta baholash yoki sertifikat yozmaydi.
+
+#### B3.3 — To‘liq imtihon muharriri
+
+**B3.2 dan keyin.** Bitta imtihonda bo‘limlar ro‘yxati, tanlangan bo‘lim
+muharriri va yozuvsiz namuna. Barcha maydon birdan ochilmaydi; tanlangan
+savol turiga kerakli maydon ko‘rinadi. JSON/HTML kodini qo‘lda yozish talab
+qilinmaydi. Uch tekshiriladigan kesimning barchasi tugamaguncha B3.3 yopilmaydi:
+
+1. **Bo‘limlar:** qo‘shish, tartib, qoralamadan olib tashlash; writing/speaking
+   ko‘rsatmalari va mavjud oddiy grammar savol/javoblari. Ball/vaqt/audio
+   limiti kabi mavjud sozlamalar oddiy yorliq bilan.
+2. **Reading/listening:** mavjud sakkiz engine turi — single/multiple choice,
+   true/false/not-given, yes/no/not-given, matching, text input, structured
+   gap fill va diagram label. Passage/task/item/option/accepted-answer
+   bog‘lanishlari canonical modelda; audio/media mavjud upload/access
+   siyosati bilan. Yangi savol yoki baholash turi scope’ga kirmaydi.
+   **Aniq prerequisite:** modelning `ReadingPassage.clean` va
+   `ReadingTask.clean` validatorlari hozir faqat readingga ruxsat beradi,
+   runtime esa rich listeningni ham ishlatadi. Builderdan oldin
+   [model](../../courses/models.py) va [section runtime](../../courses/exam_section_service.py)
+   shartnomasi uyg‘unlashtiriladi; reading/listening full_clean/forma/service
+   testlari hamda boshqa section turiga rad javobi dalil bo‘ladi.
+3. **Namuna va nashr tekshiruvi:** barcha besh section turi va sakkiz engine
+   uchun fixture → tahrir → xato → tuzatish → namuna → nashr → learner
+   topshirish natijasi. Namuna learner runtime writerini chaqirmaydigan pure
+   projection; o‘quvchi payloadiga javob kaliti chiqmaydi.
+
+**Yakun:** ikkinchi bo‘lim va ichki savol mustaqil saqlanadi; noto‘g‘ri yoki
+begona child ID, uzilgan reference va yarim daraxt yozuvi rad etiladi;
+qoralama qayta ochiladi, xatoda kiritilgan matn yo‘qolmaydi. Used-content
+himoyasi yangi writerlar va mavjud admin kirishida ham ta’minlanadi.
+Raw SQL yoki boshqa tashqi yozuvga universal himoya da’vo qilinmaydi.
+
+#### B3.4 — Eski ishni buzmasdan qayta foydalanish
+
+- **Assignment/oddiy quiz:** ruxsatli manbadan mazmuni to‘ldirilgan,
+  **saqlanmagan yangi forma**. Eski obyekt/savol/javob IDlari ko‘chirilmaydi.
+  Preview/cancel yozmaydi; explicit Save mavjud canonical create writeriga
+  boradi. Saqlash yangi amaldagi topshiriq qo‘shishi va completionga ta’siri
+  oldindan ko‘rsatiladi; uni qoralama deb atash mumkin emas.
+- **Exam:** B3.2–B3.3 dan keyin ruxsatli manbadan yangi qoralama exam;
+  child reference’lar atomik qayta bog‘lanadi. Source exam, urinishlar,
+  javoblar, baholar, publication va prerequisite reference’lari o‘z joyida
+  qoladi. Yangi exam eski imtihonni avtomatik almashtirmaydi.
+- **Yakun:** ishlatilgan assignment/quiz/examdan yangi ish tayyorlash,
+  originalning kontent/natija hashi tengligi, yangi IDlar, no-write cancel,
+  begona scope denial va double-submitda bitta yangi obyekt dalili bor.
+  Universal undo, tarixdagi natijani ko‘chirish yoki butun kursni nusxalash yo‘q.
+
+#### B3.5 — Bosh sahifaning ko‘rinadigan kontentini boshqarish
+
+**Sayt va dizayn → Sayt bosh sahifasi** ichida mavjud matnlar bilan birga
+V1/legacy rendererlar ishlatadigan **hero rasm/video, CTA yorliqlari va
+“Qanday ishlaydi?” qadamlari** boshqariladi. Jarayon qadamini qo‘shish,
+tahrirlash, tartiblash va yashirish uchun texnik admin kerak bo‘lmaydi.
+
+- Har sozlama uchun qaysi rendererda ko‘rinishi va saqlash ta’siri aniq.
+  `LandingPage`, `LandingProcessStep` yagona manba; parallel kontent modeli
+  yoki erkin sahifa quruvchisi yaratilmaydi. V1dagi qotirilgan CTA yorliqlari
+  mavjud sozlamaga rendererning aniq ma’nosi bilan ulanadi: V1dagi
+  courses/about va legacy’dagi register/#path manzillari tasodifan
+  almashtirilmaydi. Shared label manzil ma’nosiga mos kelmasa rendererga
+  mos boshqaruv tanlanadi; ishlamaydigan boshqaruv ko‘rsatilmaydi.
+- **B3.5a:** matn/CTA va jarayon qadamlari. Ikki rendererda title/description,
+  tartib/ko‘rinish tekshiriladi; icon faqat legacy’da chiqishi aniq ko‘rsatiladi.
+  **B3.5b:** hero media uchun alohida upload/file lifecycle shartnomasi.
+  Video/image hozir V1da iste’mol qilinadi; legacy’da bor deb ko‘rsatilmaydi.
+  Ownerning odatiy `/` GET’i dashboardga qaytishi sababli public namuna
+  alohida permission-checked, yozuvsiz projection orqali ko‘rsatiladi.
+- Oxirgi qadam yashirilsa fallback qaytishi kabi mavjud reader xulqi
+  tasdiqdan oldin tushuntiriladi; “hammasi yashirildi” degan yolg‘on success yo‘q.
+- Saqlashdan oldin yozuvsiz namuna, eski-yangi qiymat, sabab/tasdiq,
+  audit/stale/no-op; upload turi/hajmi va faylga ruxsat tekshiruvi.
+  Kontentni saqlashning jonli ta’siri dizayn qoralamasi bilan aralashtirilmaydi.
+  Mavjud admin content writeri ham bitta xizmatga ulanadi yoki read-only
+  bo‘ladi; shared faylni almashtirish boshqa consumer faylini o‘chirmaydi.
+- **Yakun:** tanlangan rendererda kiritilgan matn/media/tartib haqiqatan
+  ko‘rinadi; xatoda qiymat qoladi; boshqa bo‘limning matni va shared fayli
+  o‘zgarmaydi. Misol media faqat synthetic muhitda. Marketing raqamlari
+  va guvohliklarning haqiqiyligi agent tomonidan to‘qilmaydi.
+
+#### B3.6 — Qolgan yuzalarni mavjud dizaynga ulash
+
+V1 SIT allaqachon umumiy dizaynni oladi. Bu bosqichning aniq ikki iste’molchisi:
+**legacy SIT qobig‘i va Telegram Mini App**. Mavjud typed dizayn qiymatlari,
+qoralama/nashr/tarix xizmati ishlatiladi; yangi tema bazasi ochilmaydi.
+
+- Rang, shrift, tugma/maydon/karta qiymatlari consumer xaritasi bo‘yicha
+  ulanadi. Mini Appda Telegramning light/dark tanlovi va safe-area xulqi
+  saqlanadi; provider mavzusi bilan to‘qnashuv explicit mappingda hal qilinadi.
+- Vendor editor/audio/video boshqaruvlari uchun faqat hujjatlashtirilgan
+  tashqi style yuzasi ishlatiladi; uchinchi tomon ichki DOMiga mo‘rt patch yo‘q.
+  Print/sertifikat alohida o‘qiladigan ko‘rinishni saqlaydi, ekrandagi barcha
+  dizayn parametri qog‘ozga tatbiq qilinadi degan va’da yo‘q.
+- **Yakun:** ayni nashr → ikki consumerdagi computed qiymatlar → rollback
+  tengligi, flag OFF fallback, light/dark va layout testlari. Kontent,
+  autentifikatsiya va Telegram tokenlari o‘zgarmaydi. Haqiqiy Telegram WebView
+  testi olinsa alohida dalil; oddiy browser uni almashtirmaydi.
+
+#### B3.7 — Qulaylikning texnik qabuli va reliz paketi
+
+Yangi yetti bosqichning ekranlari va avvalgi uch asosiy ish birgalikda
+tekshiriladi. Bu B2.6 dalilini qayta nomlash emas, o‘zgargan oqimlar regressiyasi.
+
+- Maydon nomi, yordam matni va xato bir-biriga semantik bog‘langan;
+  mavjud bo‘lmagan `aria-describedby` nishoni va takroriy ID **0**.
+  Klaviatura, fokus qaytishi, dialog/disclosure va saqlash/xato e’lonlari.
+- 320/768/1440px, light/dark, uzun o‘zbek/turk matni va 200% rendered text;
+  imkon berilgan browserda native zoom alohida. Screen reader va haqiqiy
+  qurilma dalili mavjud vosita bilan bevosita olinadi; imkoni bo‘lmasa aniq
+  qamrov bilan OPEN qoladi, matn kattalashtirish uni PASS qilmaydi.
+- Owner/teacher/begona teacher/inactive/anonymous, CSRF, invalid, stale,
+  replay, no-op, flag OFF/ON, preview no-write va kerakli PostgreSQL race
+  testlari. Asosiy lokal bazaga sinov kontenti yoki real xabar yozilmaydi.
+- Reliz paketi: aniq commit, migration va flaglar; synthetic backup/restore,
+  eski renderer bilan moslik, qoralama-aware qaytish chegarasi, smoke va
+  ochiq tashqi qabul ro‘yxati. Lokal yoqish oldingi B2 rolloutini takrorlamaydi;
+  faqat yangi imkoniyatlar dalilidan keyin o‘z qamrovida bajariladi.
+- **Yakun:** B3.1–B3.6 har bir mezoni dalilli, kerakli CI/review o‘tgan,
+  critical ruxsat/ma’lumot yo‘qolishi/yarim nashr xatosi **0**, hujjatlar
+  mos. Productionga chiqarish alohida reliz topshirig‘i bilan bajariladi.
+
+### Ketma-ketlik, admission va hajm
+
+Standart ketma-ketlik **B3.1 → B3.2 → B3.3 → B3.4 → B3.5 → B3.6 → B3.7**.
+Eng katta ish B3.3; u yuqoridagi uch kesimga bo‘linadi. B3.2 va B3.3
+poydevorisiz persisted exam nusxa yoki yarim tayyor builder yoqilmaydi.
+
+Ushbu turnning admissioni: **EXPERIMENT — canonical state yozmaydi**;
+natija kodga tayangan reja. Keyingi “B3.Nni boshla” topshirig‘i bo‘yicha
+o‘sha bosqichning aniq writer/ruxsat/schema/failure/rollback shartnomasi
+qayd etilib implementatsiya qilinadi; takroriy menyu so‘rovnomasi shart emas.
+
+| Kesim | Asosiy tekshiriladigan natija | Canonical egasi va qaytish chegarasi |
+|---|---|---|
+| B3.1 | Yashirin qiymat yo‘qolishi va takror reset/bonus ta’siri 0; har real mutation auditli | `AISettings`, `AIPlanPolicy`, `AIUsageResetEvent`, `AIUserAllowance`; mavjud model/service + bitta audited writer. Yozish himoyasi UI flag OFF’da ham saqlanadi |
+| B3.2–3 | Draft learner ta’siri 0; barcha belgilangan section/task turlari UI orqali tayyorlanadi | `courses` exam/policy/reading/completion xizmatlari; additive schema, mavjud obyektlar saqlanadi; eski draft-unaware kodga ko‘r-ko‘rona qaytish yo‘q |
+| B3.4 | Qayta foydalanishda source/natija o‘zgarishi 0 | Practice create writer va yangi exam draft writer; nusxani bekor qilish originalni o‘chirmaydi |
+| B3.5 | Sozlangan ko‘rinadigan element uchun qo‘lda kod tahriri 0 | `frontend` modellari va bitta scoped writer; no-write preview, renderer/fayl qaytishi alohida |
+| B3.6 | Ikki consumerda publish/rollback qiymati teng | Mavjud design schema/service/runtime; flag qaytishi kontentni o‘zgartirmaydi |
+| B3.7 | Barcha belgilangan ssenariy dalilli, kritik nuqson 0 | Har domen o‘z writerida; yakuniy dalil va release checklist, yangi servis yoki ish navbati yo‘q |
+
+Natija ownerning qo‘lda qayta terish, texnik yordam va xato tuzatish yukini
+kamaytirishi kerak. Vaqt yoki foizli yaxshilanish shaxsiy sinovsiz da’vo
+qilinmaydi. Kalendar muddat source auditi bilan isbotlanmaydi; tugash mezoni
+yetti bosqichning yuqoridagi qamrovi. Yangi g‘oya chiqsa scope yashirin kengaymaydi.
+
+### Alohida qoladigan ishlar yo‘qolmaydi
+
+| Masala | Keyingi yo‘l |
+|---|---|
+| Ownerning shaxsiy usability/DC6 qabuli | Owner keyin tekshiradi; B3 boshlanishi va texnik ishlariga to‘siq emas |
+| Haqiqiy telefon/Telegram WebView/native zoom/screen reader | Agentda tegishli vosita bo‘lsa B3.7 da dalil; bo‘lmasa tashqi qabul holati ochiq |
+| AWS/production rollout | B3 reliz paketi tayyorlangach alohida deploy va muhit smoke’i; lokal ON server ON degani emas |
+| Ishlatilgan barcha kontentni tarix bo‘ylab versiyalash va almashtirish | B3.4 xavfsiz yangi nusxa beradi. Natija/prerequisite ko‘chirish, universal version switch yoki undo alohida domen loyihasi bo‘lib qoladi |
+| Landingning qolgan bloklari, nav/legal va erkin layout builder | B3.5 faqat hero/media/CTA va jarayon qadamlari; qolgan model/renderer xaritasi keyingi aniq scope bilan |
+| Vendor ichki boshqaruvlari va print dizaynini to‘liq customize qilish | B3.6 regressiya va supported style chegarasi; universal third-party/print theme editor yo‘q |
+| A9, public UX-01…06, DATA-01 va RULE-01 | [Asl qabul ro‘yxati](FINAL-ACCEPTANCE-ISSUES.md) va [launch-ops](../launch-plan/05-launch-ops.md)da. Backoffice yakuni ularni yopmaydi; yangi access siyosati va haqiqiy marketing ma’lumoti owner qarorini talab qiladi |
+
+**Birinchi bajariladigan ish — B3.1a:** AI limitini saqlashdagi yashirin
+qiymat yo‘qolishini regressiya bilan ko‘rsatish va global sozlama writerini
+audited, validatsiyali oqimga o‘tkazish. B3.1b alohida tekshiriladigan kesim;
+faqat global forma tuzatilishi butun A2 mutation qarzi yopildi degani emas.
