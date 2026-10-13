@@ -16,7 +16,9 @@ from django.utils import timezone
 from cohorts.models import Enrollment, enrollment_active_access_q
 from core.upload_validation import validate_upload
 from courses.models import (
+    Assignment,
     AssignmentSubmission,
+    Quiz,
     QuizAnswer,
     QuizAttempt,
 )
@@ -67,6 +69,10 @@ def submit_assignment(*, user, assignment, answer_text="", attachment=None,
 
     Qayta topshirilganda holat pending'ga qaytadi va oldingi baho/izoh tozalanadi.
     """
+    # Authoring and the first learner write share a stable parent row. Refresh
+    # before access/content reads, and preserve the existing per-student order.
+    get_user_model().objects.select_for_update().get(pk=user.pk)
+    assignment = Assignment.objects.select_for_update().get(pk=assignment.pk)
     course_id = assignment.lesson.module.course_id
     enrollment = _active_submission_enrollment(user, course_id, enrollment)
     if enrollment is None:
@@ -93,9 +99,7 @@ def submit_assignment(*, user, assignment, answer_text="", attachment=None,
         except ValidationError as exc:
             return SubmissionResult(ok=False, code="invalid_attachment", message=exc.messages[0])
 
-    # A stable user row serializes creation/resubmission with review, even
-    # before a student's first submission exists.
-    get_user_model().objects.select_for_update().get(pk=user.pk)
+    # The user row above also serializes creation/resubmission with review.
     submission = AssignmentSubmission.objects.filter(assignment=assignment, student=user).first()
     answer_text = (answer_text or "").strip()
     if not answer_text and not attachment and not (submission and submission.attachment):
@@ -155,6 +159,8 @@ def grade_quiz(*, user, quiz, answers, enrollment=None):
     XP: eng yaxshi urinishdan oshgan qismigina beriladi (qayta yechish
     XP'ni takror bermaydi).
     """
+    get_user_model().objects.select_for_update().get(pk=user.pk)
+    quiz = Quiz.objects.select_for_update().get(pk=quiz.pk)
     course_id = quiz.lesson.module.course_id if quiz.lesson_id else None
     if course_id:
         enrollment = _active_submission_enrollment(user, course_id, enrollment)
@@ -191,9 +197,7 @@ def grade_quiz(*, user, quiz, answers, enrollment=None):
             return QuizGradeResult(ok=False, code='invalid_answers', message="Savol yoki javob varianti ushbu quizga mos emas.")
         selected[question_id] = choices_by_question[question_id].get(choice_id)
 
-    # Read the best XP only after acquiring the per-student lock.
-    get_user_model().objects.select_for_update().get(pk=user.pk)
-
+    # The per-student lock is held from before the quiz/content refresh.
     previous_best_xp = (
         QuizAttempt.objects.filter(student=user, quiz=quiz)
         .aggregate(best_xp=Max("xp_earned"))

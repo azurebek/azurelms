@@ -393,7 +393,11 @@ def course(request, course_id):
             material.workspace_status = 'Belgilangan vaqtda ochiladi'
         else:
             material.workspace_status = 'O‘quvchiga yopiq'
+    practice_enabled = flag_enabled('backoffice_practice_authoring')
     return _render(request, 'course', {'page_title': obj.title, 'course': obj, 'modules': modules,
+        'practice_enabled': practice_enabled,
+        'lesson_assignments': lesson.assignments.order_by('pk') if lesson and practice_enabled else [],
+        'lesson_quizzes': lesson.quizzes.annotate(question_count=Count('questions')).order_by('pk') if lesson and practice_enabled else [],
         'lesson': lesson, 'lesson_form': form, 'module_form': module_form, 'upload_form': upload_form,
         'selected_module_id': module.pk if module else None, 'creating_lesson': bool(module and not lesson),
         'materials': materials, 'preview_materials': preview_materials,

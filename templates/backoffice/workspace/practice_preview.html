@@ -1,0 +1,10 @@
+<section class="ws-card ws-practice-preview" aria-label="{% if block_reason %}Saqlangan mazmun{% else %}O‘quvchi ko‘rinishining namunasi{% endif %}">
+  <p class="ws-eyebrow">{% if block_reason %}SAQLANGAN MAZMUN{% else %}NAMUNA{% endif %}</p><h2>{{ preview_title }}</h2>
+  {% if practice_kind == 'assignment' %}
+    <div class="ws-lesson-content">{{ preview_description|safe }}</div><p class="ws-help">Topshiriq uchun {{ preview_xp }} ballgacha.</p>
+    <div class="ws-notice"><p>O‘quvchi javobini dars sahifasidan topshiradi. Bu yerda topshirish ishlamaydi.</p></div>
+  {% else %}
+    {% for question in preview_questions %}<fieldset class="ws-practice-preview-question"><legend>{{ forloop.counter }}-savol</legend><div class="ws-lesson-content">{{ question.preview_text|safe }}</div>{% for choice in question.choices %}<label class="ws-practice-preview-choice"><input type="radio" name="sample-{{ forloop.parentloop.counter }}" value="{{ forloop.counter }}" disabled><span>{{ choice.text }}</span></label>{% empty %}<p class="ws-help">Bu savolda variantlar yo‘q.</p>{% endfor %}</fieldset>{% empty %}<p>Bu testda hali savollar yo‘q.</p>{% endfor %}
+    <p class="ws-help">Test uchun rag‘bat balli: {{ preview_xp }}. Bu yerda javob yuborilmaydi va natija hisoblanmaydi.</p>
+  {% endif %}
+</section>

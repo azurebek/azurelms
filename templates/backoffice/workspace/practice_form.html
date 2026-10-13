@@ -1,0 +1,70 @@
+{% extends "backoffice/workspace/base.html" %}
+{% load static %}
+{% block workspace_media %}
+{{ form.media }}{{ question_media }}
+<link rel="stylesheet" href="{% static 'backoffice/practice.css' %}">
+<script defer src="{% static 'backoffice/practice.js' %}"></script>
+{% endblock %}
+{% block workspace_content %}
+{% if saved_scope %}<span hidden data-practice-saved data-saved-scope="{{ saved_scope }}" data-saved-submission-id="{{ saved_submission_id }}"></span>{% endif %}
+<div class="ws-page-head"><div><a class="ws-back" href="{{ back_url }}">← Darsga qaytish</a><p class="ws-eyebrow">{{ course.title }} · {{ lesson.title }}</p><h1>{{ page_title }}</h1><p class="ws-lead">{% if practice_kind == 'assignment' %}O‘quvchi nima bajarishini yozing, keyin namunasini ko‘ring.{% else %}Har bir savolga kamida ikkita variant yozib, bitta to‘g‘ri javobni belgilang.{% endif %}</p></div></div>
+{% if block_reason %}
+  <div class="ws-notice" role="status"><strong>Bu {% if practice_kind == 'assignment' %}topshiriq{% else %}test{% endif %} hozir tahrirlanmaydi.</strong><p>{{ block_reason }}</p><div class="ws-inline-actions"><a class="ws-button" href="{{ back_url }}">Darsga qaytish</a><a class="ws-button" href="{{ new_url }}">Yangi {% if practice_kind == 'assignment' %}topshiriq{% else %}test{% endif %} tayyorlash</a></div></div>
+  {% include "backoffice/workspace/practice_preview.html" %}
+{% endif %}
+{% if not block_reason or form.is_bound %}
+{% if block_reason %}<div class="ws-notice ws-notice-error" role="alert"><strong>Yuborgan o‘zgarishlaringiz saqlanmadi.</strong><p>Quyida yozganlaringiz qoldirildi. Kerakli matnni ko‘chirib, yangi {% if practice_kind == 'assignment' %}topshiriqqa{% else %}testga{% endif %} olib o‘tishingiz mumkin.</p></div>{% endif %}
+<form method="post" action="{{ editor_url }}" class="ws-practice-form" data-practice-form data-practice-kind="{{ practice_kind }}"{% if not shape_error %} data-practice-draft{% endif %} data-draft-scope="{{ draft_scope }}" data-bound-form="{{ form.is_bound|yesno:'true,false' }}" data-draft-get-url="{{ editor_url }}" data-draft-transfer-id="{{ request.POST.draft_transfer_id }}" data-practice-action="{{ request.POST.action }}">
+  {% csrf_token %}<input type="hidden" name="editor_revision" value="{{ revision }}">
+  {% if has_errors %}<div class="ws-notice ws-notice-error" tabindex="-1" data-form-errors role="alert"><strong>{% if practice_kind == 'assignment' %}Topshiriq{% else %}Test{% endif %} saqlanmadi.</strong><p>Belgilangan joylarni tekshiring. Yozganlaringiz shu yerda saqlanib turibdi.</p>{{ form.non_field_errors }}{% if conflict %}<p><a href="{{ editor_url }}">Saqlangan so‘nggi holatni ochish</a></p>{% endif %}</div>{% endif %}
+  {% include "backoffice/workspace/recovery.html" %}
+  {% if shape_error %}<div class="ws-notice ws-notice-error"><p>Shakl to‘liq kelmagani uchun saqlash yopildi. Quyida yuborilgan savol va variantlarning matni bor. Uni ko‘chirib oling, so‘ng sahifani qayta oching.</p><label for="practice-raw-recovery">Yuborilgan savollar nusxasi</label><textarea id="practice-raw-recovery" rows="8" readonly>{{ raw_recovery }}</textarea><a class="ws-button" href="{{ editor_url }}">Sahifani qayta ochish</a></div>{% endif %}
+  {% if show_preview %}
+    <div class="ws-notice"><strong>O‘quvchi ko‘rinishining namunasi</strong><p>Bu namuna saqlanmagan. Javob, urinish yoki ball yozilmaydi.</p></div>
+    {% include "backoffice/workspace/practice_preview.html" %}
+    <div class="ws-inline-actions"><button type="submit" name="action" value="edit" class="ws-button ws-button-primary" formnovalidate>Tahrirlashga qaytish</button></div>
+  {% endif %}
+  <div data-practice-fields{% if show_preview %} hidden{% endif %}>
+    <section class="ws-card ws-form-section"><p class="ws-eyebrow">1 · ASOSIY MA’LUMOT</p><h2>{% if practice_kind == 'assignment' %}Topshiriq haqida{% else %}Test haqida{% endif %}</h2>
+      {% include "backoffice/workspace/field.html" with field=form.title label="Nomi" %}
+      {% if practice_kind == 'assignment' %}{% include "backoffice/workspace/field.html" with field=form.description %}{% include "backoffice/workspace/field.html" with field=form.max_xp %}{% else %}{% include "backoffice/workspace/field.html" with field=form.xp_reward %}{% endif %}
+    </section>
+    {% if practice_kind == 'quiz' %}
+      <section class="ws-practice-questions" aria-labelledby="practice-questions-heading">
+        <div class="ws-editor-heading"><div><p class="ws-eyebrow">2 · SAVOLLAR</p><h2 id="practice-questions-heading">{{ questions|length }} ta savol</h2><p class="ws-help">Savolni ochib matni va javoblarini tayyorlang.</p></div></div>
+        <input type="hidden" name="questions-TOTAL_FORMS" value="{{ questions|length }}">
+        {% for row in questions %}
+          <details class="ws-card ws-disclosure ws-practice-question" data-practice-question="{{ row.index }}"{% if row.open %} open{% endif %}>
+            <summary><span>{{ row.number }}-savol<small>{{ row.form.text.value|striptags|truncatechars:100|default:"Savol matnini yozing" }}</small></span><span aria-hidden="true">+</span></summary>
+            <div class="ws-disclosure-body">
+              {{ row.form.id }}{{ row.form.id.errors }}{{ row.form.non_field_errors }}
+              {% include "backoffice/workspace/field.html" with field=row.form.text %}
+              <input type="hidden" name="{{ row.choice_count_name }}" value="{{ row.choices|length }}">
+              <fieldset class="ws-practice-choices"><legend>Javob variantlari <span class="ws-help">— bittasini to‘g‘ri javob deb belgilang</span></legend>
+                {% if row.form.correct.errors %}<div class="ws-field-error" id="{{ row.form.correct.id_for_label }}-errors" role="alert">{{ row.form.correct.errors }}</div>{% endif %}
+                {% for choice in row.choices %}
+                  <div class="ws-practice-choice">
+                    {{ choice.form.id }}{{ choice.form.id.errors }}
+                    <label class="ws-practice-correct" for="{{ choice.correct_id }}"><input type="radio" id="{{ choice.correct_id }}" name="{{ row.form.correct.html_name }}" value="{{ choice.index }}"{% if choice.selected %} checked{% endif %}{% if row.form.correct.errors %} aria-invalid="true" aria-describedby="{{ row.form.correct.id_for_label }}-errors"{% endif %}><span>{{ choice.number }}-variant to‘g‘ri</span></label>
+                    {% include "backoffice/workspace/field.html" with field=choice.form.text label="Variant matni" %}
+                    {% if not block_reason and not shape_error and row.choices|length > 2 %}<button type="submit" name="action" value="remove_choice:{{ row.index }}:{{ choice.index }}" class="ws-link-button" formnovalidate aria-label="{{ row.number }}-savoldan {{ choice.number }}-variantni olish">Variantni olish</button>{% endif %}
+                  </div>
+                {% endfor %}
+              </fieldset>
+              {% if not block_reason and not shape_error %}<div class="ws-inline-actions"><button type="submit" name="action" value="add_choice:{{ row.index }}" class="ws-button" formnovalidate>Variant qo‘shish</button>{% if questions|length > 1 %}<button type="submit" name="action" value="remove_question:{{ row.index }}" class="ws-link-button" formnovalidate aria-label="{{ row.number }}-savolni testdan olish">Savolni olish</button>{% endif %}</div>{% endif %}
+            </div>
+          </details>
+        {% endfor %}
+        {% if not block_reason and not shape_error %}<button type="submit" name="action" value="add_question" class="ws-button" formnovalidate>Yana savol qo‘shish</button>{% endif %}
+        <p class="ws-help">Savol va variantlarni qo‘shish yoki olish hozircha shaklni o‘zgartiradi. Test faqat «Saqlash» bosilganda yangilanadi.</p>
+      </section>
+    {% endif %}
+    {% if not block_reason and not shape_error %}<section class="ws-card ws-form-section ws-practice-save"><h2>Tekshirib, saqlang</h2><p>Saqlash «{{ lesson.title }}» darsidagi {% if practice_kind == 'assignment' %}topshiriqni{% else %}testni{% endif %} darhol yangilaydi. Darsga kirish huquqi bor o‘quvchilar undan foydalana oladi. Darsni guruhga ochish alohida boshqariladi.</p>
+      {% include "backoffice/workspace/field.html" with field=form.confirm_impact %}
+      <div class="ws-inline-actions"><button type="submit" name="action" value="preview" class="ws-button" formnovalidate>O‘quvchi ko‘rinishini ko‘rish</button><button type="submit" name="action" value="save" class="ws-button ws-button-primary" formnovalidate>{% if practice_kind == 'assignment' %}Topshiriqni{% else %}Testni{% endif %} saqlash</button></div>
+      <p class="ws-draft-status" data-draft-status aria-live="polite">Saqlash tugmasi bilan tasdiqlang.</p>
+    </section>{% endif %}
+  </div>
+</form>
+{% endif %}
+{% endblock %}

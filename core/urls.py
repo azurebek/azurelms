@@ -9,6 +9,7 @@ from core import health_views
 from core import views as core_views
 from core import teacher_views
 from core import backoffice_workspace as workspace
+from core import backoffice_practice as practice
 from core import backoffice_sections as sections
 from core import student_support_views as student_support
 from core import design_views
@@ -97,6 +98,10 @@ urlpatterns = [
     path('backoffice/workspace/courses/new/', workspace.course_editor, name='backoffice_workspace_course_create'),
     path('backoffice/workspace/courses/<int:course_id>/settings/', workspace.course_editor, name='backoffice_workspace_course_edit'),
     path('backoffice/workspace/courses/<int:course_id>/', workspace.course, name='backoffice_workspace_course'),
+    path('backoffice/workspace/courses/<int:course_id>/lessons/<int:lesson_id>/assignments/new/', practice.assignment_editor, name='backoffice_workspace_assignment_new'),
+    path('backoffice/workspace/courses/<int:course_id>/lessons/<int:lesson_id>/assignments/<int:assignment_id>/', practice.assignment_editor, name='backoffice_workspace_assignment_edit'),
+    path('backoffice/workspace/courses/<int:course_id>/lessons/<int:lesson_id>/quizzes/new/', practice.quiz_editor, name='backoffice_workspace_quiz_new'),
+    path('backoffice/workspace/courses/<int:course_id>/lessons/<int:lesson_id>/quizzes/<int:quiz_id>/', practice.quiz_editor, name='backoffice_workspace_quiz_edit'),
     path('backoffice/users/', core_views.backoffice_users, name='backoffice_users'),
     path('backoffice/chats/', core_views.backoffice_chats, name='backoffice_chats'),
     path('backoffice/courses/', core_views.backoffice_courses, name='backoffice_courses'),
