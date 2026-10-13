@@ -16,6 +16,34 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-13 [Codex]: BACKOFFICE-02 / B2.1 — dars materiallari va imtihon tayyorlash
+
+Ownerning «boshla unda» topshirig‘i bilan birinchi implementatsiya yakunlandi.
+Materialni dars ichida sozlash/tartiblash/olish, xatoda qiymat va qoralamani
+saqlash, kursga tegishli exam/section tanlovi va birinchi bo‘lim bilan yaratish bor.
+
+- Branch: `codex/backoffice-course-completion`; implementatsiya: `7a9fc2b`.
+  [Dalil, admission va chegaralar](frontend-v1/BACKOFFICE-02-STAGE-1.md).
+- `library/material_authoring` va `courses/exam_authoring_service` canonical
+  writerlari scope/revision/no-op/atomic auditni boshqaradi. Material detach
+  umumiy resource/faylni saqlaydi; validation renderer flagidan mustaqil.
+  Any-attempt exam lockout va birinchi attempt bilan umumiy parent lock bor.
+- Env-file OFF, Gemini/Telegram bo‘sh: `venv/Scripts/python.exe manage.py test
+  core library courses --verbosity 1`: **1349 / 1305 PASS / 44 skip**, 273.171s.
+  `node --test tests/frontend_v1/*.test.mjs`: **153/153 PASS**. Check 0,
+  migration drift yo‘q, diff-check PASS. PostgreSQL overlap testlari CI uchun.
+- IAB synthetic 8099: material update/reorder/detach va boshqa darsdagi
+  shared-resource survival; lesson/material draft restore; empty exam create,
+  second-section isolation va active-attempt read-only. 320/1440px, light/dark,
+  200% rendered text va Tab focus tekshirildi; overflow topilib tuzatildi.
+- Mustaqil review topgan unresolved sibling draft overwrite va invalid
+  numeric/date blank holatlari tuzatildi. Snapshot tashqi ABA uchun durable
+  revision emas; oldindan tokensiz ochilgan legacy forma qayta ochilishi kerak.
+- Yangi migration/flag default/provider yo‘q; sinov yozuvlari alohida nusxada,
+  asosiy DB/production kontenti o‘zgarmadi. Required CI/review’dan keyin
+  standing owner workflow bo‘yicha manual merge. Keyingi kesim B2.2;
+  owner usability/native zoom/telefon/AT hamda full exam builder alohida.
+
 ## 2026-10-12 [Codex]: BACKOFFICE-02 — keyingi takomillashtirish rejasi
 
 Owner shaxsiy usability tekshiruvini keyinga qoldirib, yangi phase rejasini
