@@ -124,3 +124,10 @@
   .bo-settings-detail > summary { padding: 18px; }
   .bo-settings-detail > :not(summary) { margin-inline: 18px; }
 }
+
+/* Keep the mobile readability floor when no override is published. The
+   existing mobile rule above is important; this equally important, narrower
+   consumer is confined to the admitted editors and excludes vendor controls. */
+@media screen and (max-width: 720px) {
+  .ws-legacy-content .bo-editor:is(.bo-exam-editor,.lib-editor,.catalog-form,.blog-editor,.sit-bo-wrap) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="range"]),select,textarea):not(.ck *) { font-size: var(--dc-text-md, max(1rem, 16px)) !important; }
+}

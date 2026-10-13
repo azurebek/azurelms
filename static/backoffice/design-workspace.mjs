@@ -16,7 +16,7 @@ function start(app) {
   const typeKeys = Object.keys(catalog.validation.typeDefaults);
   const largeType = Object.fromEntries(typeKeys.map(key => [key, ({'text-xs':14,'text-sm':16,'text-md':18,'text-lg':20,'text-xl':24,'text-2xl':30,'text-title':36,'text-display':44})[key]]));
   const colors = ['action','action-hover','on-action','action-soft','action-border','focus','hero'];
-  const sectionKeys = {colors, text:['body-font',...typeKeys], shape:['button-radius','card-radius'], spacing:['density']};
+  const sectionKeys = {colors, text:['body-font',...typeKeys], shape:['button-radius','field-radius','card-radius'], spacing:['density']};
   const palette = {
     azure:{light:['#1257e6','#1048bf','#ffffff','#edf3ff','#cfdefc','#1257e6','#edf3ff'],dark:['#9bb8ff','#b2c8ff','#12203c','#233552','#3b527c','#b2c8ff','#1c2b44']},
     forest:{light:['#146c4b','#10563c','#ffffff','#eaf6ef','#c2ddcf','#146c4b','#eaf6ef'],dark:['#93d7b4','#b1e5ca','#142b21','#203c32','#3d6853','#b1e5ca','#203c32']},
@@ -133,9 +133,11 @@ function start(app) {
   }
   function preview() {
     const value = comparison === 'published' ? server.published.value : working;
-    const head = $('#design-sample-head').innerHTML, sample = $(`#design-sample-${page}`).innerHTML;
+    const legacyEditor = page === 'editor';
+    const head = $(legacyEditor ? '#design-sample-editor-head' : '#design-sample-head').innerHTML;
+    const sample = $(`#design-sample-${page}`).innerHTML;
     const csp = `default-src 'none'; style-src ${location.origin} 'unsafe-inline'; img-src 'none'; font-src 'none'; form-action 'none'; base-uri 'none'`;
-    $('[data-preview-frame]').srcdoc = `<!doctype html><html lang="uz" data-theme="${mode}"><head><meta http-equiv="Content-Security-Policy" content="${csp}"><title>Dizayn namunasi</title>${head}<style>${compileStyle(catalog,value)}</style>${$('#design-sample-runtime').innerHTML}</head><body data-frontend="v1">${sample}</body></html>`;
+    $('[data-preview-frame]').srcdoc = `<!doctype html><html lang="uz" data-theme="${mode}"><head><meta http-equiv="Content-Security-Policy" content="${csp}"><title>Dizayn namunasi</title>${head}<style>${compileStyle(catalog,value)}</style>${$('#design-sample-runtime').innerHTML}</head><body${legacyEditor ? '' : ' data-frontend="v1"'}>${sample}</body></html>`;
   }
   function render() {
     syncControls(); renderPresets(); const safe = renderValidation();

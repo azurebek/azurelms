@@ -228,10 +228,11 @@ Yonidagi bosiladigan namuna faqat taklifning navigatsiyasi va uch ish shaklini t
 <a id="backoffice-02"></a>
 ## 11. BACKOFFICE-02 — kundalik ishlarni yakunlash
 
-**Holat: B2.1–B2.4 lokal tayyor (2026-10-13); B2.5–B2.6 reja.**
+**Holat: B2.1–B2.5 lokal tayyor (2026-10-13); B2.6 reja.**
 [B2.1 dalili](BACKOFFICE-02-STAGE-1.md), [B2.2 dalili](BACKOFFICE-02-STAGE-2.md),
 [B2.3 dalili](BACKOFFICE-02-STAGE-3.md),
-[B2.4 shartnoma va tekshiruv holati](BACKOFFICE-02-STAGE-4.md).
+[B2.4 shartnoma va tekshiruv holati](BACKOFFICE-02-STAGE-4.md),
+[B2.5 shartnoma va tekshiruv holati](BACKOFFICE-02-STAGE-5.md).
 Reja sanasi 2026-10-12; kod tayanchi
 `cd2ce2c`. Yangi phase shu hujjatda yuritiladi; parallel roadmap ochilmaydi.
 Owner topshirig‘i: shaxsiy usability sinovini keyinroq bajaradi, shu vaqtgacha
@@ -289,6 +290,24 @@ test — topshiriladi; ikkalasi bitmaguncha B2.2 yopilmaydi.
 Topilgan unrelated feature ushbu ro‘yxatga jimgina qo‘shilmaydi.
 
 ### Implementatsiya shartnomalari
+
+#### B2.5 admission — 2026-10-13
+
+**ADMIT — launch-critical.** Ownerning «davom et» topshirig‘i bilan mavjud
+dizayn sozlamalari eski exam, library, tarif/guruh, blog va SIT formalariga
+ulanadi. KPI: belgilangan formalar va ustaxona namunasida matn, tugma/maydon/
+karta shakli hamda oralig‘ining computed qiymati bitta typed sozlamaga mos;
+publish → real forma → rollback, flag OFF va 320px/katta matn dalili bor.
+`design_schema`, `design_catalog`, `design_service` va public CSS yagona
+haqiqat bo‘lib qoladi; yangi adapterlar faqat iste’mol qiladi. Yangi theme
+engine, erkin CSS kiritish, kontent/baho/writer yoki migration yo‘q.
+Haftalik qo‘lda CSS tuzatish yuki kamayadi. Mavjud design flag OFF statik
+uslubni qaytaradi, versiya rollback’i faqat dizaynni almashtiradi; logo va
+kontentga tegmaydi. Unset qiymatlar har formaning avvalgi bazasini saqlaydi.
+Print, vendor editor ichki boshqaruvlari va tashqi host qobig‘i scope’dan
+tashqari. Brauzerda synthetic nusxada namuna/nashr/rollback tekshiriladi;
+asosiy lokal bazada mavjud nashr saqlanadi, faqat read-only tekshiruv.
+Owner usability/native zoom/AT hamda production qabuli alohida qoladi.
 
 #### B2.4 admission — 2026-10-13
 

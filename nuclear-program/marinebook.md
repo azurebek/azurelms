@@ -16,6 +16,41 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-13 [Codex]: BACKOFFICE-02 / B2.5 — eski formalarda yagona dizayn
+
+Imtihon, kutubxona, tarif/guruh, blog va SIT formalariga mavjud matn,
+tugma/maydon/karta shakli va oraliq sozlamalari ulandi. Ustaxonada oddiy
+Maydonlar tanlovi va haqiqiy klasslarni ishlatadigan inert forma namunasi bor.
+
+- Branch: `codex/backoffice-legacy-design`; implementatsiya `ccb1d40`.
+  [Admission, shartnoma va dalil](frontend-v1/BACKOFFICE-02-STAGE-5.md).
+- Mavjud 87 typed sozlama va design writerlari yagona manba. Yangi model,
+  migration, flag, provider yoki kontent writeri yo‘q. Screen-only scoped
+  CSS; vendor controls/print tashqarida. Kutubxona maxsus usage kartasi
+  o‘z paddingini saqlaydi; boshqa muharrirlarga umumiy override yoyilmadi.
+- Safe env: `venv/Scripts/python.exe manage.py test core.test_design_views
+  core.test_design_service core.test_design_runtime core.test_frontend_v1_editors
+  core.test_backoffice_catalog_navigation core.test_sidebar_reaches_blog_and_sit
+  --verbosity 1` — **112 / 110 PASS / 2 PostgreSQL skip**, 7.074s.
+  Yakuniy runtime/views qayta testi **23/23 PASS**; `node --test
+  tests/frontend_v1/*.test.mjs` **171/171 PASS**. Check0, diff-check PASS.
+- IAB synthetic8103: sakkiz forma published qiymatlari ikki qobiqda mos;
+  320/1440px, light/dark, 200% rendered text va Tab fokus. RuntimeOFF
+  statik ko‘rinishga qaytadi. Default1440/320pxda 391 element before/after
+  qiymatlari teng; reviewda topilgan fallback leading/weight/padding tuzatildi.
+- Publish6 → default7 → rollback5 qiymatlari yangi8 nashrida tasdiqlandi;
+  sakkiz forma qayta ochildi, original published fingerprint teng.
+  Kontent/brend **82 jadval / 184 qator** o‘zgarmadi. CK toolbar o‘zgarmadi;
+  yangi iframe 243px ichiga ham sig‘di, brauzer error/warn0.
+- Primary lokal rollback smoke: dizayn + 8 forma + 2 CSS **11 HTTP200**,
+  **149 jadval / 1316 qator** hash teng. Kontent/auth/flag o‘zgarmadi.
+- Required CI/review’dan keyin standing workflow bo‘yicha manual merge.
+  B2.6 birgalikdagi sifat tekshiruvi, owner/native/AT va production qabuli qolgan.
+- PR188 P2 review: blog checkbox yorliqlari label tokenlariga qo‘shildi;
+  default leading1.6 saqlandi. Browser explicit16px/700/28.8px va default
+  before/after0 tasdiqlandi, runtime10/10 PASS; fixture original qiymatlari
+  nashr11da qayta tiklandi.
+
 ## 2026-10-13 [Codex]: BACKOFFICE-02 / B2.4 — natija va bildirishnoma yordami
 
 O‘quvchi kartasida topshiriq/test/imtihon natijalari va owner uchun shaxsiy

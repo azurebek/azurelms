@@ -698,6 +698,14 @@ AI room nomi birinchi prompt'dan avtomatik o'zgarishi mumkin (`maybe_name_ai_roo
 
 ### 4.10 Backoffice
 
+**Eski formalar dizayni (B2.5, 2026-10-13):** mavjud design runtime
+exam/library/plan/cohort/blog/SIT `.bo-editor` ildizlarida typography,
+button/field/card geometry va density qiymatlarini o‘qiydi. Yangi schema
+yoki writer yo‘q. Oddiy ustaxonada Maydonlar shakli va inert Boshqaruv
+formasi namunasi bor; preview ham shared runtime CSSni ishlatadi.
+Default fallback ikki qobiqda saqlanadi; print/vendor controls scope tashqarisida.
+[B2.5 shartnoma va tekshiruv holati](frontend-v1/BACKOFFICE-02-STAGE-5.md).
+
 **O‘quvchi natijalari va bildirishnomalar (B2.4, 2026-10-13):** mavjud
 support kartasida `topic=access|results|delivery`. `student_support_results.py`
 fresh staff/student/course/lesson scope bilan assignment, quiz va exam tarixini
