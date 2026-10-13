@@ -67,7 +67,8 @@ Quyidagi buyruqlar safe env’da bajarildi:
 
 IAB synthetic8104; mavjud synthetic hisob/ruxsatlar saqlandi. Nav/course/
 practice/design flaglari tekshiruvdan keyin ON. Eski frontend library/editors
-flaglari OFF bo‘lgani uchun sakkiz eski forma haqiqiy legacy qobiqda ko‘rildi.
+flaglari OFF; navigation ON bo‘lgani uchun sakkiz eski forma rendereri yangi
+boshqaruv qobig‘ida ko‘rildi.
 Matn sinovi computed shriftni 2x oshiruvchi fixture tugmasi bilan; iframe yoki
 native zoom deb talqin qilinmaydi. Light/dark va keyboard representative
 holatlarda; bu barcha yordamchi texnologiyalar sertifikati emas.
