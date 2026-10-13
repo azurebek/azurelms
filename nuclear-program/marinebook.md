@@ -16,6 +16,33 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-13 [Codex]: BACKOFFICE-03 — keyingi yetti bosqich rejasi
+
+Owner shaxsiy tekshiruvini kutmay bajariladigan keyingi ishlar uchun
+[B3 rejasi](frontend-v1/BACKOFFICE-REFORM-PLAN.md#backoffice-03) mavjud yagona
+backoffice hujjatiga qo‘shildi. Hub va frontend kirishi shu rejaga bog‘landi.
+**Reja tayyor; implementatsiya boshlanmagan.**
+
+- Branch: `codex/backoffice-next-phase-plan`; reja commit **`2a1e353`**;
+  audit tayanchi `13a615b`.
+- Qamrov: xavfsiz AI sozlamalari/status izohi → Exam draft/publication
+  poydevori → mavjud section/task turlari uchun builder → source/natijani
+  saqlagan qayta foydalanish → ko‘rinadigan landing kontenti → legacy
+  SIT/Mini App dizayni → semantik sifat va reliz paketi.
+- Uch mustaqil source audit/review. Topilgan yashirin model/effort reset,
+  admin allowance change-form, rich listening validator/runtime ziddiyati,
+  publish oldidan to‘liq daraxt tekshiruvi va admin lifecycle bypass chegaralari
+  rejaga kiritildi. Ushbu docs ishi ularni kodda tuzatgan degani emas.
+- Tekshiruv: `git diff --check` PASS;
+  `venv/Scripts/python.exe .tools/docs-sync/verify_docs.py` — 97 hujjat,
+  650 relative link, 29 anchor, missing0 (reja commitidan oldin).
+  App testlari qayta yugurtirilmadi: docs-only. Runtime/DB/flag/provider/deploy
+  o‘zgarmadi; ushbu PR uchun required CI/review va manual merge tartibi amal qiladi.
+- Keyingi kesim **B3.1a**. Owner usability, haqiqiy qurilma/AT va production
+  qabuli alohida; universal version switch, qolgan public UX va A9 shu
+  bosqich bilan yopilmaydi. Kalendar muddat yoki o‘lchanmagan samaradorlik
+  va’da qilinmadi; yetti bosqichning aniq tugash mezonlari yozildi.
+
 ## 2026-10-13 [Codex]: Hujjatlar sinxroni va yagona holat sahifasi
 
 Loyiha hujjatlari `main`dagi `62dd358` kodi va sanalangan ish dalillari bilan
