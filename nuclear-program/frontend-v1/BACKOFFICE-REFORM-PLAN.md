@@ -228,7 +228,8 @@ Yonidagi bosiladigan namuna faqat taklifning navigatsiyasi va uch ish shaklini t
 <a id="backoffice-02"></a>
 ## 11. BACKOFFICE-02 — kundalik ishlarni yakunlash
 
-**Holat: REJA, implementatsiya boshlanmagan.** Sana 2026-10-12; kod tayanchi
+**Holat: B2.1 lokal tayyor (2026-10-13); B2.2–B2.6 reja.** [B2.1 dalili](BACKOFFICE-02-STAGE-1.md).
+Reja sanasi 2026-10-12; kod tayanchi
 `cd2ce2c`. Yangi phase shu hujjatda yuritiladi; parallel roadmap ochilmaydi.
 Owner topshirig‘i: shaxsiy usability sinovini keyinroq bajaradi, shu vaqtgacha
 backoffice’ni takomillashtirish davom etadi. Mavhum menyu so‘rovnomasi yoki
@@ -286,9 +287,29 @@ Topilgan unrelated feature ushbu ro‘yxatga jimgina qo‘shilmaydi.
 
 ### Implementatsiya shartnomalari
 
-Reja admissioni: **EXPERIMENT — canonical state yozmaydi**. Ushbu turn faqat
-manba auditi va reja; app kodi, baza, flag, provider va deployment o‘zgarmaydi.
-Quyidagi implementatsiya admissionlari tavsiya, bajarilgan capability emas.
+#### B2.1 admission — 2026-10-13
+
+**ADMIT — launch-critical.** Ownerning «boshla unda» topshirig‘i bilan kursdagi
+material va imtihon uzilishlari yopiladi. KPI: yuqoridagi 1–3 ssenariy ishlaydi;
+invalid/stale so‘rovda ma’lumot yo‘qolishi, yolg‘on success va scope buzilishi 0.
+Material update/detach/reorder uchun `library` canonical service, exam va section
+uchun `courses/exam_authoring_service.py` atomik writer ishlatiladi; legacy/V1
+va kurs ustaxonasi faqat adapter. Attempt boshlash shu imtihon yozuvi bilan
+bir lock chegarasida tekshiriladi. Audit yozuvi mutation bilan bir transactionda.
+Haftalik yuk kamayadi: material sozlamasi dars ichida, bo‘sh imtihon yaratish
+texnik yordam talab qilmaydi. Mavjud `backoffice_course_workspace` flagi
+ustaxona yuzasini boshqaradi; OFF eski yo‘lni va saqlangan kontentni qoldiradi.
+Validatsiya, ruxsat va ishlatilgan imtihon himoyasi renderer flagidan mustaqil.
+Failure: bound forma va aniq xato, stale holatda yozuvsiz 409; detach umumiy
+resource/faylni o‘chirmaydi. Rollback: ustaxona flagini OFF qilish; yangi
+kontent mavjud modellarda eski yo‘ldan o‘qiladi. Xavfli tahrirni qayta ochuvchi
+kod rollback’i bu qaytish shartnomasiga kirmaydi. Tekshiruvlar synthetic bazada;
+production/provider amali, yangi grading qoidasini joriy qilish qamrovda yo‘q.
+
+2026-10-12 reja admissioni: **EXPERIMENT — canonical state yozmaydi**. O‘sha
+turn faqat manba auditi va reja edi; runtime o‘zgarmagan. B2.1 yuqoridagi
+aniq admission bilan boshlandi. Quyidagi qolgan admissionlar tavsiya,
+bajarilgan capability emas.
 Har bosqich boshida uning aniq xizmat/ruxsat/failure shartnomasi qayd qilinadi;
 ownerning keyingi “B2.Nni boshla” topshirig‘i shu kesim ishini boshlatadi.
 

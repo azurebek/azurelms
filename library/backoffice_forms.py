@@ -149,3 +149,11 @@ class LessonMaterialForm(forms.ModelForm):
             self.fields["audience"].help_text = (
                 "Manba «faqat ustoz uchun» — o'quvchiga ochib bo'lmaydi."
             )
+
+    def full_clean(self):
+        super().full_clean()
+        if self.is_bound and 'available_from' in self._errors:
+            # Native datetime-local controls blank invalid strings, concealing
+            # the value the person needs to correct after a rejected POST.
+            self.fields['available_from'].widget = forms.TextInput(attrs={'class': 'field-input'})
+            self.fields['available_from'].help_text = 'Sana va vaqt: YYYY-MM-DDTHH:MM. Masalan, 2026-10-13T14:30. Bo‘sh bo‘lsa hozir ochiladi.'

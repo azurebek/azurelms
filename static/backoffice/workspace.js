@@ -7,7 +7,9 @@
     "gradient_preset", "gradient_cover_title", "gradient_cover_label", "is_active",
     "certificate_requires_all_assignments_approved", "certificate_min_lesson_completion_percent",
     "certificate_min_attendance_percent", "module", "video_url", "content", "order", "xp_reward",
+    "display_title", "audience", "is_visible", "is_downloadable", "is_required", "available_from",
   ]);
+  const allowedName = name => allowedNames.has(name) || /^order-[1-9][0-9]{0,17}$/.test(name);
   let storageAvailable = true;
   let leavingForSubmit = false;
   let loggingOut = false;
@@ -34,7 +36,7 @@
   };
   const validRecord = record => record && record.version === 1 && record.values &&
     typeof record.values === "object" && !Array.isArray(record.values) &&
-    Object.entries(record.values).every(([name, value]) => allowedNames.has(name) &&
+    Object.entries(record.values).every(([name, value]) => allowedName(name) &&
       (typeof value === "string" || typeof value === "boolean"));
 
   // A signed-in server session issues this receipt only after a successful write.
@@ -91,7 +93,7 @@
     if (!form.dataset.draftScope) return;
     const key = prefix + form.dataset.draftScope;
     const fields = [...form.querySelectorAll("input[name], textarea[name], select[name]")]
-      .filter(field => allowedNames.has(field.name) && !field.disabled &&
+      .filter(field => allowedName(field.name) && !field.disabled &&
         !["hidden", "file", "password"].includes(field.type));
     const status = form.querySelector("[data-draft-status]");
     const banner = form.querySelector("[data-draft-recovery]");
@@ -138,6 +140,8 @@
       if (!record || !banner || touched) return;
       if (!sameValues(record.values, values())) {
         banner.hidden = false;
+        const disclosure = form.closest?.('details');
+        if (disclosure) disclosure.open = true;
         if (recoveryText) recoveryText.textContent = form.dataset.boundForm === "true" ?
           "Hozir yuborgan matningiz sahifada turibdi. Quyidagi tugma brauzerdagi oldingi qoralamani uning o‘rniga qo‘yadi." :
           "Matn faqat shu brauzer oynasida saqlangan. Tiklagach so‘nggi nusxa bilan solishtiring va Saqlashni bosing.";
@@ -197,6 +201,11 @@
         if (field.type === "checkbox") field.checked = value === true;
         else {
           field.value = String(value);
+          // A rejected date must remain correctable after a fresh GET too.
+          if (field.type === "datetime-local" && field.value !== String(value)) {
+            field.type = "text";
+            field.value = String(value);
+          }
           editors.get(field.id)?.setData(String(value));
         }
       });
@@ -223,8 +232,8 @@
         if (editor) field.value = editor.getData();
       });
       persist();
-      const action = event.submitter?.value;
-      if (action === "lesson_save" || !form.querySelector('[name="lesson_id"]')) {
+      const action = event.submitter?.value || form.querySelector('[name="action"]')?.value;
+      if (["lesson_save", "material_update", "material_reorder"].includes(action) || !form.querySelector('[name="lesson_id"]')) {
         const nonce = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
         let marker = form.querySelector('[name="draft_submission_id"]');
         if (!marker) {
@@ -240,7 +249,8 @@
       leavingForSubmit = true;
     });
     offerRecovery();
-    controllers.push({persist, isDirty: () => dirty, wasEdited: () => touched,
+    controllers.push({form, persist, isDirty: () => dirty, wasEdited: () => touched,
+      canPersistSibling: () => touched || !record || sameValues(record.values, values()),
       needsWarning: () => dirty && !sameValues(persistedValues, values())});
   });
 
@@ -257,9 +267,12 @@
       } catch { /* The session-scoped key also prevents another login reading it. */ }
       return;
     }
-    if (!event.target.matches("[data-workspace-draft]")) {
-      controllers.filter(controller => controller.isDirty()).forEach(controller => controller.persist());
-      leavingForSubmit = storageAvailable;
+    const siblings = controllers.filter(controller => controller.form !== event.target && controller.isDirty());
+    if (!event.target.matches("[data-workspace-draft]") || siblings.length) {
+      // An untouched rejected form may offer a different older draft. Saving
+      // its neighbour must not silently choose between these two versions.
+      siblings.filter(controller => controller.canPersistSibling()).forEach(controller => controller.persist());
+      leavingForSubmit = storageAvailable && !siblings.some(controller => controller.needsWarning());
     }
   });
   window.addEventListener("beforeunload", event => {

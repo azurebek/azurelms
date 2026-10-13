@@ -6,7 +6,7 @@ from django.urls import reverse
 
 from courses.models import Course, Lesson, Module
 
-from . import services
+from . import services, material_authoring
 from .models import LessonMaterial, LibraryResource, MaterialAudience
 from .test_resources import pdf_upload
 
@@ -219,7 +219,8 @@ class LessonMaterialFlowTests(TestCase):
         self.client.force_login(self.teacher)
 
         response = self.client.post(
-            reverse("library_backoffice:material_detach", args=[material.pk])
+            reverse("library_backoffice:material_detach", args=[material.pk]),
+            {'editor_revision': material_authoring.material_revision(self.teacher, material, 'detach')},
         )
         self.assertRedirects(response, reverse("backoffice_lesson_edit", args=[self.lesson.pk]))
         self.assertFalse(LessonMaterial.objects.exists())
@@ -236,6 +237,7 @@ class LessonMaterialFlowTests(TestCase):
                 "audience": MaterialAudience.TEACHER,
                 "is_required": "on",
                 "available_from": "",
+                "editor_revision": material_authoring.material_revision(self.teacher, material),
             },
         )
         material.refresh_from_db()
@@ -255,7 +257,8 @@ class LessonMaterialFlowTests(TestCase):
         self.client.force_login(self.teacher)
         self.client.post(
             reverse("library_backoffice:material_reorder", args=[self.lesson.pk]),
-            {f"order-{first_material.pk}": "9", f"order-{second_material.pk}": "1"},
+            {f"order-{first_material.pk}": "9", f"order-{second_material.pk}": "1",
+             'editor_revision': material_authoring.reorder_revision(self.teacher, self.lesson)},
         )
 
         first_material.refresh_from_db()

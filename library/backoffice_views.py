@@ -25,6 +25,7 @@ degan savolni tug'diradi.
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Count, Q
@@ -39,7 +40,7 @@ from core import frontend_v1_editors as editor_v1
 from core.private_media_views import serve_private_file
 from courses.models import Lesson
 
-from . import selectors, services
+from . import selectors, services, material_authoring
 from . import frontend_v1 as v1
 from .backoffice_forms import LessonMaterialForm, LibraryResourceForm
 from .models import (
@@ -341,55 +342,56 @@ def material_attach(request, lesson_id):
 @login_required
 @user_passes_test(is_backoffice_user)
 @require_POST
-@transaction.atomic
 def material_update(request, material_id):
     """Biriktirmaning darsga xos sozlamasini saqlaydi."""
-    material = _locked_material(request, material_id)
-    error = editor_v1.write_error(request, editor_v1.material_revision(request.user, material, 'material'))
+    material = _editable_material(request, material_id)
     form = LessonMaterialForm(request.POST, instance=material)
-    valid = form.is_valid()
-    if error:
-        form.add_error(None, error[0])
-    if valid and not error:
-        form.save()
-        messages.success(request, "Material sozlamasi saqlandi.")
-    elif editor_v1.enabled(request):
+    try:
+        _material_guard(request)
+        material, changed = material_authoring.update_material(actor=request.user,
+            material_id=material_id, data=request.POST,
+            expected_revision=request.POST.get('editor_revision', ''), request=request)
+    except (LessonMaterial.DoesNotExist, Lesson.DoesNotExist):
+        raise Http404 from None
+    except ValidationError as error:
+        status = 409 if isinstance(error, material_authoring.MaterialConflict) else 400
+        form.is_valid()
+        if hasattr(error, 'error_dict'):
+            for name, errors in error.error_dict.items():
+                if name not in form.errors:
+                    form.add_error(name if name in form.fields else None, errors)
+        else:
+            form.add_error(None, error)
         material.refresh_from_db()
-        return editor_v1.render_editor(request, 'material', {
-            'material': material, 'form': form,
+        return editor_v1.render_editor(request, 'material', _base_context('lessons', **{
+            'material': material, 'lesson': material.lesson, 'form': form,
             'editor_revision': request.POST.get('editor_revision', ''),
-            'editor_conflict': bool(error and error[1] == 409),
-        }, status=error[1] if error else 400)
+            'editor_conflict': status == 409,
+        }), status=status)
+    if changed:
+        messages.success(request, "Material sozlamasi saqlandi.")
     else:
-        errors = "; ".join(
-            f"{form.fields[name].label if name in form.fields else 'Sozlama'}: {', '.join(errs)}" for name, errs in form.errors.items()
-        )
-        messages.error(request, errors or "Sozlamani saqlab bo'lmadi.")
+        messages.info(request, 'Material allaqachon shu holatda saqlangan.')
     return redirect("backoffice_lesson_edit", lesson_id=material.lesson_id)
 
 
 @login_required
 @user_passes_test(is_backoffice_user)
 @require_POST
-@transaction.atomic
 def material_detach(request, material_id):
     """Biriktirmani uzadi — manba va fayl kutubxonada qoladi."""
-    material = _locked_material(request, material_id)
-    error = editor_v1.write_error(request, editor_v1.material_revision(request.user, material, 'detach'))
-    if error:
-        return editor_v1.render_editor(request, 'conflict', {
-            'editor_error': error[0],
+    material = _editable_material(request, material_id)
+    try:
+        _material_guard(request)
+        lesson_id = material_authoring.detach_material(actor=request.user,
+            material_id=material_id, expected_revision=request.POST.get('editor_revision', ''), request=request)
+    except (LessonMaterial.DoesNotExist, Lesson.DoesNotExist):
+        raise Http404 from None
+    except ValidationError as error:
+        return editor_v1.render_editor(request, 'conflict', _base_context('lessons', **{
+            'editor_error': ' '.join(error.messages),
             'reload_url': reverse('backoffice_lesson_edit', args=[material.lesson_id]),
-        }, status=error[1])
-    lesson_id = material.lesson_id
-    label = f"{material.lesson.title} ← {material.resource.title}"
-    material.delete()
-    record_audit_event(
-        action="library.material.detach",
-        request=request,
-        target_label=label,
-        before={"lesson": lesson_id},
-    )
+        }), status=409 if isinstance(error, material_authoring.MaterialConflict) else 400)
     messages.success(request, "Material darsdan uzildi (kutubxonada qoldi).")
     return redirect("backoffice_lesson_edit", lesson_id=lesson_id)
 
@@ -397,7 +399,6 @@ def material_detach(request, material_id):
 @login_required
 @user_passes_test(is_backoffice_user)
 @require_POST
-@transaction.atomic
 def material_reorder(request, lesson_id):
     """Biriktirmalar tartibini saqlaydi.
 
@@ -406,43 +407,37 @@ def material_reorder(request, lesson_id):
     raqam kiritilsa ham tartib aniq bo'lib qoladi.
     """
     lesson = _editable_lesson(request.user, lesson_id)
-    lesson = Lesson.objects.select_for_update().get(pk=lesson.pk)
-    error = editor_v1.write_error(request, editor_v1.reorder_revision(request.user, lesson))
-    positions = []
-    materials = list(services.teacher_materials(lesson))
-    expected_keys = {f'order-{item.pk}' for item in materials}
-    submitted_keys = {key for key in request.POST if key.startswith('order-')}
-    invalid = expected_keys != submitted_keys
-    for material in materials:
-        raw = request.POST.get(f"order-{material.pk}")
-        material.posted_order = raw if raw is not None else ''
-        if (len(request.POST.getlist(f'order-{material.pk}')) != 1 or not raw
-                or not raw.isascii() or not raw.isdecimal() or len(raw) > 10 or int(raw) > 2147483647):
-            invalid = True
-        try:
-            value = int(raw)
-        except (TypeError, ValueError):
-            value = material.order
-        positions.append((value, material.order, material.pk))
-    if editor_v1.enabled(request) and (error or invalid):
-        return editor_v1.render_editor(request, 'reorder', {
+    try:
+        _material_guard(request)
+        changed = material_authoring.reorder_materials(actor=request.user, lesson_id=lesson_id,
+            positions=request.POST, expected_revision=request.POST.get('editor_revision', ''), request=request)
+    except Lesson.DoesNotExist:
+        raise Http404 from None
+    except ValidationError as error:
+        materials = list(services.teacher_materials(lesson))
+        for material in materials:
+            material.posted_order = request.POST.get(f'order-{material.pk}', '')
+        return editor_v1.render_editor(request, 'reorder', _base_context('lessons', **{
             'lesson': lesson, 'materials': materials,
-            'editor_error': error[0] if error else 'Har bir material uchun 0–2147483647 oralig‘ida bitta butun tartib raqamini kiriting.',
+            'editor_error': ' '.join(error.messages),
             'editor_revision': request.POST.get('editor_revision', ''),
-            'editor_conflict': bool(error and error[1] == 409),
-        }, status=error[1] if error else 400)
-    positions.sort()
-    services.reorder_materials(lesson, [pk for _, _, pk in positions])
-    messages.success(request, "Materiallar tartibi saqlandi.")
+            'editor_conflict': isinstance(error, material_authoring.MaterialConflict),
+        }), status=409 if isinstance(error, material_authoring.MaterialConflict) else 400)
+    if changed:
+        messages.success(request, "Materiallar tartibi saqlandi.")
+    else:
+        messages.info(request, 'Materiallar allaqachon shu tartibda.')
     return redirect("backoffice_lesson_edit", lesson_id=lesson.pk)
 
 
-def _locked_material(request, material_id):
-    """Called only inside atomic writers. No lock on a nullable joined table."""
-    material = get_object_or_404(LessonMaterial, pk=material_id)
-    lesson = _editable_lesson(request.user, material.lesson_id)
-    Lesson.objects.select_for_update().get(pk=lesson.pk)
-    resource = LibraryResource.objects.select_for_update().get(pk=material.resource_id)
-    material = get_object_or_404(LessonMaterial.objects.select_for_update(), pk=material_id, lesson_id=lesson.pk)
-    material.resource = resource
+def _editable_material(request, material_id):
+    material = get_object_or_404(LessonMaterial.objects.select_related('resource', 'lesson'), pk=material_id)
+    _editable_lesson(request.user, material.lesson_id)
     return material
+
+
+def _material_guard(request):
+    if request.GET or any(len(values) != 1 for _, values in request.POST.lists()):
+        raise ValidationError('Amal maydonlari noto‘g‘ri yoki takrorlangan. Hech narsa saqlanmadi.')
+    if editor_v1.enabled(request) and request.POST.get('confirm_scope') != 'yes':
+        raise ValidationError('Amal doirasini tasdiqlang. Hech narsa saqlanmadi.')

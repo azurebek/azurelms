@@ -85,7 +85,7 @@ class BackofficeDashboardTests(TestCase):
             (reverse("backoffice_course_edit", kwargs={"course_id": course.pk}), course.title),
             (reverse("backoffice_lessons"), "Dars muharriri"),
             (reverse("backoffice_lesson_edit", kwargs={"lesson_id": lesson.pk}), lesson.title),
-            (reverse("backoffice_exams"), "Imtihonni tayyorlash"),
+            (reverse("backoffice_exams"), "Imtihonlar"),
             (reverse("backoffice_exam_edit", kwargs={"exam_id": exam.pk}), exam.title),
         )
 

@@ -10,6 +10,7 @@ from core.flags import flag_enabled
 from core.frontend_v1 import teacher_v1_navigation
 from core.backoffice_forms import CourseBackofficeForm, LessonBackofficeForm
 from library.frontend_v1 import style_form
+from library import material_authoring
 
 
 def enabled(request):
@@ -29,14 +30,11 @@ def _sign(user, action, state):
 
 
 def material_revision(user, material, action):
-    # Resource policy may change even when the link itself did not.
-    state = [str(field.value_from_object(material)) for field in material._meta.concrete_fields]
-    state += [str(material.resource.updated_at), material.resource.is_teacher_only]
-    return _sign(user, action, state)
+    return material_authoring.material_revision(user, material, action)
 
 
 def reorder_revision(user, lesson):
-    return _sign(user, 'reorder', [lesson.pk, list(lesson.materials.order_by('pk').values_list('pk', 'order', 'updated_at'))])
+    return material_authoring.reorder_revision(user, lesson)
 
 
 def write_error(request, expected):
@@ -76,9 +74,19 @@ def lesson_index(request, context):
 
 
 def render_editor(request, page, context, *, status=200):
+    if page == 'lesson' and context.get('lesson'):
+        for material, mform in context['material_forms']:
+            mform.auto_id = f'material_{material.pk}_%s'
+            material.save_revision = material_revision(request.user, material, 'material')
+            material.detach_revision = material_revision(request.user, material, 'detach')
+        context['reorder_revision'] = reorder_revision(request.user, context['lesson'])
     if not enabled(request):
-        legacy = {'list': 'courses', 'course': 'course_form', 'lesson': 'lesson_form'}[page]
-        return render(request, f'backoffice/{legacy}.html', context, status=status)
+        legacy = {'list': 'courses', 'course': 'course_form', 'lesson': 'lesson_form',
+                  'material': 'material_form', 'reorder': 'material_reorder',
+                  'conflict': 'material_conflict'}[page]
+        response = render(request, f'backoffice/{legacy}.html', context, status=status)
+        patch_cache_control(response, private=True, no_store=True)
+        return response
     context.update(teacher_v1_navigation('teacher_dashboard'))
     if not flag_enabled('frontend_v1_teacher'):
         context['frontend_v1_legacy_nav'] += [item for item in context['frontend_v1_nav'] if item['name'].startswith('teacher_')]
@@ -107,12 +115,7 @@ def render_editor(request, page, context, *, status=200):
         context['editor_revision'] = request.POST.get('editor_revision', '') if request.method == 'POST' else revision(request.user, context.get(action), action)
     if page == 'lesson' and context.get('lesson'):
         for material, mform in context['material_forms']:
-            # Each independent form needs unique IDs, but unchanged POST names.
-            mform.auto_id = f'material_{material.pk}_%s'
             style_form(mform)
-            material.save_revision = material_revision(request.user, material, 'material')
-            material.detach_revision = material_revision(request.user, material, 'detach')
-        context['reorder_revision'] = reorder_revision(request.user, context['lesson'])
     response = render(request, f'frontend_v1/editors/{page}.html', context, status=status)
     patch_cache_control(response, private=True, no_store=True)
     return response

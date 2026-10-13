@@ -1,5 +1,11 @@
 # Frontend V1 — prototipdan ishlaydigan platformaga
 
+**2026-10-13 — B2.1 lokal tayyor:** [kurs/material va imtihon oqimi dalili](BACKOFFICE-02-STAGE-1.md).
+Dars ichida material sozlash/tartiblash/olish, xatoda qiymat/qoralama saqlanishi,
+aniq exam/section tanlovi va bo‘shdan yaratish. Started attempt tahriri himoyalangan.
+1349 Django test (1305 PASS, 44 skip), 153 Node PASS. B2.2–B2.6 hali reja;
+owner usability sinovini kutish shart emas. Quyidagi qaydlar tarixiy holat.
+
 **2026-10-12 — keyingi phase rejalashtirildi:** [BACKOFFICE-02](BACKOFFICE-REFORM-PLAN.md#backoffice-02).
 Olti kesim: kurs/material uzilishlari, topshiriq va oddiy test authoring,
 qidiruv/davom ettirish, o‘quvchi natija/yetkazish yordami, eski formalarda

@@ -96,7 +96,10 @@ class BackofficeExamEditorScopeTests(TestCase):
         return reverse("backoffice_exam_edit", kwargs={"exam_id": exam.pk})
 
     def _payload(self, **overrides):
+        from courses.exam_authoring_service import exam_revision
         data = {
+            "editor_revision": exam_revision(self.teacher, self.course, self.exam, self.section.pk),
+            "section_id": self.section.pk,
             "title": "A1 yakuniy",
             "course": self.course.pk,
             "exam_type": "final",
@@ -172,7 +175,7 @@ class BackofficeExamEditorScopeTests(TestCase):
             self._edit_url(self.exam), self._payload(course=self.foreign_course.pk)
         )
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 400)
         self.assertFormError(
             response.context["exam_form"],
             "course",
@@ -188,7 +191,7 @@ class BackofficeExamEditorScopeTests(TestCase):
             self._payload(title="A1 yakuniy (yangilangan)", passing_score=70),
         )
 
-        self.assertRedirects(response, self._edit_url(self.exam))
+        self.assertRedirects(response, self._edit_url(self.exam) + f"?section={self.section.pk}")
         self.exam.refresh_from_db()
         self.assertEqual(self.exam.title, "A1 yakuniy (yangilangan)")
         self.assertEqual(self.exam.passing_score, 70)
@@ -210,7 +213,7 @@ class BackofficeExamEditorScopeTests(TestCase):
             self._edit_url(self.exam),
             self._payload(title="Saqlanmasin", minimum_attendance_percent=101),
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 400)
         self.assertIn("minimum_attendance_percent", response.context["exam_form"].errors)
         parser = DisclosureParser()
         parser.feed(response.content.decode())
@@ -218,13 +221,13 @@ class BackofficeExamEditorScopeTests(TestCase):
         self.exam.refresh_from_db()
         self.assertEqual(self.exam.title, "A1 yakuniy")
 
-    def test_the_index_route_opens_an_exam_from_the_teachers_own_courses(self):
+    def test_the_index_route_lists_owned_exams_without_silently_selecting_one(self):
         self.client.force_login(self.teacher)
         response = self.client.get(reverse("backoffice_exams"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn(response.context["exam"].pk, {self.exam.pk, self.earlier_exam.pk})
-        self.assertEqual(response.context["exam"].course_id, self.course.pk)
+        self.assertIsNone(response.context["exam"])
+        self.assertEqual({item.pk for item in response.context["exam_page"]}, {self.exam.pk, self.earlier_exam.pk})
 
     def test_a_teacher_without_courses_gets_an_empty_editor(self):
         User = get_user_model()
@@ -248,7 +251,7 @@ class BackofficeExamEditorScopeTests(TestCase):
         course_ids = set(
             response.context["exam_form"].fields["course"].queryset.values_list("pk", flat=True)
         )
-        self.assertEqual(course_ids, {self.course.pk, self.foreign_course.pk})
+        self.assertEqual(course_ids, {self.foreign_course.pk})
 
     def test_a_student_cannot_open_the_editor(self):
         self.client.force_login(self.student)

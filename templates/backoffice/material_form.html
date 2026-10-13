@@ -1,0 +1,15 @@
+{% extends 'backoffice/base.html' %}
+{% block bo_title %}Darsdagi material{% endblock %}
+{% block bo_topbar %}Darsdagi material{% endblock %}
+{% block bo_content %}
+<section class="bo-editor">
+  <a href="{% url 'backoffice_lesson_edit' material.lesson_id %}">← Saqlangan darsga qaytish</a>
+  <div class="bo-editor-heading"><h1>{{ material.title }}</h1><p>Faqat shu darsdagi ko‘rinish. Kutubxonadagi fayl o‘zgarmaydi.</p></div>
+  <form method="post" action="{% url 'library_backoffice:material_update' material.pk %}" class="bo-editor-section">
+    {% csrf_token %}<input type="hidden" name="editor_revision" value="{{ editor_revision }}">
+    <div class="bo-err" role="alert" tabindex="-1"><strong>Material saqlanmadi.</strong><p>Kiritilgan qiymatlar shu yerda. Xatolarni to‘g‘rilang.</p>{{ form.non_field_errors }}{% if editor_conflict %}<p>Yozganlaringizni nusxalab oling, keyin yuqoridagi havoladan saqlangan holatni oching.</p>{% endif %}</div>
+    {% for field in form %}{% include 'backoffice/editor_field.html' %}{% endfor %}
+    <button type="submit" class="bo-editor-save"{% if editor_conflict %} disabled{% endif %}>Sozlamani saqlash</button>
+  </form>
+</section>
+{% endblock %}

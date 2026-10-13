@@ -1146,56 +1146,128 @@ def backoffice_lesson_editor(request, lesson_id=None):
 @login_required
 @user_passes_test(_is_backoffice_user)
 def backoffice_exam_editor(request, exam_id=None):
-    """Imtihon muharriri — faqat foydalanuvchining **o'z** kursidagi imtihonlar.
+    """Select an explicit exam/section and delegate every write to one service."""
+    from urllib.parse import urlencode
+    from django.core.exceptions import ValidationError
+    from django.http import Http404, HttpResponseBadRequest, HttpResponseNotAllowed
+    from courses import exam_authoring_service as authoring
+    from courses.authoring_service import AuthoringConflict
+    from core.flags import flag_enabled
 
-    `backoffice_lesson_editor` dagi bilan bir xil bo'shliq edi: yonidagi kurs
-    yuzalari `teacher_course_queryset()` ni ishlatardi, bu yer esa butun
-    `Exam.objects` ni ochardi — har qanday `is_staff` begona kursning
-    imtihonini ocha va saqlay olardi, ID'siz manzil esa bazadagi eng birinchi
-    imtihonni tanlardi. Rad etish `404`: `403` begona kursda shu ID li imtihon
-    borligini tasdiqlab qo'yardi.
+    def object_id(value):
+        result = _safe_int(value)
+        if result is None or result < 1:
+            raise Http404
+        return result
 
-    Bo'lim formasiga (`ExamSectionBackofficeForm`) scope kerak emas: uning
-    maydonlari orasida boshqa obyektga havola yo'q, `exam` esa shu yerda —
-    allaqachon tekshirilgan imtihondan — qo'yiladi.
-    """
-    scoped_exams = Exam.objects.select_related("course").filter(
-        course__in=teacher_course_queryset(request.user)
-    )
-    exam = (
-        get_object_or_404(scoped_exams, pk=exam_id)
-        if exam_id
-        else scoped_exams.order_by("course__title", "title").first()
-    )
-    section = exam.sections.order_by("order").first() if exam else None
-    exam_form = ExamBackofficeForm(request.POST or None, instance=exam, user=request.user)
-    section_form = ExamSectionBackofficeForm(request.POST or None, instance=section, prefix="section")
-
-    if request.method == "POST" and exam_form.is_valid() and section_form.is_valid():
-        exam = exam_form.save()
-        section = section_form.save(commit=False)
-        section.exam = exam
-        section.save()
-        messages.success(request, "Imtihon saqlandi.")
-        return redirect("backoffice_exam_edit", exam_id=exam.pk)
-
-    sections = exam.sections.order_by("order") if exam else ExamSection.objects.none()
-    total_score = sections.aggregate(total=Sum("max_score")).get("total") or 0
-    total_time = sections.aggregate(total=Sum("time_limit_minutes")).get("total") or 0
-    questions_count = section.questions.count() if section else 0
-    context = {
-        **_backoffice_context("exams", request.user),
-        "exam": exam,
-        "section": section,
-        "sections": sections,
-        "section_types": ExamSection.SECTION_TYPES,
-        "exam_form": exam_form,
-        "section_form": section_form,
-        "total_score": total_score,
-        "total_time": total_time,
-        "questions_count": questions_count,
-    }
-    return render(request, "backoffice/exam_form.html", context)
+    if any(len(request.GET.getlist(name)) > 1 for name in ("course", "lesson", "section", "new", "page")) or any(
+        len(request.POST.getlist(name)) > 1 for name in ("section_id", "course", "editor_revision")
+    ):
+        return HttpResponseBadRequest("Tanlov bir necha marta yuborilgan. Sahifani yangilab, qayta urinib ko‘ring.")
+    courses = teacher_course_queryset(request.user).order_by("title", "pk")
+    scoped_exams = Exam.objects.select_related("course").filter(course__in=courses)
+    exam = get_object_or_404(scoped_exams, pk=exam_id) if exam_id else None
+    course_value = request.GET.get("course")
+    course = get_object_or_404(courses, pk=object_id(course_value)) if course_value else (exam.course if exam else None)
+    if exam and course.pk != exam.course_id:
+        raise Http404
+    lesson_value = request.GET.get("lesson")
+    lesson = get_object_or_404(Lesson, pk=object_id(lesson_value), module__course=course) if lesson_value else None
+    query = {"course": course.pk} if course else {}
+    if lesson:
+        query["lesson"] = lesson.pk
+    list_url = reverse("backoffice_exams") + ("?" + urlencode(query) if query else "")
+    back_url = reverse("backoffice_dashboard")
+    if course:
+        if flag_enabled("backoffice_course_workspace"):
+            back_url = reverse("backoffice_workspace_course", kwargs={"course_id": course.pk})
+            if lesson:
+                back_url += "?" + urlencode({"lesson": lesson.pk})
+        else:
+            back_url = reverse("backoffice_course_edit", kwargs={"course_id": course.pk})
+    creating = not exam and request.GET.get("new") == "1" and course is not None
+    if not exam and not creating:
+        if request.method != "GET":
+            return HttpResponseNotAllowed(["GET"])
+        exams = scoped_exams.filter(course=course) if course else scoped_exams
+        page = Paginator(exams.order_by("course__title", "title", "pk"), 25).get_page(request.GET.get("page"))
+        for item in page:
+            item.editor_url = reverse("backoffice_exam_edit", kwargs={"exam_id": item.pk})
+            if lesson:
+                item.editor_url += "?" + urlencode({"lesson": lesson.pk})
+        return render(request, "backoffice/exam_list.html", {
+            **_backoffice_context("exams", request.user), "exam": None, "courses": courses,
+            "course": course, "lesson": lesson, "exam_page": page, "back_url": back_url,
+            "new_url": list_url + ("&" if query else "?") + "new=1", "list_url": list_url,
+            "query_suffix": "&" + urlencode(query) if query else "",
+        })
+    if request.method not in {"GET", "POST"}:
+        return HttpResponseNotAllowed(["GET", "POST"])
+    section_value = request.POST.get("section_id") if request.method == "POST" else request.GET.get("section")
+    section = get_object_or_404(ExamSection, pk=object_id(section_value), exam=exam) if section_value else None
+    sections = list(exam.sections.order_by("order", "pk")) if exam else []
+    needs_section = section is not None or not sections
+    section_id = section.pk if section else None
+    revision = authoring.exam_revision(request.user, course, exam, section_id)
+    exam_form = ExamBackofficeForm(request.POST if request.method == "POST" else None,
+                                  instance=exam, user=request.user, initial={"course": course.pk})
+    exam_form.fields["course"].queryset = courses.filter(pk=course.pk)
+    exam_form.fields["course"].help_text = "Kurs shu sahifa uchun tanlangan. Boshqa kurs imtihonlari uchun ro‘yxatga qayting."
+    exam_form.fields["prerequisite_exam"].queryset = exam_form.fields["prerequisite_exam"].queryset.filter(course=course)
+    section_form = (ExamSectionBackofficeForm(request.POST if request.method == "POST" else None,
+                    instance=section, prefix="section") if needs_section else None)
+    in_use = bool(exam and exam.attempts.exists())
+    status, action_error = 200, ""
+    if request.method == "POST":
+        revision = request.POST.get("editor_revision", "")
+        try:
+            saved, saved_section, changed = authoring.save_exam(
+                actor=request.user, course_id=course.pk, exam_id=exam.pk if exam else None,
+                section_id=section_id, data=request.POST, expected_revision=revision, request=request,
+            )
+        except (Course.DoesNotExist, Exam.DoesNotExist, ExamSection.DoesNotExist):
+            raise Http404 from None
+        except authoring.ExamAuthoringInvalid as error:
+            exam_form, section_form = error.exam_form, error.section_form
+            status = 400
+        except (AuthoringConflict, authoring.ExamInUse) as error:
+            status, action_error = 409, " ".join(error.messages)
+            in_use = bool(exam and exam.attempts.exists())
+        except ValidationError as error:
+            exam_form.add_error(None, " ".join(error.messages))
+            status = 400
+        else:
+            messages.success(request, "Imtihon saqlandi." if changed else "Imtihon allaqachon shu holatda saqlangan.")
+            saved_query = {"section": saved_section.pk} if saved_section else {}
+            if lesson:
+                saved_query["lesson"] = lesson.pk
+            return redirect(reverse("backoffice_exam_edit", kwargs={"exam_id": saved.pk}) +
+                            ("?" + urlencode(saved_query) if saved_query else ""))
+    for item in sections:
+        section_query = {"section": item.pk}
+        if lesson:
+            section_query["lesson"] = lesson.pk
+        item.editor_url = reverse("backoffice_exam_edit", kwargs={"exam_id": exam.pk}) + "?" + urlencode(section_query)
+    if request.method == "POST":
+        for form in (exam_form, section_form):
+            if form is not None:
+                for name in form.errors:
+                    field = form.fields.get(name)
+                    if field and getattr(field.widget, "input_type", "") == "number":
+                        # Browsers erase non-numeric values in type=number.
+                        # Keep the rejected text editable while server numeric
+                        # validation remains unchanged on the next submission.
+                        field.widget.input_type = "text"
+                        field.widget.attrs["inputmode"] = "numeric"
+    return render(request, "backoffice/exam_form.html", {
+        **_backoffice_context("exams", request.user), "exam": exam, "course": course,
+        "section": section, "sections": sections, "section_form": section_form, "exam_form": exam_form,
+        "questions_count": section.questions.count() if section else 0,
+        "total_score": sum(item.max_score for item in sections),
+        "total_time": sum(item.time_limit_minutes for item in sections),
+        "editor_revision": revision, "in_use": in_use, "action_error": action_error,
+        "list_url": list_url, "back_url": back_url,
+    }, status=status)
 
 
 def _user_role_data(user):

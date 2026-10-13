@@ -6,13 +6,20 @@
 {% block bo_content %}
 <div class="bo-editor bo-exam-editor">
   <header class="bo-editor-heading">
-    <a href="{% url 'backoffice_dashboard' %}">Boshqaruvga qaytish</a>
+    <a href="{{ list_url }}">Imtihonlarga qaytish</a> · <a href="{{ back_url }}">Kursga qaytish</a>
     <h1>{% if exam %}{{ exam.title }}{% else %}Yangi imtihon{% endif %}</h1>
-    <p>Avval imtihon va baholashni belgilang. Kirish shartlarini kerak bo‘lsa oching.</p>
+    <p>{{ course.title }}. Avval imtihon va baholashni belgilang. Kirish shartlarini kerak bo‘lsa oching.</p>
   </header>
+  {% if action_error %}<div class="bo-editor-section" role="alert" tabindex="-1"><strong>{{ action_error }}</strong><p>Hech narsa saqlanmadi. Yozgan matningizni olib, <a href="{{ request.get_full_path }}">so‘nggi holatni oching</a>.</p></div>{% endif %}
+  {% if in_use %}<div class="bo-editor-section" role="status"><strong>Bu imtihonni o‘quvchilar boshlagan.</strong><p>Ularning ishlarini saqlash uchun bu yerda tahrirlash yopilgan. Imtihonlar ro‘yxatidan shu kursga yangi imtihon tayyorlashingiz mumkin.</p></div>{% endif %}
+  {% if sections %}<nav class="bo-editor-section" aria-label="Imtihon bo‘limlari"><h2>Qaysi bo‘limni ko‘ramiz?</h2><ul>{% for item in sections %}<li><a href="{{ item.editor_url }}"{% if section.pk == item.pk %} aria-current="page"{% endif %}>{{ item.title }}</a> · {{ item.max_score }} ball</li>{% endfor %}</ul>{% if not section %}<p>Quyida imtihonning umumiy sozlamalari. Bo‘limni tahrirlash uchun uning nomini tanlang.</p>{% endif %}</nav>{% endif %}
   <form method="post" enctype="multipart/form-data" class="bo-form">
     {% csrf_token %}
+    <input type="hidden" name="editor_revision" value="{{ editor_revision }}">
+    <input type="hidden" name="section_id" value="{{ section.pk|default:'' }}">
     {{ exam_form.non_field_errors }}
+    <fieldset{% if in_use %} disabled{% endif %} style="border:0;padding:0;margin:0;min-width:0;">
+    <legend class="visually-hidden">Imtihon sozlamalari</legend>
     <section class="bo-editor-section">
       <h2>Imtihon haqida</h2>
       <div class="bo-editor-fields">
@@ -37,9 +44,9 @@
       {% endif %}{% endfor %}
       </div>
     </details>
-    {% if section %}
+    {% if section_form %}
     <section class="bo-editor-section">
-      <h2>{{ section.title|default:'Imtihon bo‘limi' }}</h2>
+      <h2>{{ section.title|default:'Birinchi bo‘lim' }}</h2>
       <p class="bo-editor-help">Bu bo‘limda {{ questions_count }} ta savol bor.</p>
       {{ section_form.non_field_errors }}
       <div class="bo-editor-fields">
@@ -60,7 +67,8 @@
       {% include 'backoffice/editor_field.html' with field=section_form.media_url %}
     </details>
     {% endif %}
-    <div class="bo-editor-actions"><button class="bo-editor-save" type="submit">Imtihonni saqlash</button></div>
+    {% if not in_use %}<div class="bo-editor-actions"><button class="bo-editor-save" type="submit">Imtihonni saqlash</button></div><p class="bo-editor-help">Saqlash amaldagi imtihonni yangilaydi. O‘quvchining kirish huquqi kurs qoidalariga bog‘liq.</p>{% endif %}
+    </fieldset>
   </form>
   <details class="bo-editor-details bo-exam-summary">
     <summary>Imtihon tarkibi va jami ball<span>{{ sections|length }} ta bo‘lim · {{ total_score }} ball · {{ total_time }} daqiqa.</span></summary>

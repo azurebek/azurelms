@@ -69,7 +69,7 @@
     <a class="lm-btn is-primary" href="{% url 'library_backoffice:lesson_picker' lesson_id=lesson.pk %}"><i class="bi bi-plus-lg"></i> Kutubxonadan tanlash</a>
   </div>
 
-  <form id="lm-reorder" method="post" action="{% url 'library_backoffice:material_reorder' lesson_id=lesson.pk %}">{% csrf_token %}</form>
+  <form id="lm-reorder" method="post" action="{% url 'library_backoffice:material_reorder' lesson_id=lesson.pk %}">{% csrf_token %}<input type="hidden" name="editor_revision" value="{{ reorder_revision }}"></form>
 
   {% for material, mform in material_forms %}
   <div class="lm-row">
@@ -87,6 +87,7 @@
       <a class="lm-btn" href="{% url 'library_backoffice:resource_edit' resource_id=material.resource_id %}"><i class="bi bi-box-arrow-up-right"></i> Kutubxonada ochish</a>
       <form method="post" action="{% url 'library_backoffice:material_detach' material_id=material.pk %}" onsubmit="return confirm('Material darsdan uziladi. Kutubxonada qoladi. Davom etasizmi?');">
         {% csrf_token %}
+        <input type="hidden" name="editor_revision" value="{{ material.detach_revision }}">
         <button type="submit" class="lm-btn"><i class="bi bi-x-lg"></i> Darsdan olib tashlash</button>
       </form>
     </div>
@@ -95,6 +96,7 @@
       <summary>Shu darsdagi ko‘rinishi</summary>
       <form method="post" action="{% url 'library_backoffice:material_update' material_id=material.pk %}">
         {% csrf_token %}
+        <input type="hidden" name="editor_revision" value="{{ material.save_revision }}">
         <p class="lm-sub">Faqat shu darsdagi materialga ta’sir qiladi. Kutubxonadagi fayl o‘zgarmaydi.</p>
         {% if mform.non_field_errors %}<div class="bo-err" role="alert">{{ mform.non_field_errors }}</div>{% endif %}
         <div class="lm-settings">
