@@ -46,7 +46,7 @@ def section_for(request):
         return 'courses'
     if namespace:
         return None
-    if name in {'backoffice_dashboard', 'backoffice_workspace_home', 'backoffice_catalog'}:
+    if name in {'backoffice_dashboard', 'backoffice_workspace_home', 'backoffice_catalog', 'backoffice_workspace_search'}:
         return 'home' if name != 'backoffice_catalog' else 'payments'
     if name == 'backoffice_users' and request.GET.get('role') in {'teachers', 'admins'} and request.user.is_superuser:
         return 'settings'
@@ -139,7 +139,7 @@ def workspace_context(request):
         return {}
     nav = navigation(request, section)
     section_url = next((item['url'] for item in nav if item['key'] == section), nav[0]['url'])
-    return {
+    context = {
         'backoffice_unified_enabled': True,
         'backoffice_base_template': 'backoffice/workspace/legacy_bridge.html',
         'blog_workspace_base': 'backoffice/workspace/blog_bridge.html',
@@ -147,4 +147,9 @@ def workspace_context(request):
         'workspace_section_links': [item for item in section_links(request, section) if item['url'] != section_url],
         'workspace_section_title': SECTION_TITLES[section],
         'workspace_section_url': section_url,
+        'backoffice_search_url': reverse('backoffice_workspace_search'),
+        'workspace_search_enabled': True,
     }
+    from core.backoffice_return import return_context
+    context.update(return_context(request))
+    return context

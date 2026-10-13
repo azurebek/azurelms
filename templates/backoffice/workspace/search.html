@@ -1,0 +1,16 @@
+{% extends "backoffice/workspace/base.html" %}
+{% block workspace_section %}Qidiruv{% endblock %}
+{% block workspace_content %}
+<div class="ws-find-page">
+  <header class="ws-page-head"><div><p class="ws-eyebrow">BOSHQARUVDA QIDIRISH</p><h1>Kerakli joyni toping</h1><p class="ws-lead">Kurs, dars, o‘quvchi yoki bo‘lim nomini yozing.</p></div></header>
+  <form method="get" class="ws-find-form" role="search" aria-label="Boshqaruvda qidirish">
+    <label for="workspace-query">Nimani qidiryapsiz?</label>
+    <div class="ws-find-controls"><input type="search" id="workspace-query" name="q" value="{{ q }}" maxlength="200" placeholder="Masalan: tanishuv, Madina yoki dizayn" autofocus><input type="hidden" name="kind" value="{{ kind }}"><button class="ws-button ws-button-primary" type="submit">Qidirish</button></div>
+  </form>
+  {% if search_error %}<div class="ws-notice ws-notice-error" role="alert" tabindex="-1" data-form-errors>{{ search_error }}</div>{% endif %}
+  <nav class="ws-find-tabs" aria-label="Qidiruv turi">{% for tab in search_tabs %}<a href="{{ tab.url }}"{% if tab.active %} aria-current="page"{% endif %}>{{ tab.label }}</a>{% endfor %}</nav>
+  {% if q and not search_error %}<div class="ws-section-head"><h2>Qidiruv natijalari</h2><span class="ws-muted">{{ page_obj.paginator.count }} ta natija</span></div>{% elif kind == "all" or kind == "section" or search_error %}<div class="ws-section-head"><h2>Ko‘p kerak bo‘ladigan bo‘limlar</h2></div>{% endif %}
+  <div class="ws-find-results">{% for item in search_rows %}<a class="ws-find-result" href="{{ item.url }}"><span class="ws-find-kind">{{ item.label }}</span><div><h3>{{ item.title }}</h3><p>{{ item.subtitle }}</p></div><span class="ws-find-open">Ochish <span aria-hidden="true">→</span></span></a>{% empty %}<div class="ws-empty"><h2>{% if q %}Mos natija topilmadi{% else %}Nom yozib qidiring{% endif %}</h2><p>{% if q %}Qisqaroq nom yozing yoki boshqa qidiruv turini tanlang.{% else %}Siz ishlay oladigan kurslar, darslar va o‘quvchilar chiqadi.{% endif %}</p>{% if q %}<a class="ws-button" href="{% url 'backoffice_workspace_search' %}">Qidiruvni tozalash</a>{% endif %}</div>{% endfor %}</div>
+  {% if page_obj.has_other_pages %}<nav class="ws-pagination" aria-label="Qidiruv sahifalari">{% if page_obj.has_previous %}<a class="ws-button" href="?{{ pagination_query }}&amp;page={{ page_obj.previous_page_number }}">← Oldingi</a>{% endif %}<span>{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>{% if page_obj.has_next %}<a class="ws-button" href="?{{ pagination_query }}&amp;page={{ page_obj.next_page_number }}">Keyingi →</a>{% endif %}</nav>{% endif %}
+</div>
+{% endblock %}

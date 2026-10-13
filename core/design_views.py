@@ -57,11 +57,13 @@ def studio(request):
         raise Http404
     scope = salted_hmac('design-workspace', json.dumps([
         request.user.pk, request.session.session_key]), algorithm='sha256').hexdigest()
-    return _private(render(request, 'backoffice/workspace/design.html', {
+    response = _private(render(request, 'backoffice/workspace/design.html', {
         'design_catalog': CATALOG, 'design_state': service.read_state(request.user),
         'design_scope': scope, 'workspace_nav': _nav(request, 'design'),
         'frontend_v1_title': 'Sayt va dizayn', 'page_title': 'Sayt va dizayn',
     }))
+    from core.backoffice_recent import record_opened
+    return record_opened(request, response, kind='design')
 
 
 def _operation(value):

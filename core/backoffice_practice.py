@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from core.access import teacher_course_queryset
+from core.backoffice_return import with_return
 from core.backoffice_workspace import (_add_errors, _preview_html, _render, _saved,
     _saved_context, draft_scope, workspace_view)
 from core.flags import flag_enabled
@@ -80,7 +81,7 @@ def _base_context(request, course, lesson, kind, obj, form, revision, block_reas
     return {'course': course, 'lesson': lesson, 'practice_kind': kind, 'practice': obj,
         'form': form, 'revision': revision, 'block_reason': block_reason,
         'draft_scope': scope, 'conflict': status == 409, 'has_errors': bool(form.errors),
-        **_urls(course, lesson, kind, obj),
+        **{key: with_return(request, url) for key, url in _urls(course, lesson, kind, obj).items()},
         **_saved_context(request)}
 
 

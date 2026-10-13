@@ -53,6 +53,9 @@ def workspace_view(view):
                 len(values) != 1 for _, values in request.POST.lists()):
             return HttpResponseBadRequest('Takrorlangan maydon. Hech narsa saqlanmadi.')
         response = view(request, *args, **kwargs)
+        if response.status_code == 302 and response.get('Location'):
+            from core.backoffice_return import with_return
+            response['Location'] = with_return(request, response['Location'])
         patch_cache_control(response, private=True, no_store=True)
         return response
     return wrapped
@@ -106,7 +109,8 @@ def _add_errors(form, error):
 def home(request):
     if request.method != 'GET':
         return HttpResponseBadRequest('Bu sahifa faqat ko‘rish uchun.')
-    return _render(request, 'home', {'page_title': 'Ish stoli', 'recent_courses':
+    from core.backoffice_recent import recent_work
+    return _render(request, 'home', {'page_title': 'Ish stoli', 'recent_work': recent_work(request), 'recent_courses':
                    teacher_course_queryset(request.user).order_by('-created_at', '-pk')[:6]})
 
 
@@ -123,14 +127,33 @@ def courses(request):
     ).order_by('-created_at', '-pk')
     if status_filter != 'all':
         rows = rows.filter(is_active=status_filter == 'active')
+    from core.backoffice_return import make_return
+    page = Paginator(rows.select_related('instructor'), 12).get_page(request.GET.get('page'))
+    return_token = make_return(request, 'courses', q=query, status=status_filter, page=page.number)
+    for item in page:
+        item.workspace_url = reverse('backoffice_workspace_course', args=[item.pk])
+        if return_token:
+            item.workspace_url += '?' + urlencode({'return_to': return_token})
     return _render(request, 'course_list', {'page_title': 'Kurslar', 'q': query,
                                           'status_filter': status_filter,
-                                          'page_obj': Paginator(rows, 12).get_page(request.GET.get('page'))})
+                                          'page_obj': page})
 
 
 @workspace_view
 def course_editor(request, course_id=None):
     obj = get_object_or_404(teacher_course_queryset(request.user), pk=course_id) if course_id else None
+    selected_lesson = None
+    if request.GET.get('lesson'):
+        if obj is None:
+            raise Http404
+        selected_lesson = get_object_or_404(Lesson.objects.only('pk'),
+            pk=_id(request.GET['lesson']), module__course=obj)
+    from core.backoffice_return import with_return
+    def course_back(target):
+        url = reverse('backoffice_workspace_course', args=[target.pk])
+        if selected_lesson:
+            url += '?' + urlencode({'lesson': selected_lesson.pk})
+        return with_return(request, url)
     form = WorkspaceCourseForm(request.POST if request.method == 'POST' else None, instance=obj, user=request.user)
     if not obj:
         form.initial['instructor'] = request.user.pk
@@ -153,11 +176,13 @@ def course_editor(request, course_id=None):
             else:
                 _saved(request, scope)
                 messages.success(request, 'Kurs saqlandi.' if changed else 'Kurs allaqachon shu holatda saqlangan.')
-                return redirect('backoffice_workspace_course', course_id=obj.pk)
+                return redirect(course_back(obj))
         if course_id:
             obj = get_object_or_404(teacher_course_queryset(request.user), pk=course_id)
     return _render(request, 'course_form', {'page_title': 'Kurs ma’lumotlari' if obj else 'Yangi kurs',
         'course': obj, 'form': form, 'revision': revision, 'course_revision': revision,
+        'course_back_url': course_back(obj) if obj else reverse('backoffice_workspace_courses'),
+        'editor_get_url': request.get_full_path(),
         'draft_scope': scope, **_saved_context(request),
         'conflict': status == 409}, status)
 
@@ -254,6 +279,8 @@ def course(request, course_id):
     selection = {'lesson': lesson.pk} if lesson else (
         {'module': selection_module.pk, 'new': '1'} if selection_module else {})
     outline_action_url = request.path + ('?' + urlencode(selection) if selection else '')
+    from core.backoffice_return import with_return
+    outline_action_url = with_return(request, outline_action_url)
     initial = {'module': module.pk if module else None, 'order':
                (module.lessons.order_by('-order').values_list('order', flat=True).first() or 0) + 1 if module else 1}
     form = WorkspaceLessonForm(request.POST if action in {'lesson_save', 'lesson_preview'} else None,
@@ -394,7 +421,7 @@ def course(request, course_id):
         else:
             material.workspace_status = 'O‘quvchiga yopiq'
     practice_enabled = flag_enabled('backoffice_practice_authoring')
-    return _render(request, 'course', {'page_title': obj.title, 'course': obj, 'modules': modules,
+    response = _render(request, 'course', {'page_title': obj.title, 'course': obj, 'modules': modules,
         'practice_enabled': practice_enabled,
         'lesson_assignments': lesson.assignments.order_by('pk') if lesson and practice_enabled else [],
         'lesson_quizzes': lesson.quizzes.annotate(question_count=Count('questions')).order_by('pk') if lesson and practice_enabled else [],
@@ -411,3 +438,8 @@ def course(request, course_id):
         'preview_video_url': _preview_video(preview['video_url']), 'preview_unsaved': preview_unsaved,
         'show_preview': preview_unsaved or request.GET.get('view') == 'preview',
         'action_error': action_error, 'conflict': status == 409}, status)
+    from core.backoffice_recent import record_opened
+    return record_opened(request, response, kind='course', course_id=obj.pk,
+                         lesson_id=lesson.pk if lesson else None,
+                         module_id=module.pk if module and not lesson else None,
+                         view='preview' if request.GET.get('view') == 'preview' else None)

@@ -11,6 +11,7 @@ from core import teacher_views
 from core import backoffice_workspace as workspace
 from core import backoffice_practice as practice
 from core import backoffice_sections as sections
+from core import backoffice_search as search
 from core import student_support_views as student_support
 from core import design_views
 from subscriptions import backoffice_views as catalog_views
@@ -87,6 +88,7 @@ urlpatterns = [
     path('backoffice/control/', core_views.backoffice_control, name='backoffice_control'),
     path('backoffice/', core_views.backoffice_dashboard, name='backoffice_dashboard'),
     path('backoffice/workspace/', workspace.home, name='backoffice_workspace_home'),
+    path('backoffice/workspace/search/', search.search, name='backoffice_workspace_search'),
     path('backoffice/workspace/payments/', sections.payments, name='backoffice_workspace_payments'),
     path('backoffice/workspace/payments/plans/', sections.plans, name='backoffice_workspace_plans'),
     path('backoffice/workspace/site/', sections.site, name='backoffice_workspace_site'),
