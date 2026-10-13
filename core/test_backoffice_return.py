@@ -13,7 +13,7 @@ from core.backoffice_forms import CourseBackofficeForm
 from core.backoffice_recent import SESSION_KEY
 from core.backoffice_return import SALT, make_return, return_context, with_return
 from core.flags import set_flag
-from courses.models import Course, Lesson, Module
+from courses.models import Course, Exam, ExamSection, Lesson, Module
 
 
 class _Markup(HTMLParser):
@@ -228,6 +228,86 @@ class BackofficeReturnTests(TestCase):
                                if urlsplit(item['href']).path == assignment_path)
         assignment = self.client.get(assignment_link)
         self.assert_return(assignment, q='Return introduction', kind='lesson', page=1)
+
+    def test_search_lesson_exam_create_save_section_and_back_keep_return(self):
+        found = self.client.get(reverse('backoffice_workspace_search'),
+                                {'q': 'Return introduction', 'kind': 'lesson'})
+        opened = self.client.get(found.context['search_rows'][0]['url'])
+        exam_url = next(link['href'] for link in _Markup(opened).links
+                        if urlsplit(link['href']).path == reverse('backoffice_exams')
+                        and parse_qs(urlsplit(link['href']).query).get('lesson') == [str(self.lesson.pk)])
+        listing = self.client.get(exam_url)
+        self.assert_return(listing, q='Return introduction', kind='lesson', page=1)
+        new_url = listing.context['new_url']
+        editor = self.client.get(new_url)
+        data = {field.html_name: field.value() if field.value() is not None else ''
+                for form in (editor.context['exam_form'], editor.context['section_form'])
+                for field in form if getattr(field.field.widget, 'input_type', '') != 'checkbox'}
+        data.update(next(form['hidden'] for form in _Markup(editor).forms
+                         if 'editor_revision' in form['hidden']))
+        data.update(title='Exam from search', exam_type='final', weight_percentage=60, **{
+            'section-title': 'First section', 'section-section_type': 'grammar_quiz',
+            'section-instructions': 'Choose an answer.', 'section-max_score': 'invalid',
+        })
+        rejected = self.client.post(new_url, data)
+        self.assertEqual(rejected.status_code, 400)
+        self.assertEqual(rejected.context['workspace_return_url'], listing.context['workspace_return_url'])
+        self.assertFalse(Exam.objects.filter(title=data['title']).exists())
+        data['section-max_score'] = 40
+        saved = self.client.post(new_url, data)
+        self.assertEqual(saved.status_code, 302)
+        reopened = self.client.get(saved['Location'])
+        self.assert_return(reopened, q='Return introduction', kind='lesson', page=1)
+        stale = self.client.post(new_url, data)
+        self.assertEqual(stale.status_code, 409)
+        self.assertEqual(stale.context['workspace_return_url'], listing.context['workspace_return_url'])
+        self.assertEqual(Exam.objects.filter(title=data['title']).count(), 1)
+        exam = Exam.objects.get(title=data['title'])
+        second = ExamSection.objects.create(exam=exam, title='Second section', section_type='writing',
+                                           instructions='Write a short answer.', max_score=20)
+        reopened = self.client.get(saved['Location'])
+        section_url = next(section.editor_url for section in reopened.context['sections'] if section.pk == second.pk)
+        selected = self.client.get(section_url)
+        self.assert_return(selected, q='Return introduction', kind='lesson', page=1)
+        self.assertEqual(selected.context['section'].pk, second.pk)
+        back = self.client.get(selected.context['back_url'])
+        self.assert_return(back, q='Return introduction', kind='lesson', page=1)
+        self.assertEqual(back.context['lesson'].pk, self.lesson.pk)
+
+    def test_filtered_course_exam_pagination_and_course_selector_keep_return(self):
+        Exam.objects.bulk_create([Exam(course=self.course, title=f'Exam {number:02}',
+                                       exam_type='final', weight_percentage=60) for number in range(26)])
+        token = self.token('courses', q='Return cohort', status='draft', page=2)
+        listing = self.client.get(reverse('backoffice_exams'),
+                                  {'course': self.course.pk, 'lesson': self.lesson.pk, 'return_to': token})
+        next_page = next(link['href'] for link in _Markup(listing).links if link['href'].startswith('?page=2'))
+        paged = self.client.get(reverse('backoffice_exams') + next_page)
+        self.assert_return(paged, source='courses', q='Return cohort', status='draft', page=2)
+        self.assertEqual(paged.context['lesson'].pk, self.lesson.pk)
+        self.assertEqual(paged.context['exam_page'].number, 2)
+        opened = self.client.get(paged.context['exam_page'][0].editor_url)
+        self.assert_return(opened, source='courses', q='Return cohort', status='draft', page=2)
+        selector = next(form for form in _Markup(paged).forms if 'course' in form['names'])
+        selected = self.client.get(reverse('backoffice_exams'), {**selector['hidden'], 'course': self.course.pk})
+        self.assert_return(selected, source='courses', q='Return cohort', status='draft', page=2)
+
+    def test_exam_handoff_rejects_foreign_scope_and_discards_invalid_or_disabled_return(self):
+        exam = Exam.objects.create(course=self.course, title='Return exam', exam_type='final', weight_percentage=60)
+        token = self.token(q='Return introduction', kind='lesson')
+        exam_url = reverse('backoffice_exam_edit', args=[exam.pk])
+        self.client.force_login(self.other)
+        self.assertEqual(self.client.get(exam_url, {'return_to': token}).status_code, 404)
+        self.client.force_login(self.teacher)
+        token = self.token(q='Return introduction', kind='lesson')
+        for disabled in (False, True):
+            if disabled:
+                set_flag('backoffice_unified_navigation', enabled=False, reason='Exam return rollback')
+            response = self.client.get(exam_url, {'lesson': self.lesson.pk,
+                                      'return_to': token if disabled else token + 'tampered'})
+            self.assertEqual(response.status_code, 200)
+            urls = [response.context['back_url'], response.context['list_url']]
+            self.assertTrue(all('return_to=' not in url for url in urls))
+            self.assertEqual(self.client.get(response.context['back_url']).context['lesson'].pk, self.lesson.pk)
 
     def test_material_search_get_keeps_return_context(self):
         token = self.token(q='Return introduction', kind='lesson')
