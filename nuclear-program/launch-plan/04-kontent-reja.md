@@ -1,8 +1,18 @@
 # 04 — Kontent reja: video darslar, milliy sertifikat mock'lari, test banki, ko'priklar, blog
 
+> **Joriy holat:** [loyiha holati va hujjatlar xaritasi](../README.md).
+> Bu kontent tayyorlash va owner review rejasi; kontent inventari yoki
+> nashrga tayyorlik haqidagi joriy hisobot emas.
+
 *Model: kontentning YADROSI — Azurbekning kursi (u yillardir o'tayotgan dastur). Platforma-kontent uni o'raydi: har darsga video + konspekt + lug'at + quiz + vazifa; ustiga mock imtihonlar va oqim-kontenti. AI faqat qoralama tayyorlaydi; curriculum, level, answer key, rubric va publish qarori Azurbek tasdig'idan o'tadi. Rebaseline: 2026-08-14.*
 
-> **Joriy evidence:** ushbu local checkout bazasida course/module/lesson/quiz/assignment/exam/blog kontenti yo'q. Bu production ma'lumoti yo'q degani emas, lekin reja “kontent tayyor” deb da'vo qila olmaydi. Birinchi ish — owner materiallari va haqiqiy production/export inventory'si.
+> **Tarixiy inventory qaydi — 2026-08-14 rebaseline:** o'sha lokal checkout
+> bazasida course/module/lesson/quiz/assignment/exam/blog kontenti yo'qligi
+> qayd etilgan edi. Bu bugungi lokal yoki production baza holatini bildirmaydi.
+> 2026-10-13 hujjat sinxronida kontent inventari qayta olinmadi; “kontent tayyor”
+> deyish uchun owner materiallari va tegishli muhitning yangi inventari kerak.
+> [B2.6](../frontend-v1/BACKOFFICE-02-STAGE-6.md) kurs/dars tayyorlash vositalarining
+> lokal dalilidir; sintetik sinov kontenti haqiqiy o'quv dasturi qabuli emas.
 
 ---
 

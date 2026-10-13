@@ -1,10 +1,15 @@
 # 05 — Launch operatsiyalari: Control Center, deploy, security, QA va go/no-go
 
-*Rebaseline: 2026-08-14. Bu hujjat local/pre-production haqiqatini kelajak production arxitekturasidan ajratadi. “Maqsad” deb yozilgan capability implementatsiya va test tugamaguncha joriy tizim deb hisoblanmaydi.*
+> **Joriy holat:** [loyiha holati va hujjatlar xaritasi](../README.md).
+> 2026-10-13 repo sinxroni kod, oxirgi qayd etilgan deploy va qabulni ajratadi.
+> AWS bo'yicha oxirgi dalil — [2026-09-26 R2](../frontend-v1/R2-READY-V1-AWS.md);
+> bu sessiyada server qayta tekshirilmagan. Avgust–sentyabr sanalari tarixiy reja.
 
-## 1. Runtime va kelajak deploy arxitekturasi
+*Rebaseline: 2026-08-14. Quyida lokal ish profili, AWS deployment kontrakti va ochiq production qabul mezonlari alohida ko'rsatiladi. “Maqsad” deb yozilgan capability implementatsiya va test tugamaguncha joriy tizim deb hisoblanmaydi.*
 
-### Joriy local/pre-production profil — `LOCAL BOOT VERIFIED`, production emas
+## 1. Lokal runtime va deployment arxitekturasi
+
+### Lokal ish profili — `LOCAL BOOT VERIFIED`, production dalili emas
 
 | Qism | Joriy qiymat | Chegara |
 |---|---|---|
@@ -13,14 +18,22 @@
 | Cache/Channels | LocMem + in-memory | Multi-process coordination bermaydi |
 | Celery | `memory://` + eager | Worker/beat/outbox production heartbeati yo'q |
 | Media | local filesystem, `USE_S3=False` | Private object-storage policy hali qurilmagan |
-| Telegram | polling/local token | Public webhook va alohida outbox process `HOLD` |
+| Telegram | polling/local token | Bu profil real production webhook/delivery qabuli emas; outbox process kodi va R2 qaydi quyida |
 | AI | `AI_CHAT_PROVIDER=gemini`; DO key bo'sh; `AI_ALLOW_DIGITALOCEAN=False` | A8 global supply guard implement/test qilingan; SQLite va CI PostgreSQL prooflari yopilgan, K11 caller lease/claim ochiq |
 
 `LOCAL_USE_REMOTE_SERVICES=False` DigitalOcean DB/cache/storage'ni o'chiradi, lekin Gemini API'ni o'chirmaydi. AI provider factory alohida fail-closed: DO faqat explicit `AI_ALLOW_DIGITALOCEAN=True` owner admissionida yaratiladi, noma'lum provider esa rad etiladi. `system_audit` local profil yoki AI supply stoplightini GREEN ko'rsatishi Google quota reachability, true concurrency yoki production readiness dalili emas.
 
-### Production target — vendor **AWS** (owner qarori 2026-09-10), deploy hali qilinmagan
+### AWS — owner qarori 2026-09-10, oxirgi rollout qaydi 2026-09-26
 
-> **Owner qarori — 2026-09-10:** hosting AWS bo'ladi va loyihaning davomi serverda olib boriladi. Deploy artefaktlari `deploy/` da: bitta EC2 mashinasida PostgreSQL+pgvector, Valkey, web/worker/beat/outbox va Caddy (avtomatik HTTPS). Managed xizmatlar (RDS/ElastiCache/ECS) ataylab olinmadi — o'tish keyin faqat `DATABASE_URL`/`VALKEY_URL` almashtirish bo'lib qoladi, quyidagi kontrakt esa o'zgarmaydi. **Bu qator deploy qilingan degani emas:** `A1b` ochiq, §9 dagi Production GO checklisti hamon yopilmagan.
+> **Owner qarori — 2026-09-10:** hosting AWS. Artefaktlar
+> [`deploy/docker-compose.prod.yml`](../../deploy/docker-compose.prod.yml) va
+> [runbook](../../deploy/README.md) da: bitta EC2 mashinasida PostgreSQL+pgvector,
+> Valkey, web/worker/beat/outbox va Caddy. Managed RDS/ElastiCache/ECS olinmagan.
+> **Keyingi dalil — 2026-09-26 R2:** `8bb6b95` kodi, 19 V1 renderer flagi ON,
+> isolated DB/media restore, 327 HTTPS assertion va WSS smoke qayd etilgan.
+> §9 dagi to'liq GO shu bilan yopilmaydi: SMTP delivery, worker/beat heartbeat,
+> real provider/device oqimlari va boshqa R2 chegaralari ochiq. Yangi lokal
+> kodning serverga chiqqani haqida bu hujjat da'vo qilmaydi.
 
 DigitalOcean kreditlari bekor qilingan. App Platform, Serverless Inference, Managed PostgreSQL/Valkey va Spaces owner productionni qayta admission qilmaguncha target emas. Quyidagi contract vendor tanlashdan oldin ham amal qiladi; DigitalOcean keyin faqat nomzodlardan biri bo'lishi mumkin.
 
@@ -29,14 +42,14 @@ DigitalOcean kreditlari bekor qilingan. App Platform, Serverless Inference, Mana
 | Web | Daphne/ASGI | HTTP + WebSocket readiness |
 | Celery worker | `celery -A core worker -l info` | broker round-trip + heartbeat |
 | Celery beat | `celery -A core beat -l info` | subscription lifecycle schedule va heartbeat |
-| Telegram outbox | `python manage.py telegram_outbox --loop` | Majburiy alohida process; atomik claim/lease qurilgan (2026-08-15), qolgani exponential backoff va dead-letter |
-| DB | Managed PostgreSQL-compatible + pgvector | migration, DB ping, vector smoke, restore drill |
-| Cache/Channels/Broker | Managed Redis/Valkey-compatible | production'da in-memory/memory fallback taqiqlanadi |
-| Public media | S3-compatible object storage | marketing asset, course thumbnail, public preview; explicit policy |
-| Private media | Private object storage + permission-checked download | receipt, assignment, messenger attachment, exam audio |
+| Telegram outbox | `python manage.py telegram_outbox --loop` | Procfile/compose alohida processi; claim/lease, retry/backoff va dead-letter kodda, real delivery alohida gate |
+| DB | Compose PostgreSQL + pgvector | migration, DB ping, vector smoke, restore drill |
+| Cache/Channels/Broker | Compose Valkey | production'da in-memory/memory fallback taqiqlanadi |
+| Public media | Compose `media` disk volume'i | marketing asset, course thumbnail, public preview; S3 ko'chishi alohida admission |
+| Private media | Alohida `private-media` volume'i + permission-checked stream | receipt, assignment, messenger attachment, exam audio; public URL yo'q |
 | Static | Whitenoise | `collectstatic` CI/deploy gate |
 
-**Future production env:** `SECRET_KEY`, `APP_ENV`, `APP_DOMAIN`, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`, `SECURITY_STRICT=True`, `DATABASE_URL`, `VALKEY_URL`/`REDIS_URL`, `CELERY_BROKER_URL`, private/public object-storage config, admitted AI provider key/model policy, `TELEGRAM_BOT_TOKEN`, unique webhook secret, `TELEGRAM_MODE=webhook`, email provider. DO-specific env hozir bo'sh qoladi.
+**Deployment konfiguratsiyasi:** `SECRET_KEY`, `APP_ENV`, `APP_DOMAIN`, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`, `SECURITY_STRICT=True`, `DATABASE_URL`, `VALKEY_URL`/`REDIS_URL`, `CELERY_BROKER_URL`, public/private media ildizlari, admitted AI provider key/model policy, `TELEGRAM_BOT_TOKEN`, webhook rejimi uchun unique secret va `TELEGRAM_MODE=webhook`, email provider. Bu talablar configured/runtime PASS degani emas; R2da SMTP yetkazish ishlamagan. DO-specific env bo'sh qoladi.
 
 ### Broker fail-fast gate
 
@@ -46,7 +59,7 @@ DigitalOcean kreditlari bekor qilingan. App Platform, Serverless Inference, Mana
 
 ### Telegram outbox gate
 
-- **Future production GO sharti:** app spec/Procfile'ga outbox process qo'shilgan va 1 replica ishlaydi; joriy Procfile'da u yo'q. Hozir local polling smoke yetarli, public process `HOLD`.
+- **Kod va rollout dalili:** [Procfile](../../Procfile) hamda compose'da alohida outbox process bor. R2 qaydi uning running holatini tasdiqlagan; bu xabarning haqiqiy Telegramga yetganligi yoki bugungi heartbeat isboti emas. Production GO uchun configured worker va haqiqiy delivery smoke kerak.
 - Test Notification konfiguratsiyadagi SLA ichida `TelegramOutbox.sent` bo'ladi.
 - Control Center pending soni, eng eski pending yoshi, failed soni va so'nggi muvaffaqiyatni ko'rsatadi.
 - Owner failed itemni reason bilan replay qiladi; replay auditga yoziladi.
@@ -56,7 +69,7 @@ DigitalOcean kreditlari bekor qilingan. App Platform, Serverless Inference, Mana
 
 ### Private media gate
 
-Avval upload inventari tasniflanadi: marketing/course thumbnail va public preview — public; avatar va CKEditor lesson image — alohida owner qarori bilan public yoki authenticated-public; payment receipt, assignment submission, messenger attachment va exam speaking audio — private. Private obyektlar ACL bilan storage key sifatida saqlanadi; doimiy public yoki signed URL DBga yozilmaydi. Permission-checked endpoint qisqa muddatli signed URL yoki stream qaytaradi.
+Upload inventari: marketing/course thumbnail va public preview — public; avatar va CKEditor lesson image — alohida owner qarori bilan public yoki authenticated-public; payment receipt, assignment submission, messenger attachment va exam speaking audio — private. Joriy canonical yo'l [`core/private_media_views.py`](../../core/private_media_views.py): ownerning 2026-08-15 qaroriga ko'ra ruxsat tekshiriladigan stream. Fayl alohida `PRIVATE_MEDIA_ROOT`da, doimiy public yoki signed URL DBga yozilmaydi. Object-storage/signed-URL varianti kelajak adapter qarori, joriy majburiy implementatsiya emas.
 
 | Actor | Ruxsat |
 |---|---|
@@ -66,7 +79,7 @@ Avval upload inventari tasniflanadi: marketing/course thumbnail va public previe
 | Anonymous | hech qachon |
 | Worker | faqat job talab qilgan scoped object |
 
-Gate: anonymous GET va cross-user access rad; signed URL expiry test; bot/storage `.open()` bilan ishlaydi.
+Gate: anonymous GET va cross-user access rad; stream permission/no-store/nosniff testlari; bot/storage `.open()` bilan ishlaydi. Signed URL tanlansa expiry gate'i o'sha adapterga qo'shiladi.
 
 ## 2. Azure Control Center — yagona operatsion boshqaruv
 
@@ -96,7 +109,20 @@ Stoplight:
 
 **2026-09-11/12 — operatsion sozlamalar yuzasi:** `/backoffice/control/runtime-settings/` — owner Telegram yetkazish tezligi/qayta urinish siyosatini va bot o'lchov kadensini (`bot.BotRuntimeSettings`), eslatma vaqtlari va jim soatlarni (`users.ReminderSettings`, T2) hamda Control Center chiroq chegaralarini — navbat yoshi va bot dispatcher'ining tiriklik/javob vaqti/xato foizi (`core.OperationalSettings`, T4) — **deploy'siz** o'zgartiradi (owner qarori: qotirib qo'yilgan qiymat yo'q). A2 mutation shartlari bajarilgan: majburiy sabab, majburiy tasdiq, `SystemAuditEvent` va no-op yo'l. Uch model Django admin'da **faqat o'qish uchun** — admin orqali tahrirlash o'zgarishni izsiz qoldirardi, ya'ni `AISettingsAdmin` dagi nuqsonni takrorlardi; mavjud AI yuzalarini retrofit qilish ochiq A2 qarzi. Qiymat o'qishda xavfsiz oraliqqa qisiladi va sozlama qatori bo'lmasa kod defaulti ishlaydi — sozlama jadvali sababli worker ham, `/readyz` ham yiqilmaydi.
 
-**Joriy foundation (2026-08-19):** yuqoridagi 2026-08-14 xatboshisidan beri ochiq qolgan bandlarning aksariyati yopildi. Endi kodda: append-only `SystemAuditEvent` ledgeri (`core/audit.py` yagona yozish nuqtasi), AI kill switch (`/backoffice/control/ai-kill-switch/`), AI circuit cooldown tozalash (`/backoffice/control/ai-circuit-reset/`), bevosita o'lchanadigan `WorkerHeartbeat` va `ReleaseRecord` + migration drift detektori. **Hali ulanmagan:** AI quality/cost release gate (A9 ning ishi). *(Backup, email va memory probe'lari 2026-08-20 da qo'shildi — ular avval capability registrida umuman yo'q edi.)* *(Umumiy feature flag registri 2026-08-20 da qo'shildi: `core/flags.py` + `/backoffice/control/flags/`. Hozircha ikkita flag ulangan — ochiq ro'yxatdan o'tish va Telegram outbox; qolgan capabilitylar hamon flagsiz. Money cost ledgeri ham o'sha kuni: `core/ai_cost.py` + `/backoffice/control/ai-cost/`, narxlanmagan sarf nol deb yozilmaydi.)* `ReleaseRecord` modeli bor, ammo gate natijalari va deploy holatini yozadigan tomon A1b `HOLD` da qolgani uchun hali yo'q.
+**Poydevor va keyingi dalil — 2026-10-13 repo tekshiruvi:** append-only
+`SystemAuditEvent`, kill switch/circuit reset, `WorkerHeartbeat`, `ReleaseRecord`,
+backup/email/memory probe'lari, flag registri va AI cost ledgeri kodda.
+[`record_release`](../../core/management/commands/record_release.py) SHA,
+migration va gate natijalarini yozadi; R2 relizida ishlatilgani qayd etilgan.
+Flag registri eski ikki flagdan kengaygan, joriy ro'yxat [`core/flags.py`](../../core/flags.py) da.
+**Ochiq:** A9 quality/cost gate hamda `AISettingsAdmin` va
+`backoffice_ai_control.save_settings` yuzalarini sabab/tasdiq/`SystemAuditEvent`
+shartnomasiga o'tkazish. Operatsion sozlamalarda bu shartnoma borligi eski AI
+yuzalarini avtomatik tuzatmaydi.
+
+**Backoffice qo'shimchasi:** [B2.6 yakuniy dalili](../frontend-v1/BACKOFFICE-02-STAGE-6.md)
+B2.1–B2.6 lokal implementatsiya va o'nta ssenariyni yopadi. Owner o'z tekshiruvini
+keyinga qoldirgan; native telefon/zoom/AT va production rollout alohida qoladi.
 
 **Historical foundation snapshot (2026-08-14):** `/backoffice/control/` active superuser uchun read-only stoplight; brand va landing uchun reason+confirmation+`LogEntry`li tor mutation surface'lari bor edi. DB, cache, Channels, Celery config, Telegram outbox, media, AI provider/policy, RAG, security va release identity bitta snapshotdan olinardi; `system_audit` shu servis adapteri. O'sha paytda umumiy append-only audit, system-wide flags/kill switch, active worker heartbeat, `ReleaseRecord`, backup/email/memory va AI quality/cost release gate ulanmagan edi. Yuqoridagi 2026-08-19/20 yozuvi keyingi implementatsiyalar bilan bu snapshotni supersede qiladi; credential borligi AI supply sog'lom degani emas.
 
@@ -137,7 +163,11 @@ PR required checks:
 
 §4.7 ning ikkinchi yarmi — bog'liqlik zaifligi. Gate ishga tushganda 19 paketda 93 advisory topilgan edi; o'sha kuni 20 paket ko'tarilib **hammasi yopildi**. `security/dependency-audit-baseline.json` reyestri bo'sh, ya'ni endi **har qanday** advisory CI'ni qizil qiladi — uni oqlaydigan yozuv yo'q. Istisno yozish yo'li ochiq qolgan (major/RC ko'tarishni talab qiladigan holatlar uchun), ammo sababsiz va `review_by` sanasisiz istisno qabul qilinmaydi.
 
-`main`dan public deploy A1b `HOLD` ochilib, gate'lar o'tgachgina. Migration oldidan backup/restore point; deploydan keyin readiness, login/Telegram auth, enrollment, AI async task, outbox DM va private-media permission smoke. Gate yiqilsa traffic ochilmaydi; destructive DB rollback avtomatik emas.
+`main`dan yangi public deploy o'z admissioni va release gate'laridan o'tadi;
+oldingi AWS rollout dalili keyingi reliz uchun avtomatik GO emas. Migration
+oldidan backup/restore point; deploydan keyin readiness, login/Telegram auth,
+enrollment, AI async task, outbox DM va private-media permission smoke.
+Gate yiqilsa traffic ochilmaydi; destructive DB rollback avtomatik emas.
 
 Har release uchun commit SHA, migrationlar, gate natijalari, deploy/rollback holati va owner qarori `ReleaseRecord`/system auditda saqlanadi.
 
@@ -146,8 +176,8 @@ Har release uchun commit SHA, migrationlar, gate natijalari, deploy/rollback hol
 - Sentry: Django, Channels va Celery xatolari; secret/PII redaction.
 - Uptime/readiness: public page, login, WebSocket, DB, Valkey, broker, worker, outbox va private-media denial.
 - Queue SLO: queue age, pending/failed count, last success; alertlar ownerga bitta kanal orqali.
-- Backup: localda SQLite/media recoverability smoke. **2026-09-10:** PostgreSQL yo'li ham canonical servisda (`core/pg_backup.py` — `pg_dump -Fc`, so'ng `pg_restore --list` bilan tekshiruv; yarim yozilgan dump o'chiriladi). `manage.py backup_db` kengaytmani backendga qarab tanlaydi va Control Center backup probe'i endi `.dump` fayllarni ham ko'radi — ilgari u faqat `*.sqlite3` qidirib, productionda har kuni zaxira olinsa ham qizil turardi. **2026-09-11:** media zaxirasi ham canonical servisda (`core/media_backup.py` — `manage.py backup_media` public/private ildizlarni bitta tekshirilgan `.tar.gz` ga yozadi, arxiv ichida `public/`/`private/` ataylab ajratilgan, `restore_media --into` bo'sh papkaga mashq qiladi). Control Center'da alohida `media_backup` capability'si — baza zaxirasi yashil turib media zaxirasi yo'qligi bitta chiroq ostida ko'rinmay ketmasin. Shu ish paytida `deploy/docker-compose.prod.yml` dagi haqiqiy nuqson topildi: `backups/` host papkasi app konteynerlariga mount qilinmagan edi, ya'ni runbookdagi cron har kuni ishlab turgandek ko'rinib, faylni ephemeral konteyner ichiga yozib yo'qotardi. **Offsite nusxa va managed DB snapshot + encrypted export hamon ochiq** — zaxiralar o'sha EC2 diskida qoladi.
-- Restore drill: yangi isolated targetga restore → migration/schema check → owner smoke → evidence timestamp. *(2026-08-21: `manage.py restore_db --input <zaxira> --into <yo'l>` — joriy bazaga tegmaydi, tiklangan nusxaning butunligi, jadval soni va migratsiya sathini chiqaradi. `--into` joriy bazani ko'rsatsa rad etiladi.)* **2026-09-10:** PostgreSQL'da `--into` alohida **baza** nomi; drill uni yaratib, tiklab, sxema hisobotini beradi. Joriy baza ustidan tiklash `restore_db` orqali **ataylab rad etiladi** — sinalmagan destruktiv yo'l falokat kunida birinchi marta yugurtiriladigan kod bo'lardi; qo'lda buyruq `deploy/README.md` §6 da. Drill'ning **o'zi** real serverda hali yugurtirilmagan — evidence ochiq.
+- Backup: localda SQLite/media recoverability smoke. **2026-09-10:** PostgreSQL yo'li ham canonical servisda (`core/pg_backup.py` — `pg_dump -Fc`, so'ng `pg_restore --list` bilan tekshiruv; yarim yozilgan dump o'chiriladi). `manage.py backup_db` kengaytmani backendga qarab tanlaydi va Control Center backup probe'i endi `.dump` fayllarni ham ko'radi — ilgari u faqat `*.sqlite3` qidirib, productionda har kuni zaxira olinsa ham qizil turardi. **2026-09-11:** media zaxirasi ham canonical servisda (`core/media_backup.py` — `manage.py backup_media` public/private ildizlarni bitta tekshirilgan `.tar.gz` ga yozadi, arxiv ichida `public/`/`private/` ataylab ajratilgan, `restore_media --into` bo'sh papkaga mashq qiladi). Control Center'da alohida `media_backup` capability'si — baza zaxirasi yashil turib media zaxirasi yo'qligi bitta chiroq ostida ko'rinmay ketmasin. Shu ish paytida `deploy/docker-compose.prod.yml` dagi haqiqiy nuqson topildi: `backups/` host papkasi app konteynerlariga mount qilinmagan edi, ya'ni runbookdagi cron har kuni ishlab turgandek ko'rinib, faylni ephemeral konteyner ichiga yozib yo'qotardi. **Keyingi R2 dalili:** DB/media zaxiralari off-host kompyuterga nusxalanib, hash tengligi tekshirilgan. Doimiy avtomatlashtirilgan offsite backup siyosati va uning yangi restore dalili alohida ochiq; bir martalik nusxa bu operatsion gate'ni yopmaydi.
+- Restore drill: yangi isolated targetga restore → migration/schema check → owner smoke → evidence timestamp. *(2026-08-21: `manage.py restore_db --input <zaxira> --into <yo'l>` — joriy bazaga tegmaydi, tiklangan nusxaning butunligi, jadval soni va migratsiya sathini chiqaradi. `--into` joriy bazani ko'rsatsa rad etiladi.)* **2026-09-10:** PostgreSQL'da `--into` alohida **baza** nomi; drill uni yaratib, tiklab, sxema hisobotini beradi. Joriy baza ustidan tiklash `restore_db` orqali **ataylab rad etiladi** — sinalmagan destruktiv yo'l falokat kunida birinchi marta yugurtiriladigan kod bo'lardi; qo'lda buyruq `deploy/README.md` §6 da. Bu 2026-09-10 yozuvida real server drill dalili hali yo'q edi. **Keyingi dalil:** [2026-09-26 R2](../frontend-v1/R2-READY-V1-AWS.md) isolated PostgreSQL va media restore muvaffaqiyatini qayd etgan; bu bugungi yangi restore tekshiruvi emas.
 - Runbook: RED sabab, user ta'siri, kill switch, fallback, escalation va recovery check.
 
 ## 6. AI quality, privacy va Gemini free-tier supply gate
@@ -200,7 +230,7 @@ Schema o'zgarishlari: `aicontrol/migrations/0002_ai_supply_budget.py`, `messenge
 - Current Gemini adapterida vision unavailable; `image_qa` routing yoki upload primitive'i rasm tahlili capability'sini ochmaydi.
 - “Clear memory” archive emas: product copy, hard-delete/retention va trace/run redaction bir contractda.
 - Thresholdlar Control Center'da versionlanadi. Sample minimumiga yetmagan holat `PASS` emas, `INSUFFICIENT_DATA`.
-- Critical privacy/permission eval xatosi release'ni bloklaydi. Configured supply budget 80%da AMBER; 100%da RED, pre-network denial va degradatsiya. System-wide audited kill switch implement/test qilingan; qolgan A2 bandi A9 quality/cost release gate. “Bepul” cost=0 deb yozilmaydi — quota ham scarcity.
+- Critical privacy/permission eval xatosi release'ni bloklaydi. Configured supply budget 80%da AMBER; 100%da RED, pre-network denial va degradatsiya. System-wide audited kill switch implement/test qilingan; A9 quality/cost gate va §2 dagi eski AI settings mutationlarining audit retrofit qarzi alohida ochiq. “Bepul” cost=0 deb yozilmaydi — quota ham scarcity.
 
 ## 7. QA matritsasi
 
@@ -256,9 +286,9 @@ Demo account fresh state'dan qayta yaratiladi; fallback video, hotspot va Telegr
 
 **Marketing:** landing claim audit · testimonial consent · demo/fallback · pricing typed entitlement bilan mos · “unlimited/speaking/mastery” isbotsiz claim yo'q.
 
-### Production GO qo'shimcha checklist — `HOLD`
+### Production GO qo'shimcha checklist — to'liq qabul ochiq
 
-Owner hosting/provider admissioni · production-safe env/secret rotation · remote broker/cache/channel fail-fast · outbox alohida process + DM smoke · managed DB/object storage · private signed media · `ReleaseRecord`/release SHA · Sentry/alerting · isolated remote backup restore · rollback drill · production-like health/readiness va load smoke. Bular local demo uchun yolg'on majburiyat emas, lekin public trafficdan oldin barchasi kerak.
+Owner hosting/provider admissioni · production-safe env/secret rotation · remote broker/cache/channel fail-fast · outbox alohida process + DM smoke · tanlangan DB/storage backup siyosati · private permission-checked media · `ReleaseRecord`/release SHA · Sentry/alerting · isolated remote backup restore · rollback drill · production-like health/readiness va load smoke. AWS admissioni, texnik rollout va isolated restore R2da qayd etilgan; qolgan bandlar yoki ularning bugungi holati shu bilan avtomatik PASS bo'lmaydi. R2ning sanalangan dalili va ochiq chegaralari asos bo'ladi.
 
 ### Launch kuni
 

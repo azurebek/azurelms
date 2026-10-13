@@ -56,6 +56,23 @@ Sessiya boshlanganda quyidagilar source of truth hisoblanadi:
 | 5 | `nuclear-program/project-context.md` | loyiha arxitekturasi |
 | 6 | task tegadigan app fayllari (model/view/url/test) | haqiqiy kod source of truth |
 
+Joriy holat va hujjatlar yo'li **[README.md](README.md)**da jamlanadi. U kod
+yoki owner qarori o'rnini bosmaydi; tekshirilgan holatni ularga bog'laydi.
+
+### Hujjatni kod bilan birga yuritish
+
+- Holat yoki contract o'zgargan taskda joriy holat sahifasi va tegishli
+  batafsil hujjatni moslashtiring; dalilni marinebookda sanasi bilan yozing.
+- Eski reja/handoffga tarixiy snapshot belgisi qo'ying. Tarixiy test soni,
+  sana va o'sha paytdagi natijani yangi natija qilib qayta yozmang.
+- Kodga qo'shilish, flag yoqilishi, lokal test, owner qabuli va server
+  relizini ajrating. Bittasining PASS holati qolganlarini yopmaydi.
+- Holat da'vosiga sana, kod/PR yoki test dalili va muhit chegarasini bering.
+  PR merge natijasini faqat merge tasdiqlangach qayd eting; oldingi reliz
+  yozuvi serverning hozirgi holati tekshirildi degani emas.
+- Bir xil joriy navbatni ko'p faylda takrorlamang: umumiy holat shu kirish
+  sahifasida, batafsil contract o'z hujjatida, tarix marinebookda saqlanadi.
+
 **Hech bir agent faqat eski chat xotirasi asosida qaror qilmaydi.** Hozirgi repo holatini tekshiradi.
 
 Product qarorida authority yuqoridan pastga: (1) Azurbekning yozilgan qarori, (2) launch strategiya va admission/status, (3) canonical domain contract/service, (4) model/migration, (5) adapter contract, (6) UI/copy, (7) eski chat yoki marinebook. Quyi qatlam yuqoridagiga zid bo'lsa, mavjud dublikat kod yangi product haqiqatiga aylantirilmaydi.

@@ -1,5 +1,24 @@
 # Yakuniy qabul — ochiq nuqsonlar
 
+**Joriy qabul chegarasi — 2026-10-13:** [loyihaning holat markazi](../README.md).
+[B2.6](BACKOFFICE-02-STAGE-6.md) bilan backoffice’ning olti bosqichi lokal
+texnik tekshiruvdan o‘tdi va `main`ga birlashdi. Bu quyidagi UX/DATA/RULE
+bandlarini yoki owner, haqiqiy qurilma/zoom/AT va production qabulini yopmaydi.
+DC6 owner qabuli hamon PENDING.
+
+Real dizayn portida quyidagi qismlar qurilgan:
+[kodsiz ustaxona](BACKOFFICE-REFORM-STAGE-4.md) canonical qoralama/nashr/tarix/
+rollback xizmatini qurdi; [B2.5](BACKOFFICE-02-STAGE-5.md) sakkizta eski
+boshqaruv formasini mavjud sozlamalarga uladi. Bu chegaralangan runtime
+dalili barcha prototip yuzalari, mustaqil SIT/Mini App qobig‘i, vendor/print
+yoki native/owner qabuliga teng emas.
+
+## Qabul tarixi va ochiq bandlar
+
+Quyidagi sanali qaydlar o‘sha paytdagi dalillarni saqlaydi; ularning eski
+port/navbat ta’rifi yuqoridagi joriy holatni almashtirmaydi. Jadvaldagi
+OPEN/PARTIAL bandlar alohida yopish dalili bo‘lmaguncha ochiq qoladi.
+
 **2026-10-10 DC6:** [yakuniy ko‘rib chiqish va tiklash paketi](DESIGN-01-DC6-ACCEPTANCE.md)
 tayyorlandi. Ustaxonada 8 qadamli yo‘riqnoma; lokal walkthrough va alohida
 papkadan tiklash sinovi o‘tdi. Owner qabuli PENDING; native/print/AT/Telegram,
@@ -23,13 +42,15 @@ Yangi redesign yoki production mutation vakolati emas.
 Claude kuzatuvlari to‘liq native regression yoki server attestatsiyasi emas.
 AI javobi, imtihon, Classbook, Telegram login va real telefonning qolgan
 yo‘llari NOT TESTED; mavjud gate hujjatlari bilan birga qabulda tekshiriladi.
-Hozirgi navbat: joriy qamrov qabul/tuzatish (ishda) → DESIGN-01 qurilishi.
+Tarixiy navbat qabul/tuzatish → DESIGN-01 qurilishi edi.
 2026-10-10 owner topshirig‘i bilan [DC1 inventari](DESIGN-01-DC1-MAP.md)dan
 keyin [DC2 forma/qoralama/preview](DESIGN-01-DC2-PREVIEW.md) va
 [DC3 lokal kontrast/typography guard](DESIGN-01-DC3-VALIDATION.md) ham oldinga olindi.
 Keyin [DC4 lokal nashr/tarix/rollback](DESIGN-01-DC4-RELEASE.md) qurildi.
 [DC5 lokal consumer regressiyasi](DESIGN-01-DC5-REGRESSION.md) ham bajarildi.
-Bu jadvaldagi ochiq bandlar, DC4/DC5 real port va DC6 yopilmadi; native zoom/AT hamda real release alohida.
+DC6 ko‘rib chiqish paketi ham tayyor; uning owner qabuli va jadvaldagi ochiq
+bandlar yopilmadi. Real portning keyingi chegaralangan natijasi yuqorida;
+native zoom/AT va production relizi alohida dalil talab qiladi.
 
 ## Packet77 paritet auditi — finalda yo‘qolmasin
 
@@ -61,6 +82,8 @@ chegarani beradi. Quyidagilar yangi URL yoki yangi redesign emas:
   vositasi effective enni o‘zgartirmadi: responsive/native/owner qabul OPEN,
   G3 yoki real port emas. PAR-01..05 local implementation tugadi.
 
-U17/A2-D01, keng Q14 va source’da yo‘q reply/assignment/quiz authoring
-alohida capability qarorlari: bu ro‘yxat ularni implementatsiya qilish
-uchun ruxsat emas. Native/AT/provider go-no-go ham alohida qoladi.
+Dars topshirig‘i va bir javobli test authoring’i keyinchalik
+[B2.2](BACKOFFICE-02-STAGE-2.md)da qurildi; ishlatilgan kontent himoyasi saqlanadi.
+Bu keng Q14, U17/A2-D01 yoki boshqa capability qarorlarini avtomatik yopmaydi;
+ushbu qabul ro‘yxati yangi imkoniyatni boshlash uchun ruxsat emas.
+Native/AT/provider go-no-go ham alohida qoladi.

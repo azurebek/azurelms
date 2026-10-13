@@ -1,6 +1,8 @@
 # AzureLMS — Loyiha konteksti
 
-Bu hujjat loyihaning yashash kitobi (wiki). Yangi feature qo'shilsa shu yerda batafsil tushuntiriladi. Yangi agent kelishi bilan o'qiy boshlaydigan birinchi joy.
+Bu hujjat loyiha arxitekturasi va canonical xizmatlar wiki'si. Ishni
+[yagona hujjat xaritasidan](README.md) boshlang; faol navbat va qabul holati
+o‘sha kirishdan tegishli rejaga bog‘langan. Bu wiki parallel ish navbati emas.
 
 Source of truth har doim **kod** (model/view/task/URL/test). Bu fayl kodga moslab yangilab turiladi.
 
@@ -12,7 +14,7 @@ Source of truth har doim **kod** (model/view/task/URL/test). Bu fayl kodga mosla
 
 **AzureLMS** — o'zbek tilida turk tili o'rgatishga qaratilgan Learning Management System. Klassik kurs/dars oqimini real-time messenger, AI tutor, RAG, memory, exam, subscription, Telegram integratsiyasi, Study in Turkey (SIT) portali va yashirin backoffice boshqaruvi bilan birlashtiradi.
 
-**Joriy workspace:** `C:\Users\AZUREBEK\Documents\Codex\2026-08-13\new-chat\azurelms` (Windows)
+**Yagona lokal checkout:** `C:\Users\azizb\Desktop\project\azurelms` (Windows; amaldagi yo‘l va branch har sessiyada Git orqali tekshiriladi)
 **Asosiy branch:** `main` (yagona integratsiya trunk'i)
 **GitHub:** https://github.com/azurebek/azurelms.git
 
@@ -42,12 +44,15 @@ Source of truth har doim **kod** (model/view/task/URL/test). Bu fayl kodga mosla
 
 ## Frontend V1 — bosqichma-bosqich renderer (2026-09-25)
 
-Joriy deployment2026-09-26: AWS `8bb6b95`, barcha19 `frontend_v1_*`
+**So‘nggi qayd qilingan AWS relizi — 2026-09-26:** `8bb6b95`, o‘sha tekshiruvda barcha 19 `frontend_v1_*`
 renderer override ON (kod defaultlari OFF). 161 migration, backup/restore,
-327 HTTPS assertion, WSS va42 responsive readback; [R2 release](frontend-v1/R2-READY-V1-AWS.md).
+327 HTTPS assertion, WSS va 42 responsive readback; [R2 release](frontend-v1/R2-READY-V1-AWS.md).
 Ready I1–I9 port chiqarildi, Q14+ hali legacy/prototype navbatida. SMTP
 console backend bo‘lib qolgan: email reset delivery tayyor emas; native
 device/provider/real-content sign-off bu texnik reliz bilan yopilmaydi.
+Bu tarixiy release dalili; 2026-10-13 hujjat sinxronida serverga ulanilmadi.
+Keyingi lokal B2.6 natijasi AWSga chiqarilgan yoki server hozir shu holatda
+ishlayapti degan da’vo qilinmaydi.
 
 I8c frontend_v1_exam_review default OFF: teacher_grade_exam canonical
 writeriga frozen review adapteri, native draft va saved-only publication.
@@ -227,9 +232,9 @@ existing permission-checked endpoint; raw private storage URL ishlatilmaydi.
 | WebSocket | Django Channels 4.3.2 |
 | Tasks | Celery 5.6.2 |
 | Local task mode | `memory://` broker + eager tasks |
-| Cache / channel future prod | Redis/Valkey via `REDIS_URL`, `VALKEY_URL` yoki component vars |
+| Shared cache / channel | Redis/Valkey via `REDIS_URL`, `VALKEY_URL` yoki component vars; non-local startup gate majburiy |
 | DB local | SQLite `db.sqlite3` |
-| DB future prod | PostgreSQL, SSL required |
+| Non-local DB | PostgreSQL; individual `DB_*` konfiguratsiyasi SSL talab qiladi, `DATABASE_URL` esa o‘z ulanish parametrlarini ishlatadi; compose PostgreSQL 16 + pgvector |
 | Vector search | pgvector in prod, JSON/cosine fallback in code |
 | Rich text | django-ckeditor-5 |
 | Admin | Jazzmin + optional legacy `/admin/` (faqat `ENABLE_LEGACY_ADMIN=True` bo'lsa) |
@@ -251,7 +256,14 @@ existing permission-checked endpoint; raw private storage URL ishlatilmaydi.
 
 ### Deployment
 
-**2026-08-14 owner qarori:** joriy bosqich LOCAL/PRE-PROD. DigitalOcean hosting, Spaces va Serverless Inference ishlatilmaydi; production platforma/provider tanlovi HOLD. Local profil SQLite + filesystem + LocMem/InMemory + eager tasks bilan ishlaydi; Telegram mode `polling`, bot esa alohida `python manage.py runbot` process'i bilan boshlanadi. Quyidagi Procfile/Dockerfile faqat kelajak production baseline'i, production readiness isboti emas.
+**Profil va qayd qilingan release:** 2026-08-14 DigitalOcean hosting, Spaces va
+Serverless Inference bo‘yicha HOLD qarori saqlanadi; AWS tanlovi va keyingi
+deploy dalili bundan alohida. AWS EC2 compose topologiyasi `deploy/`da;
+so‘nggi qayd qilingan reliz yuqoridagi 2026-09-26 R2 dalilida. Hozirgi server
+holati bu wiki orqali tasdiqlanmaydi. Lokal profil SQLite + filesystem +
+LocMem/InMemory + eager tasks, Telegram `polling`; bot alohida
+`python manage.py runbot` process’i. Kod/topologiya mavjudligi production
+GO, owner qabuli yoki yangi deploy ruxsati emas.
 
 **Procfile:**
 
@@ -260,15 +272,19 @@ release: python manage.py migrate --noinput
 web: daphne -b 0.0.0.0 -p $PORT core.asgi:application
 worker: celery -A core worker -l info
 beat: celery -A core beat -l info
+outbox: python manage.py telegram_outbox --loop
 ```
 
-**Joriy cheklov:** Procfile'da `telegram_outbox --loop` process'i yo'q. Webhook production'da notification DM'lari uchun bu alohida process kerak; maqsad gate `launch-plan/05-launch-ops.md`da.
+`Procfile` va `deploy/docker-compose.prod.yml`da doimiy outbox process’i bor.
+Uning haqiqiy ishga tushgani va heartbeat’i har release tekshiruvida alohida
+tasdiqlanadi; buyruqning mavjudligi xabar yetkazilganini isbotlamaydi.
 
 **Dockerfile:**
 - Base image: `python:3.12-slim`
-- Installs `libpq-dev`, `gcc`, `ffmpeg`
+- `ffmpeg` va PostgreSQL 16 klient vositalarini o‘rnatadi; `gcc`/`libpq-dev` image’ga qo‘shilmaydi
 - Runs `collectstatic` with in-memory SQLite URL
 - Starts Daphne on port 8080
+- Root bo‘lmagan `azurelms` foydalanuvchisi (uid 10001) bilan ishlaydi
 
 ---
 
@@ -450,11 +466,11 @@ ai/
 
 **Joriy Control Center foundation (2026-08-14):** owner-only `/backoffice/control/` `core/control_center/`dagi bitta read-only capability registry va snapshot servisidan foydalanadi. DB, cache, Channels, Celery config, Telegram outbox, media, AI provider/effective token policy, RAG, security va release identity GREEN/AMBER/RED sabab bilan ko'rinadi. AI probe free-tier/DO admission, supply enforcement, daily request/token va minute request used/limit/remaining, attempt/event holati va cooldownni ham ko'rsatadi. Shu snapshot terminalda `python manage.py system_audit [--json] [--fail-on red|amber|never]` orqali ishlaydi; web va CLI alohida health mantiq yozmaydi.
 
-**Audit (2026-08-15):** owner mutationlari append-only `aicontrol.SystemAuditEvent` ledgeriga yoziladi (`core/audit.py` yagona yozish nuqtasi; maxfiy kalitlar maskalanadi; model darajasida o'zgartirib/o'chirib bo'lmaydi). Hozircha kill switch, brend va landing yuzalari ulangan.
+**Audit kontrakti:** audited owner mutationlari append-only `aicontrol.SystemAuditEvent` ledgeriga yoziladi (`core/audit.py` yagona yozish nuqtasi; maxfiy kalitlar maskalanadi; model darajasida o'zgartirib/o'chirib bo'lmaydi). Kill switch, brend/landing, flag, runtime sozlamalari va design yozuvchilari shu yo‘lni ishlatadi. Bu barcha eski mutation yuzalari retrofit qilingan degani emas.
 
-**Joriy chegarasi (2026-09-03):** Control Center kill switch, AI circuit cooldown reseti, brend/landing, umumiy feature flag override'lari va AI narx snapshotlarini sabab + tasdiq + append-only audit bilan boshqaradi. Kodda `SystemAuditEvent`, `WorkerHeartbeat`, `ReleaseRecord`, backup/email/memory probe'lari, `core/flags.py` registri va `core/ai_cost.py` money cost ledgeri mavjud. **Qolgan yagona A2 bandi:** AI quality/cost release gate — backlogdagi A9. `ReleaseRecord` gate/deploy natijasini qabul qiladi, ammo A1b `HOLD` bo'lgani uchun production deploy yozuvchisi hali ulanmagan. `/backoffice/ai-control/` compatibility control path sifatida Control Center'dan ochiladi, lekin alohida sahifa bo'lib qoladi.
+**Koddagi chegarasi (2026-10-13):** Control Center kill switch, AI circuit cooldown reseti, brend/landing, umumiy feature flag override'lari va AI narx snapshotlarini sabab + tasdiq + append-only audit bilan boshqaradi. `SystemAuditEvent`, `WorkerHeartbeat`, `ReleaseRecord`, backup/media-backup/email/memory probe'lari, `core/flags.py` va `core/ai_cost.py` mavjud. `core/release_service.py::record_current_release` va `manage.py record_release` aniq SHA/migration/gate natijasini yozadi; avtomatik production GO bermaydi. **Ochiq chegaralar:** A9 AI quality/cost release gate hamda eski `backoffice_ai_control` settings/policy writerlari va `AISettingsAdmin` uchun A2 sabab/tasdiq/audit retrofit’i. Owner-only bo‘lish bu audit qarzini yopmaydi. `/backoffice/ai-control/` alohida compatibility sahifa bo‘lib qoladi.
 
-**2026-08-14 A8 historical baseline:** **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`**. O'sha sanadagi supply/provider/caller target testlari va provider credential/env-file loading o'chirilgan full suite 527/527 o'tgan; local `system_audit` 10/10 GREEN. Keyin SQLite contention testi va GitHub Actions'dagi haqiqiy PostgreSQL `FOR UPDATE` integration ishi qo'shilib, ikki backend proofi yopildi; alohida OS processlari bilan takrorlash hamda caller-specific lease/claim K11 sifatida ochiq. 2026-08-14 `AzureAI` Free-tier AI Studio snapshoti: 3.1 Flash Lite `15 RPM / 250K input TPM / 500 RPD`; 3.7 Flash `5 RPM / 250K input TPM / 20 RPD`. Tashqi quota account/project holatiga bog'liq va dynamic.
+**2026-08-14 A8 historical baseline:** **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`**. O'sha sanadagi supply/provider/caller target testlari va provider credential/env-file loading o'chirilgan full suite 527/527 o'tgan; local `system_audit` 10/10 GREEN. Keyin SQLite contention testi va GitHub Actions'dagi haqiqiy PostgreSQL `FOR UPDATE` integration ishi qo'shilib, ikki backend proofi yopildi. K11ning keyingi tuzatishlari va qolgan OS-process dalili pastdagi release chegaralarida ajratilgan. 2026-08-14 `AzureAI` Free-tier AI Studio snapshoti: 3.1 Flash Lite `15 RPM / 250K input TPM / 500 RPD`; 3.7 Flash `5 RPM / 250K input TPM / 20 RPD`. Tashqi quota account/project holatiga bog'liq va dynamic.
 
 ### `subscriptions`
 
@@ -506,7 +522,7 @@ ai/
 **Commands:**
 - `python manage.py runbot` (polling)
 - `python manage.py setwebhook` (production)
-- `python manage.py telegram_outbox --loop` (notification DM worker; hozir Procfile'ga ulanmagan)
+- `python manage.py telegram_outbox --loop` (notification DM va Classbook outbox worker; `Procfile` va production compose'da alohida process)
 
 ### `gamification`
 
@@ -690,11 +706,11 @@ AI room nomi birinchi prompt'dan avtomatik o'zgarishi mumkin (`maybe_name_ai_roo
 ### 4.9 Telegram bot integratsiyasi
 
 - F0–F9 va Mini App foundation kod/testlarda mavjud: account linking, role-aware menyu, attendance, course/lesson/assignment/quiz oqimlari, checkout/admin bildirishnomalari, broadcast va AI boshqaruvlari.
-- Local'da polling default. Production webhook, unique secret, doimiy outbox process va prod bot admission'i production qayta ochilguncha HOLD.
+- Local’da polling default. Non-local webhook/secret va doimiy outbox process’i uchun kod va deploy konfiguratsiyasi mavjud; real bot/delivery readiness’i tegishli release smoke’ida tekshiriladi. Lokal test real Telegram sign-off o‘rnini bosmaydi.
 - Teacher webdan `Darsni boshlash` yoki botdan `/dars N` qiladi → `TelegramLessonSession` yaratiladi; tayyor Classbook playbook activity snapshotlarini va material outboxini yaratadi; talabalar check-in yoki mashq orqali `TelegramLessonCheckIn` oladi. `/dars tugadi` ham Classbook finish servisidan o'tib, natijani LMS `Attendance`, lesson release va homeworkga bog'laydi.
 - Individual `Notification` DM'lari va Classbook `TelegramGroupDelivery` guruh xabarlari bitta `telegram-outbox` worker/heartbeat va Control Center probe'i orqali kuzatiladi.
 - Multi-step assignment/quiz holati DB'dagi `BotPendingAction` orqali restart-safe saqlanadi.
-- Guest AI demo `AISettings.guest_demo_enabled=False` bilan default-off va 5 savol counteriga ega. Owner yoqsa runtime call `AISupplyEvent.CALL_BOT_GUEST` orqali global pre-reservation/reconciliation'dan o'tadi; injected provider faqat test seam'i. PR #59 muvaffaqiyat hisoblagichini bazada atomik oshiradi, ammo parallel limit check→provider→increment oralig'i uchun to'liq lock/lease hali yo'q.
+- Guest AI demo `AISettings.guest_demo_enabled=False` bilan default-off va 5 savol counteriga ega. Owner yoqsa `bot/services.py` slotni provider chaqiruvidan **oldin** limitli shartli `UPDATE` bilan band qiladi; yiqilgan chaqiruvda slot qaytariladi. Remote call `AISupplyEvent.CALL_BOT_GUEST` orqali global pre-reservation/reconciliation’dan o‘tadi; injected provider faqat test seam’i. Bu provider javobidan keyin hisoblagich oshirishning eski poygasi emas; alohida OS-process concurrency dalili K11da ochiq.
 
 ### 4.10 Backoffice
 
@@ -832,7 +848,7 @@ Custom yashirin admin URL'lari:
 
 Access helper: `core.views._is_backoffice_user`. Legacy `/admin/` faqat `ENABLE_LEGACY_ADMIN=True`.
 
-**Joriy permission cheklovi:** `_is_backoffice_user` `is_staff` yoki `is_superuser`ni qabul qiladi; AI global control ham shu gate ortida. `/backoffice/control/` esa alohida `_is_control_center_owner` orqali faqat active `is_superuser`ga ochiladi; snapshot read-only, ammo ostidagi mutation yuzalari (kill switch, circuit reset, brend, landing) yozadi — har biri sabab + tasdiq + audit talab qiladi. Teacher scope 2026-08-15 dan default-deny: `core.access.teacher_course_queryset()` / `teacher_cohort_queryset()` yagona manba — superuser hammasini, qolgan har kim faqat `Course.instructor` sifatida biriktirilgan kurslarini ko'radi, anonim yoki nofaol foydalanuvchi hech nima ko'rmaydi. Web teacher paneli (8 view), Telegram bot (`/guruhlarim`, `/baholash`) va `AttendanceManageView` shu scope'ni iste'mol qiladi; adapterlarda alohida nusxa yo'q.
+**Permission chegarasi:** `_is_backoffice_user` helper'i `is_staff` yoki `is_superuser`ni tekshiradi; uning o'zida `is_active` sharti yo'q. AI global control `/backoffice/ai-control/` va `/backoffice/control/` esa `_is_control_center_owner` orqali faqat active superuserga ochiladi. Control snapshot read-only; uning kill switch, circuit reset, brend va landing mutationlari sabab + tasdiq + audit talab qiladi. Eski AI settings writerlarining audit qarzi yuqorida alohida qayd etilgan. Teacher scope default-deny: `core.access.teacher_course_queryset()` / `teacher_cohort_queryset()` yagona manba — active superuser hammasini, qolgan active foydalanuvchi faqat `Course.instructor` sifatida biriktirilgan kurslarini ko‘radi; anonim yoki nofaol foydalanuvchi hech nima ko‘rmaydi. Web teacher, Telegram bot (`/guruhlarim`, `/baholash`) va `AttendanceManageView` shu scope’ni iste’mol qiladi.
 
 ### 4.11 Study in Turkey (SIT)
 
@@ -844,11 +860,17 @@ Access helper: `core.views._is_backoffice_user`. Legacy `/admin/` faqat `ENABLE_
 6. Owner-only `/backoffice/sit/` universitetlar va ularning fakultet/dastur/talab/hujjat/xizmat/media qismlari, e'lonlar va qo'llanmalarni audit sabab bilan boshqaradi. 90 kundan eski public universitet ma'lumoti dashboardda tekshiruv signali oladi.
 7. SIT bosh sahifasidagi e'lonlar faqat `is_published=True` va `show_on_home=True` bo'lsa chiqadi; oddiy publish yozuvni avtomatik featured qilmaydi.
 
-### 4.12 Maqsad operatsion arxitektura — control plane qisman qurildi (2026-08-19)
+### 4.12 Control plane — koddagi poydevor va ochiq chegaralar
 
 Owner-only Azure Control Center'ning read-only registry/snapshot qatlami ustiga **mutation, audit va release qatlamlari qo'shildi**: kill switch, AI circuit cooldown tozalash, brend va landing yuzalari (har biri sabab + tasdiq + append-only audit), `SystemAuditEvent` ledgeri, `WorkerHeartbeat` va `ReleaseRecord`. Canonical lesson release (`courses/release_service.py`), submission review (`courses/submission_service.py`), checkout read/write ajratmasi (`cohorts/checkout_service.py`) va private media ham kodda; CI required checks `main` branch protection'ida majburiy.
 
-Hamon rejada qolgani: umumiy feature flag registri, backup/email/memory probe'lari, money cost ledgeri, AI quality/cost release gate va typed entitlement. Ular `launch-plan/02-yol-xarita.md`, `03-mahsulot-backlog.md` va `05-launch-ops.md`da; kod, migration, test va browser/production evidence tugamaguncha mavjud capability hisoblanmaydi.
+Umumiy feature flag registri (`core/flags.py`), backup/media-backup/email/memory
+probe’lari (`core/control_center/`), money cost ledgeri (`core/ai_cost.py`) va
+typed entitlement (`core/entitlements.py`) **kodda mavjud**. Ularni kelajak
+reja sifatida sanash noto‘g‘ri. AI quality/cost release gate va eski AI
+settings mutationlarining audit retrofit’i ochiq; owner/native/production
+qabulini texnik poydevor mavjudligi bilan tenglashtirmang. Ularning faol
+navbati [hujjat xaritasi](README.md) orqali tegishli reja va dalilda yuritiladi.
 
 ---
 
@@ -944,7 +966,7 @@ python manage.py reindex_ai_memory --force
 
 Embedding cache: 7 kun.
 
-Cache miss bo'lsa `embed_texts` bitta remote batchdan oldin supply reservation qiladi, SDK retry'siz chaqiradi va usage metadata bo'lmasa konservativ token reservationni charge qiladi. RAG query `rag_embedding`, memory query/write `memory_embedding`, lesson/manual reindex esa `reindex` call type'ida. Cache hit remote request va supply yozuvi sarflamaydi. Supply denial/provider xatosida query cache/lexical/no-vector yo'liga yumshoq degradatsiya qiladi; memory write fakti vektorsiz saqlanadi. Lesson reindex eski chunklarni yangi embedding tayyor bo'lmaguncha o'chirmaydi, ammo parallel lesson batch'lari uchun to'liq lease/claim hali yo'q.
+Cache miss bo'lsa `embed_texts` bitta remote batchdan oldin supply reservation qiladi, SDK retry'siz chaqiradi va usage metadata bo'lmasa konservativ token reservationni charge qiladi. RAG query `rag_embedding`, memory query/write `memory_embedding`, lesson/manual reindex esa `reindex` call type'ida. Cache hit remote request va supply yozuvi sarflamaydi. Supply denial/provider xatosida query cache/lexical/no-vector yo'liga yumshoq degradatsiya qiladi; memory write fakti vektorsiz saqlanadi. Lesson reindex eski chunklarni yangi embedding tayyor bo'lmaguncha o'chirmaydi. Lesson ID, model, input hash va kun asosidagi supply kaliti ayni batchning takror remote chaqiruvini to'xtatadi; `SupplyDuplicate` `skipped_duplicate` sifatida qayd etiladi. Bu resumable worker lease yoki turli inputlar uchun umumiy lesson lock degani emas.
 
 ### 5.5 Web search effort tiers
 
@@ -1283,7 +1305,7 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 | `GEMINI_EMBEDDING_TIMEOUT_MS` | Default `8000`; embedding SDK retry off |
 | `GEMINI_EMBEDDING_MAX_INPUTS` / `GEMINI_EMBEDDING_MAX_INPUT_CHARS` / `GEMINI_EMBEDDING_MAX_BATCH_CHARS` | Default `64` / `8000` / `64000` |
 | `AI_ALLOW_DIGITALOCEAN` | Default `False`; explicit owner production admissionisiz factory DO provider bermaydi |
-| `DIGITALOCEAN_INFERENCE_API_KEY` | Pre-production'da bo'sh; production qayta ochilganda qayta baholanadi |
+| `DIGITALOCEAN_INFERENCE_API_KEY` | Dormant adapter credential'i; DigitalOcean provider admissioni alohida qayta ochilmaguncha ishlatilmaydi |
 | `DIGITALOCEAN_INFERENCE_MODEL` | Dormant DigitalOcean chat modeli, default `router:general` |
 | `DIGITALOCEAN_INFERENCE_MODEL_FALLBACKS` | Dormant DigitalOcean chat model fallbacklari |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot |
@@ -1303,18 +1325,18 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 - `django-csp` v4 formatiga ko'chirildi (2026-08-15, A0b/5): siyosat `core/csp_policy.build_csp_policy()` da quriladi va `CONTENT_SECURITY_POLICY` orqali beriladi; header real javobda tekshirilgan
 - `script-src` ga Mini App yuklaydigan `https://telegram.org` qo'shildi; Mini App sessiyasi `frame-ancestors` ni per-response `_csp_replace` bilan kengaytiradi, ya'ni to'liq siyosat saqlanadi
 
-### Joriy release cheklovlari (2026-09-03; 2026-08-14 baseline ustiga)
+### Runtime kafolatlari va ochiq release chegaralari
 
-- Production-like muhitda broker env yo'q bo'lsa Celery hozir `memory://`ga fallback qilishi mumkin; Channels ham konfiguratsiya bo'lmasa in-memory qatlamga tushadi.
+- Non-local profilda `core/settings.py` → `core/runtime_gate.py::enforce_remote_services()` cache/channel manzili bo'lmasa yoki broker bo'sh/`memory://` bo'lsa startupni `ImproperlyConfigured` bilan to'xtatadi. In-memory cache/channel va eager broker faqat local profil uchun. Bu konfiguratsiya gate'i; haqiqiy ulanish va worker heartbeat'i alohida runtime dalilini talab qiladi.
 - ~~Default S3 media storage `public-read` va unsigned URL ishlatadi; protected upload klasslari hozir alohida private storage'ga ajratilmagan.~~ **Yopildi 2026-08-15 (A0b/3):** to'lov cheki, vazifa fayli, chat biriktirmasi va speaking yozuvi `PRIVATE_MEDIA_ROOT` ichida — `MEDIA_ROOT` dan tashqarida — saqlanadi va faqat ruxsat tekshiradigan view orqali beriladi. Private storage public URL bermaydi. Future S3 uchun bu view signed URL'ga redirect qiladigan qilib kengaytiriladi.
-- `.github/workflows/ci.yml` mavjud va uchta required jobda sakkizta gate'ni yugurtiradi; PostgreSQL+pgvector va Valkey integration ishi ham shu yerda. `/healthz` (liveness) va `/readyz` (readiness) tekshiruv mantig'ini Control Center capability registry/probe'laridan oladi; readiness faqat `critical` capability'larni yugurtiradi va birortasi `red` bo'lsa `503` qaytaradi.
-- `TelegramOutbox` modeli/command'i bor, lekin Procfile'da doimiy process yo'q. Worker 2026-08-15 dan **atomik claim/lease** ishlatadi (shartli `UPDATE` + `LEASE_SECONDS` muddati; o'lgan worker qatori navbatga qaytadi), ya'ni bir necha replica bir xil qatorni olmaydi. Kafolat baribir at-least-once: yuborish muvaffaqiyatli bo'lib DB yangilanishidan oldin process o'lsa xabar takrorlanadi. Exponential backoff va dead-letter hali yo'q.
+- `.github/workflows/ci.yml` uchta required jobni belgilaydi; PostgreSQL+pgvector va Valkey integration ishi ham shu yerda. `/healthz` (liveness) tashqi xizmat probe'larini chaqirmaydi. `/readyz` (readiness) Control Center registry'sidagi faqat `critical` capability probe'larini yugurtiradi va birortasi `red` bo'lsa `503` qaytaradi.
+- `TelegramOutbox` doimiy worker'i `Procfile` va production compose'da bor. DM va Classbook outbox atomik claim/lease, runtime retry policy, exponential backoff va owner dead-letter replay oqimini ishlatadi (`bot/outbox.py`, `bot/retry_policy.py`, `bot/dead_letter.py`). Kafolat at-least-once: yuborish muvaffaqiyatli bo'lib DB yangilanishidan oldin process o'lsa xabar takrorlanishi mumkin; exactly-once kafolati yo'q.
 - `AIResponseRun` status, model, skill, token, duration, metadata, error va idempotency keyni saqlaydi. Pul bahosi `AIModelPrice` snapshotlari + `core/ai_cost.py` orqali alohida hisoblanadi; AI quality/cost release gate A9 sifatida ochiq.
 - Capability registry/snapshot AI supply budget/cooldown bilan birga append-only `SystemAuditEvent`, `WorkerHeartbeat`, `ReleaseRecord`, backup/email/memory probe'lari, feature flags va AI cost holatini ko'rsatadi.
-- Gemini provider allowlistdagi 1 primary + max 1 fallback bilan bounded; SDK retry off, `429` bir attemptda fail-fast/circuit. Prompt/output/timeout/deadline caplari implement/test qilingan. Eng so'nggi to'liq suite dalili — 2026-09-10 da `main` (`da07d0c`) ustida 1411/1411 (skipped=30) **OK**; bu local regression dalili, production `GO` emas.
+- Gemini provider allowlistdagi 1 primary + max 1 fallback bilan bounded; SDK retry off, `429` bir attemptda fail-fast/circuit. Prompt/output/timeout/deadline caplari implement/test qilingan. **Tarixiy suite dalili:** 2026-09-10 da `main` (`da07d0c`) ustida 1411/1411 (skipped=30) **OK** deb qayd etilgan. Bu o'sha sanadagi local regression dalili; so'nggi test natijasi yoki production `GO` sifatida talqin qilinmaydi. Keyingi dalillar [marinebook](marinebook.md)da.
 - Free tier'da API grounding defense-in-depth o'chiq: engine specialist/search call yaratmaydi, provider direct caller `enable_web_search=True` bersa ham `GoogleSearch()` va config tools `0`; intent `requested/blocked/actual` telemetryda ajraladi.
 - Per-user allowance upstream supply emas. Alohida `AISupplyEvent` global daily+minute request va daily token hard budgetini pre-reserve qiladi, staff va auxiliary calllarni ham qamraydi; ledger DB xatosida remote call fail-closed.
-- SQLite parallel reservation contention proofi 2026-08-15 da yozildi va kamchilikni ochdi: `select_for_update()` SQLite'da no-op (`has_select_for_update=False`), `BEGIN DEFERRED` esa write-upgrade paytida busy_timeout'ni kutmaydi. Local SQLite endi `transaction_mode=IMMEDIATE`, `timeout=15` va WAL bilan ishlaydi; contention testlari `AZURELMS_TEST_FILE_DB=1` bilan fayl bazasida bajariladi. PostgreSQL `FOR UPDATE` proofi GitHub Actions integration ishida yopildi. **Ochiq K11:** alohida OS processlari bilan takrorlash; SmartForm/guest limit check'i va lesson reindex batch'i uchun to'liq lease/claim. Guestning muvaffaqiyatli savol hisoblagichi PR #59 da `F()` bilan atomik oshiriladi, lekin check→provider→increment oralig'i hamon lease emas.
+- SQLite parallel reservation contention proofi 2026-08-15 da yozildi va kamchilikni ochdi: `select_for_update()` SQLite'da no-op (`has_select_for_update=False`), `BEGIN DEFERRED` esa write-upgrade paytida busy_timeout'ni kutmaydi. Local SQLite endi `transaction_mode=IMMEDIATE`, `timeout=15` va WAL bilan ishlaydi; contention testlari `AZURELMS_TEST_FILE_DB=1` bilan fayl bazasida bajariladi. PostgreSQL `FOR UPDATE` proofi GitHub Actions integration ishida yopildi. Guest limiti providerdan oldingi shartli atomik slot reservation bilan tekshiriladi, muvaffaqiyatsiz javobda slot qaytariladi. SmartForm request fingerprint'i va lesson reindex batch fingerprint'i global supply ledger orqali takror remote callni to'xtatadi. **Ochiq K11 dalili:** alohida OS processlari bilan contention takrori. Ushbu idempotency himoyalari umumiy crash-recovery lease yoki barcha turdagi parallel lesson write kafolati emas.
 - Ichki minute request cap tashqi quota o'rnini bosmaydi. 2026-08-14 AI Studio snapshotida 3.1 Flash Lite `15 RPM / 250K TPM / 500 RPD`, 3.7 Flash `5 RPM / 250K TPM / 20 RPD`; shu sabab 3.7 allowlistga admit qilinmagan. Joriy fallback `gemini-3.5-flash-lite`; `gemini-2.5-flash-lite` retired. Joriy Gemini adapterida vision unavailable.
 - CSP config django-csp v4 formatiga 2026-08-15 da ko'chirildi. Normal sahifa, Mini App entry va authenticated Mini App full response-header testlari bor; Telegram script/frame allowlist to'liq policy'ni saqlagan holda per-session kengayadi. Real Telegram WebView qurilma sign-off'i A5 owner gate'ida qoladi.
 
@@ -1451,7 +1473,7 @@ $env:AZURELMS_TEST_FILE_DB='1'; python manage.py test aicontrol.test_supply_conc
 
 ## 14. Muhim eslatmalar
 
-1. **Joriy checkout (2026-09-03):** `C:\Users\azizb\Desktop\project\azurelms`; venv Python 3.12.10 + Django 6.0.8. Yo'l va branch volatile: har sessiyada `git status --short --branch` va `git branch -a` source of truth (2026-09-10 dan worktree ishlatilmaydi — bitta checkout); eski OneDrive/`C:\Projects` yo'llari faqat historical yozuvlarda uchrashi mumkin.
+1. **Yagona checkout:** `C:\Users\azizb\Desktop\project\azurelms`; versiyalar uchun §2. Yo'l va branch volatile: har sessiyada `git status --short --branch` va `git branch -a` source of truth (2026-09-10 dan worktree ishlatilmaydi — bitta checkout); eski OneDrive/`C:\Projects` yo'llari faqat historical yozuvlarda uchrashi mumkin.
 2. **Bootstrap YO'Q:** barcha shell'da `tokens.css` + custom CSS. Yangi sahifa qo'shganda shu printsipga rioya qilish.
 3. **`<SAVE_MEMORY>` tag:** AI javobida `<SAVE_MEMORY>category: fakt</SAVE_MEMORY>` ko'rinishida chiqsa, extractor ajratib `AIMemoryFact`'ga yozadi. Category: `preference`, `learning_goal`, `weak_topic`, `schedule`, `profile`, `do_not_remember`, `other`.
 4. **`@azure` mention:** AI bo'lmagan xonada xabarda `@azure` so'zi bo'lsa, AI ham javob beradi.
@@ -1459,9 +1481,9 @@ $env:AZURELMS_TEST_FILE_DB='1'; python manage.py test aicontrol.test_supply_conc
 6. **YouTube embed:** owner embed bloklasa platforma majburlab ocholmaydi — fallback UX kelajakda kerak bo'lishi mumkin.
 7. **SIT data gate:** qabul, narx va viza kabi vaqtga sezgir public ma'lumot `source_url` va `last_verified_on`siz nashr qilinmaydi. `playground/SIT/` runtime emas.
 8. **`.gitignore`:** `.claude/`, `.tools/`, `.codex/`, `__pycache__/`, `*.pyc`, `db.sqlite3`, `media/`, `venv/`, `.env` va `.env.local`.
-9. **Resurs/A8 qarori:** production va DigitalOcean integration'i HOLD; local ish davom etadi. A8 supply guard **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`**; SQLite va CI PostgreSQL prooflari yopilgan. Ochiq K11 — alohida OS-process takrori va guest/SmartForm/lesson-reindex lease/claim. Eng so'nggi to'liq suite dalili — 2026-09-10 da `main` (`da07d0c`) ustida 1411/1411 (skipped=30); bu ommaviy rollout yoki production `GO` emas.
+9. **Resurs/A8 chegarasi:** DigitalOcean admissioni HOLD; AWS deploy'ining so'nggi qayd qilingan dalili 2026-09-26ga tegishli. A8 supply guard va SQLite/CI PostgreSQL prooflari bor; alohida OS-process takrori ochiq. Batafsil kafolatlar va tarixiy test dalili yuqoridagi runtime bo'limida. Lokal regression, deploy yozuvi va ownerning production `GO` qarori alohida.
 10. **Joriy vision chegarasi:** `image_qa` skill mavjud, lekin Gemini adapteri vision'ni qo'llamaydi; rasm tahlili current capability emas.
-11. **Schema:** `aicontrol/0002_ai_supply_budget`, `messenger/0014_ai_response_idempotency`, `users/0015_free_tier_model_default` va `users/0016_alter_notification_options` local SQLite'ga apply qilingan.
+11. **Schema tarixi:** `aicontrol/0002_ai_supply_budget`, `messenger/0014_ai_response_idempotency`, `users/0015_free_tier_model_default` va `users/0016_alter_notification_options` uchun local SQLite'ga apply qilingani oldingi kontekstda qayd etilgan. Bu to'liq joriy migration ro'yxati emas; keyingi rollout dalillari tegishli bosqich hujjatlarida. Muayyan runtime schema holati o'sha muhitda tekshiriladi.
 12. **Model lifecycle:** primary `gemini-3.1-flash-lite`, temporary fallback `gemini-3.5-flash-lite`. `gemini-2.5-flash-lite` yangi chaqiruvlarda `404` bergani uchun retired va runtime'da rad etiladi. 3.7 Flash joriy project snapshotidagi 20 RPD sabab hozir admit qilinmagan.
 
 ---

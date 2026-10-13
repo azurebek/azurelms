@@ -1,8 +1,18 @@
 # Landing Editor — backoffice'da chiroyli landing boshqaruvi (bosqichli reja)
 
+> **Tarixiy reja — 2026-08-14 holati.** Pastdagi status jadvali o'sha
+> kundagi snapshot; yangi ish navbati emas. Joriy umumiy holat [README.md](README.md)da.
+> 2026-10-13 kod tekshiruvi: [backoffice_landing](../core/views.py) owner-only
+> singleton matn muharriri, sabab/tasdiq, no-op va `SystemAuditEvent`ga yozuvchi
+> `record_audit_event`, shuningdek `audit_trail_for` tarixini ishlatadi.
+> Eski jadvaldagi `LogEntry` bugungi audit writeri emas.
+> [Haqiqiy dizayn boshqaruvi](frontend-v1/BACKOFFICE-REFORM-STAGE-4.md)
+> va [B2.6 tekshiruvi](frontend-v1/BACKOFFICE-02-STAGE-6.md) keyingi dalillardir;
+> ular bu rejaning barcha repeatable/media/builder bosqichlarini avtomatik yopmaydi.
+
 *Yaratildi: 2026-07-27 [Claude Code]. Rebaseline: 2026-08-14. Bosqich 0 va Bosqich 1 kodi/TOC main'da; Bosqich 1 authenticated visual QA kutadi. Bosqich 2–4 `HOLD/NEXT`, Bosqich 5 partial, Bosqich 6 optional; active core slice emas.*
 
-## Joriy status
+## 2026-08-14 status snapshoti
 
 | Bosqich | Holat | Evidence / gap |
 |---|---|---|
@@ -15,7 +25,7 @@
 
 ## 1. Maqsad va muammo
 
-Historical muammo: bosh sahifa modeli bor edi, lekin tahrirlash faqat **Jazzmin admin** (`/admin/`, `ENABLE_LEGACY_ADMIN=True`) orqali edi. 2026-07-27 da Bosqich 1 bajarilib, singleton matnlar `/backoffice/landing/`ga ko'chdi. Hozirgi gap — repeatable ro'yxatlar, media va preview hali Jazzmin/fallbackga bog'liq:
+Historical muammo: bosh sahifa modeli bor edi, lekin tahrirlash faqat **Jazzmin admin** (`/admin/`, `ENABLE_LEGACY_ADMIN=True`) orqali edi. 2026-07-27 da Bosqich 1 bajarilib, singleton matnlar `/backoffice/landing/`ga ko'chdi. 2026-08-14 snapshotidagi gap — repeatable ro'yxatlar, media va preview Jazzmin/fallbackga bog'liq edi:
 
 - Owner uchun noqulay: ~50 maydonli xom fieldset, texnik ko'rinish, sahifa strukturasiga bog'lanmagan.
 - Loyiha dizayn tizimidan (app-shell/admin-shell) tashqarida — brand/control kabi silliq backoffice yuzalariga zid.

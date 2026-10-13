@@ -1,6 +1,12 @@
 # AzureLMS — 30-sentyabr ishga tushirish va readiness rejasi
 
-**Maqsad:** 30-sentyabr 2026 — 50 kishigacha bo'lgan boshqariladigan jonli guruhni Classbook oqimida ishga tushirish, beta dalilini yig'ish va production `GO/HOLD/NO-GO` qarori. **Joriy rebaseline:** 2026-09-10. Public production deploy bu sananing avtomatik natijasi emas.
+> **Joriy holat uchun:** [loyiha holati va hujjatlar xaritasi](../README.md).
+> Bu papka ownerning launch strategiyasi va qabul mezonlarini saqlaydi.
+> 2026-09-10 rebaseline va 30-sentyabr sanasi tarixiy reja; yangi muddat yoki
+> launch qabuli sifatida talqin qilinmaydi. Kod, oxirgi deploy dalili va owner
+> qabuli alohida holatlardir.
+
+**Ownerning 2026-09-10 dagi maqsadi:** 30-sentyabr 2026 — 50 kishigacha bo'lgan boshqariladigan jonli guruhni Classbook oqimida ishga tushirish, beta dalilini yig'ish va production `GO/HOLD/NO-GO` qarori. Public production deploy bu sananing avtomatik natijasi emas; yangi launch sanasi bu hujjat bilan belgilanmaydi.
 
 > **Owner rebaseline — 2026-09-10:** oldingi 20-sentyabr taqdimot checkpointi 30-sentyabr ishga tushirish maqsadiga uzaytirildi. `A3b Classbook` launch-critical scope'ga qabul qilindi: o'qituvchi bitta `Darsni boshlash` amali bilan davomat/material oqimini ochadi, turli mashqlarni jonli boshqaradi, 50 learner natijasi avtomatik baholanadi va reytingga tushadi; yakunlash attendance, access, homework va shaxsiy Telegram natijalarini bitta canonical oqimda yopadi. Hosting/provider admissioni bundan alohida gate bo'lib qoladi.
 
@@ -8,7 +14,7 @@
 
 **Model:** platforma mustaqil o'rgatuvchi SaaS emas — **Azurbekning jonli onlayn turk tili kursining operatsion tizimi**. Jonli dars Telegram video chatda qoladi; platforma enrollment, davomat, dars release, vazifa, quiz, mock, progress, AI yordamchi, muloqot va to'lov oqimlarini bitta haqiqatga bog'laydi.
 
-Bu papka launch strategiyasi, scope, status va go/no-go qarorlarining yagona manbai. Runtime holati uchun canonical kod, migration, test va production evidence source of truth bo'lib qoladi.
+Bu papka launch strategiyasi, scope va go/no-go mezonlarini saqlaydi. Joriy bajarilish holati uchun yuqoridagi yagona holat sahifasi, tafsilot uchun canonical kod, migration, test va sanalangan release dalili o'qiladi.
 
 | # | Hujjat | Nima haqida |
 |---|---|---|
@@ -49,24 +55,33 @@ APEX: sertifikatga tayyorlik + owner nazorati
 
 Bu natijalardan kamida biri real cohortda o'lchanmaguncha AI kurs narxini oshirishning mustaqil asosi emas. “Speaking/pronunciation coach”, “adaptiv mastery” va “ustoz ishini avtomatik kamaytiradi” kabi claimlar faqat tegishli structured flow va eval gate'dan keyin ochiladi.
 
-## 2026-09-10 source-of-truth snapshot
+## Holat izohi — 2026-10-13 repo dalili
+
+Quyidagi jadval oldingi 2026-09-10 snapshotidagi eskirgan statuslarni
+aniqlashtiradi. AWS bo'yicha oxirgi qayd — [2026-09-26 R2 relizi](../frontend-v1/R2-READY-V1-AWS.md),
+`8bb6b95`, 19 ta V1 renderer flagi ON. Bu sessiyada server qayta tekshirilmagan;
+shu SHA yoki konfiguratsiya hozir ham jonli degan yangi da'vo yo'q.
 
 | Yo'nalish | Joriy holat | Keyingi gate |
 |---|---|---|
-| Local runtime | `LOCAL BOOT VERIFIED`: SQLite, LocMem/in-memory, eager Celery, local media; DO credential/service yo'q; eng so'nggi full suite dalili PR #59 da 1013/1013 (skipped=23) | Production gate alohida; test soni volatile, latest marinebook entry source of truth |
+| Local runtime | Lokal ish profili va test dalillari mavjud; yangi backoffice oqimlari [B2.6](../frontend-v1/BACKOFFICE-02-STAGE-6.md) da tekshirilgan | Test soni va aniq buyruq sanalangan dalilda; lokal PASS production qabuli emas |
 | AI provider | Gemini primary; allowlistdagi 1 primary + max 1 fallback, SDK retry off, `429`da 1 attempt/cooldown | `A8` **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`**; PostgreSQL contention proofi CI'da yopildi, production admission alohida |
 | A0 security | A0a **va** A0b beshala slice kodda: teacher default-deny scope, upload MIME/magic-byte gate'i, private media, WebSocket access recheck, CSP v4 | `EVIDENCE READY` labeli owner qarorida |
-| A1 runtime/CI | A1a bajarildi: `.dockerignore`, `/healthz`+`/readyz`, backup/restore, outbox lease va `.github/workflows/ci.yml` (8 mantiqiy gate → 3 required check, PostgreSQL+Valkey ishi bilan) | A1b: owner 2026-09-10 da **AWS**ni tanladi — `deploy/` da EC2 runbook, compose stack va Caddy TLS; broker fail-fast gate qurildi. Deploy hali qilinmagan, production GO checklisti ochiq |
-| A2 Control Center | Capability registry, brand/landing/kill-switch/circuit-reset mutationlari, umumiy feature flags, append-only audit, `WorkerHeartbeat`, `ReleaseRecord`, backup/email/memory probe'lari va AI cost ledgeri bor | Qolgan yagona band — A9 AI quality/cost release gate |
-| Telegram | F0–F9, outbox va Mini App foundation bor | Local polling QA; webhook/public deploy `HOLD` |
+| A1 runtime/CI | A1a kodda; AWS texnik rollout, isolated restore va real-server smoke R2 dalilida qayd etilgan | R2 dagi SMTP, worker/beat heartbeat, offsite backup/secret rotation va real provider chegaralari ochiq; yangi kod avtomatik deploy bo'lmaydi |
+| A2 Control Center | Capability registry, audit, flags, heartbeat, release yozuvi va cost/probe poydevori kodda | A9 bilan birga eski `AISettingsAdmin` va `backoffice_ai_control` sozlama yozishlarining sabab/tasdiq/`SystemAuditEvent` qarzi ham ochiq; A2 to'liq yopilmagan |
+| Telegram | Outbox process, retry/dead-letter va Mini App kodi mavjud; R2 outbox processi running bo'lganini qayd etadi | Real Telegram yetkazish, webhook va WebView qabuli R2 smoke bilan tasdiqlanmagan |
 | Classbook | `main`da (PR #94, 2026-09-10): canonical session/activity/response, 10 mashq turi, realtime+poll fallback va Telegram group outbox `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`. PostgreSQL 50-parallel gate yopildi — `classbook/test_load.py` CI `integration` ishida yashil | Real Telegram guruh / Mini App va Android/iOS/desktop owner sign-off |
 | Landing editor | Bosqich 1 + bo'lim navigatsiyasi bor | Repeatable ro'yxatlar faqat core gate'lardan keyin |
 | SIT | S1, S3 va S4 kodda; S2 yo'q | `SITInquiry` lifecycle; real data gigiyenasi |
+| Backoffice | BACKOFFICE-01 va B2.1–B2.6 lokal implementatsiya/tekshiruvlari tugagan; [B2.6 yakuni](../frontend-v1/BACKOFFICE-02-STAGE-6.md) | Owner qabuli keyinga qoldirilgan; native telefon/zoom/AT va yangi AWS rollout alohida |
 
-## Rebaseline ustuvorligi
+## Owner rebaseline ustuvorligi — 2026-09-10 tarixiy tartib
+
+Quyidagi ustuvorliklar ownerning o'sha qarorini saqlaydi; ayni paytda qaysi
+ish bajarilgani yuqoridagi holat manbasidan olinadi.
 
 1. **A3b Classbook closeout:** bitta start/finish control plane, turli deterministic mashqlar, 50 learner grading/leaderboard, Telegram guruh outbox va shaxsiy natija DM'lari. Merge gate: full suite, PostgreSQL parallel test, mobile browser va real Telegram owner sign-off.
-2. **A8 closeout — `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`:** barcha joriy Gemini call-pathlari ledgerga ulangan; free-model allowlist, kunlik/minute request va kunlik token cap, one-fallback, idempotency va 429 cooldown ishlaydi. Ikki DB backenddagi contention proofi **yopildi** — SQLite yarmi `aicontrol/test_supply_concurrency.py` bilan, PostgreSQL yarmi CI `integration` ishi bilan. Eng so'nggi full suite dalili — 2026-09-10 da `main` (`da07d0c`) ustida 1411/1411 (skipped=30). Alohida OS processlari va caller-specific guest/SmartForm/lesson-reindex lease/claim K11 sifatida ochiq.
+2. **A8 closeout — `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`:** barcha joriy Gemini call-pathlari ledgerga ulangan; free-model allowlist, kunlik/minute request va kunlik token cap, one-fallback, idempotency va 429 cooldown ishlaydi. Ikki DB backenddagi contention proofi **yopildi** — SQLite yarmi `aicontrol/test_supply_concurrency.py` bilan, PostgreSQL yarmi CI `integration` ishi bilan. 2026-09-10 dagi tarixiy suite dalili: `main` (`da07d0c`), 1411 test (skipped=30). Guest/SmartForm/lesson-reindex aniqlashtirishlari va qolgan alohida OS-process sinovi [K11 reestrida](02-yol-xarita.md#risk-reestri).
 3. **A0b + vendor-neutral A1:** private media/upload/access; `.dockerignore`, CI, readiness va restore proof. Cloud xizmati shart emas.
 4. **A2 Control Center:** effective config, capability registry, flags/kill switches, event/audit ledger, health, AI quota va release gate.
 5. **Canonical oqimlar + mobil oltin yo'l:** enrollment, lesson lifecycle, access, submission/review va notificationlar shared policy/state machine orqali; real qurilma parity.

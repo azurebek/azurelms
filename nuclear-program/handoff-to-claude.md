@@ -1,5 +1,10 @@
 # Claude uchun topshirish xabari — 2026-09-04
 
+> **Tarixiy handoff.** Pastdagi topshiriqlar va PR kutilayotgan holati
+> 2026-09-04 sessiyasiga tegishli; ularni joriy task sifatida qayta boshlamang.
+> Bugungi holat [README.md](README.md)da. Tarif contracti va keyingi
+> tuzatishlar [pricing ledgerida](pricing-packages-plan.md) saqlanadi.
+
 Azurbek dam olishga ketdi va Codexdan joriy ishni xavfsiz checkpointgacha
 yakunlab, senga rejani tushuntirib qoldirishni so'radi. Codex keyingi premium
 workflow slice'ini boshlamaydi. Butun tarif rejasi tugagan emas; payment va

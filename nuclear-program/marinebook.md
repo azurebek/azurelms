@@ -16,6 +16,36 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-13 [Codex]: Hujjatlar sinxroni va yagona holat sahifasi
+
+Loyiha hujjatlari `main`dagi `62dd358` kodi va sanalangan ish dalillari bilan
+solishtirildi. [Yagona kirish sahifasi](README.md) bajarilgan ishlar, uch asosiy
+backoffice oqimi, ochiq qabul chegaralari va hujjatlar xaritasini jamlaydi.
+Root README va agent kirishlari shu manbaga yo'naltirildi; Codex konteksti
+takroriy status ro'yxatidan canonical kod xaritasiga qisqartirildi.
+
+- Branch: `codex/project-documentation-sync`; implementatsiya **`9958807`**.
+- Arxitektura, launch va frontend rejalaridagi owner permission, ishlaydigan
+  flags/probes/cost/entitlement, broker gate, outbox/retry/release writer,
+  guest slot reservation, tariff effective-date va A2 audit qarzi tuzatildi.
+- Oldingi reja/handofflar tarixiy deb belgilandi; owner qarorlari, eski test
+  sonlari va ochiq UX/DATA/RULE/native/owner gate'lari saqlandi. AWSning
+  2026-09-26 R2 yozuvi oxirgi qayd etilgan dalil, yangi remote tekshiruv emas.
+- B2.6 integratsiyasi GitHubdan tasdiqlandi: [PR #189](https://github.com/azurebek/azurelms/pull/189)
+  `62dd358`ga merged, [CI 38443075952](https://github.com/azurebek/azurelms/actions/runs/38443075952)
+  uchala required job muvaffaqiyatli. Bu owner qabuli yoki yangi deploy emas.
+- Docs-only tekshiruv: `git diff --check` PASS;
+  `venv/Scripts/python.exe .tools/docs-sync/verify_docs.py` — 97 hujjat,
+  612 relative havola, 25 anchor, missing0 (implementatsiya commitidan oldin).
+  Uch mustaqil docs audit/review topilmalari tuzatildi; kod xaritasidagi
+  manzillar va muhim da'volar source bilan solishtirildi.
+- App kodi, schema, DB, media, flag yoki server o'zgarmadi. Lokal app test
+  suite qayta yugurtirilmadi; B2.6 natijalari o'z sanasidagi dalil sifatida
+  saqlandi. Ushbu docs PR uchun CI/review va manual merge tartibi §9 bo'yicha.
+- Qolgan ish: owner usability, native telefon/zoom/AT, keng builder/versioning,
+  A2/A9 va tegishli production gate'lari [joriy holat sahifasida](README.md).
+  Hujjat sinxroni ularni bajarilgan deb belgilamaydi.
+
 ## 2026-10-13 [Codex]: BACKOFFICE-02 / B2.6 — birgalikdagi yakuniy tekshiruv
 
 Rejadagi o‘nta lokal ssenariy tekshirildi. Imtihondan qaytishda qidiruv

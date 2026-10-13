@@ -1,5 +1,19 @@
 # Qolgan prototiplar — aniq qamrov va tugatish rejasi
 
+**Joriy kirish — 2026-10-13:** [loyihaning yagona holat markazi](../README.md).
+Bu hujjat prototip inventari va uning qabul chegaralarini saqlaydi.
+[BACKOFFICE-02](BACKOFFICE-REFORM-PLAN.md#backoffice-02)ning olti bosqichi
+lokal texnik jihatdan tayyor va `main`da; [B2.6 dalili](BACKOFFICE-02-STAGE-6.md)
+tekshirilgan runtime qamrovini beradi. Bu barcha prototiplarni real muhitga
+ko‘chirish, owner/native/AT qabuli yoki production rollout yakuni emas.
+Joriy ochiq qabul bandlari [alohida ro‘yxatda](FINAL-ACCEPTANCE-ISSUES.md).
+
+## Tarixiy natijalar
+
+Quyidagi sanali qaydlar o‘z bosqichi tugagan paytdagi holatdir. Ulardagi eski
+“keyingi”, “qolgan” va port hali boshlanmagan degan ta’riflar bugungi navbat
+emas; joriy holat yuqoridagi markazda, 11–12-qadam izohi esa quyida.
+
 **2026-10-10 DC6:** [yakuniy ko‘rib chiqish va tiklash paketi](DESIGN-01-DC6-ACCEPTANCE.md)
 tayyorlandi. Ustaxonada 8 qadamli yo‘riqnoma; lokal walkthrough va alohida
 papkadan tiklash sinovi o‘tdi. Owner qabuli PENDING; native/print/AT/Telegram,
@@ -243,15 +257,23 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
   kurs create/edit formasidagi 14 maydon farqini lokal yopdi.
   [Packet81](PAR03-PUBLIC-INTERACTIONS-PROTOTYPE.md) PAR-03 public blog
   interaction va SIT existing-chat handoffini lokal qurdi; pixel/native
-  va real adapter qabuli ochiq. **Qolgan:** PAR-05 va UX/DATA/RULE/native/owner qabuli.
+  va real adapter qabuli ochiq. [Packet82](PAR05-JOURNEY-PARITY-PROTOTYPE.md)
+  PAR-05 lokal funksional paritetni ham yakunladi. **Qolgan:** UX/DATA/RULE,
+  real portning qabul chegaralari va native/owner qabuli.
 - [-] **12. DESIGN-01 — Admin paneldan keng kodsiz dizayn boshqaruvi.**
   **2026-10-10:** owner DC1/DC2dan keyin DC3ni ham oldinga oldi;
   [DC1 inventari](DESIGN-01-DC1-MAP.md) tayyor, [DC2 lokal forma/draft/preview](DESIGN-01-DC2-PREVIEW.md)
   lokal tayyor; [DC3 kontrast/typography](DESIGN-01-DC3-VALIDATION.md) ham lokal tayyor
   (68qoida,224frame+5font+4editor). [DC4 lokal nashr/tarix](DESIGN-01-DC4-RELEASE.md) ham tayyor.
   [DC5 lokal consumer regressiyasi](DESIGN-01-DC5-REGRESSION.md) ham tayyor.
-  DC4/DC5 real port, DC6 hamda 11-qadamdagi ochiq
-  UX/DATA/RULE/native/owner qabul qoladi. Bu real runtime/AWS o‘zgarishi emas.
+  [DC6 ko‘rib chiqish va tiklash paketi](DESIGN-01-DC6-ACCEPTANCE.md) tayyor;
+  owner qabuli PENDING. **2026-10-13 runtime holati:**
+  [backoffice ustaxonasi](BACKOFFICE-REFORM-STAGE-4.md) canonical dizayn xizmatini,
+  [B2.5](BACKOFFICE-02-STAGE-5.md) sakkizta eski forma integratsiyasini qurdi;
+  [B2.6](BACKOFFICE-02-STAGE-6.md) ularni birgalikda tekshirdi. Mustaqil
+  SIT/Mini App, vendor/print, 11-qadamdagi UX/DATA/RULE/native/owner qabuli va
+  production rollout ochiq. Prototip va bu chegaralangan real port bir xil
+  qamrov deb hisoblanmaydi.
   **Owner qarori,2026-09-28:** sodda rang tanlagich bilan chala qoldirmaslik;
   rang, button/karta shakli va shriftlarni kodga tegmasdan boshqarish imkonini
   reja oxirida kengaytirish. DC1/DC2/DC3/DC4 uchun yuqoridagi owner istisnosi amal qiladi.

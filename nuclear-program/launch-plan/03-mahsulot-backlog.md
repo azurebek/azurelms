@@ -1,6 +1,10 @@
 # 03 — Mahsulot backlog: ADMIT / NEXT / HOLD / CUT
 
-*Rebaseline: 2026-09-10. Platforma = Azurbek boshqaradigan bitta kurs operatsion tizimi. 30-sentyabrgacha 50 kishilik boshqariladigan guruhni ishga tushirish uchun A3b Classbook joriy active product slice. Local/pre-productionda DigitalOcean `HOLD`; Gemini free-tier global supply budgeti stop-gate bo'lib qoladi. Har band learner outcome yoki owner workload, canonical owner, adapterlar, acceptance evidence, flag/rollback va fazaga ega bo'lmasa ish boshlanmaydi.*
+> **Joriy holat:** [loyiha holati va hujjatlar xaritasi](../README.md).
+> Bu backlog owner scope'i va qabul mezonlarini saqlaydi. Sanalangan eski
+> yozuvlar o'sha paytdagi holat; yangi kod/deploy/qabul dalili ularni alohida yangilaydi.
+
+*Owner rebaseline'i: 2026-09-10. Platforma = Azurbek boshqaradigan bitta kurs operatsion tizimi. O'sha rejaning 30-sentyabr maqsadi uchun A3b Classbook faol kesim deb belgilangan edi; bu bugungi task navbati yoki yangi deadline emas. DigitalOcean `HOLD`; Gemini free-tier global supply budgeti stop-gate bo'lib qoladi. Har band learner outcome yoki owner workload, canonical owner, adapterlar, acceptance evidence, flag/rollback va fazaga ega bo'lmasa ish boshlanmaydi.*
 
 ## Ish tartibi
 
@@ -10,16 +14,20 @@
 4. `NEXT` band faqat Azurbek admission berganda `ADMIT`ga o'tadi.
 5. Queue qarori: `ADMIT` / `NEXT` / `HOLD` / `CUT`. Execution holati: `PLANNED` / `IN PROGRESS` / `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` / `EVIDENCE READY` / `BLOCKED`.
 6. **Istisno — `S. SIT`:** owner qarori bilan A-narvoniga parallel yuritiladi (1-qoidadan ozod). Uning slice'lari o'zaro ketma-ket boradi va A bandlarini to'xtatmaydi; narxi — owner vaqtining bo'linishi (`S-R1`).
-7. **Joriy active slice (owner re-admission 2026-09-10):** `A3b Classbook` — 50 learner uchun jonli mashq, avtomatik grading/leaderboard va bitta start/finish dars protsedurasi. A4 premium workflow hamda A6/A7/A9 yangi outcome scope'i Classbook closeoutigacha oldinga chiqmaydi. A5 real-device sign-off Classbook student/teacher oqimlarini ham qamraydi.
+7. **Owner re-admissioni — 2026-09-10:** `A3b Classbook` — 50 learner uchun jonli mashq, avtomatik grading/leaderboard va bitta start/finish dars protsedurasi. A4 premium workflow hamda A6/A7/A9 yangi outcome scope'i Classbook closeoutigacha oldinga chiqmaydi. A5 real-device sign-off Classbook student/teacher oqimlarini ham qamraydi; keyingi owner admissionlari alohida qayd etiladi.
 
-### Joriy status snapshot
+### Status aniqlashtirishlari — 2026-10-13 repo sinxroni
+
+AWS holati — [2026-09-26 R2 qaydi](../frontend-v1/R2-READY-V1-AWS.md);
+server bu hujjat sinxronida qayta tekshirilmagan. Dalilsiz backlog bandlari
+yopilmadi, owner qabuli texnik implementatsiya bilan almashtirilmadi.
 
 | Band | Queue | Execution | Izoh |
 |---|---|---|---|
 | A0 | `ADMIT` | `IMPLEMENTED/TESTED` | A0a va A0b beshala slice ham bajarilgan; `EVIDENCE READY` labeli owner qarorida |
 | A1a | `ADMIT` | `IMPLEMENTED/TESTED` | GitHub Actions CI (8 mantiqiy gate → 3 required check) + readiness/backup/outbox bajarildi; bog'liqlik zaiflik qarzi reyestrda |
-| A1b | `ADMIT` | `IN PROGRESS` | Owner 2026-09-10 da AWS'ni tanladi. Deploy artefaktlari va runbook `deploy/` da, broker fail-fast gate qurildi; **hali deploy qilinmagan** — production GO checklisti ochiq |
-| A2 | `ADMIT` | `IMPLEMENTED/TESTED` | audit ledgeri, kill switch, circuit reset, heartbeat, `ReleaseRecord`, flag registri, cost ledgeri va backup/email/memory probe'lari kodda; **qolgan yagona band — AI quality/cost release gate, u esa A9 ning ishi** |
+| A1b | `ADMIT` | `IN PROGRESS` | AWS texnik rollout/isolated restore R2 qaydida bajarilgan (`8bb6b95`); SMTP, heartbeat, secret/backup va real provider chegaralari ochiq. To'liq production GO emas |
+| A2 | `ADMIT` | `IMPLEMENTED/TESTED` — poydevor | Audit/flags/heartbeat/release/cost/probe kodi bor. **Ochiq:** A9 va eski AI sozlama mutationlarining sabab/tasdiq/`SystemAuditEvent` retrofit qarzi |
 | A8 | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | supply guard kod/target/full testlarda; PostgreSQL contention proofi CI `integration` ishida yopildi, alohida OS processlari bilan takrorlash ochiq |
 | A3/A3b | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | oldingi canonical oqimlar va Classbook (live session/activity/response, turli mashqlar, Telegram group outbox, 50 learner gate'i) `main`da — PR #94, 2026-09-10 |
 | A4 | `ADMIT` | `IN PROGRESS` | payment foundation main'da, catalog/cohort lokal testlangan (#70); premium workflow/UI/rollout keyingi bosqichlar — [ledger](../pricing-packages-plan.md) |
@@ -27,6 +35,7 @@
 | S1/S3/S4 | `— delivered` | `EVIDENCE READY` | portal, grounded advisor va owner backoffice kodda |
 | S2 | `NEXT` | `PLANNED` | canonical inquiry lifecycle yo'q |
 | A10 | `ADMIT` | `PLANNED` | AI Optimise — persona, suhbatlararo davomiylik; R5, owner qarori 2026-08-19 |
+| BACKOFFICE-02 | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | B2.1–B2.6 lokal tayyor; [yakuniy dalil](../frontend-v1/BACKOFFICE-02-STAGE-6.md). Owner/native/AT qabuli va yangi production rollout alohida |
 
 ---
 
@@ -48,7 +57,7 @@
 - **A0b holati:** beshala slice ham bajarildi (teacher scope, upload validatsiya, private media, socket recheck, CSP v4). A0 endi `EVIDENCE READY` ga nomzod — yakuniy label owner qarori.
 - **Faza:** R1. A8 bilan parallel faqat test/docs ishlari; yangi product featurelardan oldin.
 
-### A1. Reproducible runtime va CI — `A1a IMPLEMENTED/TESTED`, `A1b HOLD`
+### A1. Reproducible runtime va CI — A1a kodda, A1b rollout dalili bor, GO ochiq
 
 - **Outcome:** web, AI task va Telegram notification jim yo'qolmaydi; release qayta tiklanadi.
 - **Canonical owner:** deployment config + release gate; vendor alohida adapter qarori.
@@ -56,12 +65,13 @@
 - **Evidence (A1a/CI, 2026-08-15):** GitHub Actions yoqildi; birinchi yashil yugurish `69004d3`. `checks` va `supply-chain` SQLite/offline profilda, `integration` esa `pgvector/pgvector:pg16` va `valkey/valkey:8` konteynerlarida: `engine=django.db.backends.postgresql`, `cache=RedisCache`, `layer=RedisChannelLayer`, pgvector `enabled=True`, to'liq suite **689/689 PostgreSQL'da**. Butun run ~2 daqiqa (uchala ish parallel). Bu A8 dan beri kutilgan **real PostgreSQL contention proofining** bir qismini yopadi: SQLite'da `select_for_update()` no-op edi, endi barcha qulf yo'llari haqiqiy `FOR UPDATE` bilan yugiradi.
 - **CI birinchi yugurishda topgan production xatosi:** enrollment transfer va promotion PostgreSQL'da butunlay yiqilardi — `select_for_update()` nullable `plan` FK ustidagi LEFT OUTER JOIN bilan birga ishlatilgan (`FOR UPDATE cannot be applied to the nullable side of an outer join`). Tuzatildi (`of=("self",)`) va SQLite'da ham ushlaydigan regressiya testi qo'shildi.
 - **Evidence (A1a/deps, 2026-08-15):** gate ishga tushganda topilgan 19 paket / 93 advisory o'sha kuni yopildi. 20 paket ko'tarildi — Django `6.0.2 → 6.0.8`, cryptography `46 → 50`, pyOpenSSL `25 → 26`, Twisted `25.5 → 26.4`, aiohttp `3.13.3 → 3.14.3` (u bilan birga aiogram `3.26 → 3.30`, chunki eskisi `aiohttp<3.14` talab qilardi), pillow, requests, urllib3 va boshqalar. Django 6.1 mavjud, ammo ataylab **olinmadi**: bu xavfsizlik patchi, framework migratsiyasi emas. Suite 689/689 (SQLite va PostgreSQL), `pip check` toza, migration drift yo'q. Reyestr endi bo'sh — har qanday yangi advisory darhol qizil.
-- **A1b — `HOLD`:** public hosting, managed PostgreSQL/Valkey/object storage, webhook process va production restore. DigitalOcean majburiy target emas; owner productionni qayta ochganda vendor tanlanadi.
+- **A1b — keyingi dalil:** owner 2026-09-10 da AWSni tanlagan; 2026-09-26 [R2 texnik rollout](../frontend-v1/R2-READY-V1-AWS.md) deploy va isolated DB/media restore'ni qayd etgan. Oldingi “vendor tanlanmagan/deploy yo'q” holati tarixiy. To'liq production GO, R2da ochiq qolgan xizmatlar va yangi kod relizi alohida; DigitalOcean HOLD saqlanadi.
 - **Acceptance:** local profile remote xizmatga jim o'tmaydi; test Notification → outbox `sent`; checks/migration/static; isolated local restore. Production acceptance A1b admissionidan keyin alohida.
 - **Faza:** R1.
 
 ### A2. Azure Control Center v0 — `IMPLEMENTED/TESTED`, `L`
 
+- **2026-10-13 chegara:** bu poydevor implementatsiyasi, to'liq A2 acceptance emas. `aicontrol/admin.py::AISettingsAdmin.save_model` faqat `updated_by`ni yozadi; `core/views.py::backoffice_ai_control`ning `save_settings` yo'li ham sozlamani bevosita saqlaydi. Majburiy sabab, tasdiq va `SystemAuditEvent` yo'li ularga hali qo'shilmagan. A9 quality/cost gate'i bu alohida mutation qarzini yopmaydi. Release writer esa endi mavjud: `core/management/commands/record_release.py`, R2 relizida ishlatilgani qayd etilgan; pastdagi avgust yozuvlari tarixiy.
 - **Outcome:** Azurbek bitta joydan policy, health, queues, quality, cost va release holatini boshqaradi.
 - **Canonical owner:** mavjud backoffice + `aicontrol` kengaytmasi; yangi parallel admin subsystem yo'q.
 - **Scope:** `/backoffice/control/`; owner-only; capability registry; effective config; feature flags/kill switches; queue/worker health; audit va release stoplight. Chuqur analytics v0 scope'ida emas.
@@ -92,7 +102,7 @@
 - **2026-09-03 Mini App parity:** `bot/test_miniapp_parity.py` — Mini App uchinchi adapter sifatida shartnomaga qo'shildi. Nuqson topilmadi: `telegram_miniapp` bayrog'i imtiyoz emas, sessiya web bilan bir xil javob beradi va deaktivatsiya qilingan hisob sessiya olmaydi. Nazorat yugurishida bayroq qulfni ochadigan qilinganda 3 test yiqildi, ya'ni shartnoma haqiqatan qulflangan.
 - **2026-09-10 A3b owner admission — Classbook:** oddiy quiz emas, 10 deterministic mashq turi (single/multiple choice, true/false, short answer, fill blank, matching, ordering, categorization, unscramble, poll); versionlangan exercise snapshot va server-side answer key; `ActivityRun`/`StudentResponse`; realtime Channels + HTTP polling fallback; tezlik bonusi va 50 learner leaderboard. Mavjud `TelegramLessonSession`/`CheckIn`, canonical attendance/XP, lesson release va `Notification`→DM oqimlari qayta ishlatiladi. Guruh xabarlari alohida lease/retry outboxda, ammo o'sha Telegram worker va Control Center orqali ishlaydi. O'qituvchi va o'quvchi uchun 390px responsive yuzalar, private media, alohida natija paneli va CSV eksport mavjud.
 - **A3b acceptance:** 50 javob duplicate'siz grade/rank; PostgreSQL real parallel test; answer key/score reveal'dan oldin chiqmaydi; teacher default-deny va socket revocation; web `/dars` adapter parity; worker group delivery smoke; start/finish idempotency; real Telegram guruh + Android/iOS/desktop owner sign-off.
-- **Qolgan scope:** PR CI'dagi PostgreSQL parallel gate va ownerning real (yoki demo) cohort bilan Telegram/Mini App boshdan-oxir o'tishi. Avtomat E2E bu o'tishning o'rnini bosmaydi: u kodni tekshiradi, jonli dars kunini emas.
+- **Tasdiqlangan concurrency:** PostgreSQL 50-parallel gate `classbook/test_load.py` bilan CI'da yopilgan; 2026-09-10 marinebook qaydi va `.github/workflows/ci.yml`dagi PostgreSQL full suite shu dalilni tutashtiradi. **Qolgan scope:** real (yoki demo) cohort bilan Telegram/Mini App, Android/iOS/desktop owner sign-off. R2 synthetic HTTPS Classbook smoke'i ham real jonli dars va Telegram yetkazish qabuli o'rnini bosmaydi.
 - **Faza:** R2.
 
 ### A4. Acquisition, payment va entitlement — `IN PROGRESS`, `M contract + L adapters`

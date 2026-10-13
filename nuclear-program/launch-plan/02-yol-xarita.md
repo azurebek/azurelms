@@ -1,6 +1,10 @@
 # 02 — Yo'l xaritasi: 14-avgust → 30-sentyabr
 
-*Rebaseline: 2026-09-10. AzureLMS hozir local/pre-production rejimida. 30-sentyabr maqsadi — Classbook bilan 50 kishigacha boshqariladigan guruhni ishga tushirish va production readiness qarori; public cloud deploy avtomatik scope emas. Fazalar sana bilan emas, exit kriteriy bilan yopiladi.*
+> **Joriy holat:** [loyiha holati va hujjatlar xaritasi](../README.md).
+> Quyidagi avgust–sentyabr kalendari ownerning 2026-09-10 dagi tarixiy rejasi.
+> Sanalar o'tgani qabul mezonlarini yopmaydi; bu sinxron yangi deadline belgilamaydi.
+
+*Owner rebaseline'i: 2026-09-10. O'sha rejaning 30-sentyabr maqsadi — Classbook bilan 50 kishigacha boshqariladigan guruhni ishga tushirish va production readiness qarori. AWS texnik rollout keyinchalik [2026-09-26 R2 dalilida](../frontend-v1/R2-READY-V1-AWS.md) qayd etilgan; bu barcha oqimlarning owner/production qabuli emas. Fazalar sana bilan emas, exit kriteriy bilan yopiladi.*
 
 ## Qat'iy qarorlar
 
@@ -11,23 +15,27 @@
 5. **Adapter state yaratmaydi:** Web, Telegram, Mini App, Messenger, Celery va AI canonical Django service/policy'ni chaqiradi.
 6. **Evidence-first:** `EVIDENCE READY` bo'lmagan capability marketing claim, premium entitlement yoki production `GO` bo'lmaydi.
 7. **Cloudsiz poydevor mumkin:** CI, `.dockerignore`, health/readiness, private-media policy, idempotency, budget ledger va browser QA vendor tanlamasdan quriladi.
-8. **Joriy P0 — Classbook:** A3b full suite/CI va real Telegram/Mini App sign-offdan o'tmaguncha A4 premium polish yoki yangi AI capability boshlanmaydi.
+8. **2026-09-10 owner P0 qarori — Classbook:** A3b full suite/CI va real Telegram/Mini App sign-offdan o'tmaguncha A4 premium polish yoki yangi AI capability boshlanmaydi. Bu tarixiy scope qarori; keyingi owner admissionlari va bajarilgan ishlar joriy holat sahifasida ajratiladi.
 
-## 2026-08-14 baseline
+## 2026-08-14 baseline va keyingi status aniqlashtirishlari
+
+2026-10-13 repo sinxroni: test sonlari quyida sanalangan tarixiy dalil;
+AWS haqidagi ma'lumot R2 release qaydi, yangi remote tekshiruv emas.
 
 | Soha | Tasdiqlangan holat | Ochiq gate |
 |---|---|---|
-| Repo/runtime | 2026-08-14 baseline: post-A8 offline full suite 527/527, streak focused 15/15 va audit 10/10 GREEN; latest recorded suite — 2026-09-10 da `main` (`da07d0c`) ustida 1411/1411 (skipped=30) | Local GREEN production readiness emas; production gate alohida |
+| Repo/runtime | Tarixiy dalillar: 2026-08-14 offline full suite 527/527; 2026-09-10 `main` (`da07d0c`) ustida 1411 test (skipped=30). Yangi dalil [B2.6](../frontend-v1/BACKOFFICE-02-STAGE-6.md) va marinebookda | Local GREEN production readiness emas; production gate alohida |
 | DigitalOcean | Credential/service o'chiq; `AI_ALLOW_DIGITALOCEAN=False` provider yaratishdan oldin fail-closed | Future production uchun alohida owner admissioni va provider qayta bahosi |
 | Gemini | `AI_CHAT_PROVIDER=gemini`; allowlistdagi 1 primary + max 1 fallback; SDK retry off; prompt/output/timeout/deadline cap | External-quota monitoring, K11 caller lease/claim va production admission |
 | AI usage | Per-user allowance'dan alohida global daily request/token + minute request reservation ledgeri; staff, chat/search, SmartForm, guest va embedding/reindex qamralgan; SQLite va CI PostgreSQL prooflari yopilgan | Alohida OS-process takrori; guest/SmartForm/lesson-reindex caller-specific lease/counter risklari (K11) |
 | A0 | A0a + A0b kod/testda: Telegram auth/webhook/staff, private media/upload, teacher default-deny, socket recheck va CSP v4 | `EVIDENCE READY` yakuniy labeli owner qarorida |
-| A1 | Procfile, CI, `.dockerignore`, `/healthz`+`/readyz`, backup/restore va outbox lease mavjud (A1a bajarildi) | cloud deploy `HOLD`; production restore proofi A1b bilan |
-| A2 | Control Center mutationlari, flags, append-only audit, heartbeat, release, backup/email/memory probe'lari va AI cost ledgeri bor | A9 AI quality/cost release gate |
-| Telegram | F0–F9, outbox, Mini App foundation | Public webhook/outbox process va real prod WebView — `HOLD` |
-| Classbook | session/activity/response contracti, 10 mashq turi, realtime+poll fallback va group outbox `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | PostgreSQL 50-parallel CI, real Telegram/Mini App sign-off |
+| A1 | A1a kodda; AWS rollout va isolated restore R2 qaydida bajarilgan | R2 dagi ochiq operatsion chegaralar va yangi kod uchun alohida rollout/GO |
+| A2 | Control Center mutationlari, flags, append-only audit, heartbeat, release, backup/email/memory probe'lari va AI cost ledgeri bor | A9 hamda eski AI sozlama yuzalarining sabab/tasdiq/audit retrofit qarzi |
+| Telegram | Outbox process, retry/dead-letter va Mini App kodi bor; R2 outbox processi ishlayotganini qayd etgan | Haqiqiy Telegram delivery/webhook va WebView acceptance alohida |
+| Classbook | session/activity/response, 10 mashq turi, realtime+poll fallback va group outbox kodda; PostgreSQL 50-parallel CI gate yopilgan (`classbook/test_load.py`) | Real Telegram/Mini App va Android/iOS/desktop owner sign-off |
 | Landing | Admin-controlled landing + backoffice Bosqich 1/TOC | Repeatable CRUD/reorder va preview polish |
 | SIT | S1 portal, S3 advisor va S4 backoffice kodda | S2 `SITInquiry`; real source hygiene |
+| Backoffice | B2.1–B2.6 lokal tayyor; [o'nta yakuniy ssenariy dalili](../frontend-v1/BACKOFFICE-02-STAGE-6.md) | Owner qabuli, native telefon/zoom/AT va yangi AWS rollout alohida |
 
 ## Umumiy manzara
 
@@ -38,7 +46,9 @@ AI BUDGET    →   SAFETY/CONTROL  →  GOLDEN FLOW    →  CLASSBOOK      →  
 truth + caps      local CI/media     mobile parity      50 learner live   evidence + fallback
 ```
 
-Oldingi 2026-07-22 rejasidagi `P0–P5` tarixiy rebaseline sifatida Git tarixida qoladi. Joriy bajarish tartibi faqat quyidagi `R0–R4` bo'yicha.
+Oldingi 2026-07-22 rejasidagi `P0–P5` Git tarixida qoladi. Quyidagi `R0–R5`
+ownerning tarixiy launch tartibi va exit mezonlarini saqlaydi; ayni task
+navbati joriy holat sahifasi va keyingi owner admissionidan olinadi.
 
 ---
 

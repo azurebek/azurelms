@@ -4,7 +4,13 @@
 > Branch: `claude/telegram-bot` (ish `main` da; branch 2026-09-10 da o'chirilgan)
 > Maqsad: bot — kompyuter ishlatmaydigan auditoriya uchun platformaning to'liq interfeysi.
 
-> **Rebaseline 2026-08-14:** F0–F9 va Mini App foundation main'da. DigitalOcean/public production `HOLD`; joriy ish Telegram polling + local app. F10 production gate vendor-neutral bo'lib, owner productionni qayta ochmaguncha active task emas. Gemini bot AI uchun ham umumiy free-tier budgetdan tashqarida emas.
+> **Tarixiy rebaseline — 2026-08-14:** F0–F9 va Mini App foundation main'da edi;
+> o'sha paytda DigitalOcean/public production `HOLD`, ish Telegram polling +
+> local app bilan chegaralangan. Bu eski deployment holati bugungi global
+> taqiq emas: keyingi AWS reliz dalili va ochiq chegaralar [README.md](README.md)da.
+> DigitalOcean adapterining alohida admission talabi saqlanadi. Gemini bot AI
+> uchun ham umumiy free-tier budgetdan tashqarida emas. Pastdagi sanali
+> fazalar bot contracti va tarixi bo'lib, joriy task navbati emas.
 
 ## Vizyon (Azurbek talabi)
 
@@ -67,9 +73,14 @@ F6/F7 admin broadcast va AI controls, F8 dars yetkazish hamda F9 assignment/quiz
 > Maqsad (Azurbek, 2026-07-13): saytga kirolmaydigan foydalanuvchi uchun bot
 > platformaning TO'LIQ o'rnini bossin — nafaqat kuzatuv, balki O'QISH ham.
 
-## Hozirgi kamchilik xaritasi
+## Bot qamrovi va ochiq qabul chegaralari
 
-F8/F9 bilan darsni ko'rish, assignment topshirish va quiz botda ishlaydi. Hali to'liq bo'lmagan yadro: exam/certificate, teacher interactive grading/reminder, public webhook/outbox process va production WebView. `/baholash` queue bor, lekin F12ning to'liq workflow'i emas.
+F8/F9 bilan darsni ko'rish, assignment topshirish va quiz botda ishlaydi.
+Outbox alohida processi va retry/dead-letter kodda; [R2](frontend-v1/R2-READY-V1-AWS.md)
+uning running holatini qayd etgan. Haqiqiy Telegram delivery/webhook va
+production WebView qabuli alohida ochiq. Botdagi exam/certificate va teacher
+interactive grading/reminder to'liq oqimlari pastdagi F11/F12 chegaralarida;
+`/baholash` queue borligi F12ning to'liq workflow'i degani emas.
 
 Model-tayyorlik tekshirildi: `Lesson.video_url` (YouTube unlisted havola),
 `Lesson.content` (HTML → matnga o'giriladi), Quiz=MCQ (inline tugmalarga ideal),
@@ -87,7 +98,7 @@ ovozli xabar) — hammasi chat-interfeysga yotadi.
 | **F12** | **O'qituvchi to'liq ish stoli** | Queue mavjud; interactive grade+comment, e'lon va reminder qolgan | `PARTIAL / NEXT` |
 | **F13** | **Profil/reyting/polish** | Yordam/Mini App entry primitive'lari bor; leaderboard/profile/E2E qolgan | `PARTIAL / NEXT` |
 
-**Joriy tartib:** `A8 Gemini budget → A0b/A1a → core flow bilan birga local F0–F9 parity/phone QA → owner tanlagan F11 yoki F12`. F10 faqat production `HOLD` ochilganda; bot feature tayyorligi cloud deployga o'z-o'zidan ruxsat bermaydi.
+**Tarixiy ketma-ketlik:** `A8 Gemini budget → A0b/A1a → core flow bilan birga local F0–F9 parity/phone QA → owner tanlagan F11 yoki F12`. Keyingi F10 admissioni yuqorida qayd etilgan; ayni ish holati [yagona kirish sahifasida](README.md). Bot feature tayyorligi yangi deployga o'z-o'zidan ruxsat bermaydi.
 
 ## Halol chegaralar (qabul qilingan)
 
