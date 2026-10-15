@@ -16,6 +16,39 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-15 [Codex]: PUBLIC-01 — anonymous/public sirt tadqiqoti va roadmap
+
+Owner so‘rovi bo‘yicha [PUBLIC-01](frontend-v1/PUBLIC-REFORM-PLAN.md)
+tayyorlandi va joriy holat, frontend, launch hamda SIT ownership hujjatlariga
+bog‘landi. Route/security/privacy va UX/funnel auditi repository bo‘yicha,
+accessibility/auth/SEO/performance/KVKK/pricing chegaralari rasmiy manbalar
+bo‘yicha tekshirildi; yakuniy implementation-readiness review oltita aniqlik
+tuzatilgach **CLEAN** deb yopildi. **Runtime implementatsiyasi boshlanmagan;
+birinchi kesim PUB1.0a.**
+
+- Branch: `codex/public-radical-reform-plan`; audit tayanchi `main`dagi
+  `72e82e0`; reja commit **`0757f71`**.
+- To‘qqiz bosqich, 36 reviewable slice va 28 E2E gate: renderer-independent
+  rich-content/URL containment; barcha account-creation adapterida registration
+  gate; auth abuse, Telegram safe methods va reset delivery; write-free domain
+  GET; Blog detail/clap tracking; route/meta/cache; truthful landing/claim;
+  canonical offer/signed intent; legal/cookie/certificate privacy; Blog/SIT
+  adapterlari; system state, WCAG/performance, measurement va staged rollout.
+- Muhim chegaralar: Django reset/CSRF security bookkeeping named allowlistda;
+  A4 renewal/cancellation/refund contracti bermasa pricing sale readiness red;
+  landing writer B3.5niki, SIT truth SIT-01niki va `SIT1.7a` shared PUBLIC
+  primitive’larini reuse qiladi; rad etilgan Blog domain reformasi qayta
+  ochilmadi.
+- Safe env testlari: `manage.py check` — **0 issue**;
+  `manage.py makemigrations --check` — **No changes detected**; focused
+  `frontend.test_public_v1`, auth/registration/Telegram/certificate/checkout
+  suite’i — **88/88 PASS**; `node --test tests/frontend_v1/*.test.mjs` —
+  **172/172 PASS**. Docs verifier — **101 hujjat, 799 relative link, 36 anchor,
+  missing0/warning0**; `git diff --check` PASS.
+- Runtime, DB/schema, flag, production, AWS, Gemini yoki Telegramga mutation
+  bo‘lmadi. Owner/legal qarorlari, real content/offer, native-device/AT,
+  production RUM va rollout bajarilgan deb da’vo qilinmaydi.
+
 ## 2026-10-15 [Codex]: MESSENGER-01 — radikal islohot tadqiqoti va roadmap
 
 Owner so'rovi bo'yicha [MESSENGER-01](frontend-v1/MESSENGER-REFORM-PLAN.md)
