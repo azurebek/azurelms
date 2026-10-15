@@ -16,6 +16,49 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-15 [Codex]: BLOG-01 — Azure Journal islohoti tadqiqoti va roadmap
+
+Owner so‘rovi bo‘yicha [BLOG-01](frontend-v1/BLOG-REFORM-PLAN.md) tayyorlandi,
+umumiy holat va frontend indeksiga bog‘landi. Repository backend/security,
+public/studio UX hamda canonical integratsiyalar uch mustaqil read-only auditda
+tekshirildi; WCAG, OWASP, Google Search/CWV va language-reading patternlari bilan
+solishtirildi. **Reja tayyor; implementatsiya boshlanmagan va joriy queue
+o‘zgarmagan.** Owner Blog ishini alohida navbatga qo‘ysa birinchi kesim
+BLOG1.0a1.
+
+- Branch: `codex/blog-radical-reform-plan`; reja commit **`dc1402a`**;
+  source audit tayanchi `66344f0`.
+- To‘qqiz bosqich va 17 reviewable kesim: sanitizer/preview xavfsizligi,
+  versionlangan editorial control plane, resumable backfill, qulay studiya,
+  discovery/SEO, accessible/no-JS reader, glossary/course bridge, community,
+  notification/outbox distribution, privacy-aware metrics va rollout.
+- 14 yakuniy ssenariy; draft/live/scheduled version ownershipi, review approval,
+  CAS/idempotency, permission mapping, state/flag matrix, PostgreSQL race,
+  migration/rollback, native/AT/CWV va owner 5/5 usability mezoni aniq.
+- Muhim source topilmalar: legacy raw `|safe` va keng iframe sanitizeri sabab
+  stored-XSS xavfi; foreign-staff preview; direct/auditsiz writers; clap/like
+  race va counter drift; malformed reply 500 yo‘li; imzosiz uzun visitor cookie;
+  CASCADE data loss; GETdagi settings write; renderer/no-JS/SEO parity qarzi.
+  Bu docs task topilmalarni runtime’da tuzatgan degani emas.
+- Global vocabulary/SRS modeli bor deb taxmin qilinmadi. Blog faqat post-scoped
+  author-approved glossaryni rejalaydi; CEFR shared taxonomy qarorigacha
+  decision-gated. Blog read/bookmark XP, streak, mastery yoki LessonProgress
+  yozmaydi. AI BLOG-X1 suggestion-only experiment; A8 va A9 PASSsiz OFF.
+- Tekshiruv: `git diff --cached --check` PASS;
+  `venv/Scripts/python.exe .tools/docs-sync/verify_docs.py` — 99 hujjat,
+  734 relative link, 32 anchor, missing0. App/Node/browser testlari qayta
+  yugurtirilmadi: docs-only.
+- DB/schema/flag/provider/server/deploy o‘zgarmadi. B3.1a, CB1.1a va launch
+  navbati shu reja bilan almashtirilmadi; xavfsizlik maintenance’ini oldinga
+  olish ham ownerning alohida aniq task qarorini talab qiladi.
+- PR193 review tuzatishi: schedule vaqti immutable versiondan `BlogPost`dagi
+  atomik/auditli `scheduled_version`+`scheduled_for` pairga ajratildi; public
+  fallback GET repair queuega yozmaydi, repair save/backfill/reconciliationda
+  bounded `reason_code` bilan deduplicate qilinadi; due promotion original
+  effective sanani receipt/datelarga ko‘chiradi. Rollout flaglari default-OFF,
+  mavjud community write compatibility kill-switchi esa explicit default-ON
+  exception bo‘ldi va routine rollbackda ON qoladi.
+
 ## 2026-10-13 [Codex]: CLASSBOOK-01 — radikal islohotning sakkiz bosqichli rejasi
 
 Owner so‘rovi bo‘yicha [Classbook rejasi](frontend-v1/CLASSBOOK-REFORM-PLAN.md)
