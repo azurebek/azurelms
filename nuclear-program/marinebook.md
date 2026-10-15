@@ -48,7 +48,7 @@ boshlanmagan; birinchi kesim MSG1.0a1.**
   `makemigrations --check --dry-run` — **No changes**;
   `manage.py test messenger --noinput --verbosity 1` — **175/175 PASS**;
   `node --test tests/frontend_v1/*.test.mjs` — **172/172 PASS**.
-  Docs verifier — **100 hujjat, 790 relative link, 36 anchor,
+  Docs verifier — **100 hujjat, 791 relative link, 36 anchor,
   missing0/warning0**; staged `git diff --check` PASS.
 - DB/schema/flag/provider/server/deploy o'zgarmadi. Production Redis/PostgreSQL,
   real Gemini/Telegram va native-device qabuli bajarilgan deb da'vo qilinmaydi;
