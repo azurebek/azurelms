@@ -1,5 +1,14 @@
 # Frontend V1 — prototipdan ishlaydigan platformaga
 
+**SIT rejasi — 2026-10-15:** [SIT-01](SIT-REFORM-PLAN.md) “Turkiyada o‘qish”
+portalini ishonchli program-first katalog, scoped source/freshness,
+versionlangan owner studiyasi, canonical yordam so‘rovi, deterministic advisor
+va accessible/SEO-friendly decision workspace’ga aylantirishni rejalashtiradi.
+Code/UX/AI/security auditlari, to‘qqiz bosqich va 27 reviewable kesim yozildi.
+Implementatsiya boshlanmagan; birinchi kesim SIT1.0a — blocked fee/dead CTA,
+unsafe generic AI claim, rich-content va preview containmenti. Bu reja
+core/B3/CLASSBOOK/A8→A9 active navbatini o‘zi almashtirmaydi.
+
 **Blog rejasi — 2026-10-15:** [BLOG-01](BLOG-REFORM-PLAN.md) Azure Journal’ni
 xavfsiz editorial control plane, texnik bilimsiz studiya va o‘quvchiga qulay
 public o‘qish yuzasiga aylantirishni to‘qqiz bosqichda rejalashtiradi. Source,
