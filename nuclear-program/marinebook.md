@@ -65,13 +65,15 @@ runtime implementatsiyasi boshlanmagan.** Birinchi kesim SIT1.0a.
 
 ## 2026-10-15 [Codex]: BLOG-01 — Azure Journal islohoti tadqiqoti va roadmap
 
-Owner so‘rovi bo‘yicha [BLOG-01](frontend-v1/BLOG-REFORM-PLAN.md) tayyorlandi,
+Owner so‘rovi bo‘yicha BLOG-01 (`frontend-v1/BLOG-REFORM-PLAN.md`) tayyorlangan
+edi; 2026-10-15da owner ma’qullamagani sabab hujjat keyin repositorydan olib
+tashlandi. Ushbu yozuv faqat tarixiy dalil sifatida saqlanadi. Dastlab reja
 umumiy holat va frontend indeksiga bog‘landi. Repository backend/security,
 public/studio UX hamda canonical integratsiyalar uch mustaqil read-only auditda
 tekshirildi; WCAG, OWASP, Google Search/CWV va language-reading patternlari bilan
-solishtirildi. **Reja tayyor; implementatsiya boshlanmagan va joriy queue
-o‘zgarmagan.** Owner Blog ishini alohida navbatga qo‘ysa birinchi kesim
-BLOG1.0a1.
+solishtirildi. **Reja owner tomonidan rad etilgan va repositorydan olib
+tashlangan; implementatsiya boshlanmagan.** Bu tarixiy yozuv joriy task navbati
+yoki qayta ishlatish uchun tasdiq emas.
 
 - Branch: `codex/blog-radical-reform-plan`; reja commit **`dc1402a`**;
   source audit tayanchi `66344f0`.

@@ -501,8 +501,10 @@ faktni to‘g‘ri qilmaydi; scope mismatch readinessni o‘tkazmaydi.
 #### Guide va announcement
 
 `KnowledgeArticle` domain sifatida hozircha SITda qoladi: uning source/freshness
-semantikasi umumiy Journaldan farq qiladi. BLOG-01 bilan raw model merge
-qilinmaydi. Ikkalasi bitta strict rich-content policy engine’dan foydalanadi.
+semantikasi umumiy Journaldan farq qiladi. Umumiy Journal bilan raw model merge
+qilinmaydi. Shared strict rich-content policy engine ishlatilsa ham domain
+wrapper va permissionlar alohida qoladi; bu rad etilgan BLOG-01 rejasiga
+dependency emas.
 
 - mavjud `KnowledgeArticle` stable identity bo‘lib qoladi; unga nullable
   effective/scheduled pointerlar va immutable `KnowledgeArticleVersion`
@@ -515,11 +517,12 @@ qilinmaydi. Ikkalasi bitta strict rich-content policy engine’dan foydalanadi.
 - future schedule GET vaqtida DB write qilmaydi; due promotion worker/service
   idempotent, visibility esa time-aware selector bilan to‘g‘ri qoladi.
 
-BLOG1.0a1 yoki SIT1.0a qaysi biri oldin implement qilinsa,
-`core/rich_content_policy.py`dagi named `PUBLIC_EDITORIAL_V1` profilini o‘sha PR
-yaratadi; `sit/content_policy.py` va `blog/content_policy.py` yupqa domain
-wrapper bilan ayni profilni tanlaydi. Canonical engine/profile ownershipi
-`core`; ikki allowlist fork qilinmaydi. Mavjud global
+SIT1.0a implement qilinsa, `core/rich_content_policy.py`dagi named
+`PUBLIC_EDITORIAL_V1` profilini o‘sha PR yaratadi va `sit/content_policy.py`
+yupqa domain wrapper bilan uni tanlaydi. Blog consumerini ko‘chirish rad etilgan
+BLOG-01dan meros majburiyat emas; faqat alohida owner-approved task va parity
+audit bilan. Canonical engine/profile ownershipi `core`; parallel allowlist fork
+qilinmaydi. Mavjud global
 `frontend.templatetags.bleach_tags.sanitize` va uning constantlari bu kesimda
 o‘zgarmaydi — course/exam/pricing/legal/help consumerlari alohida, to‘liq
 compatibility auditisiz yangi profilga ko‘chirilmaydi.
