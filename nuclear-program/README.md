@@ -4,7 +4,7 @@
 tafsilotni qayerdan topishni jamlaydi. AI agentlar avval [AGENTS.md](../AGENTS.md)
 va [ish qoidalarini](rules-for-agents.md) o‘qiydi.
 
-Oxirgi solishtirish: **2026-10-13**, kod tayanchi `main`dagi **`7cf1cae`**.
+Oxirgi solishtirish: **2026-10-15**, kod tayanchi `main`dagi **`66344f0`**.
 Bu sana va commit quyidagi holat qaydining chegarasi; keyingi ishda Git va
 yangi dalillar bilan yangilanadi. Tarixiy rejadagi checkbox yoki eski test
 soni o‘z-o‘zidan bugungi ishlar ro‘yxati hisoblanmaydi.
@@ -17,6 +17,7 @@ soni o‘z-o‘zidan bugungi ishlar ro‘yxati hisoblanmaydi.
 | Backoffice islohoti | Dastlabki olti bosqich, eski muharrirlarni soddalashtirish va **B2.1–B2.6 lokal texnik ishlari bajarilgan**. B2.6 [PR #189](https://github.com/azurebek/azurelms/pull/189) orqali `62dd358`ga qo‘shilgan; [uchta majburiy CI tekshiruvi](https://github.com/azurebek/azurelms/actions/runs/38443075952) muvaffaqiyatli. | [Yagona backoffice rejasi](frontend-v1/BACKOFFICE-REFORM-PLAN.md), [B2.6 dalili](frontend-v1/BACKOFFICE-02-STAGE-6.md) |
 | Keyingi backoffice bosqichi | **BACKOFFICE-03 rejalashtirildi, implementatsiya boshlanmagan.** Yetti bosqich: xavfsiz sozlamalar, exam qoralama/nashri, to‘liq exam muharriri, qayta foydalanish, ko‘rinadigan landing kontenti, qolgan dizayn consumerlari va texnik qabul/reliz paketi. Birinchi ish B3.1a; owner shaxsiy testi old shart emas. | [B3 qamrov va tugash mezonlari](frontend-v1/BACKOFFICE-REFORM-PLAN.md#backoffice-03) |
 | Classbook islohoti | **CLASSBOOK-01 rejalashtirildi, implementatsiya boshlanmagan.** Sakkiz bosqich: ishonchli session/tarix va kirish, kodsiz 10 tur muharriri, dars rejasi, ustoz boshqaruvi, o‘quvchi xonasi, hisobot/yordam, birgalikdagi sifat, reliz paketi. Keyingi Classbook ishi CB1.1a; B3 alohida saqlanadi. | [Classbook rejasi va audit](frontend-v1/CLASSBOOK-REFORM-PLAN.md) |
+| Blog islohoti | **BLOG-01 rejalashtirildi, implementatsiya boshlanmagan.** Azure Journal uchun xavfsiz rich content va preview, canonical editorial lifecycle/revision, qulay studiya, public discovery/SEO, accessible reader, post glossary/course bridge, moderatsiya, distribution/metrics va rollout to‘qqiz bosqichda yozildi. Owner Blog ishini navbatga qo‘ysa birinchi kesim BLOG1.0a1. | [Blog tadqiqoti va roadmap](frontend-v1/BLOG-REFORM-PLAN.md) |
 | Lokal backoffice | B2.6 yakunida `8092` serverida avval yoqilgan beshta B2 gate ON saqlangan. Registrdagi default qiymatlar OFF. Bu qayd barcha muhitda funksiyalar yoqilganini anglatmaydi. | [Lokal yoqish chegarasi](frontend-v1/BACKOFFICE-LOCAL-ROLLOUT.md), [flag registri](../core/flags.py) |
 | AWS | **Oxirgi hujjatlashtirilgan reliz — 2026-09-26 R2, `8bb6b95`**, o‘sha tekshiruvda 19 ta V1 renderer flagi ON. Oktabrdagi B2 ishlarining serverga chiqarilgani shu dalildan kelib chiqmaydi. | [R2 reliz qaydi](frontend-v1/R2-READY-V1-AWS.md), [deploy yo‘riqnomasi](../deploy/README.md) |
 | Dizayn prototipi va haqiqiy ilova | DESIGN-01 ustaxonasi va uning dalillari bor; haqiqiy Django backoffice dizayn oqimi alohida qurilgan. Prototip, kodga ko‘chirish, lokal test va owner qabuli turli holatlar. | [Frontend indeksi](frontend-v1/README.md), [ko‘chirish ledgeri](frontend-v1/PORT-LEDGER.md), [DC6 qabuli](frontend-v1/DESIGN-01-DC6-ACCEPTANCE.md) |
@@ -41,8 +42,11 @@ har bir imkoniyatning chegarasini ko‘rsatadi.
 
 Backoffice bo‘yicha keyingi qamrov [B3 rejasida](frontend-v1/BACKOFFICE-REFORM-PLAN.md#backoffice-03),
 jonli dars tayyorlash va olib borish islohoti [CLASSBOOK-01da](frontend-v1/CLASSBOOK-REFORM-PLAN.md)
+va Azure Journal islohoti [BLOG-01da](frontend-v1/BLOG-REFORM-PLAN.md)
 ajratilgan. Reja yozilishi ularning bajarilganini anglatmaydi; keng versioning,
-public UX va production masalalari o‘z chegaralarida qoladi.
+public UX va production masalalari o‘z chegaralarida qoladi. BLOG-01 boshqa
+rejalarning owner belgilagan navbatini avtomatik o‘zgartirmaydi; BLOG1.0dagi
+xavfsizlik topilmalari maintenance sifatida alohida baholanadi.
 
 - **Azurbekning shaxsiy foydalanish qabuli** keyinga qoldirilgan. Lokal
   texnik yakun uni bajarilgan deb belgilamaydi.
@@ -70,6 +74,7 @@ public UX va production masalalari o‘z chegaralarida qoladi.
 | Qachon nima bajarilgani, commit va test dalili | [marinebook.md](marinebook.md) — sanali tarix |
 | Backoffice, dizayn va frontend tafsilotlari | [Frontend indeksi](frontend-v1/README.md), [backoffice rejasi](frontend-v1/BACKOFFICE-REFORM-PLAN.md) |
 | Classbookning keyingi islohoti | [CLASSBOOK-01](frontend-v1/CLASSBOOK-REFORM-PLAN.md) — audit, foydalanuvchi yo‘llari, sakkiz bosqich va qabul; [I9a](frontend-v1/I9A-PREPARATION.md)/[I9b](frontend-v1/I9B-LIVE.md) — oldingi port dalillari |
+| Blog/Azure Journal islohoti | [BLOG-01](frontend-v1/BLOG-REFORM-PLAN.md) — code/UX/security tadqiqoti, canonical schema/service, 17 implementatsiya kesimi, 14 qabul ssenariysi va rollback |
 | Owner strategiyasi, admission va qolgan launch ishlari | [Launch rejasi](launch-plan/README.md) — eski jadval yangi deadline emas |
 | Tarif va to‘lov shartlari | [Pricing ledgeri](pricing-packages-plan.md) |
 | Telegram va landing bo‘yicha dastlabki shartlar | [Telegram rejasi](telegram-bot-plan.md), [landing rejasi](landing-editor-plan.md) — sanali qismlarni joriy kod bilan birga o‘qing |
