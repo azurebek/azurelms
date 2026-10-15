@@ -16,7 +16,7 @@
 6. **Istisno — `S. SIT`:** owner qarori bilan A-narvoniga parallel yuritiladi (1-qoidadan ozod). Uning slice'lari o'zaro ketma-ket boradi va A bandlarini to'xtatmaydi; narxi — owner vaqtining bo'linishi (`S-R1`).
 7. **Owner re-admissioni — 2026-09-10:** `A3b Classbook` — 50 learner uchun jonli mashq, avtomatik grading/leaderboard va bitta start/finish dars protsedurasi. A4 premium workflow hamda A6/A7/A9 yangi outcome scope'i Classbook closeoutigacha oldinga chiqmaydi. A5 real-device sign-off Classbook student/teacher oqimlarini ham qamraydi; keyingi owner admissionlari alohida qayd etiladi.
 
-### Status aniqlashtirishlari — 2026-10-13 repo sinxroni
+### Status aniqlashtirishlari — 2026-10-15 repo sinxroni
 
 AWS holati — [2026-09-26 R2 qaydi](../frontend-v1/R2-READY-V1-AWS.md);
 server bu hujjat sinxronida qayta tekshirilmagan. Dalilsiz backlog bandlari
@@ -32,7 +32,8 @@ yopilmadi, owner qabuli texnik implementatsiya bilan almashtirilmadi.
 | A3/A3b | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | oldingi canonical oqimlar va Classbook (live session/activity/response, turli mashqlar, Telegram group outbox, 50 learner gate'i) `main`da — PR #94, 2026-09-10 |
 | A4 | `ADMIT` | `IN PROGRESS` | payment foundation main'da, catalog/cohort lokal testlangan (#70); premium workflow/UI/rollout keyingi bosqichlar — [ledger](../pricing-packages-plan.md) |
 | A5 | `ADMIT` | `IMPLEMENTED/TESTED` | oltita texnik band ham yopildi (messenger, dars, imtihon, checkout, attendance, reconnect) + shell tap targetlari; **qolgani faqat owner'ning uch qurilmadagi sign-off'i** |
-| S1/S3/S4 | `— delivered` | `EVIDENCE READY` | portal, grounded advisor va owner backoffice kodda |
+| S1/S4 | `— delivered foundation` | `IMPLEMENTED/TESTED — REFORM BLOCKERS OPEN` | portal va owner backoffice kodi bor; currency/same-offering, scoped source/freshness, draft/live va writer/audit qarzlari [SIT-01](../frontend-v1/SIT-REFORM-PLAN.md) auditida ochiq |
+| S3 | `— delivered foundation` | `IMPLEMENTED/TESTED — LOCAL FOUNDATION; PUBLIC RELEASE BLOCKERS OPEN` | skill/tool kodi bor va joriy UI entry mavjud; real system-role, query-before-limit retrieval, citation/freshness, routing va A9 eval gate’i ochiq |
 | S2 | `NEXT` | `PLANNED` | canonical inquiry lifecycle yo'q |
 | A10 | `ADMIT` | `PLANNED` | AI Optimise — persona, suhbatlararo davomiylik; R5, owner qarori 2026-08-19 |
 | BACKOFFICE-02 | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | B2.1–B2.6 lokal tayyor; [yakuniy dalil](../frontend-v1/BACKOFFICE-02-STAGE-6.md). Owner/native/AT qabuli va yangi production rollout alohida |
@@ -216,40 +217,63 @@ yopilmadi, owner qabuli texnik implementatsiya bilan almashtirilmadi.
 3. **Canonical state:** yangi `sit` domeni. Katalog haqiqati — `University`/`UniversityFaculty`/`UniversityProgram` va yondosh ro'yxatlar; xabar haqiqati — `Announcement`; kontent — `KnowledgeArticle`. Yordam so'rovi lifecycle'i hali canonical emas (S2).
 4. **Joriy adapterlar:** public web (`/sit/`), Django admin, messenger handoff, `sit_advisor` va `/backoffice/sit/`. **Keyin:** S2 contextli handoff/lifecycle va zarur bo'lsa Telegram adapteri.
 5. **Owner yuki:** **oshadi** — katalogni dolzarb tutish va lead follow-up doimiy ish. Bu ataylab qabul qilingan savdo yuki, avtomatlashtirish bilan qoplanmaydi.
-6. **Flag/rollback:** `is_published` per-record gate; butun portalni o'chirish = `/sit/` route'ini olib qo'yish. Core LMS oqimlariga bog'liq emas, shuning uchun rollback izolyatsiyalangan.
+6. **Flag/rollback:** joriy kodda faqat `is_published` per-record gate bor va
+   portal-level safe kill switch yo‘q. Target additive flag/read fallback
+   contracti [SIT-01 §11](../frontend-v1/SIT-REFORM-PLAN.md#11-feature-flag-va-rollback)da;
+   route’ni olib tashlash routine rollback hisoblanmaydi.
 7. **Faza:** owner qarori bilan launch rejasidan oldin. Core A-narvoni to'xtamaydi, lekin owner vaqti bo'linadi (pastdagi risk).
 
-### S1. Data foundation va public portal — `EVIDENCE READY`, `L`
+### S1. Data foundation va public portal — `IMPLEMENTED/TESTED` foundation, `L`
 
 - **Outcome:** universitet, dastur, kontrakt, qabul holati va hujjat ma'lumoti bitta manbadan, filtrlanadigan public portalda.
 - **Canonical owner:** `sit` app modellari + `sit/selectors.py`.
 - **Adapterlar:** `/sit/`, `/sit/universities/`, `/sit/universities/<slug>/`, `/sit/guides/<slug>/`, Django admin.
 - **Evidence (2026-07-28, `58bcf50`):** `python manage.py test` — 443/443 OK (2026-07-29 mustaqil qayta yugurtirildi, o'sha natija); `check` — 0 issues; `makemigrations --check` — No changes; live `/sit/` real published data bilan render bo'ladi, console xato 0.
 - **Data integrity gate:** `is_published=True` uchun `source_url` va `last_verified_on` majburiy (`clean()`da). Vaqtga sezgir qabul/narx ma'lumoti manbasiz chiqmaydi. Migratsiya soxta universitet seed qilmaydi.
+- **2026-10-15 correction:** bu gate source scope/freshnessni, future sanani,
+  mixed-currency va same-offering filterini kafolatlamaydi. Public readiness
+  uchun [SIT1.0–SIT1.1](../frontend-v1/SIT-REFORM-PLAN.md#10-roadmap--review-qilinadigan-aniq-kesimlar)
+  ochiq; oldingi test dalili foundation tarixini saqlaydi, current release
+  evidence’iga teng emas.
 
 ### S2. Yordam so'rovi lifecycle — `PLANNED`, `M`
 
 - **Outcome:** yordam CTA bosgan real niyatli foydalanuvchi kuzatiladigan so'rovga aylanadi; owner DM oqimida yo'qotmaydi.
-- **Canonical state:** `SITInquiry` state machine (`yangi → bog'lanildi → jarayonda → yakunlandi/bekor`), universitet konteksti bilan.
+- **Canonical state:** [SIT-01](../frontend-v1/SIT-REFORM-PLAN.md#56-inquiry-contracti)
+  aniqlashtirgan `SITInquiry` state machine (`yangi → bog‘lanildi →
+  kvalifikatsiyalandi → jarayonda → yakunlandi/bekor`; spam terminal),
+  universitet/effective-version va optional dastur konteksti bilan.
 - **Adapterlar:** universitet sahifasi CTA (auth talab qiladi), messenger handoff, owner ro'yxati.
 - **Acceptance:** auth gate; duplicate/spam himoyasi; owner uchun holat ro'yxati; transition va permission testlari; hech qanday pipeline DM xotirasida qolmaydi.
 - **Ochiq:** jiddiylik to'lovi (pastda).
 
-### S3. SIT AI advisor — `EVIDENCE READY`, `M`
+### S3. SIT AI advisor — `IMPLEMENTED/TESTED — LOCAL FOUNDATION; PUBLIC RELEASE BLOCKERS OPEN`, `M`
 
 - **Outcome:** foydalanuvchi byudjet/til/daraja aytadi, faqat portaldagi tasdiqlangan ma'lumotdan tavsiya oladi, keyin ownerga yo'naltiriladi.
 - **Canonical owner:** mavjud AI engine + yangi `sit_advisor` skill va katalog retrieval tool. Yangi AI subsystem emas.
 - **Acceptance:** javob faqat `is_published` yozuvlardan; katalogda yo'q universitet/narx **taklif qilinmaydi**; tavsiya oxirida handoff; grounded support evalida A9 qoidalari qo'llanadi.
 - **Xavf:** AI viza/qabul kabi rasmiy masalada maslahat berayotgandek ko'rinishi. Javob doirasi qat'iy cheklanadi.
 - **Evidence (2026-07-29, `a43a654`):** deterministic `sit_catalog` retrieval, published-only selectors, bounded context va routing regressionlari; implementatsiya sessiyasida `python manage.py test sit ai messenger` 158/158, check 0.
+- **2026-10-15 correction:** bounded context hozir user mezonini DBga qo‘llamay,
+  birinchi 25 universitet/8 dasturdan prompt tuzadi; mixed currency va stale
+  factlar fail-open, SIT marketing misollarining bir qismi `general_chat`ga
+  tushadi, source citation va haqiqiy provider system-role yo‘q. A9 eval ham
+  PLANNED. Shuning uchun oldingi label public releasega yetmaydi; current gate
+  [SIT1.6](../frontend-v1/SIT-REFORM-PLAN.md#sit16--ai-advisor-v2).
 
-### S4. Owner workflow va real ma'lumot — `EVIDENCE READY` foundation, `M`
+### S4. Owner workflow va real ma'lumot — `IMPLEMENTED/TESTED` foundation, `M`
 
 - **Outcome:** owner katalogni Jazzmin admin'siz, dolzarblik nazorati bilan yuritadi.
 - **Scope:** `/backoffice/sit/` (landing editor pattern'ida), eskirgan yozuvlarni ko'rsatuvchi signal (`last_verified_on` bo'yicha), real universitet ma'lumotini faqat rasmiy manbadan kiritish.
 - **Acceptance:** owner-only gate; audit; nashr qilishdan oldin manba/sana majburiyligi UI'da ko'rinadi.
 - **Evidence (2026-07-29, `4cb3487`):** `/backoffice/sit/` dashboard, 90 kunlik stale signal, filter/editor/formset, preview, reason+confirmation+audit; implementatsiya sessiyasida full suite 453/453 va focused 42/42.
-- **Qolgan:** real universitet ma'lumoti owner tomonidan rasmiy manbadan kiritiladi; foundation `EVIDENCE READY`, data completeness emas.
+- **Qolgan:** real universitet ma'lumoti owner tomonidan rasmiy manbadan
+  kiritiladi; tarixiy foundation dalili bor, data completeness va public
+  release evidence’i yo‘q.
+- **2026-10-15 correction:** mutable draft/live row, last-write-wins, direct
+  admin writer, scoped evidence va immutable rollback hali yo‘q. Foundation
+  dalili saqlanadi; reform gate’i
+  [SIT1.0c–SIT1.4](../frontend-v1/SIT-REFORM-PLAN.md#sit10--containment-va-yagona-policy).
 
 ### Ochiq owner qarorlari
 
@@ -328,4 +352,7 @@ yopilmadi, owner qabuli texnik implementatsiya bilan almashtirilmadi.
 
 `A8 → A0b → A1a + A2 → A3/A4 contracts → A3/A4 adapters + A5 sign-off → shartli A6/A7 → A9 critical gate → A10 AI Optimise (R5)`. A1b production/cloud faqat owner `HOLD`ni ochganda. Agent branch prefiksi o'ziga mos; product authority va merge qarori Azurbekda qoladi. Ops, budget va mobile alohida oxirgi ish emas — har bandning release gate'i.
 
-Parallel SIT truth: `S1 + S4 + S3 (bajarildi) → S2 (keyingi)`. S2 A8 yoki core active slice'ni siqmaydi; bir sessiyada bittasiga tegiladi.
+Parallel SIT truth: `S1/S4 implemented foundation + S3 local foundation →
+SIT1.0 containment/policy → SIT1.1 version/source → S2 canonical inquiry`.
+To‘liq roadmap [SIT-01](../frontend-v1/SIT-REFORM-PLAN.md)da. SIT ishlari A8
+yoki core active slice’ni avtomatik siqmaydi; bir sessiyada bittasiga tegiladi.

@@ -72,7 +72,7 @@ shu SHA yoki konfiguratsiya hozir ham jonli degan yangi da'vo yo'q.
 | Telegram | Outbox process, retry/dead-letter va Mini App kodi mavjud; R2 outbox processi running bo'lganini qayd etadi | Real Telegram yetkazish, webhook va WebView qabuli R2 smoke bilan tasdiqlanmagan |
 | Classbook | `main`da (PR #94, 2026-09-10): canonical session/activity/response, 10 mashq turi, realtime+poll fallback va Telegram group outbox `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`. PostgreSQL 50-parallel gate yopildi — `classbook/test_load.py` CI `integration` ishida yashil | Real Telegram guruh / Mini App va Android/iOS/desktop owner sign-off |
 | Landing editor | Bosqich 1 + bo'lim navigatsiyasi bor | Repeatable ro'yxatlar faqat core gate'lardan keyin |
-| SIT | S1, S3 va S4 kodda; S2 yo'q | `SITInquiry` lifecycle; real data gigiyenasi |
+| SIT | S1/S4 implemented foundation; S3 local foundation, public entry mavjud va release blockerlar ochiq; S2 yo‘q | [SIT-01](../frontend-v1/SIT-REFORM-PLAN.md): avval containment/filter/source/version, keyin canonical `SITInquiry`, public decision tools va A9-gated advisor |
 | Backoffice | BACKOFFICE-01 va B2.1–B2.6 lokal implementatsiya/tekshiruvlari tugagan; [B2.6 yakuni](../frontend-v1/BACKOFFICE-02-STAGE-6.md) | Owner qabuli keyinga qoldirilgan; native telefon/zoom/AT va yangi AWS rollout alohida |
 
 ## Owner rebaseline ustuvorligi — 2026-09-10 tarixiy tartib

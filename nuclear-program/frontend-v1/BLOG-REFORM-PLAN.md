@@ -199,7 +199,8 @@ ko‘rinadi. Admin va V1 studiya ayni policy/service’dan chetlab o‘tmaydi.
 | Modul | Javobgarlik | Adapterlar |
 |---|---|---|
 | `blog/policy.py` | actor post/review/publish/moderate/settings scope’i | studio, admin, preview, task |
-| `blog/content_policy.py` | versionlangan sanitize, link/embed/media/heading policy; safe HTML + plain text + warninglar | form preview, save service, migration audit, renderer |
+| `core/rich_content_policy.py` | named `PUBLIC_EDITORIAL_V1` sanitize/link/embed/media/heading engine va policy; safe HTML + plain text + warninglar | Blog/SIT domain wrapperlari |
+| `blog/content_policy.py` | Blog adapteri; faqat named shared profilni tanlaydi, global bleach filterini almashtirmaydi | form preview, save service, migration audit, Blog renderer |
 | `blog/editorial_service.py` | draft save, review, publish/schedule, unpublish/archive, restore; transaction/CAS/audit | studio POST, ruxsatli admin action, scheduler |
 | `blog/selectors.py` | published list/detail, filters, related, studio queue; bounded/prefetched querylar | public web, sitemap/feed, studio |
 | `blog/engagement_service.py` | bookmark, clap, comment, like/report; rate limit, idempotency va counter | HTML/JSON endpoints |
@@ -429,7 +430,8 @@ qo‘shilmaydi.
 ### BLOG1.0 — xavfsizlik, baseline va mavjud haqiqatni birlashtirish
 
 **BLOG1.0a1 — owner Blog implementatsiyasini boshlasa birinchi kesim:**
-`content_policy.py` va malicious fixture corpus (script/event/style URL,
+`core/rich_content_policy.py`dagi named `PUBLIC_EDITORIAL_V1` profil,
+`blog/content_policy.py` wrapper va malicious fixture corpus (script/event/style URL,
 iframe, SVG/data URL, malformed HTML, duplicate ID, target/rel). Legacy va V1
 `|safe`/render-time farqini bitta safe projectionga ulash. Model maydoni hali
 bo‘lmasa selector property compatibility bridge; keyingi migrationda version
@@ -462,9 +464,11 @@ proxy privacy qarorigacha bounded compatibility yo‘lida.
   keyin. Allaqachon CASCADE bilan yo‘qolgan row backup/audit bo‘lmasa tiklanmaydi;
   yangi schema faqat kelajakdagi yo‘qotishni to‘xtatadi.
 
-**Tegiladigan joylar:** `blog/content_policy.py`, `blog/policy.py`, models/views,
-ikkala detail template, sanitizer filter, migration/backfill command, blog va
-frontend testlari.
+**Tegiladigan joylar:** `core/rich_content_policy.py`, `blog/content_policy.py`,
+`blog/policy.py`, models/views, ikkala detail template, migration/backfill
+command, blog va frontend testlari. Global
+`frontend.templatetags.bleach_tags.sanitize` va uning constantlari o‘zgarmaydi;
+uning course/exam/pricing/legal/help consumerlari bu slice qamroviga kirmaydi.
 
 **Tugashi:** bir xil post legacy/V1da bir xil safe semantic HTML beradi;
 malicious corpus executable node/URL/embed chiqarmaydi; unauthorized preview
