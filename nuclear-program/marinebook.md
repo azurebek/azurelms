@@ -48,6 +48,12 @@ runtime implementatsiyasi boshlanmagan.** Birinchi kesim SIT1.0a.
   inquiry outbox, privacy anonymization, SSRF-safe link checker va monotonic
   writer cutover. Shared rich-content policy ownershipi Blog rejasi bilan
   `core/rich_content_policy.py`ga tenglashtirildi.
+- PR194 review tuzatishi: schedule vaqti immutable versiondan stable
+  University’dagi constrained pointer+time pairga ko‘chirildi; due pair cancel/
+  rescheduledan oldin atomik promote qilinib `409 already_effective` qaytaradi.
+  Blog/SIT shared sanitizer named `PUBLIC_EDITORIAL_V1` profil va domain
+  wrapperlar bilan izolyatsiya qilindi; ko‘p boshqa app ishlatadigan global
+  `bleach_tags` filter/constantlari bu kesimda o‘zgarmaydi.
 - Test: safe env’da
   `venv\Scripts\python.exe manage.py test sit frontend.test_public_v1 --noinput --verbosity 1`
   — **43/43 PASS**, system check 0. Docs verifier — **100 hujjat, 747 relative

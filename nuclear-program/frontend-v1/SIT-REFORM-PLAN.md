@@ -384,7 +384,9 @@ Stable identity:
 
 - mavjud primary key va canonical slug saqlanadi;
 - `lifecycle_status = active|archived`;
-- nullable `effective_version`, `scheduled_version`;
+- nullable `effective_version`, `scheduled_version`, `scheduled_for`;
+- DB constraint: `scheduled_version` va `scheduled_for` ikkalasi birga `NULL`
+  yoki birga set; schedule vaqti immutable content version ichida emas;
 - `state_revision`, `archived_at/by`;
 - official identity uchun kerak bo‘lsa YÖK/owner-approved identifier;
 - legacy fieldlar backfill/cutover davomida read-only compatibility sifatida.
@@ -397,12 +399,13 @@ Stable identity:
 - `(university, version_number)` unique;
 - `state = draft|in_review|approved|scheduled|effective|retired`;
 - `based_on`, `created_by/at`, `updated_by/at`, `submitted_at`, `approved_by/at`,
-  `scheduled_for`, `published_by/at`, `retired_at`;
+  `published_by/at`, `retired_at`;
 - name/short name/city/location/type/profile/cover/order/featured kabi mutable
   public fieldlar;
 - sanitizer/policy version va readiness fingerprint;
 - bir university uchun ko‘pi bilan bitta mutable draft conditional constraint;
-- `in_review`dan boshlab row va child graph service tashqarisida immutable.
+- `in_review`dan boshlab content fieldlari va child graph immutable; `state` va
+  lifecycle timestamp metadata faqat editorial service orqali o‘zgaradi.
 
 Owner solo bo‘lsa `submit_and_publish` kompozit UI actioni mumkin, lekin service
 ichida review/publish invariantlari, reason, confirmation va audit bekor
@@ -513,8 +516,13 @@ qilinmaydi. Ikkalasi bitta strict rich-content policy engine’dan foydalanadi.
   idempotent, visibility esa time-aware selector bilan to‘g‘ri qoladi.
 
 BLOG1.0a1 yoki SIT1.0a qaysi biri oldin implement qilinsa,
-`core/rich_content_policy.py`ni o‘sha PR yaratadi; ikkinchi domen yupqa wrapper
-bilan reuse qiladi. Canonical ownership `core`; ikki allowlist fork qilinmaydi.
+`core/rich_content_policy.py`dagi named `PUBLIC_EDITORIAL_V1` profilini o‘sha PR
+yaratadi; `sit/content_policy.py` va `blog/content_policy.py` yupqa domain
+wrapper bilan ayni profilni tanlaydi. Canonical engine/profile ownershipi
+`core`; ikki allowlist fork qilinmaydi. Mavjud global
+`frontend.templatetags.bleach_tags.sanitize` va uning constantlari bu kesimda
+o‘zgarmaydi — course/exam/pricing/legal/help consumerlari alohida, to‘liq
+compatibility auditisiz yangi profilga ko‘chirilmaydi.
 
 ### 5.3 Freshness va public eligibility
 
@@ -588,8 +596,8 @@ AI ham valyutalarni solishtirmaydi.
 | in_review | request changes | draft | publisher | reason/audit |
 | in_review | approve | approved | publisher | source/freshness/security valid |
 | approved | publish now | effective | publisher | atomic pointer swap |
-| approved | schedule | scheduled | publisher | future datetime, single scheduled pointer |
-| scheduled | reschedule/cancel | scheduled/approved | publisher | stale operation rejected |
+| approved | schedule | scheduled | publisher | `University`da future datetime + single scheduled pointer pair |
+| scheduled | reschedule/cancel | scheduled/approved | publisher | faqat pair hali due emas; CAS/audit |
 | effective | unpublish/archive | retired | publisher | reason, safe public result |
 | retired/old effective | rollback | new effective operation | publisher | old immutable row edited emas |
 
@@ -598,13 +606,20 @@ Har mutation `select_for_update`, `expected_state_revision`, unique
 bilan bir transactionda. Ayni key+payload retry oldingi receiptni qaytaradi;
 ayni key+boshqa payload conflict. Audit yozilmasa mutation ham commit bo‘lmaydi.
 
-`effective_version(university, as_of)` workerga qaramaydi: scheduled pointer
-bor va `scheduled_for <= as_of` bo‘lsa due versionni read-only tarzda effective
-deb qaytaradi, aks holda current pointer. `promote_due` worker ayni service va
-operation receipt bilan pointerlarni housekeeping uchun atomik almashtiradi;
-kech ishlashi visible `published_at`ni surmaydi. GET pointer promote, audit yoki
-repair queue yozmaydi. Cancel/reschedule/publish race row lock va expected
-revision bilan bitta winnerga ega.
+`effective_version(university, as_of)` workerga qaramaydi: stable `University`
+schedule pairi bor va `scheduled_for <= as_of` bo‘lsa due versionni read-only
+tarzda effective deb qaytaradi, aks holda current pointer. `promote_due` worker
+ayni service va operation receipt bilan pointerlarni housekeeping uchun atomik
+almashtiradi; kech ishlashi visible `published_at`ni surmaydi — receipt va
+`published_at` original `scheduled_for`ni oladi. GET pointer promote, audit yoki
+repair queue yozmaydi.
+
+Har qanday cancel/reschedule/publish mutationi University rowini lock qilgach
+avval due pairni tekshiradi. `scheduled_for <= now` bo‘lsa shu transactionda
+`promote_due_locked()` bajariladi va cancel/reschedule `409 already_effective`
+receipt bilan rad etiladi; user ko‘rgan due content eski versionga qaytmaydi.
+Kelajak pairidagina CAS mutationi mumkin. Worker/manual/cancel race ayni lock va
+expected revision bilan bitta winnerga ega.
 
 ### 5.6 Inquiry contracti
 
@@ -1048,12 +1063,14 @@ kirmaydi. Keyingi band oldingisining DoD’iga suyanadi.
 
 **Tegiladigan joylar:** `sit/policy.py`, guide model/presentation bridge,
 `templates/sit/knowledge_detail.html`, V1 detail, university CTA templates,
-`core/rich_content_policy.py`; mavjud `frontend/templatetags/bleach_tags.py`
-faqat shu core policy’ga compatibility wrapper bo‘ladi, views/tests.
+`core/rich_content_policy.py`, `sit/content_policy.py`, views/tests. Mavjud
+`frontend/templatetags/bleach_tags.py`ga tegilmaydi; SIT renderer faqat named
+`PUBLIC_EDITORIAL_V1` wrapperini chaqiradi.
 
 **Test:** script/event/style/iframe/SVG/data URL/malformed HTML; ordinary
-staff/owner/anonymous preview; legacy/V1; flag ON/OFF; fee/tutor/AI CTA text va
-destination snapshot; AI provider call `0`.
+staff/owner/anonymous preview; legacy/V1; Blog/SIT shared-profile parity;
+existing global bleach filter output/constants import smoke; flag ON/OFF;
+fee/tutor/AI CTA text va destination snapshot; AI provider call `0`.
 
 **Tugashi:** executable markup0; draft leak0; blocked payment claim0; unsafe
 generic SIT AI claim/entry0; current published guide semantic text saqlanadi.
