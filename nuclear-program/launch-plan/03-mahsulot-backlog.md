@@ -323,7 +323,7 @@ yopilmadi, owner qabuli texnik implementatsiya bilan almashtirilmadi.
 | PWA install/offline | Defer | Responsive browser flow GREEN; install real outcome bersa |
 | DOCX reader | Defer | Writing flow va private upload policy stable |
 | XP iqtisodi/badge polish | Defer | Outcome eventlari canonical; abuse/idempotency testli |
-| Blog/home cleanup | Defer | Launch-critical emas |
+| Blog/Azure Journal reform | `ADMIT — post-launch`; [BLOG-01](../frontend-v1/BLOG-REFORM-PLAN.md) tayyor | Owner Blog executionini alohida navbatga qo‘yadi; birinchi kesim BLOG1.0a1. Launch-critical navbatni avtomatik almashtirmaydi |
 
 ---
 

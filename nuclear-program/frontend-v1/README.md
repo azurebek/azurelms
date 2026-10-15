@@ -20,6 +20,15 @@ Implementatsiya boshlanmagan; birinchi kesim SIT1.0a — blocked fee/dead CTA,
 unsafe generic AI claim, rich-content va preview containmenti. Bu reja
 core/B3/CLASSBOOK/A8→A9 active navbatini o‘zi almashtirmaydi.
 
+**Blog rejasi — 2026-10-15:** [BLOG-01](BLOG-REFORM-PLAN.md) Azure Journal’ni
+xavfsiz editorial control plane, texnik bilimsiz studiya va o‘quvchiga qulay
+public o‘qish yuzasiga aylantirishni to‘qqiz bosqichda rejalashtiradi. Source,
+UX va arxitektura auditlari, migration/service/permission contractlari,
+17 implementatsiya kesimi hamda 14 qabul ssenariysi yozildi. Implementatsiya
+boshlanmagan; owner Blog ishini navbatga qo‘ysa birinchi kesim BLOG1.0a1 —
+rich-content sanitizer va renderer parity. Bu reja B3/CLASSBOOK-01/A8→A9
+navbatini avtomatik o‘zgartirmaydi.
+
 **Classbook rejasi — 2026-10-13:** [CLASSBOOK-01](CLASSBOOK-REFORM-PLAN.md)
 tayyorlash → jonli dars → natija oqimini sakkiz bosqichda isloh qiladi.
 Source audit, sahifalar xaritasi, session/tarix himoyasi, kodsiz 10 tur
