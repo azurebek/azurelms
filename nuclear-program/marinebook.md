@@ -16,6 +16,52 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-15 [Codex]: DASHBOARD-01 — radikal islohot tadqiqoti va roadmap
+
+Owner so‘rovi bo‘yicha [DASHBOARD-01](frontend-v1/DASHBOARD-REFORM-PLAN.md)
+tayyorlandi va joriy holat, frontend qabul/port ledgeri hamda launch backlogiga
+bog‘landi. Learner, teacher, Mini App/Bot va existing Backoffice route/service
+oilalari source, test, data, permission, UX va performance darajasida audit
+qilindi. **Runtime implementatsiyasi boshlanmagan; keng reform `NEXT —
+post-launch`, birinchi kesim DASH1.0a.**
+
+- Branch: `codex/dashboard-radical-reform-plan`; audit tayanchi `main`dagi
+  `72e82e0`; reja/status commit **`2437138`**.
+- Sakkiz phase, 33 reviewable slice va 33 E2E gate; har slice goal, tegadigan
+  joylar, schema, test, exit, rollback va dependency bilan yozildi. 13 owner
+  qarori va besh exact usability persona alohida freeze qilindi.
+- Canonical contract: Dashboard system-of-record emas — typed, deep-immutable,
+  read-only projection. A4 payment, A2 health, A6 outcome, A7 Daily Coach,
+  Classbook, Messenger, SIT va AI state’ini qayta yaratmaydi; faqat owner qabul
+  qilgan versionlangan selectorni iste’mol qiladi.
+- Current A0b regression aniq ochildi: ordinary active staff legacy global
+  dashboard/users/chats orqali PII/message context, canonical receipt writer,
+  foreign receipt file va Bot global admin oqimlariga yetishi mumkin. DASH1.0a
+  affected release uchun stop-ship; Messenger body/snippet/email search esa
+  MSG1.0d/MSG-D13siz superuserga ham ochilmaydi.
+- Mini App gate: same-site CSRF+pre-auth nonce, Telegram HMAC, 16 KiB body,
+  TTL/skew/rate hard envelope, atomic one-time digest (`DB unique` yoki Redis
+  `NX EX`), crash recovery, bounded purge, absolute/idle session expiry va har
+  marked requestda actor/link/privilege recheck. External-browser handoff cookie
+  bor/yo‘q holatda safe login `next` bilan, URL bearer secretsiz ishlaydi.
+- Product truth: LessonProgress/Attendance alohida; foreign relation ikkala
+  canonical writerda side effectdan oldin reject; fabricated study hours/
+  recommendation va unknown→A1 yo‘q. Verification timestamp accounting revenue
+  emas; A4 policygacha faqat “tasdiqlangan to‘lovlar/cheklar”. Request-time RAG
+  full scan uziladi, dead hardcoded sparkline contexti o‘chiriladi.
+- Ikki mustaqil adversarial/implementability review yakunda **CLEAN**: 8 phase,
+  33 slice, 33 E2E, 13 decision; cross-domain ownership, admission, permission,
+  failure/rollback va weak-agent handoff tekshirildi.
+- Safe env tekshiruvlari: `manage.py check` — **0 issue**;
+  `makemigrations --check --dry-run` — **No changes**; Dashboard/teacher/
+  Backoffice/Mini App focused Django suite — **74/74 PASS**;
+  `node --test tests/frontend_v1/*.test.mjs` — **172/172 PASS**.
+  Docs verifier — **101 hujjat, 813 relative link, 40 anchor,
+  missing0/warning0**; staged `git diff --check` PASS.
+- DB/schema/flag/provider/server/deploy o‘zgarmadi; auditdagi P0lar runtime’da
+  tuzatildi deb da’vo qilinmaydi. DASH1.0 tartibi `a→b→c→d→e`; 1.1+ ishlar owner
+  execution admissionisiz boshlanmaydi.
+
 ## 2026-10-15 [Codex]: MESSENGER-01 — radikal islohot tadqiqoti va roadmap
 
 Owner so'rovi bo'yicha [MESSENGER-01](frontend-v1/MESSENGER-REFORM-PLAN.md)
