@@ -1,5 +1,16 @@
 # Frontend V1 — prototipdan ishlaydigan platformaga
 
+**Messenger rejasi — 2026-10-15:** [MESSENGER-01](MESSENGER-REFORM-PLAN.md)
+I4a/I4b presentation poydevorini saqlab, Messenger’ni xavfsiz va ishonchli
+yordam markaziga aylantirishni rejalashtiradi. Backend/realtime, human UX va
+AI/Telegram integratsiyalari uch mustaqil read-only auditda ko‘rildi; Origin/
+session/input containment, durable idempotency/sequence/outbox, canonical
+membership/unread, unified no-JS Inbox, attachment, teacher/support, private AI,
+notification, retention va rollout to‘qqiz bosqich/34 reviewable kesimda
+yozildi. Implementatsiya boshlanmagan; birinchi kesim MSG1.0a1. Bu reja I4a/I4b
+portini bajarilmagan demaydi va joriy core/B3/CLASSBOOK/A8→A9 navbatini o‘zi
+almashtirmaydi.
+
 **SIT rejasi — 2026-10-15:** [SIT-01](SIT-REFORM-PLAN.md) “Turkiyada o‘qish”
 portalini ishonchli program-first katalog, scoped source/freshness,
 versionlangan owner studiyasi, canonical yordam so‘rovi, deterministic advisor
@@ -8,15 +19,6 @@ Code/UX/AI/security auditlari, to‘qqiz bosqich va 27 reviewable kesim yozildi.
 Implementatsiya boshlanmagan; birinchi kesim SIT1.0a — blocked fee/dead CTA,
 unsafe generic AI claim, rich-content va preview containmenti. Bu reja
 core/B3/CLASSBOOK/A8→A9 active navbatini o‘zi almashtirmaydi.
-
-**Blog rejasi — 2026-10-15:** [BLOG-01](BLOG-REFORM-PLAN.md) Azure Journal’ni
-xavfsiz editorial control plane, texnik bilimsiz studiya va o‘quvchiga qulay
-public o‘qish yuzasiga aylantirishni to‘qqiz bosqichda rejalashtiradi. Source,
-UX va arxitektura auditlari, migration/service/permission contractlari,
-17 implementatsiya kesimi hamda 14 qabul ssenariysi yozildi. Implementatsiya
-boshlanmagan; owner Blog ishini navbatga qo‘ysa birinchi kesim BLOG1.0a1 —
-rich-content sanitizer va renderer parity. Bu reja B3/CLASSBOOK-01/A8→A9
-navbatini avtomatik o‘zgartirmaydi.
 
 **Classbook rejasi — 2026-10-13:** [CLASSBOOK-01](CLASSBOOK-REFORM-PLAN.md)
 tayyorlash → jonli dars → natija oqimini sakkiz bosqichda isloh qiladi.
@@ -284,7 +286,9 @@ qabuli, AI relizi va I5ning qolgan qismlari–I9 ochiq.
 - 180 action va 843 route-state **registrlangan**; bu sonlar real integratsiya
   tayyorligi yoki qurilmalarda 100% verifikatsiya degani emas.
 - Messenger B alohida tasdiqlangan layout. Uning lokal demo controlleri
-  haqiqiy xabar jo‘natish yoki AI adapteri emas.
+  haqiqiy xabar jo‘natish yoki AI adapteri emas. Keyingi canonical reform
+  contracti [MESSENGER-01](MESSENGER-REFORM-PLAN.md)da; I4a/I4b runtime
+  poydevori qayta port qilinmaydi.
 - [Bajarish va qabul jurnali](PORT-LEDGER.md): qadam faqat dalil bilan yopiladi.
 
 Eski Qxx trackeridagi 4/26 yopiq ko‘rsatkichi tayyor dizayn ulushi emas:

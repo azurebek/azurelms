@@ -32,6 +32,7 @@ yopilmadi, owner qabuli texnik implementatsiya bilan almashtirilmadi.
 | A3/A3b | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | oldingi canonical oqimlar va Classbook (live session/activity/response, turli mashqlar, Telegram group outbox, 50 learner gate'i) `main`da — PR #94, 2026-09-10 |
 | A4 | `ADMIT` | `IN PROGRESS` | payment foundation main'da, catalog/cohort lokal testlangan (#70); premium workflow/UI/rollout keyingi bosqichlar — [ledger](../pricing-packages-plan.md) |
 | A5 | `ADMIT` | `IMPLEMENTED/TESTED` | oltita texnik band ham yopildi (messenger, dars, imtihon, checkout, attendance, reconnect) + shell tap targetlari; **qolgani faqat owner'ning uch qurilmadagi sign-off'i** |
+| MESSENGER-01 | `— post-launch plan` | `PLANNED — REFORM BLOCKERS OPEN` | I4a/I4b renderer va A5 mobile/reconnect poydevori bor; Origin/session, durable human receipt/sequence, membership/unread, staff/Telegram privacy va AI access/context blockerlar [radikal reform rejasida](../frontend-v1/MESSENGER-REFORM-PLAN.md) ochiq |
 | S1/S4 | `— delivered foundation` | `IMPLEMENTED/TESTED — REFORM BLOCKERS OPEN` | portal va owner backoffice kodi bor; currency/same-offering, scoped source/freshness, draft/live va writer/audit qarzlari [SIT-01](../frontend-v1/SIT-REFORM-PLAN.md) auditida ochiq |
 | S3 | `— delivered foundation` | `IMPLEMENTED/TESTED — LOCAL FOUNDATION; PUBLIC RELEASE BLOCKERS OPEN` | skill/tool kodi bor va joriy UI entry mavjud; real system-role, query-before-limit retrieval, citation/freshness, routing va A9 eval gate’i ochiq |
 | S2 | `NEXT` | `PLANNED` | canonical inquiry lifecycle yo'q |
@@ -132,6 +133,13 @@ yopilmadi, owner qabuli texnik implementatsiya bilan almashtirilmadi.
 - **2026-08-20 sinash imkoniyatidagi bo'shliqlar (bular tuzatilmaguncha bandlarni sinab bo'lmasdi):** `seed_demo` imtihon yaratmasdi (endi beshala bo'lim turi, speaking mikrofon uchun majburiy); `demo-teacher` ga parol berilmagan edi, ya'ni owner teacher oqimini qurilmada ocha olmasdi; guruhda bitta o'quvchi bor edi (endi 6 ta, oxirgisining ismi ataylab uzun).
 - **2026-08-20 probe metodologiyasi (besh marta yolg'on gapirdi):** inline elementlar `clientWidth` ni har doim `0` qaytaradi — "siqilgan matn" emas; gorizontal siljiydigan konteyner ichidagi element toshgan emas; yopiq drawer **butunlay** tashqarida — nuqson faqat chetni **kesib o'tgan** element; input `label` ichida bo'lsa nishon label o'lchami; va eng qimmati — men faqat gorizontal toshishni tekshirardim, imtihondagi nuqson esa **vertikal** edi.
 - **Qolgan scope — faqat owner qila oladigan ish:** Android Chrome, iOS Safari va desktop Chrome'da uch qurilmali sign-off — mikrofon, upload, Telegram Mini App, dark/light. Mikrofon LAN orqali ishlamaydi (secure context), tunnel majburiy.
+- **2026-10-15 Messenger chegarasi:** A5dagi “qolgani faqat owner sign-off” faqat
+  shu mobile oltin oqimning sanalgan texnik bandlariga tegishli. U Messengerning
+  data/security/product islohotini yopmaydi. Current audit WebSocket Origin,
+  human send idempotency/sequence, wrong-tutor membership, GET false-read,
+  staff/Telegram privacy va AI worker/context blockerlarini
+  [MESSENGER-01](../frontend-v1/MESSENGER-REFORM-PLAN.md)da ajratdi. Reja
+  tayyor, runtime implementatsiyasi boshlanmagan; birinchi kesim MSG1.0a1.
 - **Qanday sinaladi:** [`nuclear-program/mobile-qa-runbook.md`](../mobile-qa-runbook.md) — LAN va HTTPS tunnel yo'llari, qaysi band qaysi yo'l bilan qoplanishi va dalil formati. Mikrofon LAN orqali ishlamaydi (secure context talab qilinadi), shuning uchun speaking va Mini App uchun tunnel majburiy.
 - **Faza:** sequential feature emas. R1'dan boshlab har band tegadigan mobile/auth/media flow evidence beradi; R2'da to'liq 3-qurilma sign-off.
 

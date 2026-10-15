@@ -16,6 +16,44 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-15 [Codex]: MESSENGER-01 — radikal islohot tadqiqoti va roadmap
+
+Owner so'rovi bo'yicha [MESSENGER-01](frontend-v1/MESSENGER-REFORM-PLAN.md)
+tayyorlandi va joriy holat/frontend/launch xaritalariga bog'landi. Backend-
+realtime, human UX hamda AI/Telegram qatlamlari repository va rasmiy standartlar
+bo'yicha audit qilindi; yakuniy reja ikki mustaqil adversarial consistency/
+implementability passida **CLEAN** deb yopildi. **Runtime implementatsiyasi
+boshlanmagan; birinchi kesim MSG1.0a1.**
+
+- Branch: `codex/messenger-radical-reform-plan`; audit tayanchi `main`dagi
+  `84720ca`; reja/deletion commit **`96fe135`**.
+- To'qqiz phase, 34 reviewable slice va 27 E2E gate: Origin/ASGI/input/session
+  containment; canonical membership/tenure, receipt, message sequence va dual
+  cursor event outbox; no-JS unified Inbox; attachment; teacher/support;
+  notification/Telegram; private AI/A9; retention, chaos va staged rollout.
+- Critical kontraktlar: pre-receipt legacy access canonical shadow bilan hech
+  qachon kengaymaydi; writer va atomik membership+event cutover immutable
+  receipt/epoch bilan; rollback pre-fence binaryni qaytarmaydi; AI user request
+  va worker publish receiptlari alohida, har authorized lineage provider calli
+  `context≤1 + generation≤2 + derivative-memory≤1` bilan bounded.
+- Rejected `frontend-v1/BLOG-REFORM-PLAN.md` owner ko'rsatmasi bilan o'chirildi;
+  SIT shared rich-content dependency'si mustaqil qilindi, tarixiy marinebook
+  yozuvi esa rad etilgan/removed deb belgilandi.
+- Branch hygiene: stale `antigravity/messenger-radical-reform` va merge bo'lgan
+  `codex/eighth-trial-storytelling`, `codex/eleventh-trial-foundation`,
+  `codex/eleventh-trial-release-checkpoint`, `codex/tenth-trial-foundations`
+  local branchlari o'chirildi; remote'da faqat `main`, open PR0 va bitta checkout
+  qoldi (joriy ish branchi vaqtincha bundan mustasno).
+- Safe env testlari: `manage.py check` — **0 issue**;
+  `makemigrations --check --dry-run` — **No changes**;
+  `manage.py test messenger --noinput --verbosity 1` — **175/175 PASS**;
+  `node --test tests/frontend_v1/*.test.mjs` — **172/172 PASS**.
+  Docs verifier — **100 hujjat, 790 relative link, 36 anchor,
+  missing0/warning0**; staged `git diff --check` PASS.
+- DB/schema/flag/provider/server/deploy o'zgarmadi. Production Redis/PostgreSQL,
+  real Gemini/Telegram va native-device qabuli bajarilgan deb da'vo qilinmaydi;
+  MSG-D1–D14 tegishli slice oldidagi explicit owner qarorlari bo'lib qoladi.
+
 ## 2026-10-15 [Codex]: SIT-01 — “Turkiyada o‘qish” islohoti tadqiqoti va roadmap
 
 Owner so‘rovi bo‘yicha [SIT-01](frontend-v1/SIT-REFORM-PLAN.md) tayyorlandi,
@@ -65,13 +103,15 @@ runtime implementatsiyasi boshlanmagan.** Birinchi kesim SIT1.0a.
 
 ## 2026-10-15 [Codex]: BLOG-01 — Azure Journal islohoti tadqiqoti va roadmap
 
-Owner so‘rovi bo‘yicha [BLOG-01](frontend-v1/BLOG-REFORM-PLAN.md) tayyorlandi,
+Owner so‘rovi bo‘yicha BLOG-01 (`frontend-v1/BLOG-REFORM-PLAN.md`) tayyorlangan
+edi; 2026-10-15da owner ma’qullamagani sabab hujjat keyin repositorydan olib
+tashlandi. Ushbu yozuv faqat tarixiy dalil sifatida saqlanadi. Dastlab reja
 umumiy holat va frontend indeksiga bog‘landi. Repository backend/security,
 public/studio UX hamda canonical integratsiyalar uch mustaqil read-only auditda
 tekshirildi; WCAG, OWASP, Google Search/CWV va language-reading patternlari bilan
-solishtirildi. **Reja tayyor; implementatsiya boshlanmagan va joriy queue
-o‘zgarmagan.** Owner Blog ishini alohida navbatga qo‘ysa birinchi kesim
-BLOG1.0a1.
+solishtirildi. **Reja owner tomonidan rad etilgan va repositorydan olib
+tashlangan; implementatsiya boshlanmagan.** Bu tarixiy yozuv joriy task navbati
+yoki qayta ishlatish uchun tasdiq emas.
 
 - Branch: `codex/blog-radical-reform-plan`; reja commit **`dc1402a`**;
   source audit tayanchi `66344f0`.
