@@ -43,7 +43,7 @@ birinchi kesim PUB1.0a.**
   `manage.py makemigrations --check` — **No changes detected**; focused
   `frontend.test_public_v1`, auth/registration/Telegram/certificate/checkout
   suite’i — **88/88 PASS**; `node --test tests/frontend_v1/*.test.mjs` —
-  **172/172 PASS**. Docs verifier — **101 hujjat, 799 relative link, 36 anchor,
+  **172/172 PASS**. Docs verifier — **101 hujjat, 800 relative link, 36 anchor,
   missing0/warning0**; `git diff --check` PASS.
 - Runtime, DB/schema, flag, production, AWS, Gemini yoki Telegramga mutation
   bo‘lmadi. Owner/legal qarorlari, real content/offer, native-device/AT,
