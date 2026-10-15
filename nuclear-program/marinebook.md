@@ -16,6 +16,47 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-15 [Codex]: SIT-01 — “Turkiyada o‘qish” islohoti tadqiqoti va roadmap
+
+Owner so‘rovi bo‘yicha [SIT-01](frontend-v1/SIT-REFORM-PLAN.md) tayyorlandi,
+joriy holat, frontend indeksi va launch contractiga bog‘landi. Backend/data,
+public UX va AI/product yuzalari uch mustaqil read-only auditda, yakuniy reja
+esa alohida adversarial review’da tekshirildi; YÖK/ÖSYM/KVKK, WCAG, OWASP va
+Google Search/CWV rasmiy yo‘riqnomalari bilan solishtirildi. **Reja tayyor;
+runtime implementatsiyasi boshlanmagan.** Birinchi kesim SIT1.0a.
+
+- Branch: `codex/sit-radical-reform-plan`; reja commit **`0729be8`**; audit
+  tayanchi `main`dagi `2dfac13`.
+- To‘qqiz bosqich va 27 reviewable kesim: public claim/preview/rich-content va
+  mobile containment; same-offering/currency/freshness policy; audited writer;
+  immutable version/source graph; canonical S2 `SITInquiry`; ultra qulay owner
+  studio; program-first search/compare; deterministic, A9-gated AI; SEO/cache/
+  media/WCAG va staged rollout.
+- P0 dalillar: mixed-currency va cross-program false match; scoped evidence va
+  immutable draft/live yo‘qligi; blocked 5 000 UZS claimi va enrollment-only
+  tutor dead-end; ordinary-staff preview; legacy raw rich HTML; current AI
+  marketing promptlarining `general_chat`ga tushishi, top-25/8 dump, flat
+  provider prompt, citation/freshness va privacy gaplari. Bu task ularni runtime’da
+  tuzatgan degani emas.
+- Launch truth tuzatildi: S1/S4 faqat implemented foundation; S3 local
+  foundation va current public entry mavjud, lekin release blockerlar ochiq;
+  S2 hali planned. SIT1.0a current fee/tutor/unsafe generic AI claimini birinchi
+  bo‘lib contain qiladi.
+- Canonical contract: stable university/program/offering identiteti, immutable
+  revisions, scoped source snapshots va append-only checks, exact freshness
+  boundaries, cross-parent DB protection, CAS/idempotency/audit, transactional
+  inquiry outbox, privacy anonymization, SSRF-safe link checker va monotonic
+  writer cutover. Shared rich-content policy ownershipi Blog rejasi bilan
+  `core/rich_content_policy.py`ga tenglashtirildi.
+- Test: safe env’da
+  `venv\Scripts\python.exe manage.py test sit frontend.test_public_v1 --noinput --verbosity 1`
+  — **43/43 PASS**, system check 0. Docs verifier — **100 hujjat, 747 relative
+  link, 37 anchor, missing0/warning0**; `git diff --cached --check` PASS.
+- DB/schema/flag/provider/server/deploy o‘zgarmadi. SIT-D3 announcement archive,
+  SIT-D4 retention/contact, SIT-D5 editor assignment va SIT-D6 production pilot
+  owner gate bo‘lib qoladi; reja core/B3/CLASSBOOK/A8→A9 navbatini avtomatik
+  almashtirmaydi.
+
 ## 2026-10-15 [Codex]: BLOG-01 — Azure Journal islohoti tadqiqoti va roadmap
 
 Owner so‘rovi bo‘yicha [BLOG-01](frontend-v1/BLOG-REFORM-PLAN.md) tayyorlandi,
