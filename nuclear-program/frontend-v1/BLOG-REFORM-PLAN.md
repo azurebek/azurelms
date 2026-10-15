@@ -228,12 +228,16 @@ emas, lekin publish doimo aniq pinned versionni oladi.
   `active`, `archived`. Public holat bu ikkisi emas, version pointerlaridan
   derived projection. Shu sabab live post bir vaqtning o‘zida yangi draft yoki
   kelajak update’iga ega bo‘la oladi.
-- `edit_revision`, nullable `review_version`, `current_version` va
-  `scheduled_version` pointerlari.
-  Barcha tahrir `expected_revision` bilan CAS qiladi. Schedule paytida ayni
-  immutable version pin qilinadi; keyingi draft editi rejalangan matnni
-  yashirincha almashtirmaydi. Selector due `scheduled_version.effective_at`
-  ni workerga bog‘lanmasdan live deb oladi.
+- `edit_revision`, nullable `review_version`, `current_version`,
+  `scheduled_version` pointerlari va nullable `scheduled_for`. Schedule
+  versiondagi kontent va postdagi mutable control-plane vaqt juftligidir:
+  `scheduled_version`/`scheduled_for` ikkalasi birga null yoki birga non-null
+  bo‘lishi DB constraint bilan tekshiriladi. Barcha tahrir `expected_revision`
+  bilan CAS qiladi; schedule/reschedule/cancel esa post row-lock, expected
+  schedule pair va idempotent operation orqali ayni juftlikni atomik almashtiradi.
+  Har before/after vaqt audit operationda qoladi. Keyingi draft editi pin qilingan
+  rejalangan matnni yashirincha almashtirmaydi. Selector `scheduled_for <= at`
+  bo‘lsa `scheduled_version`ni workerga bog‘lanmasdan live deb oladi.
 - Working `body` author source bo‘lib qoladi; version ichida `rendered_body`,
   `sanitizer_version` va `content_hash`. Public faqat trusted version snapshotni
   ko‘radi. Stale save 409/forma xatosi va diff; boshqa tabni bosmaydi.
@@ -251,8 +255,8 @@ emas, lekin publish doimo aniq pinned versionni oladi.
 **Yangi modellar:**
 
 - `BlogPostVersion`: post+number unique; source/sanitized body, metadata,
-  cover asset reference+alt, actor label, reason, effective time, hash va
-  timestamp.
+  cover asset reference+alt, actor label, reason, content hash va snapshot
+  timestampi. Schedule vaqti immutable kontent versioniga kirmaydi.
   Append-only; restore eski qatorni o‘zgartirmaydi, yangi version va draft
   revision yaratadi. `current_version`/`scheduled_version` faqat shu jadvalga
   ishora qiladi.
@@ -260,11 +264,16 @@ emas, lekin publish doimo aniq pinned versionni oladi.
   editor, note va time. Approved versiondan keyin draft o‘zgarsa approval
   bekor bo‘ladi; publish yangi matnni eski approval bilan chiqarmaydi.
 - `BlogEditorialOperation`: unique UUID, action, actor, post, requested/base va
-  resulting revision, canonical request fingerprint va terminal result.
+  resulting revision, canonical request fingerprint va terminal result;
+  publication promotionida original `effective_at` va real `promoted_at` ham.
   Unique `(actor, operation_id)`: same key+same fingerprint original receiptni
   qaytaradi; same key+different payload `409`; validation/no-op terminal
   natijasi ham xavfsiz replay qilinadi. Pattern:
   [design service](../../core/design_service.py).
+- `BlogContentRepair`: version, target sanitizer policy, bounded enum
+  `reason_code`, alohida diagnostic detail, status va audit timestamps.
+  `(version, target_policy, reason_code)` unique; faqat save/backfill yoki
+  periodic reconciliation yozadi. Public request bu jadvalga yozmaydi.
 - Working draft uchun `BlogGlossaryItem` va `BlogPostSource`; publish paytida
   `BlogVersionTag`, `BlogVersionGlossaryItem` va `BlogVersionSource` immutable
   child qatorlariga snapshot. Public version current mutable M2M/child rowni
@@ -308,7 +317,7 @@ Rollback testi eski version media baytlari/hashini aynan saqlaganini tekshiradi.
 
 | Qatlam | Nima yashaydi | Kim o‘qiydi/yozadi |
 |---|---|---|
-| `BlogPost` stable | ID, slug, creator/author relation, lifecycle, version pointerlar, aggregate counters | service row-lock bilan; router/engagement identity sifatida |
+| `BlogPost` stable | ID, slug, creator/author relation, lifecycle, version pointerlar, `scheduled_for`, aggregate counters | service row-lock bilan; router/engagement identity sifatida |
 | `BlogPost` working draft | title/body/cover, SEO, learning metadata, related course/lesson, working tags/glossary/sources, `edit_revision` | ruxsatli studio; public hech qachon emas |
 | `BlogPostVersion` | immutable scalar snapshot, sanitized HTML, media ref, dates, sanitizer/hash | editorial service yaratadi; public effective versionni o‘qiydi |
 | Version child rows | `BlogVersionTag`, `BlogVersionGlossaryItem`, `BlogVersionSource`, `BlogVersionLearningLink` | publish/review snapshotda clone; public faqat shularni o‘qiydi |
@@ -332,18 +341,27 @@ projectionini o‘qiydi — flag OFF working draft leak qilmaydi.
 | save draft | expected edit revision | working draft+revision; in-review/approved bo‘lsa approval tozalanib draftga qaytadi |
 | submit review | valid draft | immutable review version pin; `in_review` |
 | approve/request changes | editor permission + exact review version | immutable decision; `approved` yoki `draft`; note saqlanadi |
-| publish now | exact approved version; owner override sabab+audit bilan | row lock; due schedule avval promote; target `current_version`, schedule clear |
-| schedule/replace | exact approved version + future time + expected current/scheduled pointer | current live saqlanadi; target `scheduled_version`; first publishda current null |
-| cancel schedule | expected scheduled pointer, hali future | scheduled clear; current live bo‘lsa davom etadi |
-| unpublish | expected live/scheduled pointers + reason/confirm | current va scheduled clear; immutable versions qoladi |
-| archive | expected pointers + reason/confirm | lifecycle archived, schedule clear; public selector none, history qoladi |
-| rollback publication | publisher, target old version, expected live, operation/reason/confirm | target new rollback version sifatida current; schedule default clear |
+| publish now | exact approved version; owner override sabab+audit bilan | row lock; due schedule avval promote; target `current_version`, `scheduled_version`+`scheduled_for` clear |
+| schedule/replace | exact approved version + future time + expected current/schedule pair | current live saqlanadi; `scheduled_version`+`scheduled_for` atomik almashtiriladi; first publishda current null |
+| cancel schedule | expected schedule pair, hali future | `scheduled_version`+`scheduled_for` clear; current live bo‘lsa davom etadi |
+| unpublish | expected live/schedule pair + reason/confirm | current va ikkala schedule field clear; immutable versions qoladi |
+| archive | expected pointers/time + reason/confirm | lifecycle archived, schedule pair clear; public selector none, history qoladi |
+| rollback publication | publisher, target old version, expected live, operation/reason/confirm | target new rollback version sifatida current; schedule pair default clear |
 
-`effective_version(at)`: archived yoki current/scheduled yo‘q bo‘lsa none;
-due scheduled version currentdan ustun; aks holda current. Har publication
+`effective_version(at)`: archived yoki current/schedule pair yo‘q bo‘lsa none;
+`scheduled_for <= at` bo‘lgan scheduled version currentdan ustun; aks holda
+current. Har publication
 mutationi `promote_due_locked()`ni avval bajaradi, shuning uchun exact boundary,
 reschedule/cancel/unpublish va parallel commandlardan row-lock winner o‘tadi,
 stale ikkinchisi `409` oladi. GET esa hech qachon pointer promote qilib yozmaydi.
+`effective_publication_dates(post, at)` due pair hali promote qilinmagan bo‘lsa
+ham `scheduled_for`ni effective sana sifatida qaytaradi. `promote_due_locked()`
+aynan shu eski vaqtni system `BlogEditorialOperation.effective_at` receiptiga va
+`last_published_at`ga (first publishda `first_published_at`ga ham) ko‘chiradi,
+so‘ng current pointerga o‘tib schedule pairni clear qiladi; real execution vaqti
+`promoted_at` sifatida alohida turadi. Worker va keyingi manual mutation bir xil
+service/idempotency contractidan foydalanadi, shu bois kech worker visible/
+JSON-LD sanasini surmaydi.
 Due version uchun cache invalidation time-aware TTL/tag bilan; worker faqat
 housekeeping/distribution, visibility correctness uchun shart emas.
 
@@ -359,9 +377,12 @@ canonical state BLOG-01ning asosiy migrationiga kirmaydi.
    ikki rendererning turli natijasi canonical haqiqat bo‘lmaydi.
    Selector minimum-safe sanitizer versionni biladi: unknown/outdated snapshot
    response vaqtida current policy bilan qayta sanitize qilinadi; bu DBga
-   yozmaydi. Sanitizatsiya ishonchli tugamasa plain-text safe fallback va
-   repair queue. Policy upgrade yangi audited version yaratadi; eski immutable
-   qatorni joyida tahrirlamaydi.
+   yozmaydi. Sanitizatsiya ishonchli tugamasa request faqat deterministik
+   plain-text safe fallback beradi. Deduplicated `BlogContentRepair` rowi
+   `(version, target_policy, reason_code)` unique contracti bilan save/backfill yoki
+   periodik reconciliationda yaratiladi; public GET hech qachon enqueue yoki
+   boshqa DB write qilmaydi. Policy upgrade yangi audited version yaratadi;
+   eski immutable qatorni joyida tahrirlamaydi.
 3. Inline `style`, arbitrary `id`, event handler, executable/data URL va
    protocol-relative/untrusted embed olib tashlanadi. Link `rel` va target
    server policy bilan normallashtiriladi.
@@ -378,10 +399,11 @@ canonical state BLOG-01ning asosiy migrationiga kirmaydi.
 
 Backfill ikki qadamli: **dry-run report** (changed/unsafe/embed/media) → owner
 review → batch write. Unsafe published post jimgina qayta yozilmaydi. Jiddiy
-payload topilsa public renderer deterministik safe/plain fallback beradi va
-repair queuega yozadi; avtomatik unpublish yo‘q. Unpublish faqat ownerning
-sabab+tasdiq+auditli amali. Original source/version tiklash uchun saqlanadi;
-count/hash/reversibility dalili olinadi.
+payload topilsa public renderer deterministik safe/plain fallback beradi,
+lekin queuega yozmaydi; backfill/save/reconciliation unique repair rowini
+oldindan yoki keyingi sweepda yaratadi. Avtomatik unpublish yo‘q. Unpublish
+faqat ownerning sabab+tasdiq+auditli amali. Original source/version tiklash
+uchun saqlanadi; count/hash/reversibility dalili olinadi.
 
 ### Cache, preview va indekslash matrixi
 
@@ -478,8 +500,9 @@ checkpointli management command: `--dry-run`, bounded `--batch-size`, resume
 cursor va idempotent rerun. Expected mapping:
 
 - mavjud draft → `draft`;
-- published future → version 1 + `scheduled_version`, current pointer yo‘q,
-  derived `scheduled`;
+- published future → version 1 + `scheduled_version` va
+  `scheduled_for=legacy published_at`, current pointer yo‘q, derived
+  `scheduled`;
 - published past/current → version 1 + `current_version`, `published`;
 - current sanitized snapshot version 1 sifatida; unsafe flag reportda;
 - `first_published_at` dalil yetarli bo‘lmasa joriy `published_at`, “taxminiy
@@ -492,8 +515,10 @@ saqlanadi. Interrupted/resume, duplicate-run, version/media hash va row count
 tekshiriladi. Unsafe anomaly quarantine/report; pointer faqat verified rowga.
 
 `current_version` live snapshotni, `scheduled_version` pinned kelajak
-snapshotini ko‘rsatadi. Selector due versionni workerga qaramay tanlaydi;
-background task faqat pointer housekeeping/tarqatish bilan shug‘ullanadi.
+snapshotini, `scheduled_for` esa mutable due vaqtini ko‘rsatadi. Selector due
+versionni shu pairdan workerga qaramay tanlaydi; background task faqat pointer
+housekeeping/tarqatish bilan shug‘ullanadi. Reschedule immutable versionni
+mutatsiya qilmaydi; schedule pair va audit operation yaratadi.
 
 **BLOG1.1d — finalize va barcha writerlar:** studio create/update, Django admin, seed/demo
 yo‘li, management command va kelajak tasklar xaritasi. Admin operational
@@ -756,8 +781,11 @@ backup va smoke dalili bilan “released”.
 ## 6. Feature flag, sozlama va rollback shartnomasi
 
 Flag faqat capabilityni yoqadi/o‘chiradi; limit yoki vaqt qiymatini saqlamaydi.
-Hammasini birdan registrga qo‘shish shart emas — tegishli bosqichda, default
-OFF va aniq rollback bo‘lsa qo‘shiladi.
+Hammasini birdan registrga qo‘shish shart emas — tegishli bosqichda va aniq
+rollback bo‘lsa qo‘shiladi. Yangi presentation/capability rollout flaglari
+default OFF. Compatibilityni saqlovchi emergency negative kill switch bundan
+mustasno: `blog_community_writes` registry defaulti ON bo‘ladi, aks holda faqat
+flagni deploy qilishning o‘zi mavjud comment/clap/like yozuvlarini o‘chiradi.
 
 | Gate | Qamrov | OFF holati |
 |---|---|---|
@@ -894,13 +922,15 @@ keyingi UI contracti “test bilan mustahkamlanmaydi”.
    same operation+different payload `409`.
 3. First-publish schedule va live-post update schedule alohida; reschedule/
    cancel va exact due boundary/cache to‘g‘ri. Oldin eski live yoki 404, vaqtda
-   pinned version live; worker nosoz bo‘lsa ham visibility to‘g‘ri.
+   pinned version live; schedule vaqti versionni mutatsiya qilmaydi, pair
+   atomik/auditli almashadi; worker nosoz bo‘lsa ham visibility to‘g‘ri.
 4. Publish double-click/replay bitta version/audit/effect. Parallel publish/
    unpublish/archive/rollbackdan row-lock winner o‘tadi; rollback targeti same
    post, expected-live fresh, schedule clear; tarix/media yo‘qolmaydi.
 5. Malicious legacy HTML dry-run flaglanadi; publicda script/style/unsafe URL/
    iframe yo‘q, source version saqlanadi; unknown/outdated sanitizer plain-safe
-   fallback+repair beradi, avtomatik unpublish/write yo‘q.
+   fallback beradi, save/backfill/reconciliation esa unique repair row yaratadi;
+   request pathda avtomatik unpublish/write yo‘q.
 6. Guest qidiruv→topic/conditional-level→pagination→detail→back yo‘lida filter
    va human label saqlanadi; draft/future/archive leak qilmaydi, page self-canonical.
 7. 320px/400% reflow va JS-off foydalanuvchi article/TOCni o‘qiydi, comment
@@ -921,9 +951,13 @@ keyingi UI contracti “test bilan mustahkamlanmaydi”.
     saqlab claim/sendni pauza qiladi; Telegram xatosi existing dead-letterda.
 13. 1000 post/1000 comment fixture’da pagination/query/response budget; cover
     width/height, p75 measurement hook va no unbounded prefetch.
-14. Flaglar reverse tartibda OFF: public/editor/community/distribution eski
-    safe yo‘lga qaytadi; post/revision/comment/bookmark ma’lumoti o‘qiladi;
-    migration rollback nusxada va backup restore hash/count bilan.
+14. Rollout flaglari reverse tartibda OFF:
+    `blog_distribution`→`blog_community_v2`→`blog_public_v2`→
+    `blog_editorial_v2`; eski safe yo‘lga qaytadi va
+    post/revision/comment/bookmark ma’lumoti o‘qiladi. Negative
+    `blog_community_writes` default ON qoladi, faqat abuse/security incidentida
+    alohida OFF qilinadi. Migration rollback nusxada va backup restore
+    hash/count bilan.
 
 ## 11. Har bosqich dalili va BLOG-01 Definition of Done
 
@@ -949,9 +983,9 @@ BLOG-01 faqat quyidagida yakunlangan deyiladi:
 - backup/restore va flag rollback mashq qilingan; required CI/review yashil;
 - AWSga chiqsa deployed SHA va live smoke alohida qayd etilgan.
 
-Rejaning yozilishi, prototip, lokal render, test yashil bo‘lishi, flagning
-default-OFF registrga qo‘shilishi, ownerning ko‘rib chiqishi va production
-release — besh xil holat. Bittasi boshqasini avtomatik anglatmaydi.
+Rejaning yozilishi, prototip, lokal render, test yashil bo‘lishi, rollout
+capability flagining default-OFF registrga qo‘shilishi, ownerning ko‘rib chiqishi
+va production release — besh xil holat. Bittasi boshqasini avtomatik anglatmaydi.
 
 ## 12. Hozir ochiq owner qarorlari
 

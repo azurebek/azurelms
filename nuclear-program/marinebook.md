@@ -51,6 +51,13 @@ BLOG1.0a1.
 - DB/schema/flag/provider/server/deploy o‘zgarmadi. B3.1a, CB1.1a va launch
   navbati shu reja bilan almashtirilmadi; xavfsizlik maintenance’ini oldinga
   olish ham ownerning alohida aniq task qarorini talab qiladi.
+- PR193 review tuzatishi: schedule vaqti immutable versiondan `BlogPost`dagi
+  atomik/auditli `scheduled_version`+`scheduled_for` pairga ajratildi; public
+  fallback GET repair queuega yozmaydi, repair save/backfill/reconciliationda
+  bounded `reason_code` bilan deduplicate qilinadi; due promotion original
+  effective sanani receipt/datelarga ko‘chiradi. Rollout flaglari default-OFF,
+  mavjud community write compatibility kill-switchi esa explicit default-ON
+  exception bo‘ldi va routine rollbackda ON qoladi.
 
 ## 2026-10-13 [Codex]: CLASSBOOK-01 — radikal islohotning sakkiz bosqichli rejasi
 
