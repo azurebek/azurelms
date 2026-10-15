@@ -1288,8 +1288,14 @@ emas — deterministic shortlist qoladi, explanation unavailable bo‘ladi.
 
 #### SIT1.7a — metadata/sitemap/cache policy
 
-Explicit `render_public` policy, canonical/robots/OG/Breadcrumb/JSON-LD,
-page-aware sitemap, anonymous cache. Global public surfaces regression.
+[PUBLIC-01](PUBLIC-REFORM-PLAN.md)dagi `PUB1.1a–d` route registry, metadata,
+sitemap va response/cache primitive’lariga depends on/reuse qiladi; ikkinchi
+SIT engine yaratilmaydi.
+PUBLIC poydevori hali tushmagan bo‘lsa, SIT-only abstraction emas, ayni shared
+primitive alohida reviewable PR sifatida birinchi tushadi. SIT effective selector
+va freshness/source truthini shu registryga adapter qilib beradi: explicit
+`render_public` policy, canonical/robots/OG/Breadcrumb/JSON-LD, page-aware
+sitemap va anonymous cache. Global public surfaces regressioni majburiy.
 
 #### SIT1.7b — responsive media/performance
 

@@ -1,6 +1,6 @@
 # Yakuniy qabul — ochiq nuqsonlar
 
-**Joriy qabul chegarasi — 2026-10-13:** [loyihaning holat markazi](../README.md).
+**Joriy qabul chegarasi — 2026-10-15:** [loyihaning holat markazi](../README.md).
 [B2.6](BACKOFFICE-02-STAGE-6.md) bilan backoffice’ning olti bosqichi lokal
 texnik tekshiruvdan o‘tdi va `main`ga birlashdi. Bu quyidagi UX/DATA/RULE
 bandlarini yoki owner, haqiqiy qurilma/zoom/AT va production qabulini yopmaydi.
@@ -38,6 +38,13 @@ Yangi redesign yoki production mutation vakolati emas.
 | UX-04 | PARTIAL · auth | [Packet85](UX04-AUTH-CLARITY-PROTOTYPE.md):4 lokal auth formada bitta inline xato+son, native email/required+mismatch birga, first-invalid fokus va44px havolalar;881 Django/246 Node,56responsive+24state. Real V1 duplicate/errorlist/strength, footer/legal va AI onboarding CTA hali ochiq. Native keyboard/AT/owner qabul bajarilmagan. AWS unchanged. |
 | UX-05 | OPEN · notification | Receipt approval va enrollment activation ikkita notification yo‘li; pending→active uchun “yana” noto‘g‘ri. Trigger/idempotency va renew/first activation ajratilib tekshirilsin. |
 | UX-06 | OPEN · public continuity | Logged-in headerda O‘quv maydoni bor, mobilda menyu ichida. Katalog filter/first-fold, detail price/CTA/0 exam, landing CTA, pricing bullet/feature, rich description spacing, favicon fallback tekshiriladi. |
+
+2026-10-15dagi [PUBLIC-01](PUBLIC-REFORM-PLAN.md) ushbu jadvalni yopmaydi;
+implementatsiya tartibini aniqlashtiradi. `DATA-01` PUBLIC-01dagi claim evidence
+va readiness (`PUB1.2a`, `PUB1.8b`), `UX-04` accessible auth (`PUB1.4b–e`),
+`UX-06` esa shell/landing/catalog/offer/intent (`PUB1.2d`, `PUB1.3`, `PUB1.4a`)
+kesimlariga map qilindi. Har band faqat o‘z runtime va qabul dalili bilan
+PARTIAL/OPEN holatidan chiqadi.
 
 Claude kuzatuvlari to‘liq native regression yoki server attestatsiyasi emas.
 AI javobi, imtihon, Classbook, Telegram login va real telefonning qolgan

@@ -1,5 +1,15 @@
 # Frontend V1 — prototipdan ishlaydigan platformaga
 
+**Public/anonymous rejasi — 2026-10-15:** [PUBLIC-01](PUBLIC-REFORM-PLAN.md)
+I5a’dagi 14-route V1 portini saqlab, auth qilinmagan butun sirtni ishonchli
+acquisition va trust qatlamiga aylantirishni rejalashtiradi. Route/security,
+UX/funnel va rasmiy tashqi tadqiqot stored rich-content, registration bypass,
+state-changing Telegram GET, reset delivery, tracking/legal, certificate
+privacy, offer/intent, claim, SEO/cache va accessibility qarzlarini ajratdi.
+To‘qqiz bosqich/36 reviewable kesim va 28 E2E gate yozildi; implementatsiya
+boshlanmagan, birinchi kesim PUB1.0a. Landing writer B3.5da, SIT domaini
+SIT-01da qoladi; rad etilgan Blog islohoti qayta ochilmaydi.
+
 **Messenger rejasi — 2026-10-15:** [MESSENGER-01](MESSENGER-REFORM-PLAN.md)
 I4a/I4b presentation poydevorini saqlab, Messenger’ni xavfsiz va ishonchli
 yordam markaziga aylantirishni rejalashtiradi. Backend/realtime, human UX va

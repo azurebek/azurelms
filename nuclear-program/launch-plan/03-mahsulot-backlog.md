@@ -31,6 +31,7 @@ yopilmadi, owner qabuli texnik implementatsiya bilan almashtirilmadi.
 | A8 | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | supply guard kod/target/full testlarda; PostgreSQL contention proofi CI `integration` ishida yopildi, alohida OS processlari bilan takrorlash ochiq |
 | A3/A3b | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | oldingi canonical oqimlar va Classbook (live session/activity/response, turli mashqlar, Telegram group outbox, 50 learner gate'i) `main`da — PR #94, 2026-09-10 |
 | A4 | `ADMIT` | `IN PROGRESS` | payment foundation main'da, catalog/cohort lokal testlangan (#70); premium workflow/UI/rollout keyingi bosqichlar — [ledger](../pricing-packages-plan.md) |
+| PUBLIC-01 | `— A4 kirish adapteri + maintenance` | `PLANNED — CONTAINMENT BLOCKERS OPEN` | I5a public renderer poydevori bor; stored rich-content, registration/auth, reset delivery, tracking/legal/certificate, offer/intent, claim, SEO/cache va WCAG qarzlari [radikal public rejasida](../frontend-v1/PUBLIC-REFORM-PLAN.md) 36 kichik kesimga ajratilgan. Birinchi kesim PUB1.0a; qolgan reja active queue’ni o‘zi almashtirmaydi |
 | A5 | `ADMIT` | `IMPLEMENTED/TESTED` | oltita texnik band ham yopildi (messenger, dars, imtihon, checkout, attendance, reconnect) + shell tap targetlari; **qolgani faqat owner'ning uch qurilmadagi sign-off'i** |
 | MESSENGER-01 | `— post-launch plan` | `PLANNED — REFORM BLOCKERS OPEN` | I4a/I4b renderer va A5 mobile/reconnect poydevori bor; Origin/session, durable human receipt/sequence, membership/unread, staff/Telegram privacy va AI access/context blockerlar [radikal reform rejasida](../frontend-v1/MESSENGER-REFORM-PLAN.md) ochiq |
 | S1/S4 | `— delivered foundation` | `IMPLEMENTED/TESTED — REFORM BLOCKERS OPEN` | portal va owner backoffice kodi bor; currency/same-offering, scoped source/freshness, draft/live va writer/audit qarzlari [SIT-01](../frontend-v1/SIT-REFORM-PLAN.md) auditida ochiq |
@@ -122,6 +123,25 @@ yopilmadi, owner qabuli texnik implementatsiya bilan almashtirilmadi.
 - **2026-09-04 catalog + delivery (`b5c2068`) — lokal regression green:** uch draft tarif va AI policy; availability/legacy renewal; cohort tier/capacity; faqat approvalda joy bandi; course/cohort lockli oxirgi joy himoyasi; auditli owner katalog. Full suite 1115 OK (skipped=27), file-focused 58/58, browser 390px/1280px va interaktiv saqlash/tarif tanlash. CI/rollout dalili [ledgerda](../pricing-packages-plan.md).
 - **Qolgan scope:** service-level workflow, pricing/dashboard va plan analytics; eski guruhlar uchun explicit rollout. Yangi tariflar migrationdan keyin sotuvga yopiq.
 - **Faza:** R2.
+
+### A4-P. Public acquisition va trust surface — `PLANNED`, `XL / 36 kichik kesim`
+
+- **Outcome:** anonim visitor truthful course/offerni ko‘radi, login/registerdan
+  keyin ayni canonical checkoutga qaytadi; claim/legal/cookie/certificate va
+  auth xavfsizligi UI’dan alohida contract bilan boshqariladi.
+- **Canonical owner:** public route/response/intent/claim policy; course/cohort/
+  plan/payment/entitlement A4da, landing writer B3.5da, SIT domaini SIT-01da,
+  Blog domain redesigni admissiondan tashqarida qoladi.
+- **Scope:** renderer-independent rich-content va URL policy; web/bot/Mini App
+  registration gate; auth throttle va Telegram safe methods; write-free GET;
+  real reset delivery; offer/intent; claim/legal/cookie/certificate; metadata/
+  sitemap/cache; WCAG/performance/system state va staged rollout.
+- **Acceptance:** intent continuity 100%; governed public claim evidence 100%;
+  GET incidental write va sensitive cache/index leak 0; anonymous certificate
+  disclosure owner policy’sidan oshmaydi; 28 E2E, rollback va required CI.
+- **Navbat:** P0 `PUB1.0a–g` maintenance sifatida alohida baholanadi. Qolgan
+  kesimlar owner active-task qarorisiz A3/A4/B3/SIT navbatini siqmaydi.
+- **Tafsilot:** [PUBLIC-01](../frontend-v1/PUBLIC-REFORM-PLAN.md).
 
 ### A5. Mobil oltin oqim quality gate — `CROSS-CUTTING, R1'dan`
 
@@ -323,7 +343,7 @@ yopilmadi, owner qabuli texnik implementatsiya bilan almashtirilmadi.
 | PWA install/offline | Defer | Responsive browser flow GREEN; install real outcome bersa |
 | DOCX reader | Defer | Writing flow va private upload policy stable |
 | XP iqtisodi/badge polish | Defer | Outcome eventlari canonical; abuse/idempotency testli |
-| Blog/home cleanup | Defer | Launch-critical emas |
+| Blog domain redesigni va optional home polish | Defer | PUBLIC-01dagi security/acquisition/claim/legal containment bundan mustasno; yangi Blog community/studio scope’i alohida admission talab qiladi |
 
 ---
 
