@@ -60,9 +60,11 @@ Public qatlam besh vazifani bitta izchil yo‘lda bajaradi:
 
 PUBLIC-01 ikki turdagi ishni ajratadi:
 
-- `PUB1.0a–e`dagi stored-XSS, registration bypass, state-changing `GET`, legal
-  read-write va yashirin tracking containmenti — **launch-critical maintenance**.
-  Bular renderer flagi yoki redesign navbatini kutmaydi.
+- Butun PUB1.0 fazasi — `PUB1.0a–g`: stored-XSS (a), registration bypass (b),
+  auth abuse throttle (c), Telegram state-changing `GET` (d), public GET/legal
+  read-write (e), password reset delivery (f) va yashirin Blog tracking (g)
+  containmenti — **launch-critical maintenance**. Bular renderer flagi yoki
+  redesign navbatini kutmaydi.
 - Qolgan acquisition/UX/SEO/performance ishlari — **PLANNED**. Ular ownerning
   active task navbatiga avtomatik kirmaydi va mavjud B3/Classbook/Messenger/SIT
   yo‘nalishlarini o‘z-o‘zidan siqib chiqarmaydi.
@@ -800,8 +802,10 @@ UNIQUE(scope, key_digest, window_start)
 ```
 
 Transaction-safe increment, cleanup command/beat task, max-row health signal va
-clock boundary tests majburiy. Report-only rolloutdan keyin owner/security
-PUB-D13 qiymatlari bilan enforce. `Retry-After` userga accessible generic copy;
+clock boundary tests majburiy. PUB1.0cda konservativ default qiymatlar bilan
+darhol enforce qilinadi; report-only faqat lokal/staging o‘lchovi uchun va P0ni
+kechiktirmaydi. Owner/security PUB-D13 orqali qiymatlarni audited setting bilan
+sozlaydi. `Retry-After` userga accessible generic copy;
 response account mavjudligini oshkor qilmaydi.
 
 #### Telegram method split
@@ -1175,8 +1179,13 @@ DoD’iga suyanadi.
 
 1. `core/rich_content_policy.py`da `PUBLIC_EDITORIAL_V1` named profile va
    malicious corpus. Agar SIT1.0a avval yaratgan bo‘lsa ayni profile reuse.
-2. Landing/About/legal/course/Blog/SIT public rich text legacy va V1da bitta
-   wrapper orqali. Raw public `|safe` yo‘q; private lesson scope’iga tegilmaydi.
+2. Landing/About/legal/course/**pricing**/Blog/SIT public rich text legacy va V1da
+   bitta wrapper orqali. Pricing aniq kiradi: V1
+   `templates/frontend_v1/public/subscriptions/pricing.html` hozir
+   `Plan.description` (CKEditor maydoni)ni global `sanitize` filtri bilan
+   chiqaradi, u esa `iframe` va ixtiyoriy `style`/`class`/`id`ni o‘tkazadi;
+   legacy pricing `striptags` bilan qoladi yoki wrapperga o‘tadi. Raw public
+   `|safe` yo‘q; private lesson scope’iga tegilmaydi.
 3. `frontend/public_url_policy.py`ni V1 `public_url` va legacy navga ulash.
 4. Flag ON/OFF bir xil sanitized semantic output; rollback raw kontentga
    qaytmaydi.
@@ -1185,12 +1194,14 @@ DoD’iga suyanadi.
 
 **Tegiladigan joylar:** `core/rich_content_policy.py`,
 `frontend/public_url_policy.py`, `frontend/templatetags/`, yuqorida sanalgan
-legacy/V1 templates, `frontend/test_public_content_policy.py`, SIT/Blog parity
-testlari. Existing `bleach_tags.py` public wrapper ortida qoladi.
+legacy/V1 templates (jumladan V1/legacy pricing), `frontend/test_public_content_policy.py`,
+SIT/Blog parity testlari. Existing `bleach_tags.py` public wrapper ortida qoladi.
 
 **Test:** script/event/style/iframe/SVG/data/malformed URL; target/rel; semantic
 table/list/code; idempotence; legacy/V1/preview/flag ON/OFF; custom nav scheme;
-sanitized metadata plain text.
+sanitized metadata plain text. Field matrixda har public rich maydon nomma-nom,
+shu jumladan `Plan.description`: `iframe`/inline `style` bilan saqlangan plan
+V1 pricing’da `PUBLIC_EDITORIAL_V1` rad etadigan markupni chiqarmaydi.
 
 **Tugashi:** executable public markup 0; unsafe nav URL 0; visible safe content
 ma’nosi saqlangan; global private rendererlar o‘zgarmagan. Rollback security
@@ -1217,23 +1228,35 @@ external call fixture.
 **Tugashi:** registration OFFda yangi `CustomUser` 0; existing login regressiyasi
 0; adapter policy duplicate’i 0. Bu presentation flag emas, domain gate.
 
-#### PUB1.0c — auth abuse substrate
+#### PUB1.0c — auth abuse substrate va P0 enforcement
 
 **Ish:** `users/auth_abuse.py`, hashed key derivation, trusted proxy/IP helper,
 bounded bucket schema yoki atomic backend, cleanup va Control Center health.
-Login/register/reset/Telegram uchun named scope; permanent lockout yo‘q. Exact
-threshold/retention PUB-D13da audited setting sifatida; test fixture qiymatlari
-product constant emas.
+Login/register/reset/Telegram uchun named scope; permanent lockout yo‘q.
+**Shu sliceda** login, register, password reset va Telegram auth init
+endpointlari decision API’ni chaqiradi **va enforce qiladi** — P0 nuqsoni
+(cheksiz parol taxmini, account/DB/email flood) PUB1.4cgacha ochiq qolmaydi.
+Threshold/window/retention audited runtime setting (model `default=` + env
+fallback + range validator, o‘zgartirish sabab/tasdiq/`SystemAuditEvent` bilan);
+konservativ boshlang‘ich defaultlar: login 5 muvaffaqiyatsiz/account/15 daqiqa
+va 20/IP/15 daqiqa, register 5/IP/soat, reset 3/account/soat va 10/IP/soat,
+Telegram init 10/IP/10 daqiqa. PUB-D13 bu qiymatlarni sozlaydi, enforcementni
+kechiktirmaydi. Test fixture qiymatlari product constant emas.
 
 **Tegiladigan joylar:** `users/models.py`, additive migration, service,
-`core/runtime_settings*`, Control Center snapshot, cleanup command/task, tests.
+`core/runtime_settings*`, Control Center snapshot, cleanup command/task,
+login/register/reset view’lari (`users/views.py`, `users/frontend_v1_auth.py`),
+Telegram auth init adapteri, tests.
 
 **Test:** exact boundary, rolling/window reset, account+IP layering, spoofed
 XFF, concurrency PostgreSQL, SQLite behavior, cleanup rerun, failure mode,
-redaction va generic denial.
+redaction va generic denial. Har to‘rt endpoint uchun: limitdan keyingi urinish
+generic `429` + `Retry-After` va auth/DB/email write 0; window tugagach legitimate
+user kira oladi; response account mavjudligini oshkor qilmaydi.
 
-**Tugashi:** endpointlar bitta decision API’ni chaqira oladi; bucket unbounded
-o‘smaydi; audit raw identity saqlamaydi. Production enforce PUB-D13siz yoqilmaydi.
+**Tugashi:** to‘rt endpoint decision API’ni enforce qiladi; bucket unbounded
+o‘smaydi; audit raw identity saqlamaydi. PUB1.4c faqat layering/delay/CAPTCHA
+escalation va enumeration polishini qo‘shadi — asosiy throttle shu yerda yoqiladi.
 
 #### PUB1.0d — Telegram init/status/consume method split
 
@@ -1502,8 +1525,9 @@ password/secret render yoki logda 0. UX-04 runtime bandi evidence bilan yangilan
 
 #### PUB1.4c — login/register/reset full throttle va enumeration
 
-**Ish:** PUB1.0c serviceni barcha auth adapterga enforce; account/IP/session
-layers, generic response va bounded delay. Registration duplicate email copy/
+**Ish:** PUB1.0cda yoqilgan asosiy throttle ustiga account/IP/session
+layering, generic response va bounded delay; PUB1.0c qamramagan qolgan auth
+adapterlari ham shu servicega ulanadi. Registration duplicate email copy/
 flow email capability va PUB-D14ga mos; CAPTCHA faqat risk escalation va
 accessible alternative bilan.
 
@@ -1969,14 +1993,15 @@ Ochiq risk va keyingi exact slice
 | PUB-D10 | CDN/shared HTML cache targeti? | Browser revalidate, shared cache OFF | PUB1.1d/PUB1.7b production |
 | PUB-D11 | External font/icon/video/analytics providerlar? | Critical asset self-hosted; optional third party OFF | PUB1.7b |
 | PUB-D12 | Public tillar: hozir faqat Uzbekmi? | Uzbek UI; Turkish phrase `lang=tr`; hidden locale variant yo‘q | Hreflang/multilingual keyingi admission |
-| PUB-D13 | Auth rate windows/limits/retention va trusted proxy? | Infrastructure/test; production enforce owner/security qiymati bilan | PUB1.0c/PUB1.4c rollout |
+| PUB-D13 | Auth rate windows/limits/retention va trusted proxy? | PUB1.0c konservativ default bilan enforce qiladi; owner/security qiymatni audited setting orqali sozlaydi | Qiymat tuningi; PUB1.0c enforcementni bloklamaydi |
 | PUB-D14 | Email verification va password-change session revoke siyosati? | Mandatory verification qo‘shilmaydi; reset delivery fail-closed; Django safe baseline | PUB1.4c–d advanced policy |
 | PUB-D15 | Certificate full/abbreviated name, revocation copy va legacy grace? | Minimal disclosure, raw reason private, destructive cutover yo‘q | PUB1.5c–d |
 | PUB-D16 | SIT primary navda alohida top-level entrymi? | Existing public access saqlanadi; nav duplication/hardcode yo‘q | PUB1.2d final IA |
 | PUB-D17 | Real pricing cancellation/refund/subscription copy? | Agent ixtiro qilmaydi; missing policy visible “owner approval required” readiness red | PUB1.4a production |
 
-PUB-D1/D3/D4/D5/D6/D13/D15/D17 production rolloutni bloklashi mumkin, lekin
-PUB1.0a/b/d/e/f kabi independent containmentni to‘xtatmaydi.
+PUB-D1/D3/D4/D5/D6/D15/D17 production rolloutni bloklashi mumkin, lekin
+PUB1.0a–f kabi independent containmentni to‘xtatmaydi. PUB-D13 faqat throttle
+qiymatlarini sozlaydi; PUB1.0c enforcementi uni kutmaydi.
 
 ---
 
@@ -2039,7 +2064,8 @@ content yo‘qolmasin; private lesson/editor consumers scope’dan tashqarida qo
 2. Safe-link attribute callback va public media policy; iframe default deny.
 3. `sanitize_public_url()` local/named/https va admitted mailto/tel contracti.
 4. Public wrapper/filter V1 `sanitize` o‘rnida; legacy raw `safe` o‘rnida.
-5. About bio, landing subtitle, legal, course, Blog, SIT guide field matrixi.
+5. About bio, landing subtitle, legal, course, pricing `Plan.description`, Blog,
+   SIT guide field matrixi.
 6. Preview/meta plain-text helpers ayni profile/projectordan.
 7. `audit_public_content --format=json` read-only, raw content redacted.
 8. Flag ON/OFF regression va safe semantic fixtures.
