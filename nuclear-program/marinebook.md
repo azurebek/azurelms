@@ -16,6 +16,28 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-16 [Claude]: PUBLIC-01 / PUB1.0b — barcha kanalda bitta registration gate
+
+`public_registration` flagini faqat web `RegisterView` tekshirardi; Telegram
+deep-link va bot telefon-kontakti noma’lum identity uchun flagga qaramasdan
+akkaunt yaratardi. Endi uchala kanal `users/registration_policy.py`dagi yagona
+qarordan o‘tadi; Mini App hech qachon yaratmaydi.
+
+- Branch: `claude/pub10b-registration-gate`; kod commit **`89bdb06`**.
+- Inventar: web form, `handle_telegram_auth_token`, `register_guest_via_phone`
+  va faqat lokal `core/demo_seed.py::seed_demo_data`. Inventar testi yangi
+  `create_user` paydo bo‘lsa qizil bo‘ladi.
+- Qo‘shimcha topilgan va yopilgan nuqson: faolsizlantirilgan hisob Telegram
+  deep-link orqali webga kira olardi (`login()` `is_active`ni tekshirmaydi).
+  Endi bot rad etadi, status endpoint login oldidan qayta tekshiradi. Ayni
+  Telegram ID uchun parallel yaratish g‘olib akkauntga qaytadi.
+- Test: safe env’da `manage.py test users.test_registration_policy` — **25/25 OK**;
+  to‘liq `manage.py test` — **2813 test, OK (skipped=67)**; `manage.py check` 0;
+  `git diff --check` PASS. Nazorat yugurishi: deep-link gate va telefon poygasi
+  ushlashi olib tashlanganda testlar FAIL, tiklangach PASS.
+- Davom etilishi kerak: PUB1.0c (auth throttle P0 enforcement). Bot menyusi
+  yopiq flagda ham “Ro‘yxatdan o‘tish”ni ko‘rsatadi — UX alohida.
+
 ## 2026-10-16 [Claude]: PUBLIC-01 / PUB1.0a — public rich text va URL containment
 
 Owner birinchi implementatsiya kesimi sifatida PUB1.0a’ni tanladi. Legacy public

@@ -1,6 +1,6 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
-**Holat:** REJA TAYYOR; **PUB1.0a kodda (2026-10-16, lokal)**, PUB1.0b–g va keyingi
+**Holat:** REJA TAYYOR; **PUB1.0a–b kodda (2026-10-16, lokal)**, PUB1.0c–g va keyingi
 bosqichlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
 **Kod tayanchi:** `main`dagi `72e82e0`
@@ -1228,6 +1228,22 @@ ma’nosi saqlangan; global private rendererlar o‘zgarmagan. Rollback security
 policy’ni chetlab o‘tmaydi.
 
 #### PUB1.0b — barcha kanalda bitta registration gate
+
+**Holat — 2026-10-16: kodda, lokal tekshirilgan** (branch
+`claude/pub10b-registration-gate`). Inventar: production’da yangi user
+yaratadigan joylar — web `RegisterView` (form), `bot/services.py`dagi
+`handle_telegram_auth_token` va `register_guest_via_phone`, hamda faqat lokal
+`core/demo_seed.py::seed_demo_data`; Mini App yaratmaydi. Yagona qaror
+`users/registration_policy.py::can_create_account(channel, request, identity)`
+(kanal jadvali, ro‘yxatda yo‘q kanal fail-closed, sintetik email faqat
+Telegram kanallarida) va `existing_identity_may_continue(user)`. Deep-link va
+telefon yopiq flagda generik `registration_closed` qaytaradi (deep-link sessiyasi
+pending qoladi); mavjud faol identity kirish/ulashni davom ettiradi. Topilgan
+qo‘shimcha nuqson ham yopildi: faolsizlantirilgan hisob Telegram deep-link orqali
+webga kira olardi (`login()` `is_active`ni tekshirmaydi) — endi bot ham, status
+endpoint ham rad etadi. Ayni Telegram ID uchun parallel yaratish ikkinchi akkaunt
+yoki “server xatosi” o‘rniga g‘olib akkauntga qaytadi. Mini App ayni identity
+qoidasini ishlatadi. Inventar testi yangi `create_user` paydo bo‘lsa qizil bo‘ladi.
 
 **Ish:** avval barcha production `CustomUser.create_user` call-site inventari;
 so‘ng `users/registration_policy.py` va shared result code. Web RegisterView,
