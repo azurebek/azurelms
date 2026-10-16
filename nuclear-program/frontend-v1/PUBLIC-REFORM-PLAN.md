@@ -1,6 +1,6 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
-**Holat:** REJA TAYYOR; **PUB1.0a–b kodda (2026-10-16, lokal)**, PUB1.0c–g va keyingi
+**Holat:** REJA TAYYOR; **PUB1.0a–c kodda (2026-10-16, lokal)**, PUB1.0d–g va keyingi
 bosqichlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
 **Kod tayanchi:** `main`dagi `72e82e0`
@@ -1265,6 +1265,22 @@ external call fixture.
 0; adapter policy duplicate’i 0. Bu presentation flag emas, domain gate.
 
 #### PUB1.0c — auth abuse substrate va P0 enforcement
+
+**Holat — 2026-10-16: kodda, lokal tekshirilgan** (branch
+`claude/pub10c-auth-throttle`). `users/auth_abuse.py` — HMAC-digest kalit,
+`TRUSTED_PROXY_HOPS` bo‘yicha ishonchli IP (Caddy ortida o‘ngdagi XFF), atomik
+fixed-window hisoblagich (`users.AuthThrottleBucket`, users0023), doimiy blok
+yo‘q, saqlash xatosida fail-open, har yozuvdan keyin bounded cleanup va
+`manage.py prune_auth_throttle`. Login (blok tekshiruvi `authenticate`dan oldin),
+ro‘yxat, parol tiklash va Telegram init generik `429`+`Retry-After` bilan
+enforce qiladi; login/tiklash hisoblagichi hisob mavjudligidan qat’i nazar.
+Limit/oynalar `OperationalSettings`da (core0008, rejadagi konservativ default),
+owner `Vaqt va limitlar` panelida sabab/tasdiq/`SystemAuditEvent` bilan
+o‘zgartiradi; yoqish/o‘chirish `auth_throttle_enforcement` flagida (OFF — faqat
+sanaydi). Control Center `auth_throttle` capability’si (high, `/readyz`ga
+kirmaydi). PostgreSQL parallel increment testi CI integration ishida.
+**Ochiq:** beat/cron jadvali qo‘shilmadi (bounded cleanup yetarli); fixed window
+chegara burst’i va session/CAPTCHA layering PUB1.4c’da.
 
 **Ish:** `users/auth_abuse.py`, hashed key derivation, trusted proxy/IP helper,
 bounded bucket schema yoki atomic backend, cleanup va Control Center health.

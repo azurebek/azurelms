@@ -159,6 +159,77 @@ class OperationalSettings(models.Model):
         help_text="Oynadagi xato ulushi shundan oshsa nosozlik deb qaraladi.",
     )
 
+    # --- Auth urinishlari cheklovi (PUBLIC-01 · PUB1.0c) ------------------ #
+    # Boshlang'ich qiymatlar rejadagi konservativ defaultlar. Owner ularni
+    # `/backoffice/control/runtime/` dan sabab va audit bilan o'zgartiradi;
+    # yoqish/o'chirish esa `core/flags.py`dagi `auth_throttle_enforcement`da.
+    auth_login_account_limit = models.PositiveIntegerField(
+        default=5,
+        validators=[MinValueValidator(1), MaxValueValidator(1000)],
+        verbose_name="Login: bitta hisobga xato urinish",
+        help_text="Oynada bir email/username uchun shuncha xato paroldan keyin kirish vaqtincha to'xtaydi. Hisob mavjud-mavjud emasligidan qat'i nazar sanaladi.",
+    )
+    auth_login_ip_limit = models.PositiveIntegerField(
+        default=20,
+        validators=[MinValueValidator(1), MaxValueValidator(5000)],
+        verbose_name="Login: bitta IP'dan xato urinish",
+        help_text="Bir manzildan ko'p hisobni sinab ko'rishni to'xtatadi. Umumiy Wi-Fi'dagi o'quvchilar ham shu IP'ni bo'lishadi — juda kichik qilmang.",
+    )
+    auth_login_window_minutes = models.PositiveIntegerField(
+        default=15,
+        validators=[MinValueValidator(1), MaxValueValidator(1440)],
+        verbose_name="Login cheklovi oynasi (daqiqa)",
+        help_text="Xato urinishlar shu oyna ichida sanaladi; oyna tugashi bilan hisoblagich yangilanadi. Doimiy blok yo'q.",
+    )
+    auth_register_ip_limit = models.PositiveIntegerField(
+        default=5,
+        validators=[MinValueValidator(1), MaxValueValidator(5000)],
+        verbose_name="Ro'yxatdan o'tish: bitta IP'dan yangi hisob",
+        help_text="Bir manzildan oynada shuncha yangi hisob ochilgach yangisi vaqtincha ochilmaydi.",
+    )
+    auth_register_window_minutes = models.PositiveIntegerField(
+        default=60,
+        validators=[MinValueValidator(1), MaxValueValidator(1440)],
+        verbose_name="Ro'yxatdan o'tish oynasi (daqiqa)",
+        help_text="Yangi hisoblar shu oyna ichida sanaladi.",
+    )
+    auth_reset_account_limit = models.PositiveIntegerField(
+        default=3,
+        validators=[MinValueValidator(1), MaxValueValidator(1000)],
+        verbose_name="Parol tiklash: bitta email uchun so'rov",
+        help_text="Bir emailga oynada shuncha tiklash xati so'ralgach yangisi yuborilmaydi. Email mavjud-mavjud emasligidan qat'i nazar sanaladi.",
+    )
+    auth_reset_ip_limit = models.PositiveIntegerField(
+        default=10,
+        validators=[MinValueValidator(1), MaxValueValidator(5000)],
+        verbose_name="Parol tiklash: bitta IP'dan so'rov",
+        help_text="Bir manzildan ko'p emailga tiklash xati yuborishni to'xtatadi.",
+    )
+    auth_reset_window_minutes = models.PositiveIntegerField(
+        default=60,
+        validators=[MinValueValidator(1), MaxValueValidator(1440)],
+        verbose_name="Parol tiklash oynasi (daqiqa)",
+        help_text="Tiklash so'rovlari shu oyna ichida sanaladi.",
+    )
+    auth_telegram_init_ip_limit = models.PositiveIntegerField(
+        default=10,
+        validators=[MinValueValidator(1), MaxValueValidator(5000)],
+        verbose_name="Telegram orqali kirish: bitta IP'dan boshlash",
+        help_text="Har boshlash bazada sessiya yozadi; bir manzildan oynada shundan ko'pi rad etiladi.",
+    )
+    auth_telegram_init_window_minutes = models.PositiveIntegerField(
+        default=10,
+        validators=[MinValueValidator(1), MaxValueValidator(1440)],
+        verbose_name="Telegram orqali kirish oynasi (daqiqa)",
+        help_text="Boshlashlar shu oyna ichida sanaladi.",
+    )
+    auth_throttle_rows_amber = models.PositiveIntegerField(
+        default=50000,
+        validators=[MinValueValidator(100), MaxValueValidator(10000000)],
+        verbose_name="Cheklov jadvali: AMBER chegarasi (qator)",
+        help_text="Cheklov hisoblagichlari jadvali shundan oshsa Control Center ogohlantiradi (tozalash ishlamayotgan yoki hujum bo'lishi mumkin).",
+    )
+
     updated_at = models.DateTimeField(auto_now=True)
     updated_by = models.ForeignKey(
         "users.CustomUser",

@@ -229,6 +229,7 @@ def backoffice_runtime_settings(request):
     from bot.models import BotRuntimeSettings
     from core.models import OperationalSettings
     from core.runtime_settings_forms import (
+        AuthThrottleSettingsForm,
         BotDeliverySettingsForm,
         CheckoutSettingsForm,
         DispatcherThresholdsForm,
@@ -262,6 +263,13 @@ def backoffice_runtime_settings(request):
             "action": "settings.checkout.update",
             "label": "Checkout tasdiq muddati",
             "message": "Checkout tasdiq muddati saqlandi.",
+        },
+        "auth_throttle": {
+            "form_class": AuthThrottleSettingsForm,
+            "instance": thresholds,
+            "action": "settings.auth_throttle.update",
+            "label": "Kirish urinishlari cheklovi",
+            "message": "Kirish urinishlari cheklovi saqlandi.",
         },
         "delivery": {
             "form_class": BotDeliverySettingsForm,
@@ -342,6 +350,7 @@ def backoffice_runtime_settings(request):
         "dispatcher_form": forms_out["dispatcher"],
         "library_form": forms_out["library"],
         "checkout_form": forms_out["checkout"],
+        "auth_throttle_form": forms_out["auth_throttle"],
         "exam_receipts_form": forms_out["exam_receipts"],
         "delivery": delivery,
         "thresholds": thresholds,

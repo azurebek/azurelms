@@ -384,17 +384,23 @@ class RuntimeSettingsSurfaceTests(TestCase):
             "dead_letter_replay_limit",
             # Material kutubxonasi — fayl hajmi chegarasi ham owner qo'lida.
             "max_upload_mb",
+            # PUB1.0c — kirish urinishlari cheklovi.
+            "auth_login_account_limit", "auth_login_ip_limit", "auth_login_window_minutes",
+            "auth_register_ip_limit", "auth_register_window_minutes",
+            "auth_reset_account_limit", "auth_reset_ip_limit", "auth_reset_window_minutes",
+            "auth_telegram_init_ip_limit", "auth_telegram_init_window_minutes",
+            "auth_throttle_rows_amber",
         ]
         for name in expected:
             self.assertContains(
                 response, f'name="{name}"', msg_prefix=f"{name} maydoni chizilmadi"
             )
-        # Yetti forma, yettita sabab/tasdiq juftligi va yetti `form_name`.
+        # Sakkiz forma, sakkizta sabab/tasdiq juftligi va sakkiz `form_name`.
         self.assertContains(response, 'name="checkout_quote_minutes"')
         self.assertContains(response, 'name="exam_receipt_limit"')
-        self.assertContains(response, 'name="form_name"', count=7)
-        self.assertContains(response, 'name="change_reason"', count=7)
-        self.assertContains(response, 'name="confirm_change"', count=7)
+        self.assertContains(response, 'name="form_name"', count=8)
+        self.assertContains(response, 'name="change_reason"', count=8)
+        self.assertContains(response, 'name="confirm_change"', count=8)
 
     def test_exam_receipt_limit_is_live_audited_and_noop_preserves_other_settings(self):
         self.client.force_login(self.owner)

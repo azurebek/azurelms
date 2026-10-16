@@ -83,6 +83,19 @@ class RegisterView(AuthV1Mixin, CreateView):
             return render(request, 'registration/register_closed.html', status=200)
         return super().dispatch(request, *args, **kwargs)
 
+    def post(self, request, *args, **kwargs):
+        # Bir IP'dan oynada cheklangan son yangi hisob (PUB1.0c): baza va email
+        # toshqinini to'xtatadi. Ro'yxat yopiq bo'lsa dispatch allaqachon rad etgan.
+        from users import auth_abuse
+
+        decision = auth_abuse.registration_blocked(request)
+        if not decision.allowed:
+            self.object = None
+            form = self.get_form()
+            form.add_error(None, decision.message)
+            return auth_abuse.apply_throttle_headers(self.form_invalid(form), decision)
+        return super().post(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Shablon buni yashirin maydonga va «Kirish» havolasiga qo'yadi.
@@ -97,6 +110,9 @@ class RegisterView(AuthV1Mixin, CreateView):
 
     def form_valid(self, form):
         self.object = form.save()
+        from users import auth_abuse
+
+        auth_abuse.record_registration(self.request)
         # Wizard yakunida darhol login qilamiz — onboardingdan keyin dashboardga.
         auth_login(self.request, self.object, backend='users.backends.EmailOrUsernameBackend')
         messages.success(self.request, "Xush kelibsiz! Hisobingiz tayyor.")
@@ -1362,6 +1378,13 @@ def telegram_auth_init(request):
     Token shu brauzer sessiyasiga bog'lanadi — keyin faqat shu brauzer uni
     login uchun ishlata oladi. Bitta brauzerda bir vaqtda bitta oqim.
     """
+    # Har boshlash bazada sessiya va cookie yozadi: IP bo'yicha cheklanadi (PUB1.0c).
+    from users import auth_abuse
+
+    decision = auth_abuse.consume_telegram_init(request)
+    if not decision.allowed:
+        response = JsonResponse({'ok': False, 'status': 'throttled', 'message': decision.message})
+        return auth_abuse.apply_throttle_headers(response, decision)
     token = secrets.token_urlsafe(32)
     client_key = secrets.token_urlsafe(32)
     TelegramAuthSession.objects.create(token=token, client_key=client_key)

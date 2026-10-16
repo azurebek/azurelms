@@ -171,6 +171,23 @@ CAPABILITY_REGISTRY = (
         ),
     ),
     CapabilityDefinition(
+        slug="auth_throttle",
+        label="Kirish urinishlari cheklovi",
+        category="Governance",
+        criticality="high",
+        owner="Azurbek",
+        description=(
+            "Login, ro'yxat, parol tiklash va Telegram kirishidagi urinishlar "
+            "cheklovi (PUB1.0c): enforcement, hisoblagich jadvali va ishonchli IP."
+        ),
+        dependencies=("database",),
+        runbook=(
+            "O'chirilgan bo'lsa `auth_throttle_enforcement` flagini qayta yoqing. "
+            "Jadval katta bo'lsa `manage.py prune_auth_throttle` va hujum belgilarini "
+            "tekshiring. Production'da `TRUSTED_PROXY_HOPS` Caddy ortida 1 bo'lishi kerak."
+        ),
+    ),
+    CapabilityDefinition(
         slug="email",
         label="Email",
         category="Runtime",

@@ -16,6 +16,33 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-16 [Claude]: PUBLIC-01 / PUB1.0c — auth urinishlari cheklovi va P0 enforcement
+
+Login, ro‘yxat, parol tiklash va Telegram init urinishlari cheklanmagan edi
+(cheksiz parol taxmini, hisob/email toshqini). Endi to‘rt endpoint ham
+`users/auth_abuse.py` yagona qaroridan o‘tadi va limitdan keyin generik `429` +
+`Retry-After` qaytaradi.
+
+- Branch: `claude/pub10c-auth-throttle`; kod commit **`529d10a`**. Additive
+  migrationlar: core0008 (11 sozlama maydoni, default bilan), users0023
+  (`AuthThrottleBucket`). Data o‘chirish yo‘q.
+- Qarorlar: kalit HMAC digest (raw email/IP saqlanmaydi); `TRUSTED_PROXY_HOPS`
+  (lokal 0, non-local 1 — Caddy qo‘ygan o‘ngdagi XFF, chapdagisi soxtalashtiriladi);
+  login blok tekshiruvi `authenticate`dan oldin; hisoblagich hisob mavjudligidan
+  qat’i nazar; doimiy blok yo‘q; saqlash xatosida fail-open; limitlar
+  `OperationalSettings` (owner paneli, audit), yoqish/o‘chirish
+  `auth_throttle_enforcement` flagi; Control Center `auth_throttle` (high).
+- Test: safe env’da `manage.py test users.test_auth_throttle` — **30 OK, 1 skip**
+  (PostgreSQL parallel increment testi CI integration’da); to‘liq `manage.py test`
+  — **2845 test, OK (skipped=68)**; `makemigrations --check` — o‘zgarish yo‘q;
+  `git diff --check` PASS. Nazorat yugurishi: login blok tekshiruvi o‘chirilganda
+  va IP XFF’ning chap qiymatidan olinganda testlar FAIL, tiklangach PASS.
+- Brauzer (DB nusxasida): 2 xato logindan keyin uchinchisi `429` (0.04s — parol
+  hash tekshirilmadi), generik xabar va kiritilgan login saqlangan; owner panelida
+  11 maydon; Control Center “Kirish urinishlari cheklovi faol”.
+- Davom etilishi kerak: PUB1.0d (Telegram init/status/consume method split).
+  Production deploy’da `TRUSTED_PROXY_HOPS=1` env’da bo‘lishi shart.
+
 ## 2026-10-16 [Claude]: PUBLIC-01 / PUB1.0b — barcha kanalda bitta registration gate
 
 `public_registration` flagini faqat web `RegisterView` tekshirardi; Telegram

@@ -1262,6 +1262,7 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 | `seed_demo` | core | mobil QA va demo uchun kurs/guruh/o'quvchi yaratadi (faqat lokal) |
 | `prune_ai_memory [--user-id] [--dry-run]` | messenger | `AIMemoryFact` dagi shablon-axlat va near-dubllarni arxivlaydi |
 | `send_streak_nudges` | users | xavf ostidagi/uzilgan seriyalar uchun mascot undash bildirishnomalarini yuboradi |
+| `prune_auth_throttle` | users | muddati o'tgan auth cheklov hisoblagichlarini o'chiradi (servis har yozuvdan keyin ham kichik bo'lak tozalaydi) |
 | `audit_public_content [--format=json]` | frontend | public rich text va admin URL'larini `PUBLIC_EDITORIAL_V1` bo'yicha read-only tekshiradi; faqat qator ID va topilma turi, kontent chiqmaydi |
 
 ---
@@ -1281,6 +1282,7 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 |---|---|
 | `APP_ENV` | `local` (default) yoki production-like nom |
 | `AZURELMS_SKIP_ENV_FILE` | `.env.<APP_ENV>` yuklanmaydi. Test yugurtirishda **majburiy**: aks holda `.env.local`dagi haqiqiy `GEMINI_API_KEY` yuklanib, testlar bepul kvotani sarflashi mumkin |
+| `TRUSTED_PROXY_HOPS` | Auth cheklovi uchun mijoz IP'si nechanchi proxy sakrashidan olinadi; lokal default 0 (`REMOTE_ADDR`), non-local default 1 (Caddy qo'ygan eng o'ngdagi `X-Forwarded-For`) |
 | `PRIVATE_MEDIA_ROOT` | Private fayllar ildizi; default `BASE_DIR/private-media`. `MEDIA_ROOT` dan tashqarida bo'lishi shart |
 | `AZURELMS_TEST_FILE_DB` | Test bazasini diskdagi SQLite fayliga o'tkazadi. Concurrency proof testlari uchun kerak; default in-memory (tezroq), ammo uning qulflash semantikasi real bazadan farq qiladi |
 | `DEBUG` | Django debug |
@@ -1397,6 +1399,12 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 - Profil: script/style/svg/math/object kabi konteynerlar matni bilan olib tashlanadi; global `class/style/id` yo'q (faqat CKEditor `figure` classlari); havola `safe_url`dan o'tadi (`javascript:`/`data:`/`//host`/`/\host`/control/`user@host` rad, rad etilgan havola matn bo'ladi); rasm faqat `MEDIA_URL`/static'dan; iframe havolaga aylanadi yoki yo'qoladi. Qisqa matn/meta uchun `public_plain_text` (`BlogPost.plain_text` ham).
 - Admin URL: `frontend/public_url_policy.py` — navigatsiya (navbar/footer/ijtimoiy) faqat lokal/https/mailto/tel, nav elementlari context processor'da bir marta filtrlanadi; kontent/manba havolasi (SIT) http'ni ham qabul qiladi. V1 `public_url` filteri shu siyosatga delegatsiya qiladi.
 - Private dars/imtihon/amaliyot kontenti ataylab global `bleach_tags.sanitize`da qoladi. Save/publish paytidagi snapshot tekshiruvi hali yo'q (writer slicelari).
+
+### Auth urinishlari cheklovi (PUB1.0c, 2026-10-16)
+
+- `users/auth_abuse.py` yagona qaror: login (hisob + IP, blok `authenticate`dan oldin), ro'yxat (IP), parol tiklash (email + IP) va Telegram init (IP). Limitdan keyin generik `429` + `Retry-After`; hisoblagich hisob mavjudligidan qat'i nazar yuradi.
+- `users.AuthThrottleBucket` faqat HMAC digest saqlaydi; fixed window, doimiy blok yo'q; saqlash xatosida fail-open. Limit/oynalar `OperationalSettings` (owner `Vaqt va limitlar` paneli, audit bilan), yoqish/o'chirish `auth_throttle_enforcement` flagida.
+- Control Center `auth_throttle` probe'i: enforcement OFF, production'da `TRUSTED_PROXY_HOPS=0` yoki jadval chegaradan katta bo'lsa AMBER.
 
 ### Production safety
 

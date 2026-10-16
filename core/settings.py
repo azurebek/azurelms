@@ -174,6 +174,16 @@ if SECURITY_STRICT:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
 
+# Mijoz IP'si qaysi proxy sakrashidan olinadi (auth cheklovi, PUB1.0c).
+# Bu tarmoq topologiyasi, owner jonli sozlamasi emas: production'da yagona kirish
+# — Caddy, u mijoz yuborgan `X-Forwarded-For`ni tashlab o'zi aniqlagan IP'ni
+# qo'yadi, `web` porti esa tashqariga ochilmagan. Shu sabab non-local default
+# 1 (`X-Forwarded-For`ning eng o'ngdagi qiymati), lokal 0 (`REMOTE_ADDR`).
+# Noto'g'ri qiymat xavfli: 0 Caddy ortida hammani bitta IP qiladi, katta qiymat
+# esa mijozga IP'ni soxtalashtirishga imkon beradi.
+_trusted_proxy_hops = (os.getenv("TRUSTED_PROXY_HOPS") or "").strip()
+TRUSTED_PROXY_HOPS = int(_trusted_proxy_hops) if _trusted_proxy_hops.isdigit() else (0 if IS_LOCAL else 1)
+
 # Liveness/readiness probe'lari odatda cluster ichidan http bilan keladi —
 # ularni 301 qilib yuborsak orkestrator holatni o'qiy olmaydi. Sozlama doim
 # ta'riflanadi (test qilinadigan bo'lsin), ta'siri esa faqat SSL redirect

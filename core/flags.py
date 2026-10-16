@@ -239,6 +239,23 @@ FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
         ),
     ),
     FlagDefinition(
+        slug="auth_throttle_enforcement",
+        label="Kirish urinishlarini cheklash",
+        description=(
+            "Login, ro'yxatdan o'tish, parol tiklash va Telegram orqali kirishda "
+            "ko'p urinishni vaqtincha to'xtatadi (parol taxmini va baza/email "
+            "toshqinidan himoya)."
+        ),
+        default=True,
+        category="Acquisition",
+        runbook=(
+            "O'chirilsa urinishlar sanalishda davom etadi, lekin hech kim rad "
+            "etilmaydi — faqat favqulodda holat uchun (masalan, proxy noto'g'ri "
+            "sozlanib hamma bitta IP bo'lib ko'rinsa). Sabab tuzatilgach darhol "
+            "qayta yoqing. Chegaralar Operatsion sozlamalarda."
+        ),
+    ),
+    FlagDefinition(
         slug="telegram_outbox_sending",
         label="Telegram xabar yuborish",
         description="Outbox navbatidagi xabarlar Telegramga yuboriladimi.",
