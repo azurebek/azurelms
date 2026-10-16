@@ -16,6 +16,37 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-16 [Claude]: COMMERCE-01 — Codex rejasini saqlash va yakunlash
+
+Codex 2026-10-15 da [COMMERCE-01](frontend-v1/COMMERCE-REFORM-PLAN.md)ni
+yozayotganda limiti oxirgi audit tuzatishlari orasida (23:14) tugadi; reja
+commit qilinmay `codex/commerce-radical-reform-plan` checkoutida qolgan edi.
+Owner ko‘rsatmasi bilan Claude ishni o‘z branchiga ko‘chirib saqladi va
+yakunladi. **Runtime implementatsiyasi boshlanmagan; birinchi kesim COM1.0a.**
+
+- Branch: `claude/commerce-reform-plan-finish`. `b4df280` — Codexning diskdagi
+  nusxasi o‘zgartirishsiz (author Codex); `3ef8f67` — Claude tuzatishlari.
+- Codex sessiya logidan tiklangan holat: besh adversarial audit raundi; oxirgi
+  raundning 38 patchidan 35 tasi qo‘llangan, rad etilgan 3 tasi bo‘laklab qayta
+  yuborilgan (takror matn yo‘q). Oxirgi mustaqil audit `CLEAN`ga yetmay to‘xtagan.
+- Oxirgi raund tekkan joylar solishtirildi va tuzatildi: evidence crypto/rewrap/
+  SAD erase per-blob kalitga moslandi; `CommerceStagedUpload` lock tartibi,
+  retention token va COM1.1b tavsifiga qo‘shildi; `SALE_NOT_ELIGIBLE` va
+  `PERIOD_INTERVAL_INVALID` §7.4ga kiritildi; COM1.8c resume/stage/stale-epoch
+  commandlarini nomlaydi. Rejaga “review chegarasi” eslatmasi qo‘shildi.
+- Tekshiruv: `git diff --check` PASS. Lokal docs verifier
+  (`.tools/docs-sync/verify_docs.py` — `.tools/` gitignored, repoda
+  versiyalanmagan, shu sabab checkoutdan qayta yugurtirib bo‘lmaydi; natija
+  faqat shu mashinadagi dalil) — 101 hujjat, 823 relative link, 39 anchor,
+  missing0/warning0. Manifest DAG (bir martalik lokal skript) — 40 unit,
+  noma’lum dependency 0, cycle 0, COM1.8c qolgan 39 unitni qamraydi; §12.2 — 26
+  E2E; COM-D1–D17 §14da aniqlangan. App/Node testlari yugurtirilmadi: docs-only.
+- Merge blokeri: `Twisted==26.4.0` CVE-2026-106454 sabab xavfsizlik skani
+  barcha PRlarda qizil edi; owner reyestr istisnosini tanladi va u
+  [PR #201](https://github.com/azurebek/azurelms/pull/201) (`6035d92`) bilan
+  yopildi (quyidagi yozuv). Davom etilishi kerak: COM1.0a — owner navbatga
+  qo‘yganda.
+
 ## 2026-10-16 [Claude]: Twisted CVE-2026-106454 — owner qarori bilan reyestr istisnosi
 
 2026-10-15 dan `pip-audit` `Twisted==26.4.0`da CVE-2026-106454

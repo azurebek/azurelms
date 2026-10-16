@@ -5,6 +5,13 @@
 > ketma-ketlik butun loyiha uchun bugungi task navbati emas; keyingi sanali
 > tuzatishlar oldingi taxminlarni almashtiradi.
 
+> **2026-10-15 reform bog‘lanishi:** Payment, Subscription va Checkoutning
+> keyingi canonical islohoti [COMMERCE-01](frontend-v1/COMMERCE-REFORM-PLAN.md)da
+> tadqiq qilindi va 40 reviewable PR-unitga ajratildi. Runtime implementatsiyasi
+> boshlanmagan; birinchi kesim COM1.0a. Ushbu ledgerdagi owner product contracti
+> va sanali dalillar tarixiy haqiqat bo‘lib qoladi; COMMERCE-01 ularni bajarilmagan
+> demaydi yoki narx/paket qarorini o‘zi o‘zgartirmaydi.
+
 Owner admission: 2026-09-04, `writing-block.md` rejasidan keyin «boshla qurishni».
 Status: **ADMIT — launch-critical**. Payment foundation va keyingi tuzatishlar
 main'da (#67–69). Catalog + delivery **IMPLEMENTED/TESTED — LOCAL REGRESSION

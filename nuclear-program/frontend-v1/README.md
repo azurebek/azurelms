@@ -1,5 +1,16 @@
 # Frontend V1 — prototipdan ishlaydigan platformaga
 
+**Commerce rejasi — 2026-10-15:** [COMMERCE-01](COMMERCE-REFORM-PLAN.md)
+Payment, Subscription va Checkoutni narxdan haqiqiy accessgacha bitta
+ishonchli domen sifatida isloh qilishni rejalashtiradi. Backend/data/security,
+learner-owner UX va rasmiy transaction/upload/WCAG qoidalari uch mustaqil
+auditda ko‘rildi; finance least-privilege va evidence containment, immutable
+offer/order/evidence/payment/period/grant graphi, no-JS checkout va subscription
+center, owner workbench, Telegram/outbox, reconciliation, migration va rollback
+to‘qqiz bosqich/40 reviewable PR-unitda yozildi. Implementatsiya boshlanmagan;
+birinchi kesim COM1.0a. Bu reja [I7](I7-CHECKOUT.md) poydevorini bajarilmagan
+demaydi va joriy umumiy navbatni o‘zi almashtirmaydi.
+
 **Messenger rejasi — 2026-10-15:** [MESSENGER-01](MESSENGER-REFORM-PLAN.md)
 I4a/I4b presentation poydevorini saqlab, Messenger’ni xavfsiz va ishonchli
 yordam markaziga aylantirishni rejalashtiradi. Backend/realtime, human UX va
