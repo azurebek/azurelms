@@ -16,6 +16,31 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-16 [Claude]: Twisted CVE-2026-106454 — owner qarori bilan reyestr istisnosi
+
+2026-10-15 dan `pip-audit` `Twisted==26.4.0`da CVE-2026-106454
+(GHSA-8pqf-f4m5-798g) topgani sabab “Sir va bog‘liqlik zaifligi skani” barcha
+PRlarda qizil edi; PyPI’da tuzatilgan reliz yo‘q (`fix_versions` bo‘sh). Owner
+ikkinchi yo‘lni tanladi: sababi va muddati bilan reyestr istisnosi.
+
+- Branch: `claude/twisted-cve-baseline`.
+- Asos: zaiflik faqat `twisted.mail.imap4` (IMAP LIST/LSUB ReDoS). AzureLMS IMAP
+  server ishlatmaydi; Twisted faqat `daphne` bog‘liqligi. Loyiha kodi va Twisted’ni
+  talab qiluvchi paketlar (`autobahn`, `Automat`, `daphne`, `txaio`) `twisted.mail`ni
+  import qilmaydi.
+- `security/dependency-audit-baseline.json`: `known` + `reasons` +
+  `review_by=2026-11-15`. Muddat o‘tsa CI yana qizil bo‘ladi va qayta ko‘rish shart.
+- `core/test_supply_chain_gate.py`: bo‘sh-reyestr testi `REVIEWED_EXEMPTIONS` bilan
+  ataylab yangilandi (har istisnoda sabab + `review_by` majburiy); yangi
+  `test_the_twisted_exemption_stays_unreachable` kimdir `twisted.mail`ni ishlata
+  boshlasa qizil beradi. Nazorat yugurishi: `core/flags.py`ga vaqtincha
+  `from twisted.mail import imap4` qo‘shilganda test FAIL, tiklangach PASS.
+- Test: safe env’da `manage.py test core.test_supply_chain_gate` — **31/31 OK**;
+  CI artefaktidagi haqiqiy `pip-audit.json` bilan `audit_dependencies` —
+  “Yangi zaiflik yo‘q”; `scan_secrets` toza; `manage.py check` 0 issue.
+- Davom etilishi kerak: tuzatilgan Twisted reliz chiqqach paket ko‘tariladi,
+  istisno va `REVIEWED_EXEMPTIONS` yozuvi o‘chiriladi.
+
 ## 2026-10-15 [Codex]: MESSENGER-01 — radikal islohot tadqiqoti va roadmap
 
 Owner so'rovi bo'yicha [MESSENGER-01](frontend-v1/MESSENGER-REFORM-PLAN.md)

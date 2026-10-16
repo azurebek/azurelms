@@ -1,8 +1,14 @@
 {
   "_nima": "A1a supply-chain gate: `pip-audit` topgan, ammo hali tuzatilmagan advisory'lar reyestri. CI shu ro'yxatda YO'Q har qanday advisory'ga qizil beradi.",
-  "_holat": "2026-08-15 dan buyon BO'SH — bu maqsad holati. Bo'sh reyestr degani: har qanday yangi zaiflik darhol CI'ni qizil qiladi, chunki uni oqlaydigan yozuv yo'q.",
-  "_qanday_ishlatiladi": "Zaiflik chiqsa, birinchi yo'l — paketni ko'tarish. Faqat ko'tarib bo'lmaydigan holatda (major/RC talab qiladi yoki mos kelmaydi) shu faylga sabab bilan yoziladi, va o'shanda `review_by` sanasi majburiy bo'ladi.",
+  "_holat": "2026-08-15 dan 2026-10-16 gacha BO'SH edi — bu maqsad holati. 2026-10-16 dan bitta istisno bor (pastda, `reasons`da sababi bilan). Tuzatilgan reliz chiqishi bilan paket ko'tariladi va reyestr yana bo'shatiladi.",
+  "_qanday_ishlatiladi": "Zaiflik chiqsa, birinchi yo'l — paketni ko'tarish. Faqat ko'tarib bo'lmaydigan holatda (major/RC talab qiladi, mos kelmaydi yoki tuzatilgan reliz umuman yo'q) shu faylga sabab bilan yoziladi, va o'shanda `review_by` sanasi majburiy bo'ladi.",
   "_buyruq": "pip-audit -r requirements.txt --no-deps -f json > pip-audit.json && python manage.py audit_dependencies --report pip-audit.json",
-  "recorded_on": "2026-08-15",
-  "known": {}
+  "recorded_on": "2026-10-16",
+  "review_by": "2026-11-15",
+  "known": {
+    "twisted==26.4.0": ["CVE-2026-106454"]
+  },
+  "reasons": {
+    "twisted==26.4.0": "CVE-2026-106454 (GHSA-8pqf-f4m5-798g): `twisted.mail.imap4.wildcardToRegexp` IMAP LIST/LSUB naqshini regexga tozalamasdan aylantiradi — autentifikatsiyadan o'tgan IMAP mijozi ReDoS bilan reaktorni muzlatishi mumkin. AzureLMS IMAP server ishga tushirmaydi: Twisted faqat `daphne` (HTTP/WebSocket ASGI) bog'liqligi; na loyiha kodi, na Twisted'ni talab qiluvchi o'rnatilgan paketlar `twisted.mail`ni import qiladi (`core.test_supply_chain_gate` buni tekshiradi). PyPI'da 26.4.0 eng yangi reliz, `fix_versions` bo'sh — ko'tarib bo'lmaydi. Owner qarori: 2026-10-16. Tuzatilgan reliz chiqqach Twisted ko'tariladi va bu yozuv o'chiriladi."
+  }
 }
