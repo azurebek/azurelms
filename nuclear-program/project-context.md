@@ -547,7 +547,7 @@ ai/
 ### 4.1 Visitor → Student
 
 1. Visitor landing/course/pricing/blog sahifalarni ko'radi.
-2. `users/register/` orqali ro'yxatdan o'tadi.
+2. `users/register/` orqali ro'yxatdan o'tadi. Telegram deep-link va bot telefon-kontakti ham hisob ochadi; uchala kanal `users/registration_policy.py::can_create_account` yagona qaroridan o'tadi (`public_registration` OFF — hech qaysi kanal yangi akkaunt yaratmaydi, Mini App hech qachon yaratmaydi). Mavjud identity faqat faol bo'lsa kiradi yoki Telegramni ulaydi (`existing_identity_may_continue`).
 3. `UserOnboarding` javoblari saqlanishi mumkin.
 4. Login bo'lgach `dashboard`'ga yo'naltiriladi.
 

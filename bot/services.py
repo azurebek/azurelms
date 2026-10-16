@@ -105,9 +105,16 @@ def link_user_from_start_token(token, telegram_user_id, telegram_username=""):
         )
     user_id = link_token.user_id
 
+    from users.registration_policy import IDENTITY_INACTIVE_MESSAGE, existing_identity_may_continue
+
     try:
         with transaction.atomic():
             user = CustomUser.objects.select_for_update().get(id=user_id)
+            # Token 30 daqiqa yashaydi: shu orada bloklangan hisob yangi Telegram
+            # credential olmasligi kerak — aks holda qayta faollashtirilgach o'sha
+            # Telegram darhol bot huquqini olardi (PUB1.0b, lock ostida qayta o'qilgan).
+            if not existing_identity_may_continue(user):
+                return ActionResult(ok=False, code="identity_inactive", message=IDENTITY_INACTIVE_MESSAGE)
             if user.telegram_id:
                 return ActionResult(
                     ok=False,
@@ -170,22 +177,41 @@ def handle_telegram_auth_token(token, telegram_user_id, first_name="", last_name
     if not session.is_valid():
         return ActionResult(ok=False, code="expired", message="Sessiya vaqti tugagan. Iltimos, saytdan qayta urinib ko'ring.")
 
+    from users.registration_policy import (
+        CHANNEL_TELEGRAM_DEEPLINK,
+        IDENTITY_INACTIVE_MESSAGE,
+        can_create_account,
+        existing_identity_may_continue,
+    )
+
+    def login_existing(user):
+        # Faolsizlantirilgan hisob deep-link orqali webga qaytmaydi: keyingi
+        # `django_login` `is_active`ni tekshirmaydi (PUB1.0b).
+        if not existing_identity_may_continue(user):
+            return ActionResult(ok=False, code="identity_inactive", message=IDENTITY_INACTIVE_MESSAGE)
+        session.user = user
+        session.status = TelegramAuthSession.STATUS_AUTHENTICATED
+        session.save(update_fields=['user', 'status'])
+        return ActionResult(
+            ok=True,
+            code="login_success",
+            message="Tizimga kirish tasdiqlandi! Brauzeringizga qaytib, o'qishni davom ettiring 🚀"
+        )
+
     try:
         with transaction.atomic():
             user = CustomUser.objects.filter(telegram_id=telegram_user_id).first()
 
             if user:
-                # Login: user mavjud, sessiyaga ulaymiz
-                session.user = user
-                session.status = TelegramAuthSession.STATUS_AUTHENTICATED
-                session.save(update_fields=['user', 'status'])
-                return ActionResult(
-                    ok=True,
-                    code="login_success",
-                    message="Tizimga kirish tasdiqlandi! Brauzeringizga qaytib, o'qishni davom ettiring 🚀"
-                )
+                return login_existing(user)
             else:
-                # Register: yangi user yaratamiz
+                # Register: yangi akkaunt faqat yagona siyosat ruxsat bersa.
+                # Rad etilganda sessiya pending qoladi — brauzerdagi niyat
+                # yo'qolmaydi, bot esa generik matn ko'rsatadi.
+                decision = can_create_account(CHANNEL_TELEGRAM_DEEPLINK)
+                if not decision.allowed:
+                    return ActionResult(ok=False, code=decision.code, message=decision.message)
+
                 email = f"tg_{telegram_user_id}@telegram.local"
                 base_username = telegram_username or f"tg_{telegram_user_id}"
                 username = base_username
@@ -194,16 +220,26 @@ def handle_telegram_auth_token(token, telegram_user_id, first_name="", last_name
                     username = f"{base_username}_{counter}"
                     counter += 1
 
-                user = CustomUser.objects.create_user(
-                    username=username,
-                    email=email,
-                    first_name=first_name,
-                    last_name=last_name,
-                    telegram_id=telegram_user_id,
-                    telegram_username=telegram_username,
-                )
-                user.set_unusable_password()
-                user.save()
+                try:
+                    with transaction.atomic():
+                        user = CustomUser.objects.create_user(
+                            username=username,
+                            email=email,
+                            first_name=first_name,
+                            last_name=last_name,
+                            telegram_id=telegram_user_id,
+                            telegram_username=telegram_username,
+                        )
+                        user.set_unusable_password()
+                        user.save()
+                except IntegrityError:
+                    # Parallel `/start auth_...` ayni Telegram ID uchun akkauntni
+                    # birinchi yaratdi: ikkinchisi o'sha akkauntga kiradi,
+                    # ikkinchi akkaunt yoki "server xatosi" yo'q.
+                    winner = CustomUser.objects.filter(telegram_id=telegram_user_id).first()
+                    if winner is None:
+                        raise
+                    return login_existing(winner)
 
                 session.user = user
                 session.status = TelegramAuthSession.STATUS_AUTHENTICATED
@@ -945,12 +981,23 @@ def register_guest_via_phone(*, telegram_id, telegram_username, phone, first_nam
     Telefon Telegram tomonidan tasdiqlangan bo'lishi shart (handler
     contact.user_id == from_user.id ni tekshiradi).
     """
+    from users.registration_policy import (
+        CHANNEL_TELEGRAM_PHONE,
+        IDENTITY_INACTIVE_MESSAGE,
+        can_create_account,
+        existing_identity_may_continue,
+    )
+
     phone = normalize_phone(phone)
     if not phone or len(phone) < 10:
         return PhoneRegisterResult(ok=False, code="bad_phone", message="Telefon raqam noto'g'ri ko'rinishda.")
 
+    inactive = PhoneRegisterResult(ok=False, code="identity_inactive", message=IDENTITY_INACTIVE_MESSAGE)
+
     existing_tg = CustomUser.objects.filter(telegram_id=telegram_id).first()
     if existing_tg:
+        if not existing_identity_may_continue(existing_tg):
+            return inactive
         return PhoneRegisterResult(
             ok=True, code="already_linked",
             message="Bu Telegram allaqachon hisobga ulangan.", user=existing_tg,
@@ -959,6 +1006,10 @@ def register_guest_via_phone(*, telegram_id, telegram_username, phone, first_nam
     with transaction.atomic():
         user = CustomUser.objects.filter(phone_number=phone).first()
         if user:
+            # Mavjud raqamli hisobga Telegram ulash — yangi akkaunt emas, shuning
+            # uchun ro'yxat yopiq bo'lsa ham mumkin; faqat faol hisobga.
+            if not existing_identity_may_continue(user):
+                return inactive
             if user.telegram_id and user.telegram_id != telegram_id:
                 return PhoneRegisterResult(
                     ok=False, code="phone_taken",
@@ -969,26 +1020,43 @@ def register_guest_via_phone(*, telegram_id, telegram_username, phone, first_nam
             user.save(update_fields=["telegram_id", "telegram_username"])
             created = False
         else:
+            decision = can_create_account(CHANNEL_TELEGRAM_PHONE)
+            if not decision.allowed:
+                return PhoneRegisterResult(ok=False, code=decision.code, message=decision.message)
             base_username = f"user{phone.lstrip('+')}"
             username = base_username
             suffix = 1
             while CustomUser.objects.filter(username=username).exists():
                 suffix += 1
                 username = f"{base_username}-{suffix}"
-            user = CustomUser.objects.create_user(
-                username=username,
-                # email unique=True — bo'sh qoldirib bo'lmaydi (ikkinchi ''-email
-                # UNIQUE'ni buzadi). Username'dan deterministik placeholder;
-                # user keyin sozlamalarda haqiqiy emailga almashtira oladi.
-                email=f"{username}@telegram.azurelms.uz",
-                phone_number=phone,
-                first_name=(first_name or "")[:150],
-                last_name=(last_name or "")[:150],
-                telegram_id=telegram_id,
-                telegram_username=telegram_username or "",
-            )
-            user.set_unusable_password()
-            user.save(update_fields=["password"])
+            try:
+                with transaction.atomic():
+                    user = CustomUser.objects.create_user(
+                        username=username,
+                        # email unique=True — bo'sh qoldirib bo'lmaydi (ikkinchi ''-email
+                        # UNIQUE'ni buzadi). Username'dan deterministik placeholder;
+                        # user keyin sozlamalarda haqiqiy emailga almashtira oladi.
+                        email=f"{username}@telegram.azurelms.uz",
+                        phone_number=phone,
+                        first_name=(first_name or "")[:150],
+                        last_name=(last_name or "")[:150],
+                        telegram_id=telegram_id,
+                        telegram_username=telegram_username or "",
+                    )
+                    user.set_unusable_password()
+                    user.save(update_fields=["password"])
+            except IntegrityError:
+                # Ayni Telegram ID parallel so'rovda allaqachon ulangan: ikkinchi
+                # akkaunt yaratilmaydi, mavjudiga qaytiladi.
+                winner = CustomUser.objects.filter(telegram_id=telegram_id).first()
+                if winner is None:
+                    raise
+                if not existing_identity_may_continue(winner):
+                    return inactive
+                return PhoneRegisterResult(
+                    ok=True, code="already_linked",
+                    message="Bu Telegram allaqachon hisobga ulangan.", user=winner,
+                )
             created = True
 
     Notification.objects.create(

@@ -71,9 +71,9 @@ class RegisterView(AuthV1Mixin, CreateView):
         # Tekshiruv `dispatch` da: sahifani yashirish yetmaydi, formani
         # to'g'ridan-to'g'ri POST qilish mumkin. Mavjud foydalanuvchilar
         # kirishda davom etadi — yopilishi kerak bo'lgani ro'yxatdan o'tish.
-        from core.flags import flag_enabled
+        from users.registration_policy import CHANNEL_WEB, can_create_account
 
-        if not flag_enabled("public_registration"):
+        if not can_create_account(CHANNEL_WEB, request).allowed:
             if self.frontend_v1_enabled:
                 self.object = None
                 self.frontend_v1_template = 'frontend_v1/auth_register_closed.html'
@@ -1415,6 +1415,14 @@ def telegram_auth_status(request, token):
         session.status = TelegramAuthSession.STATUS_USED
         session.consumed_at = timezone.now()
         session.save(update_fields=['status', 'consumed_at'])
+
+    # Himoya qatlami: sessiya tasdiqlangandan keyin hisob faolsizlantirilgan
+    # bo'lsa ham `login()` uni tekshirmaydi, shuning uchun bu yerda qayta (PUB1.0b).
+    from users.registration_policy import existing_identity_may_continue
+
+    if not existing_identity_may_continue(authenticated_user):
+        request.session.pop(TELEGRAM_AUTH_CLIENT_KEY, None)
+        return unknown
 
     django_login(request, authenticated_user, backend='django.contrib.auth.backends.ModelBackend')
     request.session.pop(TELEGRAM_AUTH_CLIENT_KEY, None)

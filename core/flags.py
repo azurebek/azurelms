@@ -231,9 +231,11 @@ FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
         default=True,
         category="Acquisition",
         runbook=(
-            "Yopilganda ro'yxatdan o'tish sahifasi xabar ko'rsatadi va hisob "
-            "yaratilmaydi. Mavjud foydalanuvchilar kirishda davom etadi. "
-            "Demo yoki nazoratli beta paytida yopiladi."
+            "Yopilganda web, Telegram deep-link va telefon-kontakt orqali yangi "
+            "hisob yaratilmaydi (yagona qaror: users/registration_policy.py); "
+            "Mini App hech qachon hisob yaratmaydi. Mavjud faol foydalanuvchilar "
+            "kirishda va Telegramni ulashda davom etadi. Demo yoki nazoratli beta "
+            "paytida yopiladi."
         ),
     ),
     FlagDefinition(

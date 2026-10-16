@@ -186,9 +186,12 @@ def miniapp_auth(request):
 
     telegram_id = validated["user"].get("id")
     from users.models import CustomUser
+    from users.registration_policy import existing_identity_may_continue
 
-    user = CustomUser.objects.filter(telegram_id=telegram_id, is_active=True).first()
-    if not user:
+    # Mini App hech qachon akkaunt yaratmaydi (`registration_policy` jadvalida
+    # `may_create=False`); faqat mavjud, faol identity sessiya oladi.
+    user = CustomUser.objects.filter(telegram_id=telegram_id).first()
+    if not existing_identity_may_continue(user):
         return JsonResponse(
             {
                 "status": "error",
