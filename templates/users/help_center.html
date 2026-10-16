@@ -1,4 +1,5 @@
 {% extends "users/base_app.html" %}
+{% load public_content %}
 {% comment %}
   Yordam markazi (HelpCenterView).
   Proto: azurelms-proto/app/help.html.
@@ -36,7 +37,7 @@
   <!-- FAQ (admin'da tahrirlanadigan) -->
   <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:0 0 12px;">Ko'p so'raladigan savollar</div>
   <div class="help-faq" style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:22px 24px;margin-bottom:28px;">
-    {{ page_faq.content|safe }}
+    {{ page_faq.content|public_rich }}
     <a href="{% url 'faq_page' %}" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--azure);margin-top:6px;">Barcha savollar <i class="bi bi-arrow-right" style="font-size:11px;"></i></a>
   </div>
 
@@ -46,7 +47,7 @@
     <div style="flex:1;min-width:180px;"><div style="font-size:15px;font-weight:600;color:var(--ink);">Javob topa olmadingizmi?</div><div style="font-size:13px;color:var(--ink-3);margin-top:2px;">Qo'llab-quvvatlash jamoasi bilan bog'laning — odatda 3 soatda javob beramiz.</div></div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
       <a href="{% url 'messenger:ai' %}" style="display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 18px;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:13.5px;font-weight:600;"><i class="bi bi-chat-dots"></i> Chat ochish</a>
-      {% if site_settings.telegram_url %}<a href="{{ site_settings.telegram_url }}" style="display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 16px;border-radius:10px;border:1px solid var(--line);color:var(--ink);font-size:13.5px;font-weight:600;"><i class="bi bi-telegram"></i> Telegram</a>{% endif %}
+      {% with telegram_href=site_settings.telegram_url|public_nav %}{% if telegram_href %}<a href="{{ telegram_href }}" style="display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 16px;border-radius:10px;border:1px solid var(--line);color:var(--ink);font-size:13.5px;font-weight:600;"><i class="bi bi-telegram"></i> Telegram</a>{% endif %}{% endwith %}
     </div>
   </div>
 

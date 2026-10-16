@@ -1,4 +1,5 @@
 {% extends "sit/base.html" %}
+{% load public_content %}
 
 {% block title %}{{ university.name }}{% endblock %}
 {% block meta_description %}{{ university.description|truncatechars:240 }}{% endblock %}
@@ -46,15 +47,15 @@
             <div class="fact"><small>Turi</small><b>{{ university.get_university_type_display }}</b></div>
             <div class="fact"><small>Talabalar</small><b>{% if university.student_count %}{{ university.student_count }}{% else %}Aniqlanmoqda{% endif %}</b></div>
           </div>
-          {% if university.official_website %}
-            <a class="official-link" href="{{ university.official_website }}" rel="noopener noreferrer" target="_blank">
+          {% with official_href=university.official_website|public_link %}{% if official_href %}
+            <a class="official-link" href="{{ official_href }}" rel="noopener noreferrer" target="_blank">
               Rasmiy sayt <i class="bi bi-box-arrow-up-right"></i>
             </a>
-          {% endif %}
+          {% endif %}{% endwith %}
           <div class="source-note">
             <i class="bi bi-patch-check"></i>
             <span>{{ university.last_verified_on|date:"d.m.Y" }} kuni tekshirilgan</span>
-            <a href="{{ university.source_url }}" rel="noopener noreferrer" target="_blank">Manba <i class="bi bi-box-arrow-up-right"></i></a>
+            {% with href=university.source_url|public_link %}{% if href %}<a href="{{ href }}" rel="noopener noreferrer" target="_blank">Manba <i class="bi bi-box-arrow-up-right"></i></a>{% endif %}{% endwith %}
           </div>
         </section>
 
@@ -150,7 +151,7 @@
               {% if media.media_type == "image" %}
                 <figure class="media-item">{% if media.image %}<img src="{{ media.image.url }}" alt="{{ media.caption }}">{% endif %}</figure>
               {% else %}
-                <a class="media-item" href="{{ media.video_url }}" target="_blank" rel="noopener noreferrer" aria-label="{{ media.caption|default:'Videoni ochish' }}"><i class="bi bi-play-circle"></i></a>
+                {% with href=media.video_url|public_link %}<a class="media-item"{% if href %} href="{{ href }}"{% endif %} target="_blank" rel="noopener noreferrer" aria-label="{{ media.caption|default:'Videoni ochish' }}"><i class="bi bi-play-circle"></i></a>{% endwith %}
               {% endif %}
             {% endfor %}
           </div>

@@ -1,4 +1,5 @@
 {% extends "base_public.html" %}
+{% load public_content %}
 {% comment %}
   Narxlar (PricingView).
   Proto: azurelms-proto/public/pricing.html.
@@ -26,7 +27,7 @@
       <span style="position:absolute;top:18px;right:18px;font-family:'Space Mono',monospace;font-size:9.5px;letter-spacing:.08em;color:var(--azure);background:var(--azure-soft);padding:4px 9px;border-radius:6px;">OMMABOP</span>
       {% endif %}
       <div style="font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">{{ plan.name }}</div>
-      {% if plan.description %}<div style="font-size:12.5px;color:var(--ink-3);margin:6px 0 14px;line-height:1.4;">{{ plan.description|striptags|truncatewords:10 }}</div>{% else %}<div style="margin-bottom:14px;"></div>{% endif %}
+      {% if plan.description %}<div style="font-size:12.5px;color:var(--ink-3);margin:6px 0 14px;line-height:1.4;">{{ plan.description|public_plain|truncatewords:10 }}</div>{% else %}<div style="margin-bottom:14px;"></div>{% endif %}
       <div style="display:flex;align-items:baseline;gap:4px;">
         {% if plan.price > 0 %}<span style="font-family:'Space Mono',monospace;font-size:34px;font-weight:700;color:var(--ink);letter-spacing:-.02em;">{{ plan.price|floatformat:0 }}</span><span style="font-size:13px;color:var(--ink-3);">so'm/oy</span>{% else %}<span style="font-family:'Space Mono',monospace;font-size:34px;font-weight:700;color:var(--ink);letter-spacing:-.02em;">Bepul</span>{% endif %}
       </div>

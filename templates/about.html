@@ -1,4 +1,5 @@
 {% extends "base_public.html" %}
+{% load public_content %}
 {% comment %}
   Biz haqimizda (about_view) — PublicShell chrome'ida, proto dizayn tilida.
   Kontekst: page (AboutPage), highlighted_statistics, featured_member,
@@ -54,7 +55,7 @@
   <section>
     <div class="ab-eyebrow">Biz haqimizda</div>
     <h1 class="ab-h1">{{ page.hero_title_start }} <span style="color:var(--azure);">{{ page.hero_title_highlight }}</span></h1>
-    <div class="ab-sub">{{ page.hero_subtitle|safe }}</div>
+    <div class="ab-sub">{{ page.hero_subtitle|public_rich }}</div>
   </section>
 
   <!-- Statistika -->
@@ -71,12 +72,12 @@
     <div class="ab-card">
       <div class="ab-card-ico"><i class="bi bi-bullseye"></i></div>
       <h3>{{ page.mission_title }}</h3>
-      <div class="prose">{{ page.mission_text|safe }}</div>
+      <div class="prose">{{ page.mission_text|public_rich }}</div>
     </div>
     <div class="ab-card">
       <div class="ab-card-ico"><i class="bi bi-binoculars"></i></div>
       <h3>{{ page.vision_title }}</h3>
-      <div class="prose">{{ page.vision_text|safe }}</div>
+      <div class="prose">{{ page.vision_text|public_rich }}</div>
     </div>
   </div>
 
@@ -90,7 +91,7 @@
       <div style="flex:1;min-width:200px;">
         <div class="ab-name">{{ featured_member.name }}</div>
         <div class="ab-role">{{ featured_member.role_1 }} · {{ featured_member.role_2 }}</div>
-        <div class="ab-bio">{{ featured_member.bio|safe }}</div>
+        <div class="ab-bio">{{ featured_member.bio|public_rich }}</div>
       </div>
     </div>
     {% endif %}
@@ -99,7 +100,7 @@
       {% if member.avatar %}<img class="ab-av" src="{{ member.avatar.url }}" alt="{{ member.name }}">{% else %}<span class="ab-av">{{ member.name|slice:":1" }}</span>{% endif %}
       <div class="ab-name">{{ member.name }}</div>
       <div class="ab-role">{{ member.role_1 }} · {{ member.role_2 }}</div>
-      <div class="ab-bio">{{ member.bio|safe }}</div>
+      <div class="ab-bio">{{ member.bio|public_rich }}</div>
     </div>
     {% endfor %}
   </div>

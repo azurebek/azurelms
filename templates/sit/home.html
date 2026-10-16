@@ -1,4 +1,5 @@
 {% extends "sit/base.html" %}
+{% load public_content %}
 
 {% block title %}Turkiyada o'qish{% endblock %}
 
@@ -32,7 +33,7 @@
     </div>
     <div class="ann-list">
       {% for announcement in announcements %}
-        <a class="ann" href="{{ announcement.target_url }}">
+        {% with href=announcement.target_url|public_link %}<a class="ann"{% if href %} href="{{ href }}"{% endif %}>{% endwith %}
           <div class="ann-date"><b>{{ announcement.published_on|date:"d" }}</b><small>{{ announcement.published_on|date:"m.Y" }}</small></div>
           <div class="ann-body">
             <span class="badge {{ announcement.badge_class }}"><span class="dot"></span> {{ announcement.get_category_display }}</span>

@@ -1262,6 +1262,7 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 | `seed_demo` | core | mobil QA va demo uchun kurs/guruh/o'quvchi yaratadi (faqat lokal) |
 | `prune_ai_memory [--user-id] [--dry-run]` | messenger | `AIMemoryFact` dagi shablon-axlat va near-dubllarni arxivlaydi |
 | `send_streak_nudges` | users | xavf ostidagi/uzilgan seriyalar uchun mascot undash bildirishnomalarini yuboradi |
+| `audit_public_content [--format=json]` | frontend | public rich text va admin URL'larini `PUBLIC_EDITORIAL_V1` bo'yicha read-only tekshiradi; faqat qator ID va topilma turi, kontent chiqmaydi |
 
 ---
 
@@ -1389,6 +1390,13 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 - AI reply'dagi memory taglar user'ga ko'rsatilmay, extractor orqali ajratiladi
 - Web search sources telemetry'da saqlanadi, javob matnida ko'rsatilmaydi
 - Inline `(Manba N)` va trailing `Manbalar:` `_sanitize_reply` orqali strip qilinadi
+
+### Public rich content va URL (PUB1.0a, 2026-10-16)
+
+- DB'dagi public HTML (landing/About/jamoa, legal/FAQ, kurs, tarif, Blog, SIT qo'llanmasi) legacy va V1'da faqat `public_rich` filteri orqali chiqadi: `core/rich_content_policy.py` → nomlangan `PUBLIC_EDITORIAL_V1` profili. Raw `|safe` va keng `bleach_tags.sanitize` public shablonlarda ishlatilmaydi; flag OFF legacy'ga qaytish xavfsizlikni chetlab o'tmaydi.
+- Profil: script/style/svg/math/object kabi konteynerlar matni bilan olib tashlanadi; global `class/style/id` yo'q (faqat CKEditor `figure` classlari); havola `safe_url`dan o'tadi (`javascript:`/`data:`/`//host`/`/\host`/control/`user@host` rad, rad etilgan havola matn bo'ladi); rasm faqat `MEDIA_URL`/static'dan; iframe havolaga aylanadi yoki yo'qoladi. Qisqa matn/meta uchun `public_plain_text` (`BlogPost.plain_text` ham).
+- Admin URL: `frontend/public_url_policy.py` — navigatsiya (navbar/footer/ijtimoiy) faqat lokal/https/mailto/tel, nav elementlari context processor'da bir marta filtrlanadi; kontent/manba havolasi (SIT) http'ni ham qabul qiladi. V1 `public_url` filteri shu siyosatga delegatsiya qiladi.
+- Private dars/imtihon/amaliyot kontenti ataylab global `bleach_tags.sanitize`da qoladi. Save/publish paytidagi snapshot tekshiruvi hali yo'q (writer slicelari).
 
 ### Production safety
 

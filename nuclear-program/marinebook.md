@@ -16,6 +16,40 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-16 [Claude]: PUBLIC-01 / PUB1.0a — public rich text va URL containment
+
+Owner birinchi implementatsiya kesimi sifatida PUB1.0a’ni tanladi. Legacy public
+shablonlar (flag OFF — default) DB HTMLni raw `|safe` bilan, V1 esa iframe/style/
+class/id’ni o‘tkazadigan umumiy `sanitize` bilan chiqarardi; bleach `//host` va
+`/\host` havolalarini ham o‘tkazardi. Endi legacy, V1, preview va flag ON/OFF’da
+yagona `PUBLIC_EDITORIAL_V1` profili ishlaydi.
+
+- Branch: `claude/pub10a-public-rich-content`; kod commit **`6b6ede1`**.
+- Yangi: `core/rich_content_policy.py` (shared primitive — SIT1.0a/BLOG1.0a1
+  domain wrapperlari shuni tanlaydi), `frontend/public_url_policy.py`,
+  `frontend/templatetags/public_content.py` (`public_rich`/`public_plain`/
+  `public_nav`/`public_link`), `manage.py audit_public_content [--format=json]`.
+  Nav context processor’da bir marta filtrlanadi; `BlogPost.plain_text` ayni
+  profildan. Global `bleach_tags.sanitize` va private consumerlari o‘zgarmagan.
+- Testlar topgan va tuzatilgan qo‘shimcha bo‘shliqlar: katalog/kurs/pricing/
+  checkout qisqa matni `striptags` bilan `<script>` matnini ko‘rsatardi;
+  `href`siz qolgan `<a>` CSSda bosilmaydigan havola bo‘lib chizilardi (endi matn);
+  `/media/../` traversal rasm manbasi rad etildi.
+- Test: safe env’da `manage.py test frontend.test_public_content_policy` —
+  **28/28 OK**; to‘liq `manage.py test` — **2788 test, OK (skipped=67)**
+  (traversal tuzatishidan oldingi kodda; tuzatishdan keyin focused 28/28 qayta
+  OK); `node --test tests/frontend_v1/*.test.mjs` — **172/172 PASS**;
+  `manage.py check` 0; `git diff --check` PASS. Nazorat yugurishi: legacy kurs
+  shabloni `|safe`ga qaytarilganda va sanitizer URL tekshiruvi o‘chirilganda
+  testlar FAIL, tiklangach PASS.
+- Brauzer (lokal DB nusxasida, asosiy `db.sqlite3`ga yozuvsiz): hujumli kurs
+  tavsifi legacy va V1’da — overlay/`id`/script/`javascript:`/`//`/iframe 0,
+  external `rel` to‘g‘ri, video → “Videoni ochish”, jadval saqlangan; landing
+  footer’da faqat xavfsiz nav; konsol xatosi 0. Lokal DB auditi: topilma 0.
+- Davom etilishi kerak: PUB1.0b. §5.8 save/publish snapshot qatlami writer
+  slicelarida; server DB’da `audit_public_content` alohida; nav host allowlisti
+  owner qarorisiz qo‘shilmagan; CSP `unsafe-inline` — PUB1.1d.
+
 ## 2026-10-16 [Claude]: Codex reform PRlarini owner ruxsati bilan yakunlash
 
 Codex limiti tugagach uning ochiq PRlari (#197 public, #198 dashboard, #199

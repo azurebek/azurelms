@@ -1,4 +1,5 @@
 {% extends "base_public.html" %}
+{% load public_content %}
 {% comment %}
   Kurs tafsiloti (CourseDetailView).
   Proto: azurelms-proto/public/course-detail.html.
@@ -30,7 +31,7 @@
         </div>
         <div style="position:relative;">
           <h1 style="font-size:clamp(26px,3vw,36px);font-weight:600;letter-spacing:-.03em;color:#fff;margin:0 0 8px;">{{ course.title }}</h1>
-          <p style="font-size:14.5px;color:rgba(255,255,255,.82);margin:0;max-width:46ch;">{{ course.description|striptags|truncatewords:24 }}</p>
+          <p style="font-size:14.5px;color:rgba(255,255,255,.82);margin:0;max-width:46ch;">{{ course.description|public_plain|truncatewords:24 }}</p>
         </div>
       </div>
 
@@ -45,7 +46,7 @@
       <!-- Kurs haqida -->
       {% if course.description %}
       <h2 style="font-size:20px;font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:0 0 12px;">Kurs haqida</h2>
-      <div style="font-size:15px;line-height:1.7;color:var(--ink-2);margin:0 0 32px;">{{ course.description|safe }}</div>
+      <div style="font-size:15px;line-height:1.7;color:var(--ink-2);margin:0 0 32px;">{{ course.description|public_rich }}</div>
       {% endif %}
 
       <!-- Dastur -->
