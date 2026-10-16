@@ -1,5 +1,4 @@
 import math
-import re
 import uuid
 
 from django.conf import settings
@@ -8,10 +7,10 @@ from django.db import models
 from django.db.models import F
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.html import strip_tags
 from django.utils.text import slugify
 from django_ckeditor_5.fields import CKEditor5Field
 
+from core.rich_content_policy import public_plain_text
 from core.utils import validate_file_size, validate_image_extension
 
 
@@ -148,8 +147,10 @@ class BlogPost(models.Model):
 
     @property
     def plain_text(self):
-        raw_text = strip_tags(self.body or "")
-        return re.sub(r"\s+", " ", raw_text).strip()
+        # Excerpt, meta va o'qish vaqti public renderer bilan ayni profildan
+        # olinadi (PUB1.0a): oddiy teg olib tashlash <script>/<style> matnini
+        # excerpt va meta tavsifga qoldirardi.
+        return public_plain_text(self.body)
 
     @property
     def share_title(self):

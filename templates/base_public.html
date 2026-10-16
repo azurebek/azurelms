@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load public_content %}
 {% comment %}
   PublicShell chrome (nav + footer) — standart ommaviy sahifalar uchun.
   Proto: azurelms-proto/public/_shell.html + public-shell.css + public.js.
@@ -89,9 +90,9 @@
       <div class="pub-foot-bottom">
         <span>© 2026 {{ site_settings.brand_name|default:"AzureLMS"|upper }} — BARCHA HUQUQLAR HIMOYALANGAN</span>
         <div class="pub-foot-social">
-          <a href="{{ site_settings.telegram_url|default:'#' }}">TELEGRAM</a>
-          <a href="{{ site_settings.instagram_url|default:'#' }}">INSTAGRAM</a>
-          <a href="{{ site_settings.youtube_url|default:'#' }}">YOUTUBE</a>
+          <a href="{{ site_settings.telegram_url|public_nav|default:'#' }}">TELEGRAM</a>
+          <a href="{{ site_settings.instagram_url|public_nav|default:'#' }}">INSTAGRAM</a>
+          <a href="{{ site_settings.youtube_url|public_nav|default:'#' }}">YOUTUBE</a>
         </div>
       </div>
     </div>

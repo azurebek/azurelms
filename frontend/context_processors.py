@@ -1,34 +1,47 @@
 from django.db.utils import OperationalError, ProgrammingError
 
 from .models import AuthPageSettings, LandingNavItem, LandingPage, SiteSettings
+from .public_url_policy import public_nav_url
 
 
+# Navbar va footer havolalari shu yerda bir marta navigatsiya siyosatidan
+# o'tadi (PUB1.0a). Legacy va V1 ayni ro'yxatni oladi; ruxsatsiz URL'li
+# element ko'rinmaydi — `#` yoki `javascript:` havolasi bo'lib chiqmaydi.
+# Yashirilgan qatorlar `manage.py audit_public_content` hisobotida ko'rinadi.
 def _serialize_nav_queryset(request, nav_items):
-    return [
-        {
+    rows = []
+    for item in nav_items:
+        if not item.is_visible:
+            continue
+        url = public_nav_url(item.get_url())
+        if not url:
+            continue
+        rows.append({
             "key": item.key,
             "label": item.label,
-            "url": item.get_url(),
+            "url": url,
             "is_active": item.is_active_for(request),
             "open_in_new_tab": item.open_in_new_tab,
-        }
-        for item in nav_items
-        if item.is_visible
-    ]
+        })
+    return rows
 
 
 def _serialize_default_nav_items(request, items):
-    return [
-        {
+    rows = []
+    for item in items:
+        if not item["is_visible"]:
+            continue
+        url = public_nav_url(item.get("custom_url") or LandingNavItem.get_url_for_key(item["key"]))
+        if not url:
+            continue
+        rows.append({
             "key": item["key"],
             "label": item["label"],
-            "url": item.get("custom_url") or LandingNavItem.get_url_for_key(item["key"]),
+            "url": url,
             "is_active": LandingNavItem.is_key_active(item["key"], request),
             "open_in_new_tab": False,
-        }
-        for item in items
-        if item["is_visible"]
-    ]
+        })
+    return rows
 
 
 def _serialize_landing_nav_items(request, placement=LandingNavItem.Placement.MAIN):

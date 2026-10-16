@@ -1,4 +1,5 @@
 {% extends "base_public.html" %}
+{% load public_content %}
 {% comment %}
   Blog maqola (BlogDetailView).
   Proto: azurelms-proto/public/blog-post.html.
@@ -45,7 +46,7 @@
   {% endif %}
 
   <!-- Matn -->
-  <div class="blog-body" style="font-size:16.5px;line-height:1.8;color:var(--ink-2);">{{ post.body|safe }}</div>
+  <div class="blog-body" style="font-size:16.5px;line-height:1.8;color:var(--ink-2);">{{ post.body|public_rich }}</div>
 
   <!-- Teglar -->
   {% if post.tags.all %}
