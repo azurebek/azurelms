@@ -16,6 +16,62 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-16 [Claude]: COMMERCE-01 — Codex rejasini saqlash va yakunlash
+
+Codex 2026-10-15 da [COMMERCE-01](frontend-v1/COMMERCE-REFORM-PLAN.md)ni
+yozayotganda limiti oxirgi audit tuzatishlari orasida (23:14) tugadi; reja
+commit qilinmay `codex/commerce-radical-reform-plan` checkoutida qolgan edi.
+Owner ko‘rsatmasi bilan Claude ishni o‘z branchiga ko‘chirib saqladi va
+yakunladi. **Runtime implementatsiyasi boshlanmagan; birinchi kesim COM1.0a.**
+
+- Branch: `claude/commerce-reform-plan-finish`. `b4df280` — Codexning diskdagi
+  nusxasi o‘zgartirishsiz (author Codex); `3ef8f67` — Claude tuzatishlari.
+- Codex sessiya logidan tiklangan holat: besh adversarial audit raundi; oxirgi
+  raundning 38 patchidan 35 tasi qo‘llangan, rad etilgan 3 tasi bo‘laklab qayta
+  yuborilgan (takror matn yo‘q). Oxirgi mustaqil audit `CLEAN`ga yetmay to‘xtagan.
+- Oxirgi raund tekkan joylar solishtirildi va tuzatildi: evidence crypto/rewrap/
+  SAD erase per-blob kalitga moslandi; `CommerceStagedUpload` lock tartibi,
+  retention token va COM1.1b tavsifiga qo‘shildi; `SALE_NOT_ELIGIBLE` va
+  `PERIOD_INTERVAL_INVALID` §7.4ga kiritildi; COM1.8c resume/stage/stale-epoch
+  commandlarini nomlaydi. Rejaga “review chegarasi” eslatmasi qo‘shildi.
+- Tekshiruv: `git diff --check` PASS. Lokal docs verifier
+  (`.tools/docs-sync/verify_docs.py` — `.tools/` gitignored, repoda
+  versiyalanmagan, shu sabab checkoutdan qayta yugurtirib bo‘lmaydi; natija
+  faqat shu mashinadagi dalil) — 101 hujjat, 823 relative link, 39 anchor,
+  missing0/warning0. Manifest DAG (bir martalik lokal skript) — 40 unit,
+  noma’lum dependency 0, cycle 0, COM1.8c qolgan 39 unitni qamraydi; §12.2 — 26
+  E2E; COM-D1–D17 §14da aniqlangan. App/Node testlari yugurtirilmadi: docs-only.
+- Merge blokeri: `Twisted==26.4.0` CVE-2026-106454 sabab xavfsizlik skani
+  barcha PRlarda qizil edi; owner reyestr istisnosini tanladi va u
+  [PR #201](https://github.com/azurebek/azurelms/pull/201) (`6035d92`) bilan
+  yopildi (quyidagi yozuv). Davom etilishi kerak: COM1.0a — owner navbatga
+  qo‘yganda.
+
+## 2026-10-16 [Claude]: Twisted CVE-2026-106454 — owner qarori bilan reyestr istisnosi
+
+2026-10-15 dan `pip-audit` `Twisted==26.4.0`da CVE-2026-106454
+(GHSA-8pqf-f4m5-798g) topgani sabab “Sir va bog‘liqlik zaifligi skani” barcha
+PRlarda qizil edi; PyPI’da tuzatilgan reliz yo‘q (`fix_versions` bo‘sh). Owner
+ikkinchi yo‘lni tanladi: sababi va muddati bilan reyestr istisnosi.
+
+- Branch: `claude/twisted-cve-baseline`.
+- Asos: zaiflik faqat `twisted.mail.imap4` (IMAP LIST/LSUB ReDoS). AzureLMS IMAP
+  server ishlatmaydi; Twisted faqat `daphne` bog‘liqligi. Loyiha kodi va Twisted’ni
+  talab qiluvchi paketlar (`autobahn`, `Automat`, `daphne`, `txaio`) `twisted.mail`ni
+  import qilmaydi.
+- `security/dependency-audit-baseline.json`: `known` + `reasons` +
+  `review_by=2026-11-15`. Muddat o‘tsa CI yana qizil bo‘ladi va qayta ko‘rish shart.
+- `core/test_supply_chain_gate.py`: bo‘sh-reyestr testi `REVIEWED_EXEMPTIONS` bilan
+  ataylab yangilandi (har istisnoda sabab + `review_by` majburiy); yangi
+  `test_the_twisted_exemption_stays_unreachable` kimdir `twisted.mail`ni ishlata
+  boshlasa qizil beradi. Nazorat yugurishi: `core/flags.py`ga vaqtincha
+  `from twisted.mail import imap4` qo‘shilganda test FAIL, tiklangach PASS.
+- Test: safe env’da `manage.py test core.test_supply_chain_gate` — **31/31 OK**;
+  CI artefaktidagi haqiqiy `pip-audit.json` bilan `audit_dependencies` —
+  “Yangi zaiflik yo‘q”; `scan_secrets` toza; `manage.py check` 0 issue.
+- Davom etilishi kerak: tuzatilgan Twisted reliz chiqqach paket ko‘tariladi,
+  istisno va `REVIEWED_EXEMPTIONS` yozuvi o‘chiriladi.
+
 ## 2026-10-15 [Codex]: BLOG-01 owner aniqligidan keyin qayta tiklandi
 
 Owner avvalgi o‘chirish topshirig‘i Antigravity artefaktiga tegishli bo‘lganini,
@@ -28,7 +84,8 @@ launch-critical navbat o‘zgarmadi.
 - Branch: `codex/blog-reform-restore`
 - Restore commit: `ff82c4b`; manba: `96fe135^`, blob `0a5b795`
 - Scope: docs-only; DB/schema/flag/runtime/provider/server/deploy o‘zgarmadi
-- Test holati: `git diff --check` PASS; docs verifier — 101 hujjat,
+- Test holati: `git diff --check` PASS; lokal docs verifier (`.tools/`
+  gitignored, repoda versiyalanmagan — faqat shu mashinadagi dalil) — 101 hujjat,
   837 relative link, 37 anchor, missing0/warning0
 - Davom etilishi kerak: owner Blog executionini navbatga qo‘ysa BLOG1.0a1
 
