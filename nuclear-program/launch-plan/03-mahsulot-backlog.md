@@ -24,15 +24,16 @@ yopilmadi, owner qabuli texnik implementatsiya bilan almashtirilmadi.
 
 | Band | Queue | Execution | Izoh |
 |---|---|---|---|
-| A0 | `ADMIT` | `IMPLEMENTED/TESTED` | A0a va A0b beshala slice ham bajarilgan; `EVIDENCE READY` labeli owner qarorida |
+| A0 | `ADMIT` | `IMPLEMENTED/TESTED foundation — CURRENT REGRESSION OPEN` | 2026-08-15 A0a/A0b evidence saqlanadi, ammo 2026-10-15 source audit ordinary active staffga global users/chats PII/message context, receipt decision/foreign file va Bot global admin data yo‘lini topdi. Bu [DASH1.0a](../frontend-v1/DASHBOARD-REFORM-PLAN.md#dash10a--backoffice-capability-va-pii-containment) stop-ship A0b regressioni |
 | A1a | `ADMIT` | `IMPLEMENTED/TESTED` | GitHub Actions CI (8 mantiqiy gate → 3 required check) + readiness/backup/outbox bajarildi; bog'liqlik zaiflik qarzi reyestrda |
 | A1b | `ADMIT` | `IN PROGRESS` | AWS texnik rollout/isolated restore R2 qaydida bajarilgan (`8bb6b95`); SMTP, heartbeat, secret/backup va real provider chegaralari ochiq. To'liq production GO emas |
 | A2 | `ADMIT` | `IMPLEMENTED/TESTED` — poydevor | Audit/flags/heartbeat/release/cost/probe kodi bor. **Ochiq:** A9 va eski AI sozlama mutationlarining sabab/tasdiq/`SystemAuditEvent` retrofit qarzi |
 | A8 | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | supply guard kod/target/full testlarda; PostgreSQL contention proofi CI `integration` ishida yopildi, alohida OS processlari bilan takrorlash ochiq |
 | A3/A3b | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | oldingi canonical oqimlar va Classbook (live session/activity/response, turli mashqlar, Telegram group outbox, 50 learner gate'i) `main`da — PR #94, 2026-09-10 |
-| A4 | `ADMIT` | `IN PROGRESS` | payment foundation main'da, catalog/cohort lokal testlangan (#70); premium workflow/UI/rollout keyingi bosqichlar — [ledger](../pricing-packages-plan.md) |
+| A4 | `ADMIT` | `IN PROGRESS — COMMERCE-01 PLANNED` | payment foundation main'da, catalog/cohort lokal testlangan (#70); Payment/Subscription/Checkout canonical islohoti rejalashtirildi, runtime boshlanmagan. Birinchi kesim COM1.0a — [reform](../frontend-v1/COMMERCE-REFORM-PLAN.md), [ledger](../pricing-packages-plan.md) |
 | PUBLIC-01 | `— A4 kirish adapteri + maintenance` | `PLANNED — CONTAINMENT BLOCKERS OPEN` | I5a public renderer poydevori bor; stored rich-content, registration/auth, reset delivery, tracking/legal/certificate, offer/intent, claim, SEO/cache va WCAG qarzlari [radikal public rejasida](../frontend-v1/PUBLIC-REFORM-PLAN.md) 36 kichik kesimga ajratilgan. Birinchi kesim PUB1.0a; qolgan reja active queue’ni o‘zi almashtirmaydi |
 | A5 | `ADMIT` | `IMPLEMENTED/TESTED` | oltita texnik band ham yopildi (messenger, dars, imtihon, checkout, attendance, reconnect) + shell tap targetlari; **qolgani faqat owner'ning uch qurilmadagi sign-off'i** |
+| DASHBOARD-01 | `NEXT — post-launch plan` | `PLANNED — A0b REGRESSION + CONTAINMENT OPEN` | I1/I2 va Mini App/Bot foundation bor; global staff PII/message/moliya, private cache, GET write, Mini App replay/frame, progress truth va N+1 qarzlari [Dashboard reform rejasida](../frontend-v1/DASHBOARD-REFORM-PLAN.md) ochiq. Keng UI reform owner execution admissionini kutadi; DASH1.0a existing A0b affected release stop-ship, DASH1.0d Mini App release security gate |
 | MESSENGER-01 | `— post-launch plan` | `PLANNED — REFORM BLOCKERS OPEN` | I4a/I4b renderer va A5 mobile/reconnect poydevori bor; Origin/session, durable human receipt/sequence, membership/unread, staff/Telegram privacy va AI access/context blockerlar [radikal reform rejasida](../frontend-v1/MESSENGER-REFORM-PLAN.md) ochiq |
 | S1/S4 | `— delivered foundation` | `IMPLEMENTED/TESTED — REFORM BLOCKERS OPEN` | portal va owner backoffice kodi bor; currency/same-offering, scoped source/freshness, draft/live va writer/audit qarzlari [SIT-01](../frontend-v1/SIT-REFORM-PLAN.md) auditida ochiq |
 | S3 | `— delivered foundation` | `IMPLEMENTED/TESTED — LOCAL FOUNDATION; PUBLIC RELEASE BLOCKERS OPEN` | skill/tool kodi bor va joriy UI entry mavjud; real system-role, query-before-limit retrieval, citation/freshness, routing va A9 eval gate’i ochiq |
@@ -42,9 +43,30 @@ yopilmadi, owner qabuli texnik implementatsiya bilan almashtirilmadi.
 
 ---
 
+### Dashboard integration chegarasi — keng reform post-launch, P0 security gate
+
+[DASHBOARD-01](../frontend-v1/DASHBOARD-REFORM-PLAN.md) yangi parallel
+learning/payment/message state yaratmaydi. U A4 entitlement/payment, A6 outcome,
+A7 Daily Coach, Classbook active session, Messenger unread/help, AI Control va
+SITning faqat canonical read selectorlarini role-scoped projectionga birlashtiradi.
+Tegishli domain tayyor bo‘lmasa dashboard uni taxmin qilmaydi — optional section
+`unavailable` qoladi.
+
+Keng learner/teacher/Mini App redesigni post-launch. Ammo DASH1.0dagi
+authorization/PII, private cache, GET write, Mini App replay/session/frame va
+noto‘g‘ri product-truth topilmalari yangi capability emas. Global users/chats
+PII/message context, canonical receipt decision writer/foreign private file/Bot
+admin scope regressiyasi [launch ops permission
+matrixiga](05-launch-ops.md) zid: DASH1.0a tegishli surface relizi uchun A0b
+stop-ship; DASH1.0d Mini App relizi uchun security gate. Birinchi kesim
+DASH1.0a. Bu qayd A4/A6/A7/A9 yoki Classbook product admission tartibini
+qayta tasniflamaydi.
+
+---
+
 ## A. ADMIT — launch-critical
 
-### A0. Stop-ship security pack — `IMPLEMENTED/TESTED`, `XL → A0a DONE + A0b DONE`
+### A0. Stop-ship security pack — historical foundation tested; current A0b regression OPEN
 
 - **Outcome:** account, payment va private learner data xavfsiz; owner favqulodda manual rescue qilmaydi.
 - **Canonical owner:** auth/access/media policies.
@@ -57,7 +79,19 @@ yopilmadi, owner qabuli texnik implementatsiya bilan almashtirilmadi.
 - **Evidence (A0b/3, 2026-08-15):** private media. To'lov cheki, vazifa fayli, chat biriktirmasi va speaking yozuvi `PRIVATE_MEDIA_ROOT` ga (public ildizdan tashqariga) ko'chirildi; yagona kirish nuqtasi `core/private_media_views.py` — egasi, kurs o'qituvchisi yoki owner, aks holda `404`. `Content-Type` fayl baytlaridan aniqlanadi, rasm `inline`, qolgani `attachment`, `nosniff` va `no-store`. Owner qarori bo'yicha signed URL emas, stream. 14 yangi test; full suite 583/583.
 - **Evidence (A0b/4, 2026-08-15):** WebSocket access recheck. Ruxsat endi har `receive()` da DB holatidan qayta hisoblanadi; obuna tugasa yoki hisob bloklansa ochiq socket `4403` bilan yopiladi va xabar saqlanmaydi. `self.user` scope nusxasi eskirgani uchun foydalanuvchi holati ham qayta o'qiladi. 5 yangi WebSocket testi; nazorat yugurishida tuzatishsiz 3 tasi yiqiladi.
 - **Evidence (A0b/5, 2026-08-15):** django-csp v4 migratsiyasi. Eski `CSP_*` nomlari v4 tomonidan o'qilmagani uchun `SECURITY_STRICT=True` da ham header umuman chiqmasdi; siyosat endi `CONTENT_SECURITY_POLICY` dictida va `core/csp_policy.py` da quriladi (`object-src 'none'`, `base-uri`/`form-action 'self'`, Mini App skript manbasi qo'shildi). Mini App middleware headerni o'zi yozishdan to'xtadi va v4 ning `_csp_replace` mexanizmiga o'tdi. 9 yangi test real javob sarlavhasi darajasida.
-- **A0b holati:** beshala slice ham bajarildi (teacher scope, upload validatsiya, private media, socket recheck, CSP v4). A0 endi `EVIDENCE READY` ga nomzod — yakuniy label owner qarori.
+- **A0b tarixiy holati (2026-08-15):** beshala slice bajarilgan edi (teacher
+  scope, upload validatsiya, private media, socket recheck, CSP v4). Bu sanali
+  dalil o‘chirilmaydi.
+- **Current correction (2026-10-15, `72e82e0`):** joriy source
+  `core/views.py`dagi legacy dashboard/users/chats orqali global PII/message
+  contextni, `cohorts/receipt_service.py`da har active staffga receipt qarorini,
+  `core/private_media_views.py`da har staffga receipt fileni va
+  `bot/middleware.py` → `bot/routers/staff.py`da har active staffga global admin
+  rol/stats/receipt oqimini beradi. Bu pastdagi permission matrixga zid.
+  Shuning uchun current aggregate A0b **REGRESSION OPEN**; DASH1.0a affected
+  legacy dashboard/users/chats, payment va Bot release’dan oldin stop-ship.
+  Oldingi besh slice dalili
+  bekor qilinmaydi, lekin bugungi closure da’vosi emas.
 - **Faza:** R1. A8 bilan parallel faqat test/docs ishlari; yangi product featurelardan oldin.
 
 ### A1. Reproducible runtime va CI — A1a kodda, A1b rollout dalili bor, GO ochiq
@@ -110,6 +144,15 @@ yopilmadi, owner qabuli texnik implementatsiya bilan almashtirilmadi.
 
 ### A4. Acquisition, payment va entitlement — `IN PROGRESS`, `M contract + L adapters`
 
+- **2026-10-15 COMMERCE-01 rejalashtirildi:** Payment, Subscription va
+  Checkout backend/data/security hamda learner/owner UX bo‘yicha audit qilindi.
+  Mavjud signed quote, server recalc, private evidence, lock, pending-plan va
+  typed entitlement poydevori saqlanadi; finance least-privilege/evidence
+  containment, immutable order→payment→period→grant lineage, subscription
+  center, owner workbench, Telegram/outbox, reconciliation va staged rollout
+  [40 reviewable PR-unitda](../frontend-v1/COMMERCE-REFORM-PLAN.md#11-roadmap--dependency-tartibidagi-40-reviewable-pr-unit)
+  yozildi. **Runtime implementatsiyasi boshlanmagan; birinchi kesim COM1.0a.**
+  Reja A4ni tugallangan demaydi va joriy umumiy navbatni o‘zi almashtirmaydi.
 - **Outcome:** learner to'g'ri course/cohort/plan bilan yoziladi va faqat haqiqiy active access oladi.
 - **Canonical state:** identity/claim, `Application`, `Payment` va `Enrollment/Entitlement` alohida graph; bitta chiziqli mega-state yo'q.
 - **Scope:** checkout course binding; inactive cohortni tasodifiy reactivation qilmaslik; receipt ayni tanlangan enrollmentga; typed entitlement; Telegram credential claim; idempotent receipt/approval.
@@ -121,7 +164,10 @@ yopilmadi, owner qabuli texnik implementatsiya bilan almashtirilmadi.
 - **2026-09-04 owner qarori:** Economic/Standard/Intensive, bir xil core ta'lim, farqi teacher attention va AI quota. Yuqoridagi 2026-08-21 narx qarori kutish holati yopildi; uch paketning core runtime matritsasi bir xil, premium service workflow hali gate'da. [Admission va bosqichlar](../pricing-packages-plan.md).
 - **2026-09-04 payment foundation — lokal regression green:** unpaid plan `pending_plan`da; faqat tasdiqlangan receipt faol tarifni o'zgartiradi. Invoice snapshotlar, web/bot parity, immutable history, concurrency, legacy migration/admin bilan 24 yangi test; full suite 1070 test (skipped=26), focused file DB 30/30. Required CI/merge alohida gate; Windows full-file restore testining oldindan mavjud muammosi [ledgerda](../pricing-packages-plan.md) alohida qayd etilgan.
 - **2026-09-04 catalog + delivery (`b5c2068`) — lokal regression green:** uch draft tarif va AI policy; availability/legacy renewal; cohort tier/capacity; faqat approvalda joy bandi; course/cohort lockli oxirgi joy himoyasi; auditli owner katalog. Full suite 1115 OK (skipped=27), file-focused 58/58, browser 390px/1280px va interaktiv saqlash/tarif tanlash. CI/rollout dalili [ledgerda](../pricing-packages-plan.md).
-- **Qolgan scope:** service-level workflow, pricing/dashboard va plan analytics; eski guruhlar uchun explicit rollout. Yangi tariflar migrationdan keyin sotuvga yopiq.
+- **Qolgan scope:** [COMMERCE-01](../frontend-v1/COMMERCE-REFORM-PLAN.md)dagi
+  P0 containment, canonical order/payment/subscription/access graphi,
+  service-level workflow, pricing/dashboard va plan analytics; eski guruhlar
+  uchun explicit rollout. Yangi tariflar migrationdan keyin sotuvga yopiq.
 - **Faza:** R2.
 
 ### A4-P. Public acquisition va trust surface — `PLANNED`, `XL / 36 kichik kesim`
@@ -343,7 +389,7 @@ yopilmadi, owner qabuli texnik implementatsiya bilan almashtirilmadi.
 | PWA install/offline | Defer | Responsive browser flow GREEN; install real outcome bersa |
 | DOCX reader | Defer | Writing flow va private upload policy stable |
 | XP iqtisodi/badge polish | Defer | Outcome eventlari canonical; abuse/idempotency testli |
-| Blog domain redesigni va optional home polish | Defer | PUBLIC-01dagi security/acquisition/claim/legal containment bundan mustasno; yangi Blog community/studio scope’i alohida admission talab qiladi |
+| Blog/Azure Journal reform | `ADMIT — post-launch`; [BLOG-01](../frontend-v1/BLOG-REFORM-PLAN.md) tayyor | Owner Blog executionini alohida navbatga qo‘yadi; birinchi kesim BLOG1.0a1. Launch-critical navbatni avtomatik almashtirmaydi. PUBLIC-01dagi security/acquisition/claim/legal containment (jumladan PUB1.0g Blog tracking) bundan mustasno va BLOG1.0a3 bilan bitta implementatsiyaga birlashtiriladi |
 
 ---
 

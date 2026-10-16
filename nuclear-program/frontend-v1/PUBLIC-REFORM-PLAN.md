@@ -79,7 +79,8 @@ matn owner tomonidan tasdiqlanmasdan sotuv yoqilmaydi.
 - yangi SPA/frontend framework yoki public uchun alohida API-first platforma;
 - pricing, refund, subscription, cohort capacity yoki entitlement siyosatini
   agentning o‘zi belgilashi;
-- rad etilgan Blog domain redesigni, comment/community/studio versioningi;
+- Blog domain redesigni, comment/community/studio versioningi — ular
+  [BLOG-01](BLOG-REFORM-PLAN.md)da alohida;
 - SIT katalog, source/version, inquiry yoki AI logicini parallel qurish;
 - “AI marketing writer”, avtomatik claim, fake testimonial yoki synthetic
   production content;
@@ -1323,13 +1324,20 @@ yashirin persistent identifier qolmaydi. Preview/bot writes 0.
 **Tegiladigan joylar:** `blog/views.py`, `blog/utils.py`, Blog public tests,
 feature policy/readiness. Blog comment/clap/studio redesign qilinmaydi.
 
+**BLOG-01 bilan koordinatsiya:** [BLOG-01](BLOG-REFORM-PLAN.md)dagi BLOG1.0a3
+(visitor cookie/identity hardening) va read-tracking privacy qarori ayni
+`blog/utils.py`/`BlogPostRead` kod yo‘liga tegadi. Qaysi biri oldin bajarilsa
+o‘sha implementatsiya qiladi; ikkinchisi uni reuse qilib faqat o‘z test/qabul
+shartini qo‘shadi — ikki parallel cookie/tracking siyosati yozilmaydi.
+
 **Test:** no-consent guest detail va clap cookie 0, `BlogPostRead` write 0;
 anonymous clap tanlangan policy bo‘yicha login yoki admitted consent/state
 contractiga qat’iy mos; existing session/CSRF unaffected; bot/preview 0;
 optional admitted analytics ON contract, purge/expiry va redaction.
 
 **Tugashi:** yashirin bir yillik tracking yo‘q; Blog o‘qish va interaction core
-flow ishlaydi; rad etilgan Blog reformasi qayta ochilmagan.
+flow ishlaydi; Blog domain reformasi BLOG-01da qoladi, PUB1.0g uni qayta
+yozmaydi.
 
 ### PUB1.1 — route, metadata va response policy poydevori
 
@@ -2028,7 +2036,7 @@ PUBLIC-01 faqat quyidagilar dalil bilan yopilganda tugagan hisoblanadi:
   appendix authorization testli;
 - canonical/meta/robots/sitemap faqat effective published data; sensitive URL 0;
 - cache cross-user/preview/CSRF leak 0; publish/rollback purge/readback testli;
-- Blog shared public scope yaxshilangan, rad etilgan domain redesign qaytmagan;
+- Blog shared public scope yaxshilangan, Blog domain redesigni BLOG-01ga qoldirilgan;
 - SIT shared infra ishlatadi, SIT domain truthini duplicate qilmaydi;
 - error/maintenance/offline truthful, self-contained, correct status/noindex;
 - WCAG/no-JS/responsive/performance gate dalilli; native/AT ochiq bo‘lsa aniq;

@@ -16,6 +16,160 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-16 [Claude]: Codex reform PRlarini owner ruxsati bilan yakunlash
+
+Codex limiti tugagach uning ochiq PRlari (#197 public, #198 dashboard, #199
+blog) Twisted CVE va hal qilinmagan review izohlari sabab merge bo‘lmay turgan
+edi. Owner 2026-10-16 da Claude’ga Codex branchlariga yozish va ularni merge
+qilishga aniq ruxsat berdi (odatda §3/§9 bo‘yicha taqiqlangan). Codex qaytganda
+o‘z branchlaridagi o‘zgarishlarni shu yozuvdan ko‘radi.
+
+- Ketma-ketlik: #201 (`6035d92`) → #200 (`31e2260`) → #199 (`adf0054`) →
+  #198 (`67326f2`) → #197. Har PR `main` bilan yangilanib (strict), uchala
+  required check yashil bo‘lgach qo‘lda `gh pr merge --merge`; merge bo‘lgan
+  `claude/twisted-cve-baseline`, `claude/commerce-reform-plan-finish`,
+  `codex/blog-reform-restore`, `codex/dashboard-radical-reform-plan` remote
+  branchlari o‘chirildi.
+- Review izohlari halol baholandi: #199 va #198dagi “marinebook hash ajdod
+  emas” topilmalari bu repoda noto‘g‘ri (`merge-base --is-ancestor` true, merge
+  commit strategiyasi) — dalil bilan javob berilib yopildi. #198 DASH1.0d
+  audited settings contracti (`24208e3`) va #197 uch P1 — `PUB1.0a–g` admission
+  diapazoni, pricing `Plan.description` sanitizer qamrovi, P0 auth throttle
+  enforcement (`3a84760`) — tuzatildi. #200dagi gitignored verifier topilmasi
+  bo‘yicha barcha yangi yozuvlarda verifier natijasi “faqat lokal dalil” deb
+  belgilandi.
+- Konfliktlar: README/frontend indeksi/backlog/acceptance/marinebook — ikkala
+  tomon mazmuni saqlandi. BLOG-01 tiklangani sabab PUBLIC-01dagi “rad etilgan
+  Blog” tavsiflari BLOG-01ga havola bilan almashtirildi; PUB1.0g va BLOG1.0a3
+  bir xil `blog/utils.py` tracking yo‘liga tegishi sabab “qaysi biri oldin
+  bo‘lsa o‘sha implementatsiya qiladi” koordinatsiya qoidasi qo‘shildi.
+- Tekshiruv: har PRda CI uchala required job PASS (merge oldidan); lokal docs
+  verifier (`.tools/` gitignored) — missing0/warning0; `git diff --check` PASS.
+  Faqat hujjat o‘zgardi; runtime/DB/flag/deploy o‘zgarmadi.
+- Davom etilishi kerak: Codexning bo‘sh local `codex/commerce-radical-reform-plan`
+  branchi (alohida commiti yo‘q) Codexga qoldirildi; Twisted istisnosi
+  `review_by=2026-11-15`.
+
+## 2026-10-16 [Claude]: COMMERCE-01 — Codex rejasini saqlash va yakunlash
+
+Codex 2026-10-15 da [COMMERCE-01](frontend-v1/COMMERCE-REFORM-PLAN.md)ni
+yozayotganda limiti oxirgi audit tuzatishlari orasida (23:14) tugadi; reja
+commit qilinmay `codex/commerce-radical-reform-plan` checkoutida qolgan edi.
+Owner ko‘rsatmasi bilan Claude ishni o‘z branchiga ko‘chirib saqladi va
+yakunladi. **Runtime implementatsiyasi boshlanmagan; birinchi kesim COM1.0a.**
+
+- Branch: `claude/commerce-reform-plan-finish`. `b4df280` — Codexning diskdagi
+  nusxasi o‘zgartirishsiz (author Codex); `3ef8f67` — Claude tuzatishlari.
+- Codex sessiya logidan tiklangan holat: besh adversarial audit raundi; oxirgi
+  raundning 38 patchidan 35 tasi qo‘llangan, rad etilgan 3 tasi bo‘laklab qayta
+  yuborilgan (takror matn yo‘q). Oxirgi mustaqil audit `CLEAN`ga yetmay to‘xtagan.
+- Oxirgi raund tekkan joylar solishtirildi va tuzatildi: evidence crypto/rewrap/
+  SAD erase per-blob kalitga moslandi; `CommerceStagedUpload` lock tartibi,
+  retention token va COM1.1b tavsifiga qo‘shildi; `SALE_NOT_ELIGIBLE` va
+  `PERIOD_INTERVAL_INVALID` §7.4ga kiritildi; COM1.8c resume/stage/stale-epoch
+  commandlarini nomlaydi. Rejaga “review chegarasi” eslatmasi qo‘shildi.
+- Tekshiruv: `git diff --check` PASS. Lokal docs verifier
+  (`.tools/docs-sync/verify_docs.py` — `.tools/` gitignored, repoda
+  versiyalanmagan, shu sabab checkoutdan qayta yugurtirib bo‘lmaydi; natija
+  faqat shu mashinadagi dalil) — 101 hujjat, 823 relative link, 39 anchor,
+  missing0/warning0. Manifest DAG (bir martalik lokal skript) — 40 unit,
+  noma’lum dependency 0, cycle 0, COM1.8c qolgan 39 unitni qamraydi; §12.2 — 26
+  E2E; COM-D1–D17 §14da aniqlangan. App/Node testlari yugurtirilmadi: docs-only.
+- Merge blokeri: `Twisted==26.4.0` CVE-2026-106454 sabab xavfsizlik skani
+  barcha PRlarda qizil edi; owner reyestr istisnosini tanladi va u
+  [PR #201](https://github.com/azurebek/azurelms/pull/201) (`6035d92`) bilan
+  yopildi (quyidagi yozuv). Davom etilishi kerak: COM1.0a — owner navbatga
+  qo‘yganda.
+
+## 2026-10-16 [Claude]: Twisted CVE-2026-106454 — owner qarori bilan reyestr istisnosi
+
+2026-10-15 dan `pip-audit` `Twisted==26.4.0`da CVE-2026-106454
+(GHSA-8pqf-f4m5-798g) topgani sabab “Sir va bog‘liqlik zaifligi skani” barcha
+PRlarda qizil edi; PyPI’da tuzatilgan reliz yo‘q (`fix_versions` bo‘sh). Owner
+ikkinchi yo‘lni tanladi: sababi va muddati bilan reyestr istisnosi.
+
+- Branch: `claude/twisted-cve-baseline`.
+- Asos: zaiflik faqat `twisted.mail.imap4` (IMAP LIST/LSUB ReDoS). AzureLMS IMAP
+  server ishlatmaydi; Twisted faqat `daphne` bog‘liqligi. Loyiha kodi va Twisted’ni
+  talab qiluvchi paketlar (`autobahn`, `Automat`, `daphne`, `txaio`) `twisted.mail`ni
+  import qilmaydi.
+- `security/dependency-audit-baseline.json`: `known` + `reasons` +
+  `review_by=2026-11-15`. Muddat o‘tsa CI yana qizil bo‘ladi va qayta ko‘rish shart.
+- `core/test_supply_chain_gate.py`: bo‘sh-reyestr testi `REVIEWED_EXEMPTIONS` bilan
+  ataylab yangilandi (har istisnoda sabab + `review_by` majburiy); yangi
+  `test_the_twisted_exemption_stays_unreachable` kimdir `twisted.mail`ni ishlata
+  boshlasa qizil beradi. Nazorat yugurishi: `core/flags.py`ga vaqtincha
+  `from twisted.mail import imap4` qo‘shilganda test FAIL, tiklangach PASS.
+- Test: safe env’da `manage.py test core.test_supply_chain_gate` — **31/31 OK**;
+  CI artefaktidagi haqiqiy `pip-audit.json` bilan `audit_dependencies` —
+  “Yangi zaiflik yo‘q”; `scan_secrets` toza; `manage.py check` 0 issue.
+- Davom etilishi kerak: tuzatilgan Twisted reliz chiqqach paket ko‘tariladi,
+  istisno va `REVIEWED_EXEMPTIONS` yozuvi o‘chiriladi.
+
+## 2026-10-15 [Codex]: BLOG-01 owner aniqligidan keyin qayta tiklandi
+
+Owner avvalgi o‘chirish topshirig‘i Antigravity artefaktiga tegishli bo‘lganini,
+Codex tayyorlagan [BLOG-01](frontend-v1/BLOG-REFORM-PLAN.md) rad etilmaganini
+aniqlashtirdi. O‘chirishdan oldingi eng so‘nggi, SIT shared-policy tuzatishlari
+ham kirgan nusxa byte-for-byte qaytarildi; joriy holat, frontend indeksi, SIT
+contracti va launch backlog yana unga bog‘landi. Implementatsiya boshlanmadi va
+launch-critical navbat o‘zgarmadi.
+
+- Branch: `codex/blog-reform-restore`
+- Restore commit: `ff82c4b`; manba: `96fe135^`, blob `0a5b795`
+- Scope: docs-only; DB/schema/flag/runtime/provider/server/deploy o‘zgarmadi
+- Test holati: `git diff --check` PASS; lokal docs verifier (`.tools/`
+  gitignored, repoda versiyalanmagan — faqat shu mashinadagi dalil) — 101 hujjat,
+  837 relative link, 37 anchor, missing0/warning0
+- Davom etilishi kerak: owner Blog executionini navbatga qo‘ysa BLOG1.0a1
+
+## 2026-10-15 [Codex]: DASHBOARD-01 — radikal islohot tadqiqoti va roadmap
+
+Owner so‘rovi bo‘yicha [DASHBOARD-01](frontend-v1/DASHBOARD-REFORM-PLAN.md)
+tayyorlandi va joriy holat, frontend qabul/port ledgeri hamda launch backlogiga
+bog‘landi. Learner, teacher, Mini App/Bot va existing Backoffice route/service
+oilalari source, test, data, permission, UX va performance darajasida audit
+qilindi. **Runtime implementatsiyasi boshlanmagan; keng reform `NEXT —
+post-launch`, birinchi kesim DASH1.0a.**
+
+- Branch: `codex/dashboard-radical-reform-plan`; audit tayanchi `main`dagi
+  `72e82e0`; reja/status commit **`2437138`**.
+- Sakkiz phase, 33 reviewable slice va 33 E2E gate; har slice goal, tegadigan
+  joylar, schema, test, exit, rollback va dependency bilan yozildi. 13 owner
+  qarori va besh exact usability persona alohida freeze qilindi.
+- Canonical contract: Dashboard system-of-record emas — typed, deep-immutable,
+  read-only projection. A4 payment, A2 health, A6 outcome, A7 Daily Coach,
+  Classbook, Messenger, SIT va AI state’ini qayta yaratmaydi; faqat owner qabul
+  qilgan versionlangan selectorni iste’mol qiladi.
+- Current A0b regression aniq ochildi: ordinary active staff legacy global
+  dashboard/users/chats orqali PII/message context, canonical receipt writer,
+  foreign receipt file va Bot global admin oqimlariga yetishi mumkin. DASH1.0a
+  affected release uchun stop-ship; Messenger body/snippet/email search esa
+  MSG1.0d/MSG-D13siz superuserga ham ochilmaydi.
+- Mini App gate: same-site CSRF+pre-auth nonce, Telegram HMAC, 16 KiB body,
+  TTL/skew/rate hard envelope, atomic one-time digest (`DB unique` yoki Redis
+  `NX EX`), crash recovery, bounded purge, absolute/idle session expiry va har
+  marked requestda actor/link/privilege recheck. External-browser handoff cookie
+  bor/yo‘q holatda safe login `next` bilan, URL bearer secretsiz ishlaydi.
+- Product truth: LessonProgress/Attendance alohida; foreign relation ikkala
+  canonical writerda side effectdan oldin reject; fabricated study hours/
+  recommendation va unknown→A1 yo‘q. Verification timestamp accounting revenue
+  emas; A4 policygacha faqat “tasdiqlangan to‘lovlar/cheklar”. Request-time RAG
+  full scan uziladi, dead hardcoded sparkline contexti o‘chiriladi.
+- Ikki mustaqil adversarial/implementability review yakunda **CLEAN**: 8 phase,
+  33 slice, 33 E2E, 13 decision; cross-domain ownership, admission, permission,
+  failure/rollback va weak-agent handoff tekshirildi.
+- Safe env tekshiruvlari: `manage.py check` — **0 issue**;
+  `makemigrations --check --dry-run` — **No changes**; Dashboard/teacher/
+  Backoffice/Mini App focused Django suite — **74/74 PASS**;
+  `node --test tests/frontend_v1/*.test.mjs` — **172/172 PASS**.
+  Lokal docs verifier (`.tools/` gitignored, repoda versiyalanmagan — faqat shu
+  mashinadagi dalil) — **101 hujjat, 813 relative link, 40 anchor,
+  missing0/warning0**; staged `git diff --check` PASS.
+- DB/schema/flag/provider/server/deploy o‘zgarmadi; auditdagi P0lar runtime’da
+  tuzatildi deb da’vo qilinmaydi. DASH1.0 tartibi `a→b→c→d→e`; 1.1+ ishlar owner
+  execution admissionisiz boshlanmaydi.
+
 ## 2026-10-15 [Codex]: PUBLIC-01 — anonymous/public sirt tadqiqoti va roadmap
 
 Owner so‘rovi bo‘yicha [PUBLIC-01](frontend-v1/PUBLIC-REFORM-PLAN.md)
@@ -43,8 +197,9 @@ birinchi kesim PUB1.0a.**
   `manage.py makemigrations --check` — **No changes detected**; focused
   `frontend.test_public_v1`, auth/registration/Telegram/certificate/checkout
   suite’i — **88/88 PASS**; `node --test tests/frontend_v1/*.test.mjs` —
-  **172/172 PASS**. Docs verifier — **101 hujjat, 800 relative link, 36 anchor,
-  missing0/warning0**; `git diff --check` PASS.
+  **172/172 PASS**. Lokal docs verifier (`.tools/` gitignored, repoda
+  versiyalanmagan — faqat shu mashinadagi dalil) — **101 hujjat, 800 relative
+  link, 36 anchor, missing0/warning0**; `git diff --check` PASS.
 - Runtime, DB/schema, flag, production, AWS, Gemini yoki Telegramga mutation
   bo‘lmadi. Owner/legal qarorlari, real content/offer, native-device/AT,
   production RUM va rollout bajarilgan deb da’vo qilinmaydi.
@@ -69,9 +224,10 @@ boshlanmagan; birinchi kesim MSG1.0a1.**
   receipt/epoch bilan; rollback pre-fence binaryni qaytarmaydi; AI user request
   va worker publish receiptlari alohida, har authorized lineage provider calli
   `context≤1 + generation≤2 + derivative-memory≤1` bilan bounded.
-- Rejected `frontend-v1/BLOG-REFORM-PLAN.md` owner ko'rsatmasi bilan o'chirildi;
-  SIT shared rich-content dependency'si mustaqil qilindi, tarixiy marinebook
-  yozuvi esa rad etilgan/removed deb belgilandi.
+- `frontend-v1/BLOG-REFORM-PLAN.md` o‘sha paytdagi o‘chirish topshirig‘i Codex
+  hujjatiga noto‘g‘ri tatbiq etilgani sabab shu commitda olib tashlangan edi.
+  Owner keyin topshiriq Antigravity artefaktiga tegishli bo‘lganini aniqlashtirdi;
+  yuqoridagi tiklash yozuvi ushbu eski “rejected” talqinini almashtiradi.
 - Branch hygiene: stale `antigravity/messenger-radical-reform` va merge bo'lgan
   `codex/eighth-trial-storytelling`, `codex/eleventh-trial-foundation`,
   `codex/eleventh-trial-release-checkpoint`, `codex/tenth-trial-foundations`
@@ -136,15 +292,15 @@ runtime implementatsiyasi boshlanmagan.** Birinchi kesim SIT1.0a.
 
 ## 2026-10-15 [Codex]: BLOG-01 — Azure Journal islohoti tadqiqoti va roadmap
 
-Owner so‘rovi bo‘yicha BLOG-01 (`frontend-v1/BLOG-REFORM-PLAN.md`) tayyorlangan
-edi; 2026-10-15da owner ma’qullamagani sabab hujjat keyin repositorydan olib
-tashlandi. Ushbu yozuv faqat tarixiy dalil sifatida saqlanadi. Dastlab reja
+Owner so‘rovi bo‘yicha [BLOG-01](frontend-v1/BLOG-REFORM-PLAN.md) tayyorlandi,
 umumiy holat va frontend indeksiga bog‘landi. Repository backend/security,
 public/studio UX hamda canonical integratsiyalar uch mustaqil read-only auditda
 tekshirildi; WCAG, OWASP, Google Search/CWV va language-reading patternlari bilan
-solishtirildi. **Reja owner tomonidan rad etilgan va repositorydan olib
-tashlangan; implementatsiya boshlanmagan.** Bu tarixiy yozuv joriy task navbati
-yoki qayta ishlatish uchun tasdiq emas.
+solishtirildi. **Reja tayyor; implementatsiya boshlanmagan va joriy queue
+o‘zgarmagan.** Owner Blog ishini alohida navbatga qo‘ysa birinchi kesim
+BLOG1.0a1. Keyingi vaqtinchalik o‘chirish ownerning Antigravity artefakti haqidagi
+topshirig‘i ushbu Codex hujjatiga noto‘g‘ri tatbiq etilgani sabab bo‘lgan; yuqoridagi
+tiklash yozuvi bu tarixiy talqinni tuzatadi.
 
 - Branch: `codex/blog-radical-reform-plan`; reja commit **`dc1402a`**;
   source audit tayanchi `66344f0`.
