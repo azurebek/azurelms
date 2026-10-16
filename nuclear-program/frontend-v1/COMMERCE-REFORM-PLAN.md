@@ -1,11 +1,11 @@
 # COMMERCE-01 — narxdan ishonchli accessgacha: Payment, Subscription va Checkout islohoti
 
-**Holat:** `REJA — ADMIT, runtime implementatsiyasi boshlanmagan`  
-**Audit sanasi:** 2026-10-15  
-**Audit tayanchi:** `main`dagi `72e82e0`  
-**Birinchi implementatsiya kesimi:** `COM1.0a`  
-**Asosiy product contract:** [pricing packages ledgeri](../pricing-packages-plan.md)  
-**Oldingi checkout dalili:** [I7 — checkout](I7-CHECKOUT.md)  
+**Holat:** `REJA — ADMIT, runtime implementatsiyasi boshlanmagan`\
+**Audit sanasi:** 2026-10-15\
+**Audit tayanchi:** `main`dagi `72e82e0`\
+**Birinchi implementatsiya kesimi:** `COM1.0a`\
+**Asosiy product contract:** [pricing packages ledgeri](../pricing-packages-plan.md)\
+**Oldingi checkout dalili:** [I7 — checkout](I7-CHECKOUT.md)\
 **Launch bog‘lanishi:** [A4 — acquisition, payment va entitlement](../launch-plan/03-mahsulot-backlog.md#a4-acquisition-payment-va-entitlement--in-progress-m-contract--l-adapters)
 
 > Bu hujjat kod, DB, flag, real pul, receipt fayli, provider yoki deployni
@@ -13,6 +13,15 @@
 > Checkoutni bitta **Commerce** domeni sifatida xavfsiz va bosqichma-bosqich
 > isloh qilish uchun bajariladigan contract va roadmapdir. “Reja tayyor” —
 > “muammo tuzatildi” yoki “productionga chiqarildi” degani emas.
+
+> **Review chegarasi (2026-10-16):** reja besh adversarial audit raundidan
+> o‘tgan. Codex oxirgi raund topilmalarini kiritayotganda limiti tugadi; oxirgi
+> mustaqil audit `CLEAN` xulosasiga yetmay to‘xtagan. Claude oxirgi raundda
+> tegilgan joylarni hujjatning qolgan qismi bilan solishtirib, topilgan
+> nomuvofiqliklarni tuzatdi: per-blob kalit, staged upload lock/token, xato kodlari
+> va roadmap tavsiflari. Shu sabab har PR-unit boshida tegishli §6/§7 contracti
+> kod bilan birga qayta o‘qiladi. Ziddiyat topilsa §13.4 stop/eskalatsiya
+> qoidasi qo‘llanadi; taxmin bilan davom etilmaydi.
 
 ---
 
@@ -474,7 +483,9 @@ moslashtiriladi, shadow write faqat shundan keyin yoqiladi:
 7. `Subscription` (mavjud bo‘lsa);
 8. `Enrollment/DeliveryMembership` (PK ascending);
 9. `CheckoutOrder`;
-10. `PaymentEvidence → PaymentApprovalAttestation → SensitiveEvidenceIncident →
+10. `CommerceStagedUpload` (PK ascending; evidence commit `staged→consumed` va
+    cleanup claim shu yerda lock oladi), so‘ng
+    `PaymentEvidence → PaymentApprovalAttestation → SensitiveEvidenceIncident →
     PaymentResolution → PaymentTransaction` (mavjud transactionlar PK ascending),
     so‘ng `PaymentAllocationSource → PaymentRefundSource → CommerceCashDeficit`;
 11. `SubscriptionPeriod`;
@@ -1205,15 +1216,18 @@ ikkinchi blobni muddatidan oldin yo‘qotmaydi. Business lifecycle `version`dan
 tashqari har blobning `crypto_version`i rewrap/shredda +1.
 Yagona `COMMERCE_KEY_PROVIDER` registryning `evidence_kek` purpose external key
 IDlarini app DB backupidan mustaqil non-exportable
-record-erasure key va `record_key_handle` yaratadi; shu key DEKni wrap qiladi,
-global KEK versioni esa provider hierarchy/auditi uchun. Key provider unavailable
+record-erasure keylar uchun ishlatadi: **har blob uchun alohida** key va handle
+(`original_record_key_handle`, `preview_record_key_handle`) yaratiladi; har key
+faqat o‘z blobining DEKini wrap qiladi, global KEK versioni esa provider
+hierarchy/auditi uchun. Key provider unavailable
 bo‘lsa upload finalize/preview/download/review/settlement fail-closed; order
 `needs_info` yoki `manual_resolution`ga reason-coded yo‘naltiriladi, plaintext
 bypass yo‘q.
 
 SAD purge avval providerning authoritative, application backup bilan restore
-qilinmaydigan destruction registry’sida record handleni irreversible destroy
-qiladi, keyin auditli DB transitionda `wrapped_dek`ni clear va active stage/
+qilinmaydigan destruction registry’sida revisionning **ikkala** record handle’ini
+(original va preview) irreversible destroy qiladi, keyin auditli DB transitionda
+`original_wrapped_dek` va `preview_wrapped_dek`ni clear va active stage/
 original/derivative objectlarni verified delete qiladi. Har restore/startupda
 destination yoki evidence decryptdan **oldin** erasure registry/provider resolve
 gate’i ishlaydi; provider/registry unavailable bo‘lsa decrypt fail-closed.
@@ -1223,9 +1237,13 @@ u yagona crypto kafolat emas. Shu sabab confirmed/auto incident erase’dan keyi
 recoverable binary copy 0; ciphertext backup retentioni ordinary COM-D1
 lifecycle’da qolishi mumkin, ammo DEKsiz ochilmaydi.
 
-CAS+auditli `rewrap_evidence_dek` yangi record keyni yangi KEK ostida tayyorlaydi,
-DEKni provider ichida rewrap qiladi, DBdagi wrapper/handle/key IDni CAS bilan
-almashtiradi va commitdan keyin eski handleni destroy qiladi; ciphertext/nonces/
+CAS+auditli `rewrap_evidence_dek` bitta blob uchun ishlaydi: input
+`blob_kind=original|preview` va shu blobning expected `<blob>_crypto_version`i.
+U yangi record keyni yangi KEK ostida tayyorlaydi,
+DEKni provider ichida rewrap qiladi, DBdagi aynan shu blobning
+wrapper/handle/key IDsini CAS bilan almashtiradi (`<blob>_crypto_version` +1;
+ikkinchi blobning maydonlari va business `version` o‘zgarmaydi) va commitdan
+keyin eski handleni destroy qiladi; ciphertext/nonces/
 tags/AAD o‘zgarmaydi, crash orphan-key reconciliation bilan yopiladi. Eski
 destination yoki evidence KEK faqat unga reference qiluvchi live wrapper 0,
 pending rewrap 0, destroyed-handle registry saqlangan va restore rehearsal PASS
@@ -1248,12 +1266,16 @@ Erase algoritmi crash-safe va normativ:
 
 1. human confirm yoki overdue worker incidentni lease+expected version bilan
    `confirmed_purge`ga CAS qiladi; `erase_request_id` o‘zgarmaydi;
-2. providerga shu request ID bilan idempotent destroy yuboriladi. `destroyed` va
-   `already_destroyed` bir xil success; keyin `key_destroyed_at` CAS. Crash oldin
-   yoki keyin bo‘lsa retry registrydan ayni natijani oladi;
-3. DB transaction evidence wrapper/handle’ni clear, blob state’larini purge_due
-   qiladi va `wrapper_cleared_at`, `objects_pending`ni yozadi. Key allaqachon
-   yo‘qolgan bo‘lsa bu safe forward recovery;
+2. providerga revisionning ikkala record handle’i uchun idempotent destroy
+   yuboriladi; har handle request ID’si `erase_request_id`dan deterministik
+   (`<erase_request_id>:original`, `<erase_request_id>:preview`). `destroyed` va
+   `already_destroyed` bir xil success; `key_destroyed_at` faqat **ikkala** handle
+   success bo‘lgach CAS qilinadi. Crash oldin yoki keyin bo‘lsa retry registrydan
+   ayni natijani oladi;
+3. DB transaction ikkala blobning wrapper/handle’ini clear qiladi (har birining
+   `<blob>_crypto_version` +1), blob state’larini purge_due qiladi va
+   `wrapper_cleared_at`, `objects_pending`ni yozadi. Key allaqachon yo‘qolgan
+   bo‘lsa bu safe forward recovery;
 4. stage/original/preview object delete’lari har object key uchun idempotent;
    har step timestampi alohida. Hammasi verified missing bo‘lgach `erased` CAS;
 5. transient xato `failed_retryable`+safe code/retry-at; key/progress timestamplari
@@ -2282,7 +2304,8 @@ Allowlist/token map normativ va cross-product emas:
 `cas_version=PaymentEvidence.original_crypto_version` va
 `PaymentEvidence/evidence_derivative/crypto_shred` →
 `cas_version=PaymentEvidence.preview_crypto_version`; staged objectning durable rowi
-`staging_object/purge` → immutable object fingerprint;
+`CommerceStagedUpload/staging_object/purge` → `cas_version=CommerceStagedUpload.version`
+va immutable `retention_fingerprint_hmac` (ikkalasi ham mos kelishi shart);
 `PaymentDestinationVersion/destination_secret/crypto_shred` →
 `cas_version=crypto_version`; `User/account_identity/anonymize` → user
 row lock ostida allowlisted mutable identity fieldlarining retention-purpose
@@ -2650,6 +2673,8 @@ yolg‘iz himoya emas.
 | `LAPSED_ORDER_REFUND_ONLY` | 409; old order/access/current intent o‘zgarmaydi | kech aniqlangan cashni faqat source-bound full refund |
 | `COHORT_CAPACITY_UNAVAILABLE` | manual resolution | alternative/refund owner action |
 | `OFFER_NOT_AVAILABLE` | 409 | current offer list |
+| `SALE_NOT_ELIGIBLE` | 409; backend-independent `base_sale_eligible` false, route/order write 0, legacy fallback yo‘q | current offer list yoki kurs ochilishini kutish |
+| `PERIOD_INTERVAL_INVALID` | settlement whole rollback (owner adapterda 409/422), period/grant/money write 0 | owner manual resolution; boundary/policy readback |
 | `DESTINATION_NOT_READY` | 503 factual copy | payment yubormaslik, support |
 | `COMMERCE_POLICY_UNAVAILABLE` | 503 + critical health, write 0 | owner policy interval/readinessni tuzatadi |
 | `RETENTION_POLICY_UNAVAILABLE` | owner adapterda 503 + critical health, claim/purge write 0 | exactly-one policy selectorni tuzatish; emergency SAD erasure bundan mustaqil |
@@ -3456,11 +3481,12 @@ boshlanmaydi. Shunda “40 reviewable PR-unit” soni ham shu commitda yangilana
 #### COM1.1b — evidence, decision va payment ledger schema
 
 - **Bog‘liqlik:** COM1.1a2 va COM1.1a3.
-- **O‘zgarish:** `PaymentEvidence`, `PaymentDecision`,
+- **O‘zgarish:** `CommerceStagedUpload`, `PaymentEvidence`, `PaymentDecision`,
   `PaymentApprovalAttestation`, `PaymentTransaction`, `PaymentResolution`,
   `PaymentAllocationSource`, `PaymentRefundSource`, `CommerceCashDeficit`+event,
-  `SensitiveEvidenceIncident`+event, per-revision record-erasure-key envelope
-  encryption va private blob lifecycle metadata;
+  `SensitiveEvidenceIncident`+event, original va derivative uchun alohida
+  (per-blob) record-erasure-key envelope encryption, mustaqil `<blob>_crypto_version`
+  va per-blob retention/private lifecycle metadata;
   derivative preview, original download, sensitive flag/purge uchun alohida
   codenamelar. Direct settlement cash+fulfillment; blocked confirmed cash
   `unallocated_inflow`; keyingi fulfillment neutral allocation+immutable source
@@ -3884,7 +3910,11 @@ boshlanmaydi. Shunda “40 reviewable PR-unit” soni ham shu commitda yangilana
   staged percentage; shu yerdagina learner writer flag ON; legacy read-only;
   runbook/support pack. Har thresholddan oldin exact high-watermark/cursorli
   legacy-route batch migratsiyasi; abortdan keyin legacy va canonical route uchun
-  backendni almashtirmaydigan epoch resume majburiy.
+  backendni almashtirmaydigan epoch resume majburiy. Abortdan keyin yangi intentni
+  qayta ochadigan yagona yo‘l `resume_writer_rollout`; stage o‘tishlari
+  `advance_writer_stage` (`target_resolution_mode` bilan). Abort paytidagi
+  stale-epoch orderlar faqat `commerce_stale_epoch_resolution_v1` ON bo‘lsa
+  §6.4dagi exact command allowlist bo‘yicha owner resolution oladi.
 - **Test:** E2E matrix, native devices/AT, Telegram, migration/restart/rollback,
   1→5→25→50→100 eligible legacy-route drain va pending skip/resume,
   legacy+canonical abort/resume races, security review, observability readback.
