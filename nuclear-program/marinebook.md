@@ -34,11 +34,13 @@ yakunladi. **Runtime implementatsiyasi boshlanmagan; birinchi kesim COM1.0a.**
   retention token va COM1.1b tavsifiga qo‘shildi; `SALE_NOT_ELIGIBLE` va
   `PERIOD_INTERVAL_INVALID` §7.4ga kiritildi; COM1.8c resume/stage/stale-epoch
   commandlarini nomlaydi. Rejaga “review chegarasi” eslatmasi qo‘shildi.
-- Tekshiruv: `venv/Scripts/python.exe .tools/docs-sync/verify_docs.py` — 101
-  hujjat, 823 relative link, 39 anchor, missing0/warning0; `git diff --check`
-  PASS; manifest DAG — 40 unit, noma’lum dependency 0, cycle 0, COM1.8c qolgan
-  39 unitni qamraydi; §12.2 — 26 E2E; COM-D1–D17 §14da aniqlangan. App/Node
-  testlari yugurtirilmadi: docs-only.
+- Tekshiruv: `git diff --check` PASS. Lokal docs verifier
+  (`.tools/docs-sync/verify_docs.py` — `.tools/` gitignored, repoda
+  versiyalanmagan, shu sabab checkoutdan qayta yugurtirib bo‘lmaydi; natija
+  faqat shu mashinadagi dalil) — 101 hujjat, 823 relative link, 39 anchor,
+  missing0/warning0. Manifest DAG (bir martalik lokal skript) — 40 unit,
+  noma’lum dependency 0, cycle 0, COM1.8c qolgan 39 unitni qamraydi; §12.2 — 26
+  E2E; COM-D1–D17 §14da aniqlangan. App/Node testlari yugurtirilmadi: docs-only.
 - Merge blokeri: `Twisted==26.4.0` CVE-2026-106454 sabab xavfsizlik skani
   barcha PRlarda qizil edi; owner reyestr istisnosini tanladi va u
   [PR #201](https://github.com/azurebek/azurelms/pull/201) (`6035d92`) bilan
