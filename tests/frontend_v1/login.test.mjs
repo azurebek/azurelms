@@ -25,7 +25,9 @@ function harness({registration = false} = {}) {
   let sequence = 0;
   const select = selector => elements[selector.slice(6, -1)];
   const panel = {
-    dataset: {initUrl: '/users/telegram-auth/init/', statusUrl: '/users/telegram-auth/status/TOKEN/', loginUrl: '/users/login/?next=%2Fusers%2Fmy-courses%2F'},
+    dataset: {initUrl: '/users/telegram-auth/init/', statusUrl: '/users/telegram-auth/status/TOKEN/',
+      consumeUrl: '/users/telegram-auth/consume/TOKEN/', cancelUrl: '/users/telegram-auth/cancel/',
+      csrfToken: 'synthetic-csrf', loginUrl: '/users/login/?next=%2Fusers%2Fmy-courses%2F'},
     querySelector: select,
   };
   const email = {value: 'typed@example.test', defaultValue: ''};
@@ -57,19 +59,22 @@ function harness({registration = false} = {}) {
       const value = queue.shift();
       if (value instanceof Error) throw value;
       const data = await value;
-      return {ok: true, json: async () => data};
+      if (data?.httpStatus) return {ok: false, status: data.httpStatus, json: async () => data};
+      return {ok: true, status: 200, json: async () => data};
     },
   };
   if (registration) runInNewContext(readFileSync(new URL('../../static/frontend_v1/js/auth-form.js', import.meta.url), 'utf8'), context);
   runInNewContext(source, context);
   const tick = async () => {
-    const entry = [...timers].find(([, timer]) => timer.delay === 2000);
-    assert.ok(entry, 'a single poll should be scheduled');
-    timers.delete(entry[0]);
-    await entry[1].fn();
+    const polls = [...timers].filter(([, timer]) => timer.delay !== 15000);
+    assert.equal(polls.length, 1, 'a single poll should be scheduled');
+    const [id, timer] = polls[0];
+    timers.delete(id);
+    await timer.fn();
+    return timer.delay;
   };
-  const init = async () => {
-    queue.push({ok: true, token: 'temporary-token', bot_link: 'https://t.me/test_bot?start=auth_temporary-token'});
+  const init = async (extra = {}) => {
+    queue.push({ok: true, token: 'temporary-token', bot_link: 'https://t.me/test_bot?start=auth_temporary-token', ...extra});
     await elements['telegram-start'].click();
   };
   return {elements, password, queue, requests, navigation, timers, events, tick, init, panel};
@@ -92,28 +97,89 @@ test('password visibility changes only the native input type', async () => {
   assert.equal(h.requests.length, 0);
 });
 
-test('explicit Telegram start uses same-origin init and does not repeat while pending', async () => {
+test('explicit Telegram start uses a same-origin CSRF POST and does not repeat while pending', async () => {
   const h = harness();
   await h.init();
   await h.elements['telegram-start'].click();
   assert.equal(h.requests.length, 1);
   assert.equal(h.requests[0].options.credentials, 'same-origin');
+  assert.equal(h.requests[0].options.method, 'POST');
+  assert.equal(h.requests[0].options.headers['X-CSRFToken'], 'synthetic-csrf');
   assert.equal(h.elements['telegram-link'].hidden, false);
   h.queue.push({ok: true, status: 'pending'});
   await h.tick();
   assert.equal(h.requests[1].url, '/users/telegram-auth/status/temporary-token/');
+  assert.equal(h.requests[1].options.method, 'GET');
+  assert.equal(h.requests[1].options.headers, undefined);
   assert.equal(h.navigation.length, 0);
   h.events.pagehide();
   assert.equal(h.timers.size, 0);
 });
 
-test('authenticated result rechecks Django safe-next instead of trusting redirect_url', async () => {
+test('authenticated status is consumed by one CSRF POST, then Django rechecks safe-next', async () => {
   const h = harness();
   await h.init();
+  h.queue.push({ok: true, status: 'authenticated'});
   h.queue.push({ok: true, status: 'authenticated', redirect_url: 'https://untrusted.example'});
   await h.tick();
+  assert.equal(h.requests[2].url, '/users/telegram-auth/consume/temporary-token/');
+  assert.equal(h.requests[2].options.method, 'POST');
+  assert.equal(h.requests[2].options.headers['X-CSRFToken'], 'synthetic-csrf');
+  assert.equal(h.requests.length, 3);
   assert.deepEqual(h.navigation, [h.panel.dataset.loginUrl]);
   assert.equal(h.timers.size, 0);
+});
+
+test('a lost consume response recovers through the same token without a second consume', async () => {
+  const h = harness();
+  await h.init();
+  h.queue.push({ok: true, status: 'authenticated'});
+  h.queue.push(new Error('network'));
+  await h.tick();
+  assert.equal(h.elements['telegram-check'].hidden, false);
+  assert.equal(h.navigation.length, 0);
+  h.queue.push({ok: true, status: 'used'});
+  await h.elements['telegram-check'].click();
+  assert.equal(h.requests[3].url, h.requests[1].url);
+  assert.equal(h.requests.length, 4);
+  assert.deepEqual(h.navigation, [h.panel.dataset.loginUrl]);
+});
+
+test('polling follows the server interval, backs off and stops at the token lifetime', async () => {
+  const h = harness();
+  await h.init({poll_ms: 1000, expires_in: 20});
+  const delays = [];
+  for (let poll = 0; poll < 17; poll += 1) {
+    h.queue.push({ok: true, status: 'pending'});
+    delays.push(await h.tick());
+  }
+  assert.deepEqual(delays, [...Array(15).fill(1000), 2000, 2000]);
+  assert.equal(h.timers.size, 0);
+  assert.equal(h.requests.length, 18);
+  assert.equal(h.elements['telegram-start'].disabled, false);
+  assert.match(h.elements['telegram-status'].textContent, /eskirgan/);
+});
+
+test('throttled init shows the server copy and restores explicit start', async () => {
+  const h = harness();
+  h.queue.push({httpStatus: 429, ok: false, status: 'throttled', message: 'Synthetic throttle copy'});
+  await h.elements['telegram-start'].click();
+  assert.equal(h.elements['telegram-status'].textContent, 'Synthetic throttle copy');
+  assert.equal(h.elements['telegram-start'].disabled, false);
+  assert.equal(h.elements['telegram-link'].hidden, true);
+  assert.equal(h.timers.size, 0);
+});
+
+test('cancel stops polling and closes this browser flow with a CSRF POST', async () => {
+  const h = harness();
+  await h.init();
+  await h.elements['telegram-cancel'].click();
+  assert.equal(h.timers.size, 0);
+  const closing = h.requests.at(-1);
+  assert.equal(closing.url, '/users/telegram-auth/cancel/');
+  assert.equal(closing.options.method, 'POST');
+  assert.equal(closing.options.headers['X-CSRFToken'], 'synthetic-csrf');
+  assert.equal(h.elements['telegram-start'].disabled, false);
 });
 
 test('expired and unknown results restore explicit start without false success', async () => {
@@ -171,6 +237,7 @@ for (const status of ['authenticated', 'used']) {
     let leave = {preventDefault() {this.blocked = true;}};
     h.events.beforeunload(leave); assert.equal(leave.blocked, true);
     h.queue.push({ok: true, status});
+    if (status === 'authenticated') h.queue.push({ok: true, status});
     await h.tick();
     assert.deepEqual(h.navigation, [h.panel.dataset.loginUrl]);
     h.events.pageshow();

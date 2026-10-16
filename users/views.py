@@ -1363,95 +1363,67 @@ class CertificateListView(LoginRequiredMixin, RecordsV1Mixin, TemplateView):
 
 
 from django.http import JsonResponse
-import secrets
-from django.contrib.auth import login as django_login
-from django.db import transaction
-from django.utils.crypto import constant_time_compare
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_GET, require_POST
+from users import telegram_auth_service as telegram_auth
 from users.models import TelegramAuthSession
 
-TELEGRAM_AUTH_CLIENT_KEY = 'telegram_auth_client_key'
+TELEGRAM_AUTH_UNKNOWN = {'ok': False, 'status': 'not_found', 'message': 'Sessiya topilmadi.'}
 
 
+@require_POST
 def telegram_auth_init(request):
-    """Vaqtinchalik token va Telegram deep-linkini yaratadi (AJAX).
+    """Vaqtinchalik token va Telegram deep-linkini yaratadi (POST + CSRF).
 
     Token shu brauzer sessiyasiga bog'lanadi — keyin faqat shu brauzer uni
-    login uchun ishlata oladi. Bitta brauzerda bir vaqtda bitta oqim.
+    login uchun ishlata oladi. Bitta brauzerda bir vaqtda bitta oqim:
+    oldingisi yopiladi (PUB1.0d).
     """
     # Har boshlash bazada sessiya va cookie yozadi: IP bo'yicha cheklanadi (PUB1.0c).
     from users import auth_abuse
 
     decision = auth_abuse.consume_telegram_init(request)
     if not decision.allowed:
-        response = JsonResponse({'ok': False, 'status': 'throttled', 'message': decision.message})
+        response = JsonResponse({'ok': False, 'status': 'throttled', 'message': decision.message}, status=429)
         return auth_abuse.apply_throttle_headers(response, decision)
-    token = secrets.token_urlsafe(32)
-    client_key = secrets.token_urlsafe(32)
-    TelegramAuthSession.objects.create(token=token, client_key=client_key)
-    request.session[TELEGRAM_AUTH_CLIENT_KEY] = client_key
-    bot_username = (getattr(settings, 'BOT_USERNAME', '') or 'azureLMSbot').strip('@')
-    bot_link = f"https://t.me/{bot_username}?start=auth_{token}"
+    token = telegram_auth.start_flow(request, request.POST.get('next', ''))
     return JsonResponse({
         'ok': True,
         'token': token,
-        'bot_link': bot_link
+        'bot_link': telegram_auth.bot_link(token),
+        # Klient so'rov oralig'i va to'xtash vaqtini serverdan oladi.
+        'poll_ms': telegram_auth.POLL_INTERVAL_MS,
+        'expires_in': int(TelegramAuthSession.TOKEN_TTL.total_seconds()),
     })
 
 
+@require_GET
+@never_cache
 def telegram_auth_status(request, token):
-    """Token holatini tekshiradi va tasdiqlangan bo'lsa login qiladi (polling AJAX).
+    """Token holatini faqat o'qiydi (polling). Login qilmaydi, hech narsa yozmaydi.
 
-    Token bir martalik: olingandan keyin `used` bo'ladi. Boshqa brauzer
-    tokenni bilsa ham login bo'lolmaydi — `client_key` mos kelmaydi.
-    Mavjud emas va mos kelmagan holatlar bir xil javob beradi, aks holda
-    token mavjudligini aniqlash mumkin bo'lardi.
+    Muddati o'tgani hisoblanadi, saqlanmaydi. Mavjud emas va boshqa brauzer
+    holatlari bir xil javob beradi — token mavjudligini aniqlab bo'lmaydi.
     """
-    unknown = JsonResponse({'ok': False, 'status': 'not_found', 'message': 'Sessiya topilmadi.'})
-    client_key = request.session.get(TELEGRAM_AUTH_CLIENT_KEY) or ''
-    if not client_key:
-        return unknown
+    result = telegram_auth.read_status(request, token)
+    if not result.ok:
+        return JsonResponse(TELEGRAM_AUTH_UNKNOWN)
+    return JsonResponse({'ok': True, 'status': result.status})
 
-    with transaction.atomic():
-        try:
-            session = TelegramAuthSession.objects.select_for_update().get(token=token)
-        except TelegramAuthSession.DoesNotExist:
-            return unknown
 
-        if not session.client_key or not constant_time_compare(session.client_key, client_key):
-            return unknown
+@require_POST
+def telegram_auth_consume(request, token):
+    """Tasdiqlangan tokenni bir marta ishlatib, shu brauzerni login qiladi (POST + CSRF)."""
+    result = telegram_auth.consume(request, token)
+    if not result.ok:
+        return JsonResponse(TELEGRAM_AUTH_UNKNOWN)
+    if result.status != TelegramAuthSession.STATUS_AUTHENTICATED:
+        return JsonResponse({'ok': True, 'status': result.status})
+    return JsonResponse({'ok': True, 'status': result.status, 'redirect_url': result.redirect_url})
 
-        # Muddati o'tgan sessiya (pending yoki authenticated) yopiladi —
-        # aks holda frontend'ga 'authenticated' deb yolg'on javob ketardi.
-        if session.status in (
-            TelegramAuthSession.STATUS_PENDING,
-            TelegramAuthSession.STATUS_AUTHENTICATED,
-        ) and session.is_expired():
-            session.status = TelegramAuthSession.STATUS_EXPIRED
-            session.save(update_fields=['status'])
 
-        if not session.is_claimable():
-            return JsonResponse({'ok': True, 'status': session.status})
-
-        # Bir martalik: tokenni login qilishdan OLDIN yopamiz, shunda
-        # parallel so'rov ikkinchi marta ololmaydi.
-        authenticated_user = session.user
-        session.status = TelegramAuthSession.STATUS_USED
-        session.consumed_at = timezone.now()
-        session.save(update_fields=['status', 'consumed_at'])
-
-    # Himoya qatlami: sessiya tasdiqlangandan keyin hisob faolsizlantirilgan
-    # bo'lsa ham `login()` uni tekshirmaydi, shuning uchun bu yerda qayta (PUB1.0b).
-    from users.registration_policy import existing_identity_may_continue
-
-    if not existing_identity_may_continue(authenticated_user):
-        request.session.pop(TELEGRAM_AUTH_CLIENT_KEY, None)
-        return unknown
-
-    django_login(request, authenticated_user, backend='django.contrib.auth.backends.ModelBackend')
-    request.session.pop(TELEGRAM_AUTH_CLIENT_KEY, None)
-    return JsonResponse({
-        'ok': True,
-        'status': 'authenticated',
-        'redirect_url': '/users/dashboard/'
-    })
-
+@require_POST
+def telegram_auth_cancel(request):
+    """Shu brauzerdagi oqimni yopadi (POST + CSRF). Boshqa tokenga tegmaydi."""
+    telegram_auth.cancel(request)
+    return JsonResponse({'ok': True, 'status': 'cancelled'})

@@ -28,7 +28,7 @@ class TelegramAuthTokenSecurityTests(TestCase):
         )
 
     def _start_flow(self, client):
-        response = client.get(reverse("telegram_auth_init"))
+        response = client.post(reverse("telegram_auth_init"))
         self.assertEqual(response.status_code, 200)
         return response.json()["token"]
 
@@ -37,7 +37,7 @@ class TelegramAuthTokenSecurityTests(TestCase):
         self.assertTrue(result.ok, result.message)
 
     def _claim(self, client, token):
-        return client.get(reverse("telegram_auth_status", args=[token]))
+        return client.post(reverse("telegram_auth_consume", args=[token]))
 
     def _is_logged_in(self, client):
         return client.session.get("_auth_user_id") == str(self.user.pk)
@@ -88,7 +88,7 @@ class TelegramAuthTokenSecurityTests(TestCase):
         self._confirm_in_bot(token)
 
         attacker = Client()
-        attacker.get(reverse("telegram_auth_init"))  # o'z client_key'i bor
+        attacker.post(reverse("telegram_auth_init"))  # o'z client_key'i bor
         response = self._claim(attacker, token)
 
         self.assertEqual(response.json()["status"], "not_found")

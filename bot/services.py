@@ -167,15 +167,8 @@ def handle_telegram_auth_token(token, telegram_user_id, first_name="", last_name
 
     auth_token = token[5:] # 'auth_' prefiksini olib tashlaymiz
     from users.models import TelegramAuthSession, CustomUser, Notification
+    from users import telegram_auth_service as telegram_auth
     from django.db import transaction
-
-    try:
-        session = TelegramAuthSession.objects.get(token=auth_token)
-    except TelegramAuthSession.DoesNotExist:
-        return ActionResult(ok=False, code="not_found", message="Kirish sessiyasi topilmadi yoki eskirgan.")
-
-    if not session.is_valid():
-        return ActionResult(ok=False, code="expired", message="Sessiya vaqti tugagan. Iltimos, saytdan qayta urinib ko'ring.")
 
     from users.registration_policy import (
         CHANNEL_TELEGRAM_DEEPLINK,
@@ -189,9 +182,7 @@ def handle_telegram_auth_token(token, telegram_user_id, first_name="", last_name
         # `django_login` `is_active`ni tekshirmaydi (PUB1.0b).
         if not existing_identity_may_continue(user):
             return ActionResult(ok=False, code="identity_inactive", message=IDENTITY_INACTIVE_MESSAGE)
-        session.user = user
-        session.status = TelegramAuthSession.STATUS_AUTHENTICATED
-        session.save(update_fields=['user', 'status'])
+        telegram_auth.mark_authenticated(session, user)
         return ActionResult(
             ok=True,
             code="login_success",
@@ -200,6 +191,15 @@ def handle_telegram_auth_token(token, telegram_user_id, first_name="", last_name
 
     try:
         with transaction.atomic():
+            # Qator butun tasdiq davomida bloklanadi: bir tokenni ikki parallel
+            # `/start` tasdiqlay olmaydi, muddat ham shu lock ostida qayta
+            # tekshiriladi (PUB1.0d).
+            session, state = telegram_auth.lock_for_confirmation(auth_token)
+            if session is None:
+                return ActionResult(ok=False, code="not_found", message="Kirish sessiyasi topilmadi yoki eskirgan.")
+            if state != TelegramAuthSession.STATUS_PENDING:
+                return ActionResult(ok=False, code="expired", message="Sessiya vaqti tugagan. Iltimos, saytdan qayta urinib ko'ring.")
+
             user = CustomUser.objects.filter(telegram_id=telegram_user_id).first()
 
             if user:
@@ -241,10 +241,8 @@ def handle_telegram_auth_token(token, telegram_user_id, first_name="", last_name
                         raise
                     return login_existing(winner)
 
-                session.user = user
-                session.status = TelegramAuthSession.STATUS_AUTHENTICATED
-                session.save(update_fields=['user', 'status'])
-                
+                telegram_auth.mark_authenticated(session, user)
+
                 Notification.objects.create(
                     recipient=user,
                     external_key=f"telegram-auth-created-{user.id}",
