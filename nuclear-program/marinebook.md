@@ -30,8 +30,10 @@ qarordan o‘tadi; Mini App hech qachon yaratmaydi.
 - Qo‘shimcha topilgan va yopilgan nuqson: faolsizlantirilgan hisob Telegram
   deep-link orqali webga kira olardi (`login()` `is_active`ni tekshirmaydi).
   Endi bot rad etadi, status endpoint login oldidan qayta tekshiradi. Ayni
-  Telegram ID uchun parallel yaratish g‘olib akkauntga qaytadi.
-- Test: safe env’da `manage.py test users.test_registration_policy` — **25/25 OK**;
+  Telegram ID uchun parallel yaratish g‘olib akkauntga qaytadi. PR #203 review
+  topilmasi bo‘yicha (`79f7cbb`) profil Telegram ulash tokeni ham bloklangan
+  hisobni rad etadi (token 30 daqiqa yashaydi).
+- Test: safe env’da `manage.py test users.test_registration_policy` — **27/27 OK** (review tuzatishi bilan; `bot` + link/auth testlari birga 293 OK);
   to‘liq `manage.py test` — **2813 test, OK (skipped=67)**; `manage.py check` 0;
   `git diff --check` PASS. Nazorat yugurishi: deep-link gate va telefon poygasi
   ushlashi olib tashlanganda testlar FAIL, tiklangach PASS.
