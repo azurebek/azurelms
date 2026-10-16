@@ -16,6 +16,39 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-17 [Claude]: PUBLIC-01 / PUB1.0e — public GET bazaga yozmaydi
+
+Birinchi tashrif yo‘q sozlama qatorlarini yaratar, yo‘q huquqiy sahifani esa
+umumiy namuna matn bilan yaratib siyosat sifatida e’lon qilardi. Endi public va
+auth GET faqat o‘qiydi; yo‘q huquqiy sahifa halol 503 va Control Center’da qizil.
+
+- Branch: `claude/pub10e-public-get-write-free`; kod commit **`ec0db3b`**.
+  Migration yo‘q.
+- Inventar (toza va to‘ldirilgan baza, legacy+V1): `SiteSettings`,
+  `AuthPageSettings`, `LandingPage` (context processor), `AboutPage`,
+  `LegalPage` (3 sahifa + yordam markazi), `BlogHomeSettings`. Hammasi
+  `current()` / `LegalPage.published()`ga o‘tdi; `load()` faqat tahrirda.
+- Qarorlar: yo‘q huquqiy sahifa — `503` + `noindex` + `no-store`, eski namuna
+  matn generatori (`defaults_for`) o‘chirildi; singleton uchun data migration
+  yo‘q (kod default’lari bilan bir xil, yo‘q qator Control Center’da sariq);
+  `public_content` capability high, `/readyz`ga kirmaydi; blog maqola
+  hisoblagichi nomlangan analytics ruxsati (PUB1.0g).
+- Test: safe env’da `manage.py test frontend.test_public_get_write_free
+  frontend.test_public_v1` — **28 test, OK**; to‘liq `manage.py test` —
+  **2886 test, OK (skipped=69)**; `manage.py check`, `makemigrations --check`
+  toza; `git diff --check` PASS. Nazorat yugurishi: 7 ta buzilish (context
+  processor `load()`, About `load()`, legal `get_or_create`, yordam markazi
+  yaratishi, probe namuna matnni ko‘rmasligi, blog `load()`, legal 200)
+  testlarda FAIL, tiklangach PASS.
+- Brauzer (DB nusxasida): V1 va legacy `/faq/` (qator yo‘q) — `503`, “hali
+  e’lon qilinmagan”; `/about/` (qator yo‘q) 200 va qator yaratilmadi; mavjud
+  `/terms-of-service/` 200.
+- **Diqqat:** lokal baza nusxasida uchala huquqiy sahifa PUB1.0e’gacha
+  avtomatik yaratilgan namuna matnda (probe: sariq). Productionda ham shunday
+  bo‘lishi ehtimoli katta — owner haqiqiy maxfiylik/shartlar/FAQ matnini
+  yozishi kerak.
+- Davom etilishi kerak: PUB1.0f (parol tiklash xati yetkazilishi release gate).
+
 ## 2026-10-16 [Claude]: PUBLIC-01 / PUB1.0d — Telegram kirishida init/consume POST, status read-only
 
 Telegram orqali kirishda `GET status` muddat tugaganini bazaga yozar va
