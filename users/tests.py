@@ -691,7 +691,7 @@ class TelegramCustomAuthTests(TestCase):
         )
 
     def test_telegram_auth_init_creates_session(self):
-        response = self.client.get(reverse('telegram_auth_init'))
+        response = self.client.post(reverse('telegram_auth_init'))
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertTrue(data['ok'])
@@ -704,7 +704,7 @@ class TelegramCustomAuthTests(TestCase):
 
     def _start_flow(self):
         """Haqiqiy oqim: init token va client_key'ni brauzer sessiyasiga bog'laydi."""
-        response = self.client.get(reverse('telegram_auth_init'))
+        response = self.client.post(reverse('telegram_auth_init'))
         return response.json()['token']
 
     def test_telegram_auth_status_pending(self):
@@ -726,7 +726,12 @@ class TelegramCustomAuthTests(TestCase):
         self.assertEqual(session.status, TelegramAuthSession.STATUS_AUTHENTICATED)
         self.assertEqual(session.user, self.user)
 
+        # Polling faqat holatni ko'rsatadi; login alohida POST consume'da (PUB1.0d).
         response = self.client.get(reverse('telegram_auth_status', args=[token]))
+        self.assertEqual(response.json()['status'], 'authenticated')
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+        response = self.client.post(reverse('telegram_auth_consume', args=[token]))
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertTrue(data['ok'])

@@ -18,7 +18,8 @@ from .views import (
     AttendanceCalendarView, AttendanceManageView,
     NotificationCenterView, NotificationOpenView, NotificationReadAllView, HelpCenterView,
     OnboardingChoiceView, StartSmartOnboardingView,
-    telegram_auth_init, telegram_auth_status
+    telegram_auth_init, telegram_auth_status,
+    telegram_auth_consume, telegram_auth_cancel,
 )
 
 urlpatterns = [
@@ -28,6 +29,8 @@ urlpatterns = [
     path('login/', FrontendLoginView.as_view(template_name='registration/login.html', redirect_authenticated_user=True), name='login'),
     path('telegram-auth/init/', telegram_auth_init, name='telegram_auth_init'),
     path('telegram-auth/status/<str:token>/', telegram_auth_status, name='telegram_auth_status'),
+    path('telegram-auth/consume/<str:token>/', telegram_auth_consume, name='telegram_auth_consume'),
+    path('telegram-auth/cancel/', telegram_auth_cancel, name='telegram_auth_cancel'),
     path('logout/', LogoutView.as_view(next_page='home'), name='logout'),
     path('profile/', UserProfileView.as_view(), name='profile'),
     # Sozlamalar 4 bo'limga ajratilgan. `settings` — umumiy kirish nuqtasi

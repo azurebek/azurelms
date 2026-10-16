@@ -126,7 +126,7 @@ class WebRegistrationTests(TestCase):
 
 class TelegramDeepLinkTests(TestCase):
     def start_session(self):
-        response = self.client.get(reverse("telegram_auth_init"))
+        response = self.client.post(reverse("telegram_auth_init"))
         self.assertEqual(response.status_code, 200)
         return response.json()["token"]
 
@@ -163,7 +163,7 @@ class TelegramDeepLinkTests(TestCase):
         result = handle_telegram_auth_token(f"auth_{token}", NEW_TG)
         self.assertTrue(result.ok)
         self.assertEqual(result.code, "login_success")
-        response = self.client.get(reverse("telegram_auth_status", args=[token]))
+        response = self.client.post(reverse("telegram_auth_consume", args=[token]))
         self.assertEqual(response.json()["status"], "authenticated")
         self.assertEqual(self.client.session.get("_auth_user_id"), str(user.pk))
 
@@ -176,7 +176,7 @@ class TelegramDeepLinkTests(TestCase):
         self.assertFalse(result.ok)
         self.assertEqual(result.code, "identity_inactive")
         self.assertEqual(self.counts(), before)
-        response = self.client.get(reverse("telegram_auth_status", args=[token]))
+        response = self.client.post(reverse("telegram_auth_consume", args=[token]))
         self.assertNotEqual(response.json().get("status"), "authenticated")
         self.assertNotIn("_auth_user_id", self.client.session)
 
@@ -186,7 +186,7 @@ class TelegramDeepLinkTests(TestCase):
         token = self.start_session()
         self.assertTrue(handle_telegram_auth_token(f"auth_{token}", NEW_TG).ok)
         User.objects.filter(pk=user.pk).update(is_active=False)
-        response = self.client.get(reverse("telegram_auth_status", args=[token]))
+        response = self.client.post(reverse("telegram_auth_consume", args=[token]))
         self.assertEqual(response.json()["status"], "not_found")
         self.assertNotIn("_auth_user_id", self.client.session)
 

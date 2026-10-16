@@ -271,9 +271,9 @@ class TelegramInitEnforcementTests(TestCase):
     def test_init_limit_writes_no_session(self):
         set_limits(auth_telegram_init_ip_limit=2)
         for _ in range(2):
-            self.assertEqual(self.client.get(reverse("telegram_auth_init")).status_code, 200)
+            self.assertEqual(self.client.post(reverse("telegram_auth_init")).status_code, 200)
         before = TelegramAuthSession.objects.count()
-        response = self.client.get(reverse("telegram_auth_init"))
+        response = self.client.post(reverse("telegram_auth_init"))
         self.assertEqual(response.status_code, 429)
         self.assertEqual(response.json()["status"], "throttled")
         self.assertTrue(response["Retry-After"].isdigit())

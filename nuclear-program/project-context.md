@@ -1406,6 +1406,12 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 - `users.AuthThrottleBucket` faqat HMAC digest saqlaydi; fixed window, doimiy blok yo'q; saqlash xatosida fail-open. Limit/oynalar `OperationalSettings` (owner `Vaqt va limitlar` paneli, audit bilan), yoqish/o'chirish `auth_throttle_enforcement` flagida.
 - Control Center `auth_throttle` probe'i: enforcement OFF, production'da `TRUSTED_PROXY_HOPS=0` yoki jadval chegaradan katta bo'lsa AMBER.
 
+### Telegram orqali kirish (PUB1.0d, 2026-10-16)
+
+- `users/telegram_auth_service.py` yagona holat mashinasi; view'lar (`users/views.py`) faqat adapter. `POST /users/telegram-auth/init/` (CSRF, PUB1.0c cheklovi, bir brauzerda bitta faol oqim, xavfsiz `next` sessiyada) → bot `/start auth_<token>` qatorni lock qilib `pending → authenticated` → `GET .../status/<token>/` (hech narsa yozmaydi) → `POST .../consume/<token>/` (CSRF, brauzer kaliti, row lock, bir martalik `used`, keyin `login()`). `POST .../cancel/` faqat shu brauzer oqimini yopadi.
+- Begona brauzer, kalitsiz so'rov va mavjud bo'lmagan token bir xil `not_found` javob oladi. Eski qatorlar init'da bounded va `manage.py prune_telegram_auth` bilan tozalanadi.
+- Klientlar: V1 `static/frontend_v1/js/login.js`, legacy login/register `static/js/telegram-login.js`. Polling oralig'i va umri init javobidan (`poll_ms`, `expires_in`).
+
 ### Production safety
 
 - Local mode remote DB/Redis/S3'ga tasodifan ulanmaydi (`LOCAL_USE_REMOTE_SERVICES=True` bo'lmasa)
