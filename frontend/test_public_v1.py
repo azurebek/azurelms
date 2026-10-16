@@ -47,6 +47,9 @@ class PublicV1Tests(TestCase):
         ]
 
     def test_all_fourteen_routes_on_and_off_use_separate_assets(self):
+        # Huquqiy sahifalar owner yozgan holatda; yo'q sahifa 503 (PUB1.0e testlarida).
+        for kind in ('privacy', 'terms', 'faq'):
+            LegalPage.objects.create(page_type=kind, title=f'Owner {kind}', content='<p>Owner matni</p>')
         for enabled in (True, False):
             self.flag.enabled = enabled; self.flag.save()
             for name, args, template in self.routes():

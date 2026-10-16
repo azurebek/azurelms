@@ -1,6 +1,6 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
-**Holat:** REJA TAYYOR; **PUB1.0a–d kodda (2026-10-16, lokal)**, PUB1.0e–g va keyingi
+**Holat:** REJA TAYYOR; **PUB1.0a–e kodda (2026-10-16/17, lokal)**, PUB1.0f–g va keyingi
 bosqichlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
 **Kod tayanchi:** `main`dagi `72e82e0`
@@ -1349,6 +1349,27 @@ fallback ishlaydi. Old GET mutation route temporary compatibility bo‘lsa 405/
 explicit migration, state change emas.
 
 #### PUB1.0e — public GETni write-free qilish
+
+**Holat — 2026-10-17: kodda, lokal tekshirilgan** (branch
+`claude/pub10e-public-get-write-free`). Inventar (toza va to‘ldirilgan baza,
+legacy+V1): yozuvlar faqat `SiteSettings`/`AuthPageSettings`/`LandingPage`
+(context processor), `AboutPage`, `LegalPage` (3 sahifa + yordam markazi) va
+`BlogHomeSettings` edi. Endi `SingletonModel.current()` (frontend va blog)
+qator yoki saqlanmagan default nusxa qaytaradi — public/auth GET va bot o‘qishi
+shunga o‘tdi, `load()` faqat tahrir yo‘llarida. Yo‘q huquqiy sahifa
+yaratilmaydi: legacy/V1 halol “hali e’lon qilinmagan”, `503` +
+`X-Robots-Tag: noindex` + `no-store`; `LegalPage.defaults_for` olib tashlandi.
+`core/public_readiness.py` + Control Center `public_content` (high, `/readyz`ga
+kirmaydi): yo‘q huquqiy sahifa qizil, PUB1.0e’gacha avtomatik yaratilgan namuna
+matn sariq, sozlama qatori yo‘q sariq. Blog maqola hisoblagichi nomlangan
+analytics ruxsati (faqat `blog_blogpostread`/`blog_blogpost`), PUB1.0g’da.
+**Qaror:** singleton default’lari uchun data migration qo‘shilmadi — kod
+default’lari qator yaratilganda ham aynan shu bo‘lardi, yo‘q qator esa Control
+Center’da ko‘rinadi (migration test bazasida `objects.create` bilan to‘qnashardi).
+**Ochiq:** lokal baza nusxasida uchala huquqiy sahifa eski avtomatik namuna
+matnda — productionda ham shunday bo‘lishi ehtimoli katta, owner haqiqiy matn
+yozishi kerak (legal revision kesimlari); `LandingPage` default’laridagi
+tasdiqlanmagan da’vo (claim gate kesimlari).
 
 **Ish:** `LegalPage.get_or_create`, singleton `load()` va context processordagi
 implicit create yo‘llarini read projectionga almashtirish. Required defaults

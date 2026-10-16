@@ -74,7 +74,7 @@ class RecordsV1Mixin(FrontendV1Mixin):
                 # The paid period, not mutable catalog/intent, selects the plan.
                 context['record_enrollments'] = [dict(enrollment=item, plan=item.active_plan()) for item in context['enrollments']]
             elif route == 'help_center':
-                contact = (SiteSettings.load().telegram_url or '').strip()
+                contact = (SiteSettings.current().telegram_url or '').strip()
                 try:
                     parsed = urlsplit(contact)
                     if parsed.scheme in ('http', 'https') and parsed.hostname:

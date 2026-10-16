@@ -1298,7 +1298,7 @@ def begin_course_enrollment(user, course_id, plan_id):
         return EnrollBeginResult(ok=False, code="unavailable", message=" ".join(exc.messages))
 
     start, end = _checkout_period(enrollment)
-    site = SiteSettings.load()
+    site = SiteSettings.current()
     return EnrollBeginResult(
         ok=True,
         code="begun",
