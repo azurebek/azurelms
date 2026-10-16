@@ -41,6 +41,18 @@ class PasswordResetView(AuthV1Mixin, auth_views.PasswordResetView):
     frontend_v1_title = 'Parolni tiklash'
     auth_intro = 'Hisobingiz emailini kiriting. Tiklash ko‘rsatmasi shu manzilga yuborilishi mumkin.'
 
+    def form_valid(self, form):
+        # Har so'rov email yuboradi: email va IP bo'yicha cheklanadi (PUB1.0c).
+        # Hisoblagich email mavjudligidan qat'i nazar yuradi — blok holati
+        # enumeration signali bo'lmaydi.
+        from users import auth_abuse
+
+        decision = auth_abuse.consume_password_reset(self.request, form.cleaned_data.get('email', ''))
+        if not decision.allowed:
+            form.add_error(None, decision.message)
+            return auth_abuse.apply_throttle_headers(self.form_invalid(form), decision)
+        return super().form_valid(form)
+
 
 class PasswordResetDoneView(AuthV1Mixin, auth_views.PasswordResetDoneView):
     frontend_v1_template = 'frontend_v1/auth_reset_done.html'

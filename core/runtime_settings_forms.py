@@ -271,6 +271,63 @@ class CheckoutSettingsForm(_AuditedSettingsForm):
             field.widget.attrs['id'] = f'id_checkout_{name}'
 
 
+class AuthThrottleSettingsForm(_AuditedSettingsForm):
+    """Login, ro'yxat, parol tiklash va Telegram kirishi urinishlari (PUB1.0c).
+
+    Yoqish/o'chirish bu formada emas — `auth_throttle_enforcement` flagida.
+    Bitta narsani ikki joy boshqarsa owner qaysi biri amalda ekanini bilmay
+    qoladi.
+    """
+
+    UNITS = {
+        "auth_login_account_limit": "urinish",
+        "auth_login_ip_limit": "urinish",
+        "auth_login_window_minutes": "daqiqa",
+        "auth_register_ip_limit": "hisob",
+        "auth_register_window_minutes": "daqiqa",
+        "auth_reset_account_limit": "so‘rov",
+        "auth_reset_ip_limit": "so‘rov",
+        "auth_reset_window_minutes": "daqiqa",
+        "auth_telegram_init_ip_limit": "urinish",
+        "auth_telegram_init_window_minutes": "daqiqa",
+        "auth_throttle_rows_amber": "qator",
+    }
+
+    class Meta:
+        model = OperationalSettings
+        fields = (
+            "auth_login_account_limit",
+            "auth_login_ip_limit",
+            "auth_login_window_minutes",
+            "auth_register_ip_limit",
+            "auth_register_window_minutes",
+            "auth_reset_account_limit",
+            "auth_reset_ip_limit",
+            "auth_reset_window_minutes",
+            "auth_telegram_init_ip_limit",
+            "auth_telegram_init_window_minutes",
+            "auth_throttle_rows_amber",
+        )
+        labels = {
+            "auth_login_account_limit": "Login: bitta hisobga xato urinish",
+            "auth_login_ip_limit": "Login: bitta manzildan xato urinish",
+            "auth_login_window_minutes": "Login oynasi",
+            "auth_register_ip_limit": "Ro‘yxat: bitta manzildan yangi hisob",
+            "auth_register_window_minutes": "Ro‘yxat oynasi",
+            "auth_reset_account_limit": "Parol tiklash: bitta email uchun",
+            "auth_reset_ip_limit": "Parol tiklash: bitta manzildan",
+            "auth_reset_window_minutes": "Parol tiklash oynasi",
+            "auth_telegram_init_ip_limit": "Telegram kirishi: bitta manzildan",
+            "auth_telegram_init_window_minutes": "Telegram kirishi oynasi",
+            "auth_throttle_rows_amber": "Hisoblagich jadvali ogohlantirishi",
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            field.widget.attrs['id'] = f'id_auth_throttle_{name}'
+
+
 class MaterialLibrarySettingsForm(_AuditedSettingsForm):
     """Material kutubxonasining fayl hajmi chegarasi.
 

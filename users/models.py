@@ -632,3 +632,38 @@ class ReminderSettings(models.Model):
         except Exception:  # noqa: BLE001 — jadval hali yo'q yoki DB yetib bormadi
             row = None
         return ReminderPolicy.from_row(row)
+
+
+class AuthThrottleBucket(models.Model):
+    """Auth urinishlari hisoblagichi — bitta scope, kalit va vaqt oynasi (PUB1.0c).
+
+    Kalit raw email, username yoki IP emas: `users.auth_abuse` uni HMAC bilan
+    digest qiladi. Jadval o'g'irlansa ham kim, qayerdan kirmoqchi bo'lgani
+    ochilmaydi. Oyna qat'iy (fixed window): `window_start` oynaning boshi,
+    `expires_at` oxiri; muddati o'tgan qator cleanup bilan o'chadi, ya'ni
+    jadval bir kalitga bir oynadan ortiq qator saqlamaydi.
+
+    `blocked_until` doimiy blok emas — u faqat shu oynaning oxiri. Ataylab
+    "permanent lockout" yo'q: aks holda hujumchi begona hisobni o'z xohishiga
+    ko'ra yopib qo'ya olardi.
+    """
+
+    scope = models.CharField(max_length=32)
+    key_digest = models.CharField(max_length=64)
+    window_start = models.DateTimeField()
+    count = models.PositiveIntegerField(default=0)
+    blocked_until = models.DateTimeField(null=True, blank=True)
+    expires_at = models.DateTimeField(db_index=True)
+
+    class Meta:
+        verbose_name = "Auth cheklov hisoblagichi"
+        verbose_name_plural = "Auth cheklov hisoblagichlari"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["scope", "key_digest", "window_start"],
+                name="users_auththrottle_unique_window",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.scope}:{self.key_digest[:8]}@{self.window_start:%Y-%m-%d %H:%M}"

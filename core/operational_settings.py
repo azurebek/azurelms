@@ -25,6 +25,19 @@ DEFAULTS = {
     "handler_latency_red_ms": 4000,
     "handler_error_amber_percent": 5,
     "handler_error_red_percent": 20,
+    # Auth urinishlari cheklovi (PUB1.0c). Jadval o'qilmasa ham cheklov shu
+    # konservativ qiymatlar bilan ishlaydi — "sozlama yo'q" "cheklov yo'q" emas.
+    "auth_login_account_limit": 5,
+    "auth_login_ip_limit": 20,
+    "auth_login_window_minutes": 15,
+    "auth_register_ip_limit": 5,
+    "auth_register_window_minutes": 60,
+    "auth_reset_account_limit": 3,
+    "auth_reset_ip_limit": 10,
+    "auth_reset_window_minutes": 60,
+    "auth_telegram_init_ip_limit": 10,
+    "auth_telegram_init_window_minutes": 10,
+    "auth_throttle_rows_amber": 50000,
 }
 
 BOUNDS = {
@@ -40,6 +53,17 @@ BOUNDS = {
     "handler_latency_red_ms": (100, 120000),
     "handler_error_amber_percent": (1, 100),
     "handler_error_red_percent": (1, 100),
+    "auth_login_account_limit": (1, 1000),
+    "auth_login_ip_limit": (1, 5000),
+    "auth_login_window_minutes": (1, 1440),
+    "auth_register_ip_limit": (1, 5000),
+    "auth_register_window_minutes": (1, 1440),
+    "auth_reset_account_limit": (1, 1000),
+    "auth_reset_ip_limit": (1, 5000),
+    "auth_reset_window_minutes": (1, 1440),
+    "auth_telegram_init_ip_limit": (1, 5000),
+    "auth_telegram_init_window_minutes": (1, 1440),
+    "auth_throttle_rows_amber": (100, 10000000),
 }
 
 #: AMBER/RED juftliklari — RED har doim kattaroq bo'lishi kerak.
@@ -109,6 +133,17 @@ class Thresholds:
     handler_latency_red_ms: int
     handler_error_amber_percent: int
     handler_error_red_percent: int
+    auth_login_account_limit: int
+    auth_login_ip_limit: int
+    auth_login_window_minutes: int
+    auth_register_ip_limit: int
+    auth_register_window_minutes: int
+    auth_reset_account_limit: int
+    auth_reset_ip_limit: int
+    auth_reset_window_minutes: int
+    auth_telegram_init_ip_limit: int
+    auth_telegram_init_window_minutes: int
+    auth_throttle_rows_amber: int
 
     @classmethod
     def defaults(cls):

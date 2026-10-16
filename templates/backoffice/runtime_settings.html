@@ -49,6 +49,21 @@
       <button class="brand-submit" type="submit">{% if backoffice_unified_enabled %}To‘lov muddatini saqlash{% else %}Checkout muddatini saqlash{% endif %}</button>
     </form>
     {% if backoffice_unified_enabled %}</details>{% endif %}
+    {% if backoffice_unified_enabled %}<details class="bo-settings-detail" id="settings-auth_throttle"{% if auth_throttle_form.is_bound or auth_throttle_form.errors %} open{% endif %}><summary><strong>Kirish urinishlari cheklovi</strong><span>Parol taxmini va yangi hisob/email toshqinidan himoya.</span></summary>{% endif %}
+<form class="brand-form" method="post">
+      {% csrf_token %}<input type="hidden" name="form_name" value="auth_throttle">
+      <section class="brand-panel">
+        <div class="brand-panel-head"><span>Kirish</span><div><h2>Kirish urinishlari cheklovi</h2><p>Oyna ichida chegaradan oshgan urinish vaqtincha to‘xtatiladi; oyna tugashi bilan yana ochiladi, doimiy blok yo‘q. Cheklovni yoqish/o‘chirish — “Kirish urinishlarini cheklash” flagida.</p></div></div>
+        {% if auth_throttle_form.non_field_errors %}<div class="brand-errors">{{ auth_throttle_form.non_field_errors }}</div>{% endif %}
+        <div class="brand-fields brand-fields--nums">{% for field, unit in auth_throttle_form.numeric_fields %}<label class="brand-field"><span>{{ field.label }}</span><span class="brand-numfield">{{ field }}<span class="brand-unit">{{ unit }}</span></span><small>{{ field.help_text }}</small>{% for error in field.errors %}<em>{{ error }}</em>{% endfor %}</label>{% endfor %}</div>
+      </section>
+      <section class="brand-panel"><div class="brand-fields">
+        <label class="brand-field"><span>{{ auth_throttle_form.change_reason.label }}</span>{{ auth_throttle_form.change_reason }}{% for error in auth_throttle_form.change_reason.errors %}<em>{{ error }}</em>{% endfor %}</label>
+        <label class="brand-field brand-field--check">{{ auth_throttle_form.confirm_change }}<span>{{ auth_throttle_form.confirm_change.label }}</span>{% for error in auth_throttle_form.confirm_change.errors %}<em>{{ error }}</em>{% endfor %}</label>
+      </div></section>
+      <button class="brand-submit" type="submit">Kirish cheklovini saqlash</button>
+    </form>
+    {% if backoffice_unified_enabled %}</details>{% endif %}
     {% if backoffice_unified_enabled %}<details class="bo-settings-detail" id="settings-delivery"{% if delivery_form.is_bound or delivery_form.errors %} open{% endif %}><summary><strong>Telegram xabarlarini yuborish</strong><span>Yuborish tezligi va qayta urinishlar.</span></summary>{% endif %}
 <form class="brand-form" method="post">
       {% csrf_token %}

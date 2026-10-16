@@ -104,6 +104,49 @@ class FrontendLoginView(FrontendV1Mixin, LoginView):
                 field.error_messages["required"] = "Bu maydonni to‘ldiring."
         return form
 
+    # --- urinishlar cheklovi (PUB1.0c) ------------------------------------- #
+    # Blok tekshiruvi parol tekshiruvidan OLDIN: bloklangan so'rov `authenticate`
+    # ga yetmaydi, ya'ni javob vaqti ham parol to'g'riligini oshkor qilmaydi.
+
+    def post(self, request, *args, **kwargs):
+        from users import auth_abuse
+
+        identifier = request.POST.get("username", "")
+        decision = auth_abuse.login_blocked(request, identifier)
+        if not decision.allowed:
+            # Bog'lanmagan forma: bog'langan forma `errors`da authenticate qilardi.
+            # `get_form()` orqali — V1 uslubi va xabarlari saqlanadi.
+            self._auth_throttled = True
+            form = self.get_form()
+            # Bog'lanmagan formada `add_error` `cleaned_data`ni kutadi; validatsiya
+            # esa aynan chetlab o'tilayotgan `authenticate` bo'lardi.
+            form.cleaned_data = {}
+            form.add_error(None, decision.message)
+            response = self.render_to_response(self.get_context_data(form=form))
+            return auth_abuse.apply_throttle_headers(response, decision)
+        return super().post(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        if getattr(self, "_auth_throttled", False):
+            kwargs.pop("data", None)
+            kwargs.pop("files", None)
+            # Kiritilgan login saqlanadi (niyat yo'qolmaydi), parol esa yo'q.
+            kwargs["initial"] = {**kwargs.get("initial", {}), "username": self.request.POST.get("username", "")[:254]}
+        return kwargs
+
+    def form_invalid(self, form):
+        from users import auth_abuse
+
+        auth_abuse.record_login_failure(self.request, self.request.POST.get("username", ""))
+        return super().form_invalid(form)
+
+    def form_valid(self, form):
+        from users import auth_abuse
+
+        auth_abuse.record_login_success(self.request, self.request.POST.get("username", ""))
+        return super().form_valid(form)
+
 
 def teacher_v1_navigation(active_nav):
     """One teacher navigation definition, including the conversation mode."""

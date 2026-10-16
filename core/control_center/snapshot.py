@@ -958,6 +958,43 @@ def _memory_probe(definition: CapabilityDefinition) -> CapabilityResult:
     )
 
 
+def _auth_throttle_probe(definition: CapabilityDefinition) -> CapabilityResult:
+    """Auth cheklovi ishlayaptimi va jadval chegarada turibdimi (PUB1.0c).
+
+    `critical` emas: jadval kattalashishi `/readyz`ni qizil qilib instance'ni
+    trafikdan chiqarmasligi kerak — bu owner e'tibori, avariya emas.
+    """
+    from django.db import DatabaseError
+
+    from core.flags import flag_enabled
+    from users.models import AuthThrottleBucket
+
+    now = timezone.now()
+    try:
+        rows = AuthThrottleBucket.objects.count()
+        expired = AuthThrottleBucket.objects.filter(expires_at__lt=now).count()
+        active_blocks = AuthThrottleBucket.objects.filter(blocked_until__gt=now).count()
+    except DatabaseError:
+        return _result(definition, "red", "Cheklov hisoblagichlari jadvalini o'qib bo'lmadi.")
+    enforced = flag_enabled("auth_throttle_enforcement")
+    hops = int(getattr(settings, "TRUSTED_PROXY_HOPS", 0) or 0)
+    details = dict(
+        rows=rows, expired=expired, active_blocks=active_blocks,
+        enforcement="on" if enforced else "off", trusted_proxy_hops=hops,
+    )
+    if not enforced:
+        return _result(definition, "amber", "Cheklov o'chirilgan: urinishlar sanaladi, lekin rad etilmaydi.", **details)
+    if not settings.IS_LOCAL and hops == 0:
+        return _result(
+            definition, "amber",
+            "TRUSTED_PROXY_HOPS=0: proxy ortida barcha foydalanuvchilar bitta IP bo'lib ko'rinadi.",
+            **details,
+        )
+    if rows > current_thresholds().auth_throttle_rows_amber:
+        return _result(definition, "amber", f"Hisoblagich jadvali katta: {rows} qator.", **details)
+    return _result(definition, "green", "Kirish urinishlari cheklovi faol.", **details)
+
+
 PROBE_FUNCTIONS: dict[str, Callable[[CapabilityDefinition], CapabilityResult]] = {
     "database": _database_probe,
     "cache": _cache_probe,
@@ -970,6 +1007,7 @@ PROBE_FUNCTIONS: dict[str, Callable[[CapabilityDefinition], CapabilityResult]] =
     "ai_provider": _ai_probe,
     "rag": _rag_probe,
     "security": _security_probe,
+    "auth_throttle": _auth_throttle_probe,
     "backup": _backup_probe,
     "media_backup": _media_backup_probe,
     "email": _email_probe,
