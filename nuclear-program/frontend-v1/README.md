@@ -1,5 +1,16 @@
 # Frontend V1 — prototipdan ishlaydigan platformaga
 
+**Commerce rejasi — 2026-10-15:** [COMMERCE-01](COMMERCE-REFORM-PLAN.md)
+Payment, Subscription va Checkoutni narxdan haqiqiy accessgacha bitta
+ishonchli domen sifatida isloh qilishni rejalashtiradi. Backend/data/security,
+learner-owner UX va rasmiy transaction/upload/WCAG qoidalari uch mustaqil
+auditda ko‘rildi; finance least-privilege va evidence containment, immutable
+offer/order/evidence/payment/period/grant graphi, no-JS checkout va subscription
+center, owner workbench, Telegram/outbox, reconciliation, migration va rollback
+to‘qqiz bosqich/40 reviewable PR-unitda yozildi. Implementatsiya boshlanmagan;
+birinchi kesim COM1.0a. Bu reja [I7](I7-CHECKOUT.md) poydevorini bajarilmagan
+demaydi va joriy umumiy navbatni o‘zi almashtirmaydi.
+
 **Dashboard rejasi — 2026-10-15:**
 [DASHBOARD-01](DASHBOARD-REFORM-PLAN.md) I1 learner, I2 teacher, Mini App/Bot
 adapterlari va mavjud Backoffice Ish stolini bitta rolga mos, read-only
@@ -33,6 +44,15 @@ Code/UX/AI/security auditlari, to‘qqiz bosqich va 27 reviewable kesim yozildi.
 Implementatsiya boshlanmagan; birinchi kesim SIT1.0a — blocked fee/dead CTA,
 unsafe generic AI claim, rich-content va preview containmenti. Bu reja
 core/B3/CLASSBOOK/A8→A9 active navbatini o‘zi almashtirmaydi.
+
+**Blog rejasi — 2026-10-15:** [BLOG-01](BLOG-REFORM-PLAN.md) Azure Journal’ni
+xavfsiz editorial control plane, texnik bilimsiz studiya va o‘quvchiga qulay
+public o‘qish yuzasiga aylantirishni to‘qqiz bosqichda rejalashtiradi. Source,
+UX va arxitektura auditlari, migration/service/permission contractlari,
+17 implementatsiya kesimi hamda 14 qabul ssenariysi yozildi. Implementatsiya
+boshlanmagan; owner Blog ishini navbatga qo‘ysa birinchi kesim BLOG1.0a1 —
+rich-content sanitizer va renderer parity. Bu reja B3/CLASSBOOK-01/A8→A9
+navbatini avtomatik o‘zgartirmaydi.
 
 **Classbook rejasi — 2026-10-13:** [CLASSBOOK-01](CLASSBOOK-REFORM-PLAN.md)
 tayyorlash → jonli dars → natija oqimini sakkiz bosqichda isloh qiladi.

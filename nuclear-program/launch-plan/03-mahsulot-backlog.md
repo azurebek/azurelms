@@ -30,7 +30,7 @@ yopilmadi, owner qabuli texnik implementatsiya bilan almashtirilmadi.
 | A2 | `ADMIT` | `IMPLEMENTED/TESTED` — poydevor | Audit/flags/heartbeat/release/cost/probe kodi bor. **Ochiq:** A9 va eski AI sozlama mutationlarining sabab/tasdiq/`SystemAuditEvent` retrofit qarzi |
 | A8 | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | supply guard kod/target/full testlarda; PostgreSQL contention proofi CI `integration` ishida yopildi, alohida OS processlari bilan takrorlash ochiq |
 | A3/A3b | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | oldingi canonical oqimlar va Classbook (live session/activity/response, turli mashqlar, Telegram group outbox, 50 learner gate'i) `main`da — PR #94, 2026-09-10 |
-| A4 | `ADMIT` | `IN PROGRESS` | payment foundation main'da, catalog/cohort lokal testlangan (#70); premium workflow/UI/rollout keyingi bosqichlar — [ledger](../pricing-packages-plan.md) |
+| A4 | `ADMIT` | `IN PROGRESS — COMMERCE-01 PLANNED` | payment foundation main'da, catalog/cohort lokal testlangan (#70); Payment/Subscription/Checkout canonical islohoti rejalashtirildi, runtime boshlanmagan. Birinchi kesim COM1.0a — [reform](../frontend-v1/COMMERCE-REFORM-PLAN.md), [ledger](../pricing-packages-plan.md) |
 | A5 | `ADMIT` | `IMPLEMENTED/TESTED` | oltita texnik band ham yopildi (messenger, dars, imtihon, checkout, attendance, reconnect) + shell tap targetlari; **qolgani faqat owner'ning uch qurilmadagi sign-off'i** |
 | DASHBOARD-01 | `NEXT — post-launch plan` | `PLANNED — A0b REGRESSION + CONTAINMENT OPEN` | I1/I2 va Mini App/Bot foundation bor; global staff PII/message/moliya, private cache, GET write, Mini App replay/frame, progress truth va N+1 qarzlari [Dashboard reform rejasida](../frontend-v1/DASHBOARD-REFORM-PLAN.md) ochiq. Keng UI reform owner execution admissionini kutadi; DASH1.0a existing A0b affected release stop-ship, DASH1.0d Mini App release security gate |
 | MESSENGER-01 | `— post-launch plan` | `PLANNED — REFORM BLOCKERS OPEN` | I4a/I4b renderer va A5 mobile/reconnect poydevori bor; Origin/session, durable human receipt/sequence, membership/unread, staff/Telegram privacy va AI access/context blockerlar [radikal reform rejasida](../frontend-v1/MESSENGER-REFORM-PLAN.md) ochiq |
@@ -143,6 +143,15 @@ qayta tasniflamaydi.
 
 ### A4. Acquisition, payment va entitlement — `IN PROGRESS`, `M contract + L adapters`
 
+- **2026-10-15 COMMERCE-01 rejalashtirildi:** Payment, Subscription va
+  Checkout backend/data/security hamda learner/owner UX bo‘yicha audit qilindi.
+  Mavjud signed quote, server recalc, private evidence, lock, pending-plan va
+  typed entitlement poydevori saqlanadi; finance least-privilege/evidence
+  containment, immutable order→payment→period→grant lineage, subscription
+  center, owner workbench, Telegram/outbox, reconciliation va staged rollout
+  [40 reviewable PR-unitda](../frontend-v1/COMMERCE-REFORM-PLAN.md#11-roadmap--dependency-tartibidagi-40-reviewable-pr-unit)
+  yozildi. **Runtime implementatsiyasi boshlanmagan; birinchi kesim COM1.0a.**
+  Reja A4ni tugallangan demaydi va joriy umumiy navbatni o‘zi almashtirmaydi.
 - **Outcome:** learner to'g'ri course/cohort/plan bilan yoziladi va faqat haqiqiy active access oladi.
 - **Canonical state:** identity/claim, `Application`, `Payment` va `Enrollment/Entitlement` alohida graph; bitta chiziqli mega-state yo'q.
 - **Scope:** checkout course binding; inactive cohortni tasodifiy reactivation qilmaslik; receipt ayni tanlangan enrollmentga; typed entitlement; Telegram credential claim; idempotent receipt/approval.
@@ -154,7 +163,10 @@ qayta tasniflamaydi.
 - **2026-09-04 owner qarori:** Economic/Standard/Intensive, bir xil core ta'lim, farqi teacher attention va AI quota. Yuqoridagi 2026-08-21 narx qarori kutish holati yopildi; uch paketning core runtime matritsasi bir xil, premium service workflow hali gate'da. [Admission va bosqichlar](../pricing-packages-plan.md).
 - **2026-09-04 payment foundation — lokal regression green:** unpaid plan `pending_plan`da; faqat tasdiqlangan receipt faol tarifni o'zgartiradi. Invoice snapshotlar, web/bot parity, immutable history, concurrency, legacy migration/admin bilan 24 yangi test; full suite 1070 test (skipped=26), focused file DB 30/30. Required CI/merge alohida gate; Windows full-file restore testining oldindan mavjud muammosi [ledgerda](../pricing-packages-plan.md) alohida qayd etilgan.
 - **2026-09-04 catalog + delivery (`b5c2068`) — lokal regression green:** uch draft tarif va AI policy; availability/legacy renewal; cohort tier/capacity; faqat approvalda joy bandi; course/cohort lockli oxirgi joy himoyasi; auditli owner katalog. Full suite 1115 OK (skipped=27), file-focused 58/58, browser 390px/1280px va interaktiv saqlash/tarif tanlash. CI/rollout dalili [ledgerda](../pricing-packages-plan.md).
-- **Qolgan scope:** service-level workflow, pricing/dashboard va plan analytics; eski guruhlar uchun explicit rollout. Yangi tariflar migrationdan keyin sotuvga yopiq.
+- **Qolgan scope:** [COMMERCE-01](../frontend-v1/COMMERCE-REFORM-PLAN.md)dagi
+  P0 containment, canonical order/payment/subscription/access graphi,
+  service-level workflow, pricing/dashboard va plan analytics; eski guruhlar
+  uchun explicit rollout. Yangi tariflar migrationdan keyin sotuvga yopiq.
 - **Faza:** R2.
 
 ### A5. Mobil oltin oqim quality gate — `CROSS-CUTTING, R1'dan`
@@ -357,7 +369,7 @@ qayta tasniflamaydi.
 | PWA install/offline | Defer | Responsive browser flow GREEN; install real outcome bersa |
 | DOCX reader | Defer | Writing flow va private upload policy stable |
 | XP iqtisodi/badge polish | Defer | Outcome eventlari canonical; abuse/idempotency testli |
-| Blog/home cleanup | Defer | Launch-critical emas |
+| Blog/Azure Journal reform | `ADMIT — post-launch`; [BLOG-01](../frontend-v1/BLOG-REFORM-PLAN.md) tayyor | Owner Blog executionini alohida navbatga qo‘yadi; birinchi kesim BLOG1.0a1. Launch-critical navbatni avtomatik almashtirmaydi |
 
 ---
 
