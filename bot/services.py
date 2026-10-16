@@ -105,9 +105,16 @@ def link_user_from_start_token(token, telegram_user_id, telegram_username=""):
         )
     user_id = link_token.user_id
 
+    from users.registration_policy import IDENTITY_INACTIVE_MESSAGE, existing_identity_may_continue
+
     try:
         with transaction.atomic():
             user = CustomUser.objects.select_for_update().get(id=user_id)
+            # Token 30 daqiqa yashaydi: shu orada bloklangan hisob yangi Telegram
+            # credential olmasligi kerak — aks holda qayta faollashtirilgach o'sha
+            # Telegram darhol bot huquqini olardi (PUB1.0b, lock ostida qayta o'qilgan).
+            if not existing_identity_may_continue(user):
+                return ActionResult(ok=False, code="identity_inactive", message=IDENTITY_INACTIVE_MESSAGE)
             if user.telegram_id:
                 return ActionResult(
                     ok=False,

@@ -258,6 +258,33 @@ class TelegramPhoneTests(TestCase):
         self.assertEqual(User.objects.filter(telegram_id=NEW_TG).count(), 1)
 
 
+class ProfileLinkTokenTests(TestCase):
+    """Profil sahifasidagi Telegram ulash tokeni ham ayni identity qoidasida."""
+
+    def test_token_issued_before_deactivation_cannot_link_telegram(self):
+        from bot.services import link_user_from_start_token
+        from users.test_telegram_link_claim import token_from_context
+
+        user = User.objects.create_user("profil-blok", email="pb@example.test")
+        token = token_from_context(user)
+        User.objects.filter(pk=user.pk).update(is_active=False)
+        result = link_user_from_start_token(token, NEW_TG, "olinmasin")
+        self.assertFalse(result.ok)
+        self.assertEqual(result.code, "identity_inactive")
+        user.refresh_from_db()
+        self.assertIsNone(user.telegram_id)
+
+    def test_active_owner_still_links(self):
+        from bot.services import link_user_from_start_token
+        from users.test_telegram_link_claim import token_from_context
+
+        user = User.objects.create_user("profil-faol", email="pf@example.test")
+        result = link_user_from_start_token(token_from_context(user), NEW_TG, "faol")
+        self.assertTrue(result.ok, result.message)
+        user.refresh_from_db()
+        self.assertEqual(user.telegram_id, NEW_TG)
+
+
 @override_settings(TELEGRAM_BOT_TOKEN=TEST_TOKEN)
 class MiniAppParityTests(TestCase):
     def auth(self, telegram_id):
