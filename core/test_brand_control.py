@@ -139,8 +139,12 @@ class BrandSurfaceContractTests(SimpleTestCase):
         ravishda brauzer default ikonkasi bilan qoladi.
         """
         templates_root = Path(__file__).resolve().parent.parent / "templates"
+        # Email HTML brauzer sahifasi emas: favicon'ni pochta mijozi ko'rsatmaydi.
+        email_documents = {"registration/password_reset_email.html"}
         missing = []
         for template_path in sorted(templates_root.rglob("*.html")):
+            if template_path.relative_to(templates_root).as_posix() in email_documents:
+                continue
             source = template_path.read_text(encoding="utf-8")
             if "<head>" not in source:
                 continue

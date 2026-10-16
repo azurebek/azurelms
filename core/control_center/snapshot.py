@@ -906,28 +906,44 @@ def _media_backup_probe(definition: CapabilityDefinition) -> CapabilityResult:
 
 
 def _email_probe(definition: CapabilityDefinition) -> CapabilityResult:
-    """Backend sozlanganmi. Xat **yubormaydi** — probe yon ta'sir qoldirmaydi."""
-    path = str(getattr(settings, "EMAIL_BACKEND", ""))
-    # Klass nomi hamma backendda `EmailBackend` — farq **modul** qismida
-    # (`...backends.console.EmailBackend`), shuning uchun o'sha bo'lak olinadi.
-    parts = path.split(".")
-    backend = parts[-2] if len(parts) >= 2 else path
-    silent = backend in {"console", "dummy", "locmem"}
+    """Backend sozlanganmi va parol tiklash xatlari yetib boryaptimi.
 
-    if silent:
+    Xat **yubormaydi** — probe yon ta'sir qoldirmaydi. Qaror
+    `core/email_delivery.py` bilan bir xil: release check va tiklash sahifasi
+    ham shu modulga qaraydi (PUB1.0f).
+    """
+    from django.db import DatabaseError
+
+    from core.email_delivery import backend_kind, is_silent_backend, recent_reset_delivery_failures
+
+    backend = backend_kind()
+    if is_silent_backend():
         if settings.IS_LOCAL:
             return _result(definition, "green", "Local: xatlar konsolga yoziladi.", backend=backend)
         # Production'da bu jim yo'qotish: parol tiklash va bildirishnoma
-        # yuborilgandek ko'rinadi, ammo hech kimga yetib bormaydi.
-        return _result(definition, "red", "Xatlar hech kimga yuborilmayapti.", backend=backend)
+        # yuborilgandek ko'rinardi. Endi tiklash sahifasi o'zi yopiq turadi.
+        return _result(
+            definition, "red",
+            "Xatlar hech kimga yuborilmayapti — parolni email orqali tiklash yopiq.",
+            backend=backend,
+        )
 
     host = str(getattr(settings, "EMAIL_HOST", "") or "")
     if not host or host == "localhost":
         return _result(definition, "amber", "SMTP host sozlanmagan.", backend=backend, host=host or "-")
-    return _result(
-        definition, "green", "SMTP backend sozlangan.",
-        backend=backend, host=host, tls=str(getattr(settings, "EMAIL_USE_TLS", False)),
-    )
+    try:
+        failures = recent_reset_delivery_failures()
+    except DatabaseError:
+        failures = None
+    details = dict(backend=backend, host=host, tls=str(getattr(settings, "EMAIL_USE_TLS", False)),
+                   reset_failures_24h="-" if failures is None else failures)
+    if failures:
+        return _result(
+            definition, "amber",
+            f"So'nggi 24 soatda {failures} ta parol tiklash xati yuborilmadi (audit: auth.password_reset.delivery_failed).",
+            **details,
+        )
+    return _result(definition, "green", "SMTP backend sozlangan.", **details)
 
 
 def _memory_probe(definition: CapabilityDefinition) -> CapabilityResult:

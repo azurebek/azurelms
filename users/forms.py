@@ -1,10 +1,15 @@
+import logging
 import re
 import uuid
 
 from django import forms
-from django.contrib.auth.forms import SetPasswordForm, UserCreationForm
+from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm, UserCreationForm
+from django.core.mail import EmailMultiAlternatives
+from django.template import loader
 
 from .models import CustomUser, UserOnboarding
+
+logger = logging.getLogger(__name__)
 
 
 def _generate_unique_username(email: str) -> str:
@@ -92,6 +97,34 @@ class CustomUserCreationForm(UserCreationForm):
         if commit:
             user.save()
         return user
+
+
+class UzbekPasswordResetForm(PasswordResetForm):
+    """Parol tiklash xati: o'zbekcha va yetkazilmasa operatorga dalil (PUB1.0f).
+
+    Qaysi hisobga xat ketishi Django'da qoladi: faqat faol va paroli bor
+    hisob (`get_users`). Noma'lum, faolsizlantirilgan va Telegram orqali
+    yaratilgan (parolsiz) hisob uchun xat yo'q, javob esa bir xil.
+    """
+
+    def send_mail(self, subject_template_name, email_template_name, context, from_email, to_email,
+                  html_email_template_name=None):
+        subject = "".join(loader.render_to_string(subject_template_name, context).splitlines())
+        body = loader.render_to_string(email_template_name, context)
+        message = EmailMultiAlternatives(subject, body, from_email, [to_email])
+        if html_email_template_name is not None:
+            message.attach_alternative(loader.render_to_string(html_email_template_name, context), "text/html")
+        try:
+            message.send()
+        except Exception as exc:  # noqa: BLE001 — SMTP xatosi foydalanuvchiga sizmaydi
+            # Javob bir xil qoladi (hisob mavjudligi oshkor bo'lmaydi). Operator
+            # Control Center'da ko'radi; logga xat matni va token chiqmaydi.
+            from core.email_delivery import record_reset_delivery_failure
+
+            record_reset_delivery_failure(context["user"], exc)
+            logger.warning(
+                "Parol tiklash xati yuborilmadi (foydalanuvchi #%s, %s)", context["user"].pk, exc.__class__.__name__,
+            )
 
 
 class UzbekSetPasswordForm(SetPasswordForm):
