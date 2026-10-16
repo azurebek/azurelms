@@ -16,6 +16,40 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-16 [Claude]: PUBLIC-01 / PUB1.0d — Telegram kirishida init/consume POST, status read-only
+
+Telegram orqali kirishda `GET status` muddat tugaganini bazaga yozar va
+tasdiqlangan tokenni o‘sha GET ichida login qilardi; `GET init` esa CSRF’siz
+sessiya va qator yaratardi. Endi holat o‘zgartiradigan har qadam CSRF’li POST,
+polling esa hech narsa yozmaydi.
+
+- Branch: `claude/pub10d-telegram-method-split`; kod commit **`4844f22`**.
+  Migration yo‘q.
+- Qarorlar: yagona `users/telegram_auth_service.py`; `POST init` (bir brauzerda
+  bitta faol oqim, xavfsiz `next` server sessiyasida, javobda `poll_ms` va
+  `expires_in`), `GET status` (write 0, `never_cache`), `POST consume` (row lock,
+  `used` login oldidan, faolsizlantirilgan hisob rad), `POST cancel` (faqat shu
+  brauzer). Eski GET’lar 405. Bot tasdig‘i qatorni lock qiladi — bir tokenni ikki
+  `/start` tasdiqlay olmaydi. Begona brauzer va mavjud bo‘lmagan token javobi
+  baytma-bayt bir xil. Tozalash: init’da bounded + `manage.py prune_telegram_auth`.
+- JS: V1 `login.js` va legacy login/register uchun yangi umumiy
+  `static/js/telegram-login.js` (ikki nusxa inline skript o‘rniga) — CSRF, server
+  oralig‘i, backoff, umr chegarasi, consume, `used` orqali noaniq javobdan
+  tiklanish, V1’da cancel.
+- Test: safe env’da `manage.py test users.test_telegram_auth_method_split
+  users.test_telegram_auth_security` — **35 test, OK (skipped=1)** (PostgreSQL parallel
+  consume CI integration’da); to‘liq `manage.py test` — **2873 test, OK
+  (skipped=69)**; `node --test tests/` — **176/176**; `manage.py check`,
+  `makemigrations --check` toza; `git diff --check` PASS. Nazorat yugurishi: 7 ta
+  Python (status yozuvi, GET init, bitta oqim, brauzer kaliti, ochiq `next`, bot
+  holat tekshiruvi, ikki marta consume) va 4 ta JS (consume GET, umr chegarasi,
+  CSRF header, status’da login) buzilishi testlarda FAIL, tiklangach PASS.
+- Brauzer (DB nusxasida): V1 login — `POST init` → `GET status` polling → bot
+  tasdig‘i → bitta `POST consume` → `/users/my-courses/` (xavfsiz `next`); legacy
+  register sahifasi ham xuddi shunday; V1 cancel `POST cancel` yubordi va qator
+  `expired` bo‘ldi.
+- Davom etilishi kerak: PUB1.0e (public GET’larni write-free qilish).
+
 ## 2026-10-16 [Claude]: PUBLIC-01 / PUB1.0c — auth urinishlari cheklovi va P0 enforcement
 
 Login, ro‘yxat, parol tiklash va Telegram init urinishlari cheklanmagan edi

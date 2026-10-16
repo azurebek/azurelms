@@ -1,6 +1,6 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
-**Holat:** REJA TAYYOR; **PUB1.0a–c kodda (2026-10-16, lokal)**, PUB1.0d–g va keyingi
+**Holat:** REJA TAYYOR; **PUB1.0a–d kodda (2026-10-16, lokal)**, PUB1.0e–g va keyingi
 bosqichlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
 **Kod tayanchi:** `main`dagi `72e82e0`
@@ -1311,6 +1311,25 @@ o‘smaydi; audit raw identity saqlamaydi. PUB1.4c faqat layering/delay/CAPTCHA
 escalation va enumeration polishini qo‘shadi — asosiy throttle shu yerda yoqiladi.
 
 #### PUB1.0d — Telegram init/status/consume method split
+
+**Holat — 2026-10-16: kodda, lokal tekshirilgan** (branch
+`claude/pub10d-telegram-method-split`). `users/telegram_auth_service.py` yagona
+holat mashinasi: `POST init` (CSRF + PUB1.0c cheklovi; bir brauzerda bitta faol
+oqim — oldingisi `expired`; xavfsiz `next` server sessiyasida; javobda
+`poll_ms`/`expires_in`), `GET status` (DB/sessiya yozuvi 0, muddat hisoblanadi;
+`never_cache`), `POST consume` (CSRF, brauzer kaliti, row lock, TTL, `used` login
+oldidan, faolsizlantirilgan hisob rad), `POST cancel` (faqat shu brauzer oqimi).
+Eski `GET init`/`GET consume` → 405, holat o‘zgarmaydi. Bot tasdig‘i qatorni
+transaction boshida lock qiladi, registration policy o‘sha transaction ichida.
+Tozalash: init’da bounded (200) + `manage.py prune_telegram_auth`, saqlash 1 kun.
+V1 `login.js` va legacy login/register (umumiy `static/js/telegram-login.js`)
+CSRF, server oralig‘i, 15 so‘rovdan keyin 2× backoff, umr chegarasi, consume,
+`used` orqali noaniq javobdan tiklanish va cancel bilan. PostgreSQL parallel
+consume testi CI integration ishida. **Ochiq:** `RETENTION`/`POLL_INTERVAL_MS`
+kod konstantasi (owner jonli kunda o‘zgartirmaydigan protokol qiymati, TTL bilan
+bir xil); legacy sahifada cancel tugmasi yo‘q; status/consume’ga alohida
+throttle qo‘yilmadi — status hisoblagich yozsa write-free sharti buziladi,
+consume esa brauzer kaliti va 256-bit token bilan himoyalangan.
 
 **Ish:** init va consume POST+CSRF; status read-only GET; bot transition shared
 service; bir browserda bitta active flow; expiry calculation write-free; purge;
