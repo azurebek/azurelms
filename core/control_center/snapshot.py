@@ -995,6 +995,46 @@ def _auth_throttle_probe(definition: CapabilityDefinition) -> CapabilityResult:
     return _result(definition, "green", "Kirish urinishlari cheklovi faol.", **details)
 
 
+def _public_content_probe(definition: CapabilityDefinition) -> CapabilityResult:
+    """Owner yozishi shart bo'lgan public kontent bormi (PUB1.0e).
+
+    `critical` emas: yo'q huquqiy sahifa instance'ni trafikdan chiqarmasligi
+    kerak — sahifa halol 503 beradi, bu owner e'tibori.
+    """
+    from django.db import DatabaseError
+
+    from core.public_readiness import public_readiness
+
+    try:
+        readiness = public_readiness()
+    except DatabaseError:
+        return _result(definition, "red", "Public kontent jadvallarini o'qib bo'lmadi.")
+    details = dict(
+        legal_missing=", ".join(readiness.missing_legal) or "-",
+        legal_generated=", ".join(readiness.generated_legal) or "-",
+        settings_missing=", ".join(readiness.missing_singletons) or "-",
+    )
+    if readiness.missing_legal:
+        return _result(
+            definition, "red",
+            f"E'lon qilinmagan huquqiy sahifa: {', '.join(readiness.missing_legal)} (503 qaytaradi).",
+            **details,
+        )
+    if readiness.generated_legal:
+        return _result(
+            definition, "amber",
+            f"Huquqiy sahifada eski umumiy namuna matn turibdi: {', '.join(readiness.generated_legal)}.",
+            **details,
+        )
+    if readiness.missing_singletons:
+        return _result(
+            definition, "amber",
+            "Sozlama qatori yo'q, sahifa kod default'lari bilan chiqmoqda.",
+            **details,
+        )
+    return _result(definition, "green", "Huquqiy sahifalar va public sozlamalar owner tomonidan yozilgan.", **details)
+
+
 PROBE_FUNCTIONS: dict[str, Callable[[CapabilityDefinition], CapabilityResult]] = {
     "database": _database_probe,
     "cache": _cache_probe,
@@ -1008,6 +1048,7 @@ PROBE_FUNCTIONS: dict[str, Callable[[CapabilityDefinition], CapabilityResult]] =
     "rag": _rag_probe,
     "security": _security_probe,
     "auth_throttle": _auth_throttle_probe,
+    "public_content": _public_content_probe,
     "backup": _backup_probe,
     "media_backup": _media_backup_probe,
     "email": _email_probe,

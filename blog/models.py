@@ -40,6 +40,11 @@ class SingletonModel(models.Model):
         obj, _ = cls.objects.get_or_create(pk=1)
         return obj
 
+    @classmethod
+    def current(cls):
+        """Faqat o'qish: qator yoki saqlanmagan default nusxa (PUB1.0e)."""
+        return cls.objects.filter(pk=1).first() or cls(pk=1)
+
 
 class BlogHomeSettings(SingletonModel):
     hero_kicker = models.CharField(max_length=80, default="Azure Journal")

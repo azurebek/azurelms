@@ -64,7 +64,7 @@ class BlogListView(PublicFrontendV1Mixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         published_filter = Q(posts__status=BlogPost.STATUS_PUBLISHED, posts__published_at__lte=timezone.now())
-        landing_settings = BlogHomeSettings.load()
+        landing_settings = BlogHomeSettings.current()
         carousel_posts = list(
             BlogPost.objects.published()
             .select_related("author")

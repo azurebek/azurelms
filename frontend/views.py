@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.utils.cache import patch_cache_control
 from .public_v1 import render_public
 from courses.models import Course
 from django.contrib.auth import get_user_model
@@ -133,7 +134,7 @@ def home_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
         
-    page_content = LandingPage.load()
+    page_content = LandingPage.current()
     statistics = Statistic.objects.filter(is_active=True)
     level_stages = list(LandingLevelStage.objects.filter(is_visible=True).order_by("order", "id"))
     ai_features = list(LandingAIFeature.objects.filter(is_visible=True).order_by("order", "id"))
@@ -225,7 +226,7 @@ def home_view(request):
     return render_public(request, 'index.html', context)
 
 def about_view(request):
-    page_content = AboutPage.load()
+    page_content = AboutPage.current()
     statistics = list(AboutStatistic.objects.all())
     team = list(TeamMember.objects.all())
     featured_member = team[0] if team else None
@@ -249,22 +250,21 @@ def about_view(request):
     return render_public(request, 'about.html', context)
 
 
-def _get_legal_page(page_type):
-    defaults = LegalPage.defaults_for(page_type)
-    page, _ = LegalPage.objects.get_or_create(
-        page_type=page_type,
-        defaults=defaults,
-    )
-    return page
-
-
 def legal_page_view(request, page_type):
-    page = _get_legal_page(page_type)
-    return render_public(
+    # Owner yozmagan sahifa yaratilmaydi va umumiy namuna matn siyosat sifatida
+    # chiqmaydi: halol "hali e'lon qilinmagan" javobi, indekslanmaydi (PUB1.0e).
+    page = LegalPage.published(page_type)
+    response = render_public(
         request,
         "legal_page.html",
         {
             "legal_page": page,
+            "legal_title": page.title if page else LegalPage.UNAVAILABLE_TITLES[page_type],
             "active_legal_page": page_type,
         },
     )
+    if page is None:
+        response.status_code = 503
+        response["X-Robots-Tag"] = "noindex"
+        patch_cache_control(response, no_store=True)
+    return response

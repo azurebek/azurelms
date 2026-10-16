@@ -37,7 +37,7 @@
   <!-- FAQ (admin'da tahrirlanadigan) -->
   <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:0 0 12px;">Ko'p so'raladigan savollar</div>
   <div class="help-faq" style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:22px 24px;margin-bottom:28px;">
-    {{ page_faq.content|public_rich }}
+    {% if page_faq.content %}{{ page_faq.content|public_rich }}{% else %}<p style="font-size:13.5px;color:var(--ink-3);margin:0 0 6px;">Qo‘llanma hali qo‘shilmagan.</p>{% endif %}
     <a href="{% url 'faq_page' %}" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--azure);margin-top:6px;">Barcha savollar <i class="bi bi-arrow-right" style="font-size:11px;"></i></a>
   </div>
 

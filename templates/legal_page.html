@@ -3,10 +3,10 @@
 {% comment %}
   Huquqiy sahifa — privacy / terms / faq (legal_page_view).
   Proto: azurelms-proto/public/legal.html.
-  Kontekst: legal_page (LegalPage), active_legal_page (page_type).
+  Kontekst: legal_page (LegalPage yoki None — e'lon qilinmagan), legal_title, active_legal_page.
 {% endcomment %}
 
-{% block title %}{{ legal_page.title }} — {{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}
+{% block title %}{{ legal_title }} — {{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}
 
 {% block page_css %}
 <style>
@@ -33,8 +33,8 @@
 <div class="legal-doc">
   <div style="margin-bottom:4px;">
     <div class="legal-eyebrow">Huquqiy hujjatlar</div>
-    <h1 class="legal-title">{{ legal_page.title }}</h1>
-    <div class="legal-updated">Oxirgi yangilanish: {{ legal_page.updated_at|date:"d.m.Y" }}</div>
+    <h1 class="legal-title">{{ legal_title }}</h1>
+    {% if legal_page %}<div class="legal-updated">Oxirgi yangilanish: {{ legal_page.updated_at|date:"d.m.Y" }}</div>{% endif %}
   </div>
 
   <div class="legal-tabs">
@@ -43,7 +43,11 @@
     <a class="legal-tab{% if active_legal_page == 'faq' %} active{% endif %}" href="{% url 'faq_page' %}">FAQ</a>
   </div>
 
+  {% if legal_page %}
   <article class="legal-content">{{ legal_page.content|public_rich }}</article>
+  {% else %}
+  <article class="legal-content" data-legal-unavailable><p>Bu sahifa hali e’lon qilinmagan. Matn tayyor bo‘lgach shu yerda chiqadi.</p></article>
+  {% endif %}
 
   <div class="legal-contact">
     <span style="width:38px;height:38px;border-radius:10px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:16px;flex:0 0 auto;"><i class="bi bi-envelope"></i></span>

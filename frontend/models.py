@@ -13,8 +13,18 @@ class SingletonModel(models.Model):
 
     @classmethod
     def load(cls):
+        """Tahrir (backoffice/admin) yo'li uchun: qator bo'lmasa yaratadi."""
         obj, created = cls.objects.get_or_create(pk=1)
         return obj
+
+    @classmethod
+    def current(cls):
+        """Faqat o'qish: qator bo'lsa o'zi, bo'lmasa saqlanmagan default nusxa (PUB1.0e).
+
+        Public GET bazaga yozmaydi. Kod default'lari qator yaratilganda ham
+        aynan shu qiymatlar bo'lardi; qator yo'qligi Control Center'da ko'rinadi.
+        """
+        return cls.objects.filter(pk=1).first() or cls(pk=1)
 
 
 def resolve_public_link(route_name="", custom_url="", fallback="#"):
@@ -968,35 +978,21 @@ class LegalPage(models.Model):
         verbose_name = "Huquqiy sahifa"
         verbose_name_plural = "8. Huquqiy sahifalar"
 
+    # Sahifa hali e'lon qilinmaganda ko'rsatiladigan sarlavha (PUB1.0e).
+    UNAVAILABLE_TITLES = {
+        PAGE_PRIVACY: "Maxfiylik siyosati",
+        PAGE_TERMS: "Foydalanish shartlari",
+        PAGE_FAQ: "Ko‘p so‘raladigan savollar",
+    }
+
     def __str__(self):
         return self.get_page_type_display()
 
     @classmethod
-    def defaults_for(cls, page_type):
-        defaults = {
-            cls.PAGE_PRIVACY: {
-                "title": "Privacy Policy",
-                "content": (
-                    "<h3>Ma'lumotlarni yig'ish</h3><p>Platforma foydalanuvchi hisobini yuritish uchun zarur "
-                    "ma'lumotlarni yig'adi.</p><h3>Ma'lumotlardan foydalanish</h3><p>Ma'lumotlar xizmat sifatini "
-                    "oshirish va tizimni ishlatish uchun foydalaniladi.</p>"
-                ),
-            },
-            cls.PAGE_TERMS: {
-                "title": "Terms of Service",
-                "content": (
-                    "<h3>Umumiy qoidalar</h3><p>Platformadan foydalanish orqali siz xizmat shartlariga rozilik "
-                    "bildirasiz.</p><h3>Foydalanuvchi majburiyatlari</h3><p>Hisob ma'lumotlarini xavfsiz saqlash "
-                    "foydalanuvchi zimmasida.</p>"
-                ),
-            },
-            cls.PAGE_FAQ: {
-                "title": "FAQ",
-                "content": (
-                    "<h3>Qanday ro'yxatdan o'taman?</h3><p>Bosh sahifadagi ro'yxatdan o'tish tugmasini bosing va "
-                    "formani to'ldiring.</p><h3>To'lov qanday ishlaydi?</h3><p>Obuna tarifini tanlab, mavjud to'lov "
-                    "usuli orqali to'lovni amalga oshirasiz.</p>"
-                ),
-            },
-        }
-        return defaults[page_type]
+    def published(cls, page_type):
+        """Owner yozgan sahifa yoki ``None``. Hech qachon yaratmaydi (PUB1.0e).
+
+        Ilgari yo'q sahifa birinchi GET'da umumiy namuna matn bilan yaratilardi
+        va siyosat sifatida e'lon qilinardi.
+        """
+        return cls.objects.filter(page_type=page_type).first()

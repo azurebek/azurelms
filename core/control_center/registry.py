@@ -188,6 +188,24 @@ CAPABILITY_REGISTRY = (
         ),
     ),
     CapabilityDefinition(
+        slug="public_content",
+        label="Public kontent tayyorligi",
+        category="Governance",
+        criticality="high",
+        owner="Azurbek",
+        description=(
+            "Huquqiy sahifalar va public sozlamalar owner tomonidan yozilganmi (PUB1.0e). "
+            "Public GET endi yo'q narsani yaratmaydi: yo'q huquqiy sahifa 503 bilan "
+            "\"hali e'lon qilinmagan\" deb chiqadi."
+        ),
+        dependencies=("database",),
+        runbook=(
+            "Admin → Huquqiy sahifalar: maxfiylik, shartlar va FAQ'ni haqiqiy matn bilan "
+            "yarating yoki eski umumiy namunani almashtiring. Sozlama qatori yo'q bo'lsa "
+            "sahifa kod default'lari bilan chiqadi — backoffice'da bir marta saqlang."
+        ),
+    ),
+    CapabilityDefinition(
         slug="email",
         label="Email",
         category="Runtime",

@@ -66,17 +66,17 @@ def _serialize_landing_nav_items(request, placement=LandingNavItem.Placement.MAI
 
 def site_settings_context(request):
     try:
-        site_settings = SiteSettings.load()
+        site_settings = SiteSettings.current()
     except (OperationalError, ProgrammingError):
         site_settings = SiteSettings()
 
     try:
-        auth_page_settings = AuthPageSettings.load()
+        auth_page_settings = AuthPageSettings.current()
     except (OperationalError, ProgrammingError):
         auth_page_settings = AuthPageSettings()
 
     try:
-        public_page_settings = LandingPage.load()
+        public_page_settings = LandingPage.current()
     except (OperationalError, ProgrammingError):
         public_page_settings = LandingPage()
 

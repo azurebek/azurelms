@@ -1029,10 +1029,15 @@ class HelpCenterView(LoginRequiredMixin, RecordsV1Mixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["active_nav"] = "help_center"
+        # Faqat o'qiladi: yo'q sahifa yaratilmaydi, shablon bo'sh holatni ko'rsatadi (PUB1.0e).
+        pages = {
+            page.page_type: page
+            for page in LegalPage.objects.filter(
+                page_type__in=[LegalPage.PAGE_PRIVACY, LegalPage.PAGE_TERMS, LegalPage.PAGE_FAQ]
+            )
+        }
         for page_type in [LegalPage.PAGE_PRIVACY, LegalPage.PAGE_TERMS, LegalPage.PAGE_FAQ]:
-            defaults = LegalPage.defaults_for(page_type)
-            page, _ = LegalPage.objects.get_or_create(page_type=page_type, defaults=defaults)
-            context[f"page_{page_type}"] = page
+            context[f"page_{page_type}"] = pages.get(page_type)
         return context
 
 

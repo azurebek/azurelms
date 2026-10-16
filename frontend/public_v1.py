@@ -25,6 +25,10 @@ def public_context(request, template, context):
         if result.get(key) is not None:
             result["frontend_v1_title"] = getattr(result[key], attribute)
             break
+    else:
+        # E'lon qilinmagan huquqiy sahifa ham o'z nomi bilan ko'rinadi (PUB1.0e).
+        if result.get("legal_title"):
+            result["frontend_v1_title"] = result["legal_title"]
     family = {"courses/course_detail.html": "courses", "blog/post_detail.html": "blog:list", "sit/university_detail.html": "sit:university_list"}.get(template)
     if family:
         fallback = reverse(family)
