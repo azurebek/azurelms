@@ -72,6 +72,23 @@ ikkinchi yo‘lni tanladi: sababi va muddati bilan reyestr istisnosi.
 - Davom etilishi kerak: tuzatilgan Twisted reliz chiqqach paket ko‘tariladi,
   istisno va `REVIEWED_EXEMPTIONS` yozuvi o‘chiriladi.
 
+## 2026-10-15 [Codex]: BLOG-01 owner aniqligidan keyin qayta tiklandi
+
+Owner avvalgi o‘chirish topshirig‘i Antigravity artefaktiga tegishli bo‘lganini,
+Codex tayyorlagan [BLOG-01](frontend-v1/BLOG-REFORM-PLAN.md) rad etilmaganini
+aniqlashtirdi. O‘chirishdan oldingi eng so‘nggi, SIT shared-policy tuzatishlari
+ham kirgan nusxa byte-for-byte qaytarildi; joriy holat, frontend indeksi, SIT
+contracti va launch backlog yana unga bog‘landi. Implementatsiya boshlanmadi va
+launch-critical navbat o‘zgarmadi.
+
+- Branch: `codex/blog-reform-restore`
+- Restore commit: `ff82c4b`; manba: `96fe135^`, blob `0a5b795`
+- Scope: docs-only; DB/schema/flag/runtime/provider/server/deploy o‘zgarmadi
+- Test holati: `git diff --check` PASS; lokal docs verifier (`.tools/`
+  gitignored, repoda versiyalanmagan — faqat shu mashinadagi dalil) — 101 hujjat,
+  837 relative link, 37 anchor, missing0/warning0
+- Davom etilishi kerak: owner Blog executionini navbatga qo‘ysa BLOG1.0a1
+
 ## 2026-10-15 [Codex]: MESSENGER-01 — radikal islohot tadqiqoti va roadmap
 
 Owner so'rovi bo'yicha [MESSENGER-01](frontend-v1/MESSENGER-REFORM-PLAN.md)
@@ -92,9 +109,10 @@ boshlanmagan; birinchi kesim MSG1.0a1.**
   receipt/epoch bilan; rollback pre-fence binaryni qaytarmaydi; AI user request
   va worker publish receiptlari alohida, har authorized lineage provider calli
   `context≤1 + generation≤2 + derivative-memory≤1` bilan bounded.
-- Rejected `frontend-v1/BLOG-REFORM-PLAN.md` owner ko'rsatmasi bilan o'chirildi;
-  SIT shared rich-content dependency'si mustaqil qilindi, tarixiy marinebook
-  yozuvi esa rad etilgan/removed deb belgilandi.
+- `frontend-v1/BLOG-REFORM-PLAN.md` o‘sha paytdagi o‘chirish topshirig‘i Codex
+  hujjatiga noto‘g‘ri tatbiq etilgani sabab shu commitda olib tashlangan edi.
+  Owner keyin topshiriq Antigravity artefaktiga tegishli bo‘lganini aniqlashtirdi;
+  yuqoridagi tiklash yozuvi ushbu eski “rejected” talqinini almashtiradi.
 - Branch hygiene: stale `antigravity/messenger-radical-reform` va merge bo'lgan
   `codex/eighth-trial-storytelling`, `codex/eleventh-trial-foundation`,
   `codex/eleventh-trial-release-checkpoint`, `codex/tenth-trial-foundations`
@@ -159,15 +177,15 @@ runtime implementatsiyasi boshlanmagan.** Birinchi kesim SIT1.0a.
 
 ## 2026-10-15 [Codex]: BLOG-01 — Azure Journal islohoti tadqiqoti va roadmap
 
-Owner so‘rovi bo‘yicha BLOG-01 (`frontend-v1/BLOG-REFORM-PLAN.md`) tayyorlangan
-edi; 2026-10-15da owner ma’qullamagani sabab hujjat keyin repositorydan olib
-tashlandi. Ushbu yozuv faqat tarixiy dalil sifatida saqlanadi. Dastlab reja
+Owner so‘rovi bo‘yicha [BLOG-01](frontend-v1/BLOG-REFORM-PLAN.md) tayyorlandi,
 umumiy holat va frontend indeksiga bog‘landi. Repository backend/security,
 public/studio UX hamda canonical integratsiyalar uch mustaqil read-only auditda
 tekshirildi; WCAG, OWASP, Google Search/CWV va language-reading patternlari bilan
-solishtirildi. **Reja owner tomonidan rad etilgan va repositorydan olib
-tashlangan; implementatsiya boshlanmagan.** Bu tarixiy yozuv joriy task navbati
-yoki qayta ishlatish uchun tasdiq emas.
+solishtirildi. **Reja tayyor; implementatsiya boshlanmagan va joriy queue
+o‘zgarmagan.** Owner Blog ishini alohida navbatga qo‘ysa birinchi kesim
+BLOG1.0a1. Keyingi vaqtinchalik o‘chirish ownerning Antigravity artefakti haqidagi
+topshirig‘i ushbu Codex hujjatiga noto‘g‘ri tatbiq etilgani sabab bo‘lgan; yuqoridagi
+tiklash yozuvi bu tarixiy talqinni tuzatadi.
 
 - Branch: `codex/blog-radical-reform-plan`; reja commit **`dc1402a`**;
   source audit tayanchi `66344f0`.
