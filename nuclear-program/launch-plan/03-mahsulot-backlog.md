@@ -31,6 +31,7 @@ yopilmadi, owner qabuli texnik implementatsiya bilan almashtirilmadi.
 | A8 | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | supply guard kod/target/full testlarda; PostgreSQL contention proofi CI `integration` ishida yopildi, alohida OS processlari bilan takrorlash ochiq |
 | A3/A3b | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | oldingi canonical oqimlar va Classbook (live session/activity/response, turli mashqlar, Telegram group outbox, 50 learner gate'i) `main`da — PR #94, 2026-09-10 |
 | A4 | `ADMIT` | `IN PROGRESS — COMMERCE-01 PLANNED` | payment foundation main'da, catalog/cohort lokal testlangan (#70); Payment/Subscription/Checkout canonical islohoti rejalashtirildi, runtime boshlanmagan. Birinchi kesim COM1.0a — [reform](../frontend-v1/COMMERCE-REFORM-PLAN.md), [ledger](../pricing-packages-plan.md) |
+| PUBLIC-01 | `— A4 kirish adapteri + maintenance` | `PLANNED — CONTAINMENT BLOCKERS OPEN` | I5a public renderer poydevori bor; stored rich-content, registration/auth, reset delivery, tracking/legal/certificate, offer/intent, claim, SEO/cache va WCAG qarzlari [radikal public rejasida](../frontend-v1/PUBLIC-REFORM-PLAN.md) 36 kichik kesimga ajratilgan. Birinchi kesim PUB1.0a; qolgan reja active queue’ni o‘zi almashtirmaydi |
 | A5 | `ADMIT` | `IMPLEMENTED/TESTED` | oltita texnik band ham yopildi (messenger, dars, imtihon, checkout, attendance, reconnect) + shell tap targetlari; **qolgani faqat owner'ning uch qurilmadagi sign-off'i** |
 | DASHBOARD-01 | `NEXT — post-launch plan` | `PLANNED — A0b REGRESSION + CONTAINMENT OPEN` | I1/I2 va Mini App/Bot foundation bor; global staff PII/message/moliya, private cache, GET write, Mini App replay/frame, progress truth va N+1 qarzlari [Dashboard reform rejasida](../frontend-v1/DASHBOARD-REFORM-PLAN.md) ochiq. Keng UI reform owner execution admissionini kutadi; DASH1.0a existing A0b affected release stop-ship, DASH1.0d Mini App release security gate |
 | MESSENGER-01 | `— post-launch plan` | `PLANNED — REFORM BLOCKERS OPEN` | I4a/I4b renderer va A5 mobile/reconnect poydevori bor; Origin/session, durable human receipt/sequence, membership/unread, staff/Telegram privacy va AI access/context blockerlar [radikal reform rejasida](../frontend-v1/MESSENGER-REFORM-PLAN.md) ochiq |
@@ -168,6 +169,25 @@ qayta tasniflamaydi.
   service-level workflow, pricing/dashboard va plan analytics; eski guruhlar
   uchun explicit rollout. Yangi tariflar migrationdan keyin sotuvga yopiq.
 - **Faza:** R2.
+
+### A4-P. Public acquisition va trust surface — `PLANNED`, `XL / 36 kichik kesim`
+
+- **Outcome:** anonim visitor truthful course/offerni ko‘radi, login/registerdan
+  keyin ayni canonical checkoutga qaytadi; claim/legal/cookie/certificate va
+  auth xavfsizligi UI’dan alohida contract bilan boshqariladi.
+- **Canonical owner:** public route/response/intent/claim policy; course/cohort/
+  plan/payment/entitlement A4da, landing writer B3.5da, SIT domaini SIT-01da,
+  Blog domain redesigni admissiondan tashqarida qoladi.
+- **Scope:** renderer-independent rich-content va URL policy; web/bot/Mini App
+  registration gate; auth throttle va Telegram safe methods; write-free GET;
+  real reset delivery; offer/intent; claim/legal/cookie/certificate; metadata/
+  sitemap/cache; WCAG/performance/system state va staged rollout.
+- **Acceptance:** intent continuity 100%; governed public claim evidence 100%;
+  GET incidental write va sensitive cache/index leak 0; anonymous certificate
+  disclosure owner policy’sidan oshmaydi; 28 E2E, rollback va required CI.
+- **Navbat:** P0 `PUB1.0a–g` maintenance sifatida alohida baholanadi. Qolgan
+  kesimlar owner active-task qarorisiz A3/A4/B3/SIT navbatini siqmaydi.
+- **Tafsilot:** [PUBLIC-01](../frontend-v1/PUBLIC-REFORM-PLAN.md).
 
 ### A5. Mobil oltin oqim quality gate — `CROSS-CUTTING, R1'dan`
 
@@ -369,7 +389,7 @@ qayta tasniflamaydi.
 | PWA install/offline | Defer | Responsive browser flow GREEN; install real outcome bersa |
 | DOCX reader | Defer | Writing flow va private upload policy stable |
 | XP iqtisodi/badge polish | Defer | Outcome eventlari canonical; abuse/idempotency testli |
-| Blog/Azure Journal reform | `ADMIT — post-launch`; [BLOG-01](../frontend-v1/BLOG-REFORM-PLAN.md) tayyor | Owner Blog executionini alohida navbatga qo‘yadi; birinchi kesim BLOG1.0a1. Launch-critical navbatni avtomatik almashtirmaydi |
+| Blog/Azure Journal reform | `ADMIT — post-launch`; [BLOG-01](../frontend-v1/BLOG-REFORM-PLAN.md) tayyor | Owner Blog executionini alohida navbatga qo‘yadi; birinchi kesim BLOG1.0a1. Launch-critical navbatni avtomatik almashtirmaydi. PUBLIC-01dagi security/acquisition/claim/legal containment (jumladan PUB1.0g Blog tracking) bundan mustasno va BLOG1.0a3 bilan bitta implementatsiyaga birlashtiriladi |
 
 ---
 

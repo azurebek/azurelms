@@ -16,6 +16,40 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-16 [Claude]: Codex reform PRlarini owner ruxsati bilan yakunlash
+
+Codex limiti tugagach uning ochiq PRlari (#197 public, #198 dashboard, #199
+blog) Twisted CVE va hal qilinmagan review izohlari sabab merge bo‘lmay turgan
+edi. Owner 2026-10-16 da Claude’ga Codex branchlariga yozish va ularni merge
+qilishga aniq ruxsat berdi (odatda §3/§9 bo‘yicha taqiqlangan). Codex qaytganda
+o‘z branchlaridagi o‘zgarishlarni shu yozuvdan ko‘radi.
+
+- Ketma-ketlik: #201 (`6035d92`) → #200 (`31e2260`) → #199 (`adf0054`) →
+  #198 (`67326f2`) → #197. Har PR `main` bilan yangilanib (strict), uchala
+  required check yashil bo‘lgach qo‘lda `gh pr merge --merge`; merge bo‘lgan
+  `claude/twisted-cve-baseline`, `claude/commerce-reform-plan-finish`,
+  `codex/blog-reform-restore`, `codex/dashboard-radical-reform-plan` remote
+  branchlari o‘chirildi.
+- Review izohlari halol baholandi: #199 va #198dagi “marinebook hash ajdod
+  emas” topilmalari bu repoda noto‘g‘ri (`merge-base --is-ancestor` true, merge
+  commit strategiyasi) — dalil bilan javob berilib yopildi. #198 DASH1.0d
+  audited settings contracti (`24208e3`) va #197 uch P1 — `PUB1.0a–g` admission
+  diapazoni, pricing `Plan.description` sanitizer qamrovi, P0 auth throttle
+  enforcement (`3a84760`) — tuzatildi. #200dagi gitignored verifier topilmasi
+  bo‘yicha barcha yangi yozuvlarda verifier natijasi “faqat lokal dalil” deb
+  belgilandi.
+- Konfliktlar: README/frontend indeksi/backlog/acceptance/marinebook — ikkala
+  tomon mazmuni saqlandi. BLOG-01 tiklangani sabab PUBLIC-01dagi “rad etilgan
+  Blog” tavsiflari BLOG-01ga havola bilan almashtirildi; PUB1.0g va BLOG1.0a3
+  bir xil `blog/utils.py` tracking yo‘liga tegishi sabab “qaysi biri oldin
+  bo‘lsa o‘sha implementatsiya qiladi” koordinatsiya qoidasi qo‘shildi.
+- Tekshiruv: har PRda CI uchala required job PASS (merge oldidan); lokal docs
+  verifier (`.tools/` gitignored) — missing0/warning0; `git diff --check` PASS.
+  Faqat hujjat o‘zgardi; runtime/DB/flag/deploy o‘zgarmadi.
+- Davom etilishi kerak: Codexning bo‘sh local `codex/commerce-radical-reform-plan`
+  branchi (alohida commiti yo‘q) Codexga qoldirildi; Twisted istisnosi
+  `review_by=2026-11-15`.
+
 ## 2026-10-16 [Claude]: COMMERCE-01 — Codex rejasini saqlash va yakunlash
 
 Codex 2026-10-15 da [COMMERCE-01](frontend-v1/COMMERCE-REFORM-PLAN.md)ni
@@ -135,6 +169,40 @@ post-launch`, birinchi kesim DASH1.0a.**
 - DB/schema/flag/provider/server/deploy o‘zgarmadi; auditdagi P0lar runtime’da
   tuzatildi deb da’vo qilinmaydi. DASH1.0 tartibi `a→b→c→d→e`; 1.1+ ishlar owner
   execution admissionisiz boshlanmaydi.
+
+## 2026-10-15 [Codex]: PUBLIC-01 — anonymous/public sirt tadqiqoti va roadmap
+
+Owner so‘rovi bo‘yicha [PUBLIC-01](frontend-v1/PUBLIC-REFORM-PLAN.md)
+tayyorlandi va joriy holat, frontend, launch hamda SIT ownership hujjatlariga
+bog‘landi. Route/security/privacy va UX/funnel auditi repository bo‘yicha,
+accessibility/auth/SEO/performance/KVKK/pricing chegaralari rasmiy manbalar
+bo‘yicha tekshirildi; yakuniy implementation-readiness review oltita aniqlik
+tuzatilgach **CLEAN** deb yopildi. **Runtime implementatsiyasi boshlanmagan;
+birinchi kesim PUB1.0a.**
+
+- Branch: `codex/public-radical-reform-plan`; audit tayanchi `main`dagi
+  `72e82e0`; reja commit **`0757f71`**.
+- To‘qqiz bosqich, 36 reviewable slice va 28 E2E gate: renderer-independent
+  rich-content/URL containment; barcha account-creation adapterida registration
+  gate; auth abuse, Telegram safe methods va reset delivery; write-free domain
+  GET; Blog detail/clap tracking; route/meta/cache; truthful landing/claim;
+  canonical offer/signed intent; legal/cookie/certificate privacy; Blog/SIT
+  adapterlari; system state, WCAG/performance, measurement va staged rollout.
+- Muhim chegaralar: Django reset/CSRF security bookkeeping named allowlistda;
+  A4 renewal/cancellation/refund contracti bermasa pricing sale readiness red;
+  landing writer B3.5niki, SIT truth SIT-01niki va `SIT1.7a` shared PUBLIC
+  primitive’larini reuse qiladi; rad etilgan Blog domain reformasi qayta
+  ochilmadi.
+- Safe env testlari: `manage.py check` — **0 issue**;
+  `manage.py makemigrations --check` — **No changes detected**; focused
+  `frontend.test_public_v1`, auth/registration/Telegram/certificate/checkout
+  suite’i — **88/88 PASS**; `node --test tests/frontend_v1/*.test.mjs` —
+  **172/172 PASS**. Lokal docs verifier (`.tools/` gitignored, repoda
+  versiyalanmagan — faqat shu mashinadagi dalil) — **101 hujjat, 800 relative
+  link, 36 anchor, missing0/warning0**; `git diff --check` PASS.
+- Runtime, DB/schema, flag, production, AWS, Gemini yoki Telegramga mutation
+  bo‘lmadi. Owner/legal qarorlari, real content/offer, native-device/AT,
+  production RUM va rollout bajarilgan deb da’vo qilinmaydi.
 
 ## 2026-10-15 [Codex]: MESSENGER-01 — radikal islohot tadqiqoti va roadmap
 

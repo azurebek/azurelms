@@ -22,6 +22,7 @@ soni o‘z-o‘zidan bugungi ishlar ro‘yxati hisoblanmaydi.
 | Messenger islohoti | **MESSENGER-01 rejalashtirildi, implementatsiya boshlanmagan.** I4a/I4b renderer poydevori saqlanadi; Origin/session/input containment, exact-once send/dual-cursor outbox, canonical membership/unread, unified no-JS Inbox, safe attachment, scoped teacher/support, Telegram outbox, private AI/A9, retention va rollout to‘qqiz bosqich/34 reviewable kesimda yozildi. Birinchi kesim MSG1.0a1. | [Messenger tadqiqoti va roadmap](frontend-v1/MESSENGER-REFORM-PLAN.md) |
 | Payment, Subscription va Checkout islohoti | **COMMERCE-01 rejalashtirildi, implementatsiya boshlanmagan.** Mavjud signed quote, server recalc, private evidence, lock va entitlement poydevori saqlanadi; finance least-privilege/evidence containment, immutable order-payment-subscription-access graph, learner center, owner workbench, Telegram/outbox, reconciliation va staged rollout to‘qqiz bosqich/40 reviewable PR-unitda yozildi. Birinchi kesim COM1.0a. | [Commerce tadqiqoti va roadmap](frontend-v1/COMMERCE-REFORM-PLAN.md) |
 | SIT islohoti | **SIT-01 rejalashtirildi, implementatsiya boshlanmagan.** Audit current price/filter, freshness/source, preview/rich-content, fee/dead CTA, AI routing/retrieval va canonical inquiry muammolarini topdi. Versionlangan katalog, scoped evidence, S2 inquiry, owner studio, program-first discovery/compare, deterministic AI, SEO/cache/WCAG va rollout to‘qqiz bosqich/27 kichik kesimda yozildi. Birinchi kesim SIT1.0a. | [SIT tadqiqoti va roadmap](frontend-v1/SIT-REFORM-PLAN.md) |
+| Public/anonymous islohoti | **PUBLIC-01 rejalashtirildi, implementatsiya boshlanmagan.** Landing, kurs/pricing, auth/reset/Telegram, legal/cookie, Blog/SIT adapterlari, sertifikat va system state’lar audit qilindi. Renderer-independent rich-content, registration/auth containment, truthful offer/claim/legal contractlari, exact intent, SEO/cache, WCAG/performance va rollout to‘qqiz bosqich/36 reviewable kesimda yozildi. Birinchi kesim PUB1.0a. | [Public tadqiqoti va roadmap](frontend-v1/PUBLIC-REFORM-PLAN.md) |
 | Lokal backoffice | B2.6 yakunida `8092` serverida avval yoqilgan beshta B2 gate ON saqlangan. Registrdagi default qiymatlar OFF. Bu qayd barcha muhitda funksiyalar yoqilganini anglatmaydi. | [Lokal yoqish chegarasi](frontend-v1/BACKOFFICE-LOCAL-ROLLOUT.md), [flag registri](../core/flags.py) |
 | AWS | **Oxirgi hujjatlashtirilgan reliz — 2026-09-26 R2, `8bb6b95`**, o‘sha tekshiruvda 19 ta V1 renderer flagi ON. Oktabrdagi B2 ishlarining serverga chiqarilgani shu dalildan kelib chiqmaydi. | [R2 reliz qaydi](frontend-v1/R2-READY-V1-AWS.md), [deploy yo‘riqnomasi](../deploy/README.md) |
 | Dizayn prototipi va haqiqiy ilova | DESIGN-01 ustaxonasi va uning dalillari bor; haqiqiy Django backoffice dizayn oqimi alohida qurilgan. Prototip, kodga ko‘chirish, lokal test va owner qabuli turli holatlar. | [Frontend indeksi](frontend-v1/README.md), [ko‘chirish ledgeri](frontend-v1/PORT-LEDGER.md), [DC6 qabuli](frontend-v1/DESIGN-01-DC6-ACCEPTANCE.md) |
@@ -51,11 +52,13 @@ Azure Journal islohoti [BLOG-01da](frontend-v1/BLOG-REFORM-PLAN.md),
 human/AI yordam va realtime qatlam islohoti
 [MESSENGER-01da](frontend-v1/MESSENGER-REFORM-PLAN.md), narxdan accessgacha
 Commerce islohoti [COMMERCE-01da](frontend-v1/COMMERCE-REFORM-PLAN.md), “Turkiyada o‘qish”
-portali islohoti esa [SIT-01da](frontend-v1/SIT-REFORM-PLAN.md) ajratilgan.
+portali islohoti [SIT-01da](frontend-v1/SIT-REFORM-PLAN.md), anonim landing,
+kurs/pricing/auth/legal/certificate va umumiy public infratuzilma esa
+[PUBLIC-01da](frontend-v1/PUBLIC-REFORM-PLAN.md) ajratilgan.
 Reja yozilishi ularning bajarilganini anglatmaydi; keng versioning, public UX va
-production masalalari o‘z chegaralarida qoladi. BLOG-01 va MESSENGER-01 joriy
-queue’ni o‘z-o‘zidan almashtirmaydi. BLOG1.0, SIT1.0 va MSG1.0dagi xavfsizlik
-topilmalari maintenance sifatida alohida baholanadi.
+production masalalari o‘z chegaralarida qoladi. BLOG-01, MESSENGER-01 va
+PUBLIC-01 joriy queue’ni o‘z-o‘zidan almashtirmaydi. BLOG1.0, SIT1.0, MSG1.0 va
+PUB1.0dagi xavfsizlik topilmalari maintenance sifatida alohida baholanadi.
 
 **Current security correction:** 2026-10-15 Dashboard source auditi legacy global
 dashboard/users/chats PII/message contexti, receipt decision, foreign private
@@ -96,6 +99,7 @@ tuzatildi degani emas.
 | Messengerning keyingi islohoti | [MESSENGER-01](frontend-v1/MESSENGER-REFORM-PLAN.md) — backend/realtime/UX/AI/security auditi, canonical data/command/event contracti, 34 implementatsiya kesimi, 27 E2E gate va rollback; [I4a](frontend-v1/I4A-HUMAN-MESSENGER.md)/[I4b](frontend-v1/I4B-AI-MESSENGER.md) — oldingi port dalillari |
 | Payment, Subscription va Checkoutning keyingi islohoti | [COMMERCE-01](frontend-v1/COMMERCE-REFORM-PLAN.md) — finance/security/data/UX auditi, order→payment→subscription→entitlement contracti, 40 reviewable PR-unit, 26 E2E gate va rollback; [I7](frontend-v1/I7-CHECKOUT.md) — oldingi checkout port dalili; [pricing ledgeri](pricing-packages-plan.md) — owner product contracti |
 | SIT/“Turkiyada o‘qish” islohoti | [SIT-01](frontend-v1/SIT-REFORM-PLAN.md) — code/UX/AI/security tadqiqoti, version/source/inquiry contracti, 27 implementatsiya kesimi, qabul matrixi va rollback |
+| Anonymous/public sirt islohoti | [PUBLIC-01](frontend-v1/PUBLIC-REFORM-PLAN.md) — route/security/UX/privacy/SEO tadqiqoti, offer/intent/claim/legal/certificate contractlari, 36 implementatsiya kesimi, 28 E2E gate va rollback |
 | Owner strategiyasi, admission va qolgan launch ishlari | [Launch rejasi](launch-plan/README.md) — eski jadval yangi deadline emas |
 | Tarif va to‘lov shartlari | [Pricing ledgeri](pricing-packages-plan.md) |
 | Telegram va landing bo‘yicha dastlabki shartlar | [Telegram rejasi](telegram-bot-plan.md), [landing rejasi](landing-editor-plan.md) — sanali qismlarni joriy kod bilan birga o‘qing |
