@@ -1,6 +1,7 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
-**Holat:** REJA TAYYOR, implementatsiya boshlanmagan
+**Holat:** REJA TAYYOR; **PUB1.0a kodda (2026-10-16, lokal)**, PUB1.0b–g va keyingi
+bosqichlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
 **Kod tayanchi:** `main`dagi `72e82e0`
 **Birinchi implementatsiya kesimi:** `PUB1.0a`
@@ -25,8 +26,8 @@ Reja yozilishi runtime, local DB, AWS yoki productionni o‘zgartirmaydi.
 `I5A-PUBLIC.md`dagi 14-route V1 porti bajarilgan tarixiy poydevor; PUBLIC-01 uni
 “qilinmagan” demaydi. Aksincha, o‘sha renderer ustidagi xavfsizlik, truthful
 content, acquisition continuity, SEO/cache va real qabul qarzlarini ajratadi.
-Rad etilgan `BLOG-REFORM-PLAN.md` qayta yaratilmaydi: Blog uchun faqat umumiy
-public shell, xavfsizlik, maxfiylik, metadata va CTA adapterlari shu scope’da.
+Blog domain islohoti [BLOG-01](BLOG-REFORM-PLAN.md)da qoladi: Blog uchun faqat
+umumiy public shell, xavfsizlik, maxfiylik, metadata va CTA adapterlari shu scope’da.
 
 ---
 
@@ -1175,6 +1176,24 @@ DoD’iga suyanadi.
 ### PUB1.0 — P0 containment va bugungi haqiqat
 
 #### PUB1.0a — birinchi kesim: rich content va public URL parity
+
+**Holat — 2026-10-16: kodda, lokal tekshirilgan** (branch
+`claude/pub10a-public-rich-content`). `core/rich_content_policy.py`da
+`PUBLIC_EDITORIAL_V1` (ikki bosqichli tozalash: script/style/svg kabi
+konteynerlar matni bilan ketadi, keyin semantik teglar, exact atributlar,
+`safe_url`, faqat ilova media/static rasmi, iframe → “Videoni ochish” havolasi
+yoki yo‘q, rad etilgan havola oddiy matn) va `public_plain_text`.
+`frontend/public_url_policy.py` navigatsiya (lokal/https/mailto/tel) va
+kontent/manba havolasi (+http) siyosati; nav context processor’da bir marta
+filtrlanadi. Legacy 11 ta raw `|safe` va V1 public `|sanitize` o‘rniga
+`public_rich`; katalog/kurs/pricing/checkout qisqa matni `public_plain`;
+`BlogPost.plain_text` ayni profildan. `audit_public_content [--format=json]`
+read-only, faqat ID/topilma turi. Global `bleach_tags.sanitize` va private
+dars/imtihon consumerlari o‘zgarmagan. Lokal DB auditi: barcha public maydonda
+topilma 0. **Ochiq:** §5.8dagi ikkinchi qatlam (save/publish paytida snapshot
+tekshiruvi) writer slicelariga (B3.5, Blog/SIT studio) qoladi; navigatsiya
+uchun owner host allowlisti yo‘q (userinfo/scheme/host shakli tekshiriladi);
+server/production DB auditi va CSP `unsafe-inline` (PUB1.1d) alohida.
 
 **Ish:**
 
