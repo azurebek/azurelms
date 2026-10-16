@@ -11,6 +11,20 @@ to‘qqiz bosqich/40 reviewable PR-unitda yozildi. Implementatsiya boshlanmagan;
 birinchi kesim COM1.0a. Bu reja [I7](I7-CHECKOUT.md) poydevorini bajarilmagan
 demaydi va joriy umumiy navbatni o‘zi almashtirmaydi.
 
+**Dashboard rejasi — 2026-10-15:**
+[DASHBOARD-01](DASHBOARD-REFORM-PLAN.md) I1 learner, I2 teacher, Mini App/Bot
+adapterlari va mavjud Backoffice Ish stolini bitta rolga mos, read-only
+projection contracti atrofida isloh qilishni rejalashtiradi. Audit ordinary
+staff uchun global users/chats PII/message context va moliya ko‘rinishi, private cache drift, GETdagi yashirin
+DB write, Mini App session/replay, noto‘g‘ri progress va O(N) querylarni topdi.
+Sakkiz phase, 33 reviewable kesim va 33 E2E ssenariy yozildi;
+implementatsiya boshlanmagan. Birinchi kesim DASH1.0a — Backoffice capability
+va PII containment. Keng redesign NEXT/post-launch; DASH1.0a legacy global
+dashboard/users/chats PII/message contexti, canonical receipt writer/foreign
+file/Bot staff scope sabab affected release uchun A0b stop-ship regressioni, DASH1.0d Mini App
+release security gate’i. Reja B3/CLASSBOOK/A4/A6/A7/A9 product navbatini o‘zi
+almashtirmaydi.
+
 **Messenger rejasi — 2026-10-15:** [MESSENGER-01](MESSENGER-REFORM-PLAN.md)
 I4a/I4b presentation poydevorini saqlab, Messenger’ni xavfsiz va ishonchli
 yordam markaziga aylantirishni rejalashtiradi. Backend/realtime, human UX va

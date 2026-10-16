@@ -1,5 +1,14 @@
 # Yakuniy qabul — ochiq nuqsonlar
 
+**Dashboard scope qaydi — 2026-10-15:**
+[DASHBOARD-01](DASHBOARD-REFORM-PLAN.md) authenticated learner/teacher/Mini App
+va existing Backoffice entry uchun alohida audit/roadmap berdi. Bu hujjatdagi
+UX/DATA/RULE bandlari yopilmadi. Dashboard rejasidagi P0lar ham runtime’da
+tuzatilgan deb belgilanmaydi. Birinchi kesim DASH1.0a — global users/chats
+PII/message context, canonical receipt decision writer, foreign receipt file va Bot `/stat`/`/cheklar` staff scope’idagi
+existing A0b regression; affected release uchun stop-ship, I1/I2 rendererini
+qayta ochish emas.
+
 **Joriy qabul chegarasi — 2026-10-13:** [loyihaning holat markazi](../README.md).
 [B2.6](BACKOFFICE-02-STAGE-6.md) bilan backoffice’ning olti bosqichi lokal
 texnik tekshiruvdan o‘tdi va `main`ga birlashdi. Bu quyidagi UX/DATA/RULE

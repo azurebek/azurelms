@@ -1,5 +1,15 @@
 # Frontend V1 — bajarish va qabul jurnali
 
+**2026-10-15 Dashboard chegarasi:** I1 learner dashboard va I2 teacher home
+renderer portlari bajarilgan holatda qoladi; ular qayta ochilmadi.
+[DASHBOARD-01](DASHBOARD-REFORM-PLAN.md) shu foundation ustidagi role routing,
+read-only projection, progress truth, private response, Mini App va query
+qarzlarini NEXT/post-launch reform sifatida rejalashtirdi. Runtime implementatsiyasi
+boshlanmagan. Tor joriy istisno: DASH1.0a global users/chats PII/message context,
+canonical receipt decision writer, foreign receipt file va Bot `/stat`/`/cheklar` staff scope’i bo‘yicha existing
+A0b regression va affected release uchun stop-ship; bu I1/I2 renderer portlarini
+qayta ochmaydi. Qolgan DASH1.0 private/security/correctness containment.
+
 **2026-10-04 Packet85:** [UX-04 auth clarity](UX04-AUTH-CLARITY-PROTOTYPE.md)
 4forma inline errors/first focus/44px auth links lokal tekshirildi.
 881 Django/246 Node PASS. Real auth/onboarding/native qabul alohida
