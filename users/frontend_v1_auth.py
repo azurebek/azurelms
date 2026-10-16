@@ -1,8 +1,10 @@
 """Frozen auth presentation; Django retains form/token/session semantics."""
+from django.conf import settings
 from django.contrib.auth import views as auth_views
 
+from core.email_delivery import RESET_UNAVAILABLE_MESSAGE, reset_delivery_available
 from core.frontend_v1 import FrontendV1Mixin
-from .forms import UzbekSetPasswordForm
+from .forms import UzbekPasswordResetForm, UzbekSetPasswordForm
 
 
 class AuthV1Mixin(FrontendV1Mixin):
@@ -37,11 +39,33 @@ class AuthV1Mixin(FrontendV1Mixin):
 
 
 class PasswordResetView(AuthV1Mixin, auth_views.PasswordResetView):
+    form_class = UzbekPasswordResetForm
+    # O'zbekcha mavzu, oddiy matn va HTML (PUB1.0f). Django default'i inglizcha edi.
+    subject_template_name = 'registration/password_reset_subject.txt'
+    email_template_name = 'registration/password_reset_email.txt'
+    html_email_template_name = 'registration/password_reset_email.html'
     frontend_v1_template = 'frontend_v1/auth_reset.html'
     frontend_v1_title = 'Parolni tiklash'
     auth_intro = 'Hisobingiz emailini kiriting. Tiklash ko‘rsatmasi shu manzilga yuborilishi mumkin.'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        available = reset_delivery_available()
+        context['reset_delivery_available'] = available
+        if not available:
+            context['reset_unavailable_message'] = RESET_UNAVAILABLE_MESSAGE
+            if self.frontend_v1_enabled:
+                context['auth_intro'] = ''
+        return context
+
     def form_valid(self, form):
+        # Xat yetib bormaydigan muhitda "yubordik" deyilmaydi: so'rov ochiq rad
+        # etiladi, javob har qanday email uchun bir xil (PUB1.0f).
+        if not reset_delivery_available():
+            form.add_error(None, RESET_UNAVAILABLE_MESSAGE)
+            response = self.form_invalid(form)
+            response.status_code = 503
+            return response
         # Har so'rov email yuboradi: email va IP bo'yicha cheklanadi (PUB1.0c).
         # Hisoblagich email mavjudligidan qat'i nazar yuradi — blok holati
         # enumeration signali bo'lmaydi.
@@ -51,6 +75,12 @@ class PasswordResetView(AuthV1Mixin, auth_views.PasswordResetView):
         if not decision.allowed:
             form.add_error(None, decision.message)
             return auth_abuse.apply_throttle_headers(self.form_invalid(form), decision)
+        from frontend.models import SiteSettings
+
+        self.extra_email_context = {
+            'brand_name': SiteSettings.current().brand_name or 'AzureLMS',
+            'reset_valid_hours': max(1, settings.PASSWORD_RESET_TIMEOUT // 3600),
+        }
         return super().form_valid(form)
 
 
@@ -65,6 +95,12 @@ class PasswordResetConfirmView(AuthV1Mixin, auth_views.PasswordResetConfirmView)
     frontend_v1_template = 'frontend_v1/auth_reset_confirm.html'
     frontend_v1_title = 'Yangi parol'
     auth_intro = 'Yangi parolingizni ikki marta kiriting.'
+
+    def dispatch(self, *args, **kwargs):
+        # Tokenli havoladan boshqa saytga Referer sifatida token ketmasin (PUB1.0f).
+        response = super().dispatch(*args, **kwargs)
+        response['Referrer-Policy'] = 'no-referrer'
+        return response
 
     def form_valid(self, form):
         response = super().form_valid(form)

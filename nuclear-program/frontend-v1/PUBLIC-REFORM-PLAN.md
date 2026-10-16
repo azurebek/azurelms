@@ -1,6 +1,6 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
-**Holat:** REJA TAYYOR; **PUB1.0a–e kodda (2026-10-16/17, lokal)**, PUB1.0f–g va keyingi
+**Holat:** REJA TAYYOR; **PUB1.0a–f kodda (2026-10-16/17, lokal)**, PUB1.0g va keyingi
 bosqichlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
 **Kod tayanchi:** `main`dagi `72e82e0`
@@ -1387,6 +1387,22 @@ relevant table snapshot teng; missing legal/status; migration rerun; no 500.
 fake default sifatida nashr bo‘lmaydi; existing owner content saqlanadi.
 
 #### PUB1.0f — password reset delivery release gate
+
+**Holat — 2026-10-17: kodda, lokal tekshirilgan** (branch
+`claude/pub10f-reset-delivery-gate`). Yagona qaror `core/email_delivery.py`
+(jim backendlar: console/dummy/locmem/filebased): Control Center email probe,
+`users/checks.py` (`check --deploy`, `azurelms.E101`, CI deploy qadamida soxta
+`EMAIL_HOST` bilan) va tiklash sahifasi bir xil hisoblaydi. Non-local jim
+backendda tiklash **fail-closed**: forma o‘rniga halol xabar, POST `503`, xat va
+console’ga tokenli havola yo‘q; lokal console ruxsat. `UzbekPasswordResetForm`
+— o‘zbekcha mavzu/oddiy matn/HTML (tashqi rasm yo‘q, `no-referrer`), Django
+`get_users` siyosati (noma’lum/faolsiz/parolsiz — xat yo‘q, javob bir xil); SMTP
+xatosi javobni o‘zgartirmaydi, `auth.password_reset.delivery_failed` audit
+(foydalanuvchi id + xato turi, email/token/IP yo‘q) va email probe 24 soatda
+sariq. Tasdiq sahifasi `Referrer-Policy: no-referrer`; legacy “Havola
+yuborildi” da’vosi olib tashlandi. **Ochiq:** so‘nggi qayd etilgan AWS relizi
+console backendda — deploydan keyin productionda tiklash yopiq turadi, owner
+SMTP’ni `deploy/.env`ga yozishi kerak; email verification PUB-D14.
 
 **Ish:** non-local console backendni release/readiness red; Uzbek subject/plain/
 HTML templates; generic receipt; token/referrer/log redaction; delivery typed

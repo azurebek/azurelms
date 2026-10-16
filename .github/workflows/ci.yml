@@ -89,6 +89,10 @@ jobs:
           # o'chirilsa qadam `ImproperlyConfigured` bilan yiqiladi — ya'ni
           # gate CI'da ham tirik ekani shu yerda ko'rinadi.
           VALKEY_URL: redis://127.0.0.1:6379/0
+          # Non-local profilda jim email backend release xatosi
+          # (`users/checks.py`, azurelms.E101): parol tiklash xati hech kimga
+          # bormaydi. Host soxta — check ulanmaydi, faqat sozlamani ko'radi.
+          EMAIL_HOST: smtp.ci.invalid
         run: python manage.py check --deploy --fail-level WARNING
 
       # §4.3 — modelga tegilib migration yozilmagan holat.

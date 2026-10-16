@@ -1419,6 +1419,13 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 - `core/public_readiness.py` + Control Center `public_content`: yo'q huquqiy sahifa qizil, eski avtomatik namuna matn sariq, sozlama qatori yo'q sariq.
 - Yagona ruxsat etilgan public GET yozuvi — blog maqola o'qish hisoblagichi (PUB1.0g'da qayta ko'riladi). `frontend/test_public_get_write_free.py` buni qulflaydi.
 
+### Parol tiklash xati (PUB1.0f, 2026-10-17)
+
+- `core/email_delivery.py` — email yetkazish qarori: non-local profilda console/dummy/locmem/filebased "jim" backend. Shu qarorni Control Center email chirog'i, `manage.py check --deploy` (`users/checks.py`, `azurelms.E101`) va parol tiklash sahifasi ishlatadi.
+- Jim backendda tiklash fail-closed: forma o'rniga halol xabar, POST `503`, xat yuborilmaydi. Lokal console ruxsat (xat terminalga chiqadi).
+- `users/forms.py::UzbekPasswordResetForm` — o'zbekcha `registration/password_reset_subject.txt`, `..._email.txt`, `..._email.html`; SMTP xatosi foydalanuvchiga ko'rinmaydi, `auth.password_reset.delivery_failed` audit yozuvi (id + xato turi) va email chirog'i sariq.
+- Tasdiq havolasi sahifasi `Referrer-Policy: no-referrer`. Production'da `EMAIL_HOST`/`EMAIL_HOST_USER`/`EMAIL_HOST_PASSWORD`/`DEFAULT_FROM_EMAIL` majburiy (`deploy/env.example`).
+
 ### Production safety
 
 - Local mode remote DB/Redis/S3'ga tasodifan ulanmaydi (`LOCAL_USE_REMOTE_SERVICES=True` bo'lmasa)

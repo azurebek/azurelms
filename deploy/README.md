@@ -102,7 +102,12 @@ nano .env
 
 `.env` da **majburiy** to'ldiriladiganlar: `SECRET_KEY`, `APP_DOMAIN`,
 `APP_WWW_DOMAIN`, `TLS_EMAIL`, `POSTGRES_PASSWORD`, `DATABASE_URL` (ichidagi parol bilan),
-`TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `GEMINI_API_KEY`.
+`TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `GEMINI_API_KEY`, `EMAIL_HOST`,
+`EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `DEFAULT_FROM_EMAIL`.
+
+> Email bo'sh qolsa sayt ishlayveradi, lekin parolni email orqali tiklash
+> **yopiq** turadi (sahifa buni ochiq aytadi). Ilgari bu holatda tiklash
+> havolasi — ya'ni tokenli link — konteyner logiga yozilardi.
 
 Kalit yasash:
 
@@ -155,6 +160,13 @@ Oxirgisi Gemini kvotasini sarflaydi — bir marta, dars vaqtida emas
 yugurtiring.
 
 ### Tekshirish
+
+```bash
+docker compose -f docker-compose.prod.yml run --rm web python manage.py check --deploy
+```
+
+`azurelms.E101` chiqsa email sozlanmagan — `.env` dagi `EMAIL_*` ni to'ldirib,
+konteynerlarni qayta ko'taring.
 
 ```bash
 curl -sS https://lms.example.com/healthz; echo

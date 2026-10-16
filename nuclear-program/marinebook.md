@@ -16,6 +16,39 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-17 [Claude]: PUBLIC-01 / PUB1.0f — parol tiklash xati: o‘zbekcha, fail-closed, release check
+
+Non-local profilda `EMAIL_HOST` bo‘lmasa console backend tanlanardi: sahifa
+“Havola yuborildi” derdi, xat hech kimga bormasdi, console esa tokenli tiklash
+havolasini konteyner logiga yozardi. Xat Django default’ida — inglizcha edi.
+
+- Branch: `claude/pub10f-reset-delivery-gate`; kod commit **`e8d8c79`**. Migration yo‘q.
+- Qarorlar: yagona `core/email_delivery.py` (probe, `check --deploy`
+  `azurelms.E101`, tiklash sahifasi bir xil hisoblaydi); jim backendda tiklash
+  fail-closed (forma o‘rniga halol xabar, POST `503`); lokal console ruxsat;
+  startup gate qo‘shilmadi — email yo‘qligi saytni yiqitmasin. O‘zbekcha mavzu,
+  oddiy matn va HTML (tashqi rasm yo‘q, `no-referrer`). SMTP xatosi javobni
+  o‘zgartirmaydi, `auth.password_reset.delivery_failed` audit (id + xato turi;
+  email/token/IP yo‘q), email chirog‘i 24 soatda sariq. Tasdiq sahifasi
+  `Referrer-Policy: no-referrer`. CI `check --deploy` qadamiga soxta
+  `EMAIL_HOST` qo‘shildi; runbook va `env.example` email’ni majburiy deydi.
+- Test: safe env’da `manage.py test users.test_password_reset_delivery` —
+  **12 test, OK**; to‘liq `manage.py test` — **2898 test, OK (skipped=69)**;
+  `manage.py check`, `makemigrations --check` toza; `check --deploy` CI env’ida
+  email’siz `azurelms.E101`, `EMAIL_HOST` bilan toza. Nazorat yugurishi: 7 ta
+  buzilish (doim “mavjud”, dalil yozilmasligi, Referrer-Policy yo‘qligi, plain
+  shablon o‘rniga HTML, check jimligi, probe xatolarni ko‘rmasligi, “Havola
+  yuborildi”) testlarda FAIL, tiklangach PASS — plain/HTML holati birinchi
+  urinishda o‘tib ketgan edi, test kuchaytirildi.
+- Brauzer (DB nusxasida): lokal — o‘zbekcha xat (plain + HTML) konsolga
+  chiqdi, done sahifasi “Pochtangizni tekshiring”; non-local + console (alohida
+  preview) — legacy va V1’da forma o‘rniga “hozircha ishlamayapti”.
+- **Diqqat:** so‘nggi qayd etilgan AWS relizi (R2) console backendda edi.
+  Deploydan keyin productionda tiklash yopiq turadi — owner `deploy/.env`ga
+  SMTP yozishi kerak. Ungacha so‘ralgan tiklashlar konteyner logida tokenli
+  havola qoldirgan bo‘lishi mumkin (72 soatda eskiradi, bir martalik).
+- Davom etilishi kerak: PUB1.0g (Blog anonim tracking).
+
 ## 2026-10-17 [Claude]: PUBLIC-01 / PUB1.0e — public GET bazaga yozmaydi
 
 Birinchi tashrif yo‘q sozlama qatorlarini yaratar, yo‘q huquqiy sahifani esa
