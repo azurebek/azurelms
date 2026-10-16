@@ -1231,6 +1231,19 @@ destinationli low-privilege session ochadi.
   replay record retention kamida `TTL + skew`. Owner qiymatni auditli DB setting
   bilan toraytiradi/kengaytiradi, env fallback; algoritm/body ceiling/hard maxni
   settings yuzasi oshira olmaydi.
+- **Sozlama yozish contracti (shu slice’ning barcha runtime qiymatlari uchun):**
+  [rules-for-agents §0.7](../rules-for-agents.md) ikki qismi ajratiladi. *Model
+  shakli* — `aicontrol.AISettings` singletoni kabi: maydonda `default=`,
+  `help_text`, bo‘sh bo‘lsa env/`settings.py` fallback, server-side range
+  validator. *Mutation yuzasi* — `core/views.py` brend/landing/kill-switch
+  naqshi: owner-only + fresh auth, majburiy `change_reason`, majburiy tasdiq
+  checkbox’i, expected-version CAS (eskirgan forma `409`, write 0), qiymat
+  o‘zgarmasa no-op (yozuv ham, audit ham yo‘q) va o‘zgarish bilan **bir
+  transactionda** oldingi→keyingi qiymatli `SystemAuditEvent`. Mavjud
+  `AISettingsAdmin`/`backoffice_ai_control` yozuvchilari audit naqshi sifatida
+  ko‘chirilmaydi (ochiq A2 qarzi). Yoqish/o‘chirish sozlamada emas,
+  `core/flags.py` registrida. Test: begona rol/inactive deny, range tashqarisi,
+  sabab yoki tasdiq yo‘q, stale version, no-op va audit rowi.
 - **Navigation:** destination allowlist authdan keyingi top-level handoff uchun;
   u privilege guard emas va normal web route’ni iframeable qilmaydi.
 - **Session:** successful learner authda `cycle_key()`. Mini App session absolute
@@ -1251,7 +1264,8 @@ destinationli low-privilege session ochadi.
   fail-closed recheck Mini App va normal-web handoff requestlarining barchasida.
   Expiry/logout `flush()` qiladi; qayta kirish uchun fresh pre-auth nonce + fresh
   initData kerak, consumed digest ishlamaydi. Runtime qiymat hard envelope ichida
-  auditli DB setting + env fallback; browser close persistence owner settingi
+  auditli DB setting + env fallback (yuqoridagi sozlama yozish contracti bo‘yicha);
+  browser close persistence owner settingi
   bilan emas, yuqoridagi absolute limit bilan cheklangan. Ayni
   `CustomUser` bilan “past privilege session” yasashning o‘zi yetarli emas:
   `is_staff/is_superuser` barcha direct route’da faol qoladi. Shu sabab linked
@@ -1966,7 +1980,8 @@ p99 ≤1 s, field p75 TTFB ≤800 ms, 5xx <0.5%; boshlang‘ich alert p95 >500 m
 15 daqiqa, 5xx >1% 5 daqiqa, partial projection >2% yoki har qanday redirect
 loop. DASH1.7a representative baseline olgach owner/ops effective qiymatni
 tasdiqlaydi. Operational threshold code-hardcoded bo‘lmaydi: audited DB setting
-+ env fallback + validator; safety envelope p95 200–2000 ms, p99 500–5000 ms,
++ env fallback + validator (DASH1.0d dagi sozlama yozish contracti — sabab,
+tasdiq, stale/no-op va `SystemAuditEvent` bilan); safety envelope p95 200–2000 ms, p99 500–5000 ms,
 5xx 0.1–5%, partial 0.5–20%, window 1–60 daqiqa. Effective config Control
 Centerda ko‘rinadi. CWVdagi LCP/INP/CLS esa §12.2dagi tashqi standard targeti,
 bu operational tuning bilan yumshatilmaydi.
