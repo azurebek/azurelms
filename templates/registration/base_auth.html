@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static public_claims %}
 {% comment %}
   AuthShell — split-screen (chap: qora brend panel, o'ng: forma).
   Proto: azurelms-proto/public/auth.html + forgot-password.html.
@@ -60,10 +60,10 @@
     </div>
 
     <div style="position:relative;margin-top:40px;padding-top:22px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between;">
-      <div style="display:flex;gap:26px;">
-        <div><div style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:#fff;">2,400+</div><div style="font-size:11px;color:#69717f;">talaba</div></div>
-        <div><div style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:#fff;">94%</div><div style="font-size:11px;color:#69717f;">sertifikat</div></div>
-        <div><div style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:#fff;">4.9</div><div style="font-size:11px;color:#69717f;">reyting</div></div>
+      {# Faqat dalili tasdiqlangan statistika; qattiq yozilgan raqam yo'q (PUB1.2a). #}
+      {% verified_statistics 3 as auth_stats %}
+      <div style="display:flex;gap:26px;" data-auth-stats>
+        {% for stat in auth_stats %}<div><div style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:#fff;">{{ stat.display_value }}</div><div style="font-size:11px;color:#69717f;">{{ stat.label }}</div></div>{% endfor %}
       </div>
     </div>
   </aside>

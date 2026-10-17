@@ -316,6 +316,12 @@ class StatisticAdmin(admin.ModelAdmin):
 class TestimonialAdmin(admin.ModelAdmin):
     list_display = ('name', 'role', 'rating', 'is_active')
     list_filter = ('is_active', 'rating')
+    # Rozilik faqat owner sahifasi (backoffice/claims/) orqali — sabab, tasdiq va
+    # audit bilan (PUB1.2a). Matn tahrirlansa rozilik o'zi eskiradi.
+    readonly_fields = (
+        'display_name', 'consent_scope', 'consent_confirmed_at', 'consent_revoked_at',
+        'source_reference', 'consent_digest',
+    )
 
 @admin.register(AboutStatistic)
 class AboutStatisticAdmin(admin.ModelAdmin):

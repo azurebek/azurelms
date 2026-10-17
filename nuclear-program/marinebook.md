@@ -16,6 +16,37 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-18 [Claude]: PUBLIC-01 / PUB1.2a — statistika faqat dalil bilan, fikr faqat rozilik bilan
+
+Bosh sahifadagi “2400+ Faol talaba / 94% Sertifikat oldi / 4.9 Reyting” migration
+seed’idan, auth panelidagi “2,400+ / 94% / 4.9” esa shablonga qattiq yozilgan edi —
+hech biriga dalil yo‘q. Fikrlar random tanlanar, rozilik qayd etilmasdi.
+
+- Branch: `claude/pub12a-claim-evidence`; kod commit **`359db7c`**. Migration:
+  `frontend 0021` (additive; data o‘zgarmaydi).
+- Qarorlar: `PublicClaimEvidence` + `frontend/public_claims.py` (matn xeshi,
+  stale/expired/revoked, CAS, audit, https manba); public sahifa va auth paneli
+  faqat `verified` statistikani ko‘rsatadi; fikr faqat rozilik bilan, barqaror
+  tartibda; owner `backoffice/claims/` sahifasi (sabab + tasdiq). Seed qatorlar
+  tasdiqlanmadi — productionda raqamlar owner tasdiqlaguncha yo‘qoladi. Landing
+  “namuna” dashboard da’vo emas deb qoldirildi; `hero_badge` hech qayerda chiqmaydi.
+- Test: safe env’da `manage.py test frontend.test_public_claims` — **13 test,
+  OK**; to‘liq `manage.py test` — **2959 test, OK (skipped=69)**; `manage.py
+  check`, `makemigrations --check` toza; `git diff --check` PASS. Nazorat
+  yugurishi: 8 ta buzilish (dalilsiz statistika, faqat qiymat xeshi, muddat `>`,
+  CAS yo‘q, rozilik filtri yo‘q, auth’da qattiq raqam, tasdiq belgisi ixtiyoriy,
+  probe dalilsizga sariq) — hammasi FAIL, tiklangach PASS.
+- Brauzer (DB nusxasida, migratsiyadan keyin): 4 seed statistika `missing`,
+  mehmon bosh sahifasida ko‘rinmaydi; sinov owner `backoffice/claims/`da
+  “6 | Daraja”ni tasdiqladi → audit yozuvi, bosh sahifada faqat shu chiqdi.
+- PR #213 Codex review (P1, to‘g‘ri): generic admin rozilik maydonlarini audit’siz
+  o‘zgartira olardi va matn tahriri rozilikni bekor qilmasdi. Tuzatildi: rozilik
+  ism + rol + matn xeshiga bog‘landi (`consent_digest`, migration 0021 merge’dan
+  oldin qayta qurildi), admin bu maydonlarni faqat o‘qiydi; 3 ta yangi test,
+  2 ta nazorat buzilishi FAIL.
+- Ochiq: “3 ish kunida/3 soatda javob” matnlari shablonda; `recent_students`.
+- Davom etilishi kerak: PUB1.2b (deterministik landing/About selektorlari).
+
 ## 2026-10-17 [Claude]: PUBLIC-01 / PUB1.1d — sarlavha va method matritsasi (PUB1.1 bosqichi tugadi)
 
 Public sahifalar sarlavhasi tarqoq edi: legacy hech narsa yozmasdi (brauzer va

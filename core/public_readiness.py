@@ -44,6 +44,13 @@ class PublicReadiness:
     missing_singletons: tuple[str, ...]
     # PUB1.0g'gacha yig'ilgan anonim blog kuzatuvi (qator soni).
     legacy_blog_tracking: int = 0
+    # PUB1.2a: da'vo holatlari soni ({status: count}) va fikrlar.
+    claims: tuple = ()
+    testimonials_public: int = 0
+    testimonials_hidden: int = 0
+
+    def claim_count(self, status):
+        return dict(self.claims).get(status, 0)
 
     @property
     def missing_legal(self):
@@ -80,11 +87,28 @@ def missing_singletons():
     return tuple(model._meta.label for model in models if not model.objects.filter(pk=1).exists())
 
 
+def claim_readiness():
+    """(holat bo'yicha da'volar soni, public fikrlar, yashirin faol fikrlar)."""
+    from collections import Counter
+
+    from frontend.models import Testimonial
+    from frontend.public_claims import all_claims, public_testimonials
+
+    counts = Counter(claim.status for claim in all_claims())
+    public = len(public_testimonials(limit=None))
+    hidden = Testimonial.objects.filter(is_active=True).count() - public
+    return tuple(sorted(counts.items())), public, hidden
+
+
 def public_readiness():
     from blog.tracking_cleanup import legacy_tracking
 
+    claims, testimonials_public, testimonials_hidden = claim_readiness()
     return PublicReadiness(
         legal=legal_readiness(),
         missing_singletons=missing_singletons(),
         legacy_blog_tracking=legacy_tracking().total,
+        claims=claims,
+        testimonials_public=testimonials_public,
+        testimonials_hidden=testimonials_hidden,
     )

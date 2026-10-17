@@ -15,6 +15,7 @@ from core import backoffice_sections as sections
 from core import backoffice_search as search
 from core import student_support_views as student_support
 from core import design_views
+from core import backoffice_claims
 from subscriptions import backoffice_views as catalog_views
 
 handler404 = "core.views.page_not_found"
@@ -83,6 +84,7 @@ urlpatterns = [
     path('backoffice/control/design/command/', design_views.command, name='backoffice_design_command'),
     path('design/theme.css', design_views.theme_css, name='design_theme_css'),
     path('backoffice/landing/', core_views.backoffice_landing, name='backoffice_landing'),
+    path('backoffice/claims/', backoffice_claims.claim_evidence, name='backoffice_claim_evidence'),
     path('backoffice/receipts/', core_views.backoffice_receipts, name='backoffice_receipts'),
     path('backoffice/catalog/', catalog_views.catalog, name='backoffice_catalog'),
     path('backoffice/catalog/plans/<int:plan_id>/', catalog_views.plan_editor, name='backoffice_plan_edit'),

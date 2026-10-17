@@ -12,6 +12,7 @@ from cohorts.models import Cohort, Enrollment
 from courses.models import Course, Lesson, Module
 from frontend.models import LandingNavItem, LegalPage, SiteSettings, Statistic
 from frontend.templatetags.public_v1 import public_url
+from frontend.test_public_claims import approve_for_test
 from sit.models import KnowledgeArticle, University, UniversityFaculty, UniversityProgram
 from subscriptions.models import Plan, PlanFeature
 
@@ -73,6 +74,7 @@ class PublicV1Tests(TestCase):
     def test_home_numeric_statistic_uses_canonical_formatted_value(self):
         statistic = Statistic.objects.create(label='Real count', numeric_value='42.5', decimals=1, suffix='%')
         statistic.refresh_from_db()
+        approve_for_test(statistic)  # PUB1.2a: dalilsiz statistika chiqmaydi
         self.assertContains(self.client.get(reverse('home')), statistic.display_value)
 
     def test_home_authenticated_redirect_and_public_does_not_grant_access(self):

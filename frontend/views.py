@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.utils.cache import patch_cache_control
+from .public_claims import public_testimonials, verified_about_statistics, verified_landing_statistics
 from .public_v1 import render_public
 from courses.models import Course
 from django.contrib.auth import get_user_model
@@ -13,10 +14,7 @@ from .models import (
     LandingPortalListItem,
     LandingPortalTab,
     LandingProcessStep,
-    Statistic,
-    Testimonial,
     AboutPage,
-    AboutStatistic,
     TeamMember,
     LegalPage,
 )
@@ -135,7 +133,8 @@ def home_view(request):
         return redirect('dashboard')
         
     page_content = LandingPage.current()
-    statistics = Statistic.objects.filter(is_active=True)
+    # Faqat dalili tasdiqlangan statistika (PUB1.2a).
+    statistics = verified_landing_statistics()
     level_stages = list(LandingLevelStage.objects.filter(is_visible=True).order_by("order", "id"))
     ai_features = list(LandingAIFeature.objects.filter(is_visible=True).order_by("order", "id"))
     exam_skills = list(LandingExamSkill.objects.filter(is_visible=True).order_by("order", "id"))
@@ -155,10 +154,8 @@ def home_view(request):
     if not portal_items:
         portal_items = _default_portal_items()
     
-    # Optimize: Avoid slow SQL `ORDER BY RAND()`/`RANDOM()` which kills performance on large DBs
-    import random
-    active_testis = list(Testimonial.objects.filter(is_active=True))
-    testimonials = random.sample(active_testis, min(len(active_testis), 3)) if active_testis else []
+    # Rozilik bilan va barqaror tartibda — random tanlov emas (PUB1.2a).
+    testimonials = public_testimonials(3)
     
     # Try to get top 3 popular courses (for now we can just order by id or published date)
     popular_courses = (
@@ -227,15 +224,12 @@ def home_view(request):
 
 def about_view(request):
     page_content = AboutPage.current()
-    statistics = list(AboutStatistic.objects.all())
+    statistics = verified_about_statistics()
     team = list(TeamMember.objects.all())
     featured_member = team[0] if team else None
     team_members = team[1:] if team else []
 
-    import random
-
-    active_testimonials = list(Testimonial.objects.filter(is_active=True))
-    testimonials = random.sample(active_testimonials, min(len(active_testimonials), 3)) if active_testimonials else []
+    testimonials = public_testimonials(3)
     
     context = {
         'page': page_content,

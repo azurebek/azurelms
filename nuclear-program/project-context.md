@@ -1444,7 +1444,13 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 - Har `<head>` egasi `{% load public_meta %}{% public_meta_tags %}` ni chaqiradi (xato sahifasi `force_noindex=True`). Description/robots/canonical/OG/Twitter/JSON-LD **shablonlarga qo'lda yozilmaydi** — `frontend/public_meta.py` adapterlari kontekstdagi obyektdan (course, post, university, article, legal_page, page) quradi.
 - Absolute URL faqat `settings.PUBLIC_CANONICAL_ORIGIN` (`frontend.public_meta.absolute_url`); `request.build_absolute_uri` public sahifada ishlatilmaydi.
 - Public route sarlavhalari (Cache-Control, Pragma, X-Robots-Tag, Referrer-Policy, Permissions-Policy) va method'i `frontend/public_response.py` middleware'ida registrdan (PUB1.1d) — **view'da `patch_cache_control` bilan alohida yozilmaydi**. Theme CSS `?v=<kontent xeshi>` bilan immutable.
-- `/robots.txt` va `/sitemap.xml` (`frontend/crawler_views.py`, PUB1.1c). Sitemap manbalari `frontend/public_sitemap.py::SOURCES`da — yangi public obyekt turi (masalan SIT1.7a) ikkinchi sitemap emas, shu yerga manba qo'shadi va sahifa view'ining ayni tanlovini ishlatadi.
+- `/robots.txt` va `/sitemap.xml` (`frontend/crawler_views.py`, PUB1.1c).
+
+### Public da'volar dalili (PUB1.2a, 2026-10-18)
+
+- Statistika (talaba soni, foiz, reyting) va o'quvchi fikri public sahifaga faqat `frontend/public_claims.py` selektorlari orqali (`verified_landing_statistics`, `verified_about_statistics`, `public_testimonials`). **To'g'ridan-to'g'ri `Statistic.objects`/`Testimonial.objects` public shablon/view'da ishlatilmaydi.**
+- Dalil: `PublicClaimEvidence` (matn xeshi, muddat, sabab, revizion); owner `backoffice/claims/` sahifasida tasdiqlaydi/qaytaradi; `manage.py audit_public_readiness` — o'qish hisoboti. Testlarda statistikani ko'rsatish uchun `frontend.test_public_claims.approve_for_test`.
+ Sitemap manbalari `frontend/public_sitemap.py::SOURCES`da — yangi public obyekt turi (masalan SIT1.7a) ikkinchi sitemap emas, shu yerga manba qo'shadi va sahifa view'ining ayni tanlovini ishlatadi.
 
 ### Production safety
 
