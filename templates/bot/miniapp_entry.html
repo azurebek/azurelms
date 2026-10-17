@@ -1,4 +1,4 @@
-{% load static %}<!DOCTYPE html>
+{% load static public_meta %}<!DOCTYPE html>
 {% comment %}
 Mini App kirish sahifasi (F5). Telegram webview ochadi:
 telegram-web-app.js dan initData olinadi -> /bot/miniapp/auth/ ga POST ->
@@ -10,6 +10,7 @@ oddiy login sahifasiga yo'naltiradi.
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ site_settings.brand_name|default:"AzureLMS" }}</title>
+  {% public_meta_tags %}
   {% include "components/brand_favicon.html" %}
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>

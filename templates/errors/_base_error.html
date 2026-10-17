@@ -1,4 +1,4 @@
-{% load static %}
+{% load static public_meta %}
 {% comment %}
   Error sahifalari uchun standalone baza (404/403/500/maintenance/offline).
   MUHIM: 500 handler minimal kontekst bilan render qiladi (context-processor'larsiz,
@@ -11,6 +11,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ site_settings.brand_name|default:"AzureLMS" }} — {% block err_title %}Xatolik{% endblock %}</title>
+  {% public_meta_tags force_noindex=True %}
   {% include "components/brand_favicon.html" %}
   <script>(function(){try{var t=localStorage.getItem('az-v2-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

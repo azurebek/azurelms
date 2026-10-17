@@ -699,8 +699,7 @@
   "post": "200",
   "differences": [
    "POST qabul qilinadi, registryda yo'q",
-   "no-store yo'q",
-   "noindex belgisi yo'q"
+   "no-store yo'q"
   ]
  },
  {
@@ -739,8 +738,7 @@
   "head": "200",
   "post": "405",
   "differences": [
-   "no-store yo'q",
-   "noindex belgisi yo'q"
+   "no-store yo'q"
   ]
  },
  {
@@ -752,8 +750,7 @@
   "head": "200",
   "post": "405",
   "differences": [
-   "no-store yo'q",
-   "noindex belgisi yo'q"
+   "no-store yo'q"
   ]
  },
  {
@@ -1330,9 +1327,7 @@
   "deactivated": "200",
   "head": "200",
   "post": "200",
-  "differences": [
-   "noindex belgisi yo'q"
-  ]
+  "differences": []
  },
  {
   "name": "logout",
@@ -1353,8 +1348,7 @@
   "post": "503",
   "differences": [
    "POST qabul qilinadi, registryda yo'q",
-   "no-store yo'q",
-   "noindex belgisi yo'q"
+   "no-store yo'q"
   ]
  },
  {
@@ -1556,8 +1550,7 @@
   "post": "200",
   "differences": [
    "POST qabul qilinadi, registryda yo'q",
-   "no-store yo'q",
-   "noindex belgisi yo'q"
+   "no-store yo'q"
   ]
  },
  {
@@ -1578,8 +1571,7 @@
   "head": "200",
   "post": "200",
   "differences": [
-   "no-store yo'q",
-   "noindex belgisi yo'q"
+   "no-store yo'q"
   ]
  },
  {
@@ -1591,8 +1583,7 @@
   "head": "200",
   "post": "405",
   "differences": [
-   "no-store yo'q",
-   "noindex belgisi yo'q"
+   "no-store yo'q"
   ]
  },
  {
@@ -1603,9 +1594,7 @@
   "deactivated": "200",
   "head": "200",
   "post": "200",
-  "differences": [
-   "noindex belgisi yo'q"
-  ]
+  "differences": []
  },
  {
   "name": "password_reset_done",
@@ -1616,8 +1605,7 @@
   "head": "200",
   "post": "405",
   "differences": [
-   "no-store yo'q",
-   "noindex belgisi yo'q"
+   "no-store yo'q"
   ]
  },
  {
@@ -1659,8 +1647,7 @@
   "head": "200",
   "post": "200",
   "differences": [
-   "no-store yo'q",
-   "noindex belgisi yo'q"
+   "no-store yo'q"
   ]
  },
  {

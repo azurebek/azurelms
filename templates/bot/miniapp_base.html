@@ -1,4 +1,4 @@
-{% load static %}<!DOCTYPE html>
+{% load static public_meta %}<!DOCTYPE html>
 <html lang="uz">
 <head>
   <meta charset="utf-8">
@@ -6,6 +6,7 @@
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#f4f7fb">
   <title>{% block title %}{{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %} · Mini App</title>
+  {% public_meta_tags %}
   {% include "components/brand_favicon.html" %}
   <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
   <link rel="stylesheet" href="{% static 'css/brand.css' %}">

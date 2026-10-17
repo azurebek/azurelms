@@ -1,4 +1,4 @@
-{% load static design_theme %}
+{% load static design_theme public_meta %}
 <!doctype html>
 <html lang="uz" data-theme="light" class="{% block document_class %}{% endblock %}">
 <head>
@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <title>{% block title %}{{ frontend_v1_title }} · {{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}</title>
+  {% public_meta_tags %}
   {% include "components/brand_favicon.html" %}
   <script src="{% static 'frontend_v1/js/theme.js' %}"></script>
   <link rel="stylesheet" href="{% static 'frontend_v1/css/tokens.css' %}">
