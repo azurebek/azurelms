@@ -44,11 +44,26 @@ def _serialize_default_nav_items(request, items):
     return rows
 
 
-def _serialize_landing_nav_items(request, placement=LandingNavItem.Placement.MAIN):
+def _nav_items_by_placement():
+    """Barcha navigatsiya qatorlari bitta so'rovda, joylashuv bo'yicha (PUB1.2b).
+
+    Ilgari har joylashuv (asosiy, utility, uchta footer) alohida so'rov edi —
+    har sahifada beshta.
+    """
     try:
-        nav_items = list(LandingNavItem.objects.filter(placement=placement))
+        items = list(LandingNavItem.objects.order_by("order", "id"))
     except (OperationalError, ProgrammingError):
-        nav_items = []
+        items = []
+    grouped = {}
+    for item in items:
+        grouped.setdefault(item.placement, []).append(item)
+    return grouped
+
+
+def _serialize_landing_nav_items(request, placement=LandingNavItem.Placement.MAIN, grouped=None):
+    if grouped is None:
+        grouped = _nav_items_by_placement()
+    nav_items = grouped.get(placement, [])
 
     if not nav_items:
         if placement == LandingNavItem.Placement.UTILITY:
@@ -80,13 +95,15 @@ def site_settings_context(request):
     except (OperationalError, ProgrammingError):
         public_page_settings = LandingPage()
 
+    grouped = _nav_items_by_placement()
+    placement = LandingNavItem.Placement
     return {
         "site_settings": site_settings,
         "auth_page_settings": auth_page_settings,
         "public_page_settings": public_page_settings,
-        "landing_nav_items": _serialize_landing_nav_items(request),
-        "utility_nav_items": _serialize_landing_nav_items(request, LandingNavItem.Placement.UTILITY),
-        "footer_platform_links": _serialize_landing_nav_items(request, LandingNavItem.Placement.FOOTER_PLATFORM),
-        "footer_company_links": _serialize_landing_nav_items(request, LandingNavItem.Placement.FOOTER_COMPANY),
-        "footer_legal_links": _serialize_landing_nav_items(request, LandingNavItem.Placement.FOOTER_LEGAL),
+        "landing_nav_items": _serialize_landing_nav_items(request, placement.MAIN, grouped),
+        "utility_nav_items": _serialize_landing_nav_items(request, placement.UTILITY, grouped),
+        "footer_platform_links": _serialize_landing_nav_items(request, placement.FOOTER_PLATFORM, grouped),
+        "footer_company_links": _serialize_landing_nav_items(request, placement.FOOTER_COMPANY, grouped),
+        "footer_legal_links": _serialize_landing_nav_items(request, placement.FOOTER_LEGAL, grouped),
     }

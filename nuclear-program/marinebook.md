@@ -16,6 +16,34 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-18 [Claude]: PUBLIC-01 / PUB1.2b — bosh sahifa va About deterministik proyeksiyasi
+
+Bosh sahifa view’i hech qayerda chizilmaydigan narsalarni ham o‘qirdi: oxirgi 4
+learner (`recent_students`, PII), slayder/portal qatorlari; kurs so‘rovi
+o‘qituvchining butun akkauntini (email, telefon, parol xeshi) xotiraga olardi;
+menyu har sahifada 5 so‘rov; tartiblarda tiebreak yo‘q edi.
+
+- Branch: `claude/pub12b-landing-selectors`; kod commit **`3797784`**. Migration yo‘q.
+- Qarorlar: `frontend/public_content.py` renderer’ga xos proyeksiya (legacy/V1
+  faqat o‘zi chizadiganini oladi); keraksiz kalitlar va default yordamchilar
+  olib tashlandi; to‘liq tartib (`order, id`, kurslar `-faol, -created_at, -id`);
+  o‘qituvchidan faqat ism (`.only`); menyu 1 so‘rov. So‘rov budjeti testda
+  (legacy bosh 14, V1 bosh 13, legacy about 12, V1 about 11).
+- Test: safe env’da `manage.py test frontend.test_public_content` — **6 test, OK**;
+  to‘liq `manage.py test` — **2968 test, OK (skipped=69)**; `manage.py check`,
+  `makemigrations --check` toza; `git diff --check` PASS. Nazorat yugurishi:
+  6 ta buzilish (recent_students qaytishi, `.only`siz, jamoa aralashtirilishi,
+  renderer’ni farqlamaslik, menyu har joylashuvga so‘rov, kurs tiebreak’siz) —
+  hammasi FAIL, tiklangach PASS.
+- Brauzer (DB nusxasida): V1 bosh sahifa — faqat tasdiqlangan “6 Daraja”, jarayon
+  qadamlari, kurslar; theme CSS versiyalangan URL bilan. (Nusxa bazada PR #213
+  oldingi 0021 versiyasi qo‘llangan edi — `consent_digest` ustuni qo‘lda
+  qo‘shildi; haqiqiy bazalarga tegishli emas.)
+- PR #214 Codex review (P2, to‘g‘ri): proyeksiya va `render_public` bayroqni alohida
+  o‘qirdi — oraliqda o‘zgarsa shablon/kontekst mos kelmasdi. `fabf622`: renderer bir
+  marta tanlanadi, `render_public(..., v1=...)`; regressiya testi bilan.
+- Davom etilishi kerak: PUB1.2c (B3.5 writer/readiness integratsiyasi).
+
 ## 2026-10-18 [Claude]: PUBLIC-01 / PUB1.2a — statistika faqat dalil bilan, fikr faqat rozilik bilan
 
 Bosh sahifadagi “2400+ Faol talaba / 94% Sertifikat oldi / 4.9 Reyting” migration

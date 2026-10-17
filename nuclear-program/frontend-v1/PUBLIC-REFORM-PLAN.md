@@ -1,7 +1,7 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
-**Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) hamda PUB1.2a kodda
-(2026-10-16/18, lokal)**, PUB1.2b va keyingi kesimlar boshlanmagan
+**Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) hamda PUB1.2a–b kodda
+(2026-10-16/18, lokal)**, PUB1.2c va keyingi kesimlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
 **Kod tayanchi:** `main`dagi `72e82e0`
 **Birinchi implementatsiya kesimi:** `PUB1.0a`
@@ -1631,6 +1631,22 @@ consent/revoke; concurrent approval; audit rerun/no mutation; legacy/V1 equality
 va award defaulti dalilsiz ko‘rinmaydi. Migration production fakt to‘qimaydi.
 
 #### PUB1.2b — deterministic landing/About selectors
+
+**Holat — 2026-10-18: kodda, lokal tekshirilgan** (branch
+`claude/pub12b-landing-selectors`). `frontend/public_content.py` —
+`home_projection`/`about_projection` renderer’ga xos: legacy faqat
+`level_stages/ai_features/exam_skills`, V1 faqat `popular_courses` va fikrlarni
+oladi. Hech qayerda chizilmaydigan `recent_students` (learner PII),
+`hero_slides`, `portal_tabs`, `portal_items` va ularning default yordamchilari
+olib tashlandi. Har ro‘yxat to‘liq tartibda (`order, id`; kurslar
+`-faol o‘quvchi, -created_at, -id`), statistika selektorlariga ham `id`
+qo‘shildi. Kurs kartasi so‘rovi o‘qituvchidan faqat ism/username o‘qiydi
+(`.only`) — email, telefon, parol xeshi, Telegram ID xotiraga ham kelmaydi.
+Context processor menyu qatorlarini 5 so‘rov o‘rniga 1 so‘rovda oladi (har
+sahifaga foyda). So‘rov budjeti: legacy bosh 14, V1 bosh 13, legacy about 12,
+V1 about 11 — ma’lumot hajmidan qat’i nazar. Bo‘sh sayt — rost bo‘sh holat.
+**Ochiq:** `LandingPage` bosh sahifada ikki marta o‘qiladi (view va context
+processor); `TeamMember`da nashr bayrog‘i yo‘q (B3.5 writer kesimi).
 
 **Ish:** renderer-specific read projection; unused `recent_students` va ortiqcha
 queries olib tashlash; testimonials explicit order; published-only team/stats;
