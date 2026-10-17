@@ -16,6 +16,35 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-17 [Claude]: PUBLIC-01 / PUB1.1b — yagona metadata va sozlangan canonical origin
+
+Metadata tarqoq edi: ko‘p sahifada description/robots/canonical umuman yo‘q,
+V1 blog/SIT o‘zicha yozardi, blog ulashish havolasi so‘rovdagi `Host`dan
+quriladi — soxta Host bilan ulashish va og:url begona domenga ketardi.
+
+- Branch: `claude/pub11b-public-metadata`; kod commit **`9040554`**. Migration yo‘q.
+- Qarorlar: `frontend/public_meta.py` (`PublicPageMeta` + adapterlar) va
+  `{% public_meta_tags %}` — har `<head>` egasi shu bitta blok; ad-hoc meta
+  olib tashlandi. `PUBLIC_CANONICAL_ORIGIN` (env, default `https://APP_DOMAIN`;
+  `azurelms.E202`). Robots registrdan (sensitive/holat/xato/private/preview
+  noindex; filtr/qidiruv `noindex, follow` + toza canonical). Tariflar PUB1.2
+  haqqoniy taklifigacha `noindex`. JSON-LD faqat ko‘rinadigan maydonlardan,
+  narxsiz.
+- Test: safe env’da `manage.py test frontend.test_public_meta` — **10 test, OK**;
+  to‘liq `manage.py test` — **2929 test, OK (skipped=69)**; `manage.py check`,
+  `makemigrations --check` toza; `git diff --check` PASS. Nazorat yugurishi:
+  8 ta buzilish (Host’dan canonical, Host’dan ulashish, xato sahifasi
+  indekslanishi, sensitive indekslanishi, qidiruv indekslanishi, takroriy
+  description, JSON-LD escape’siz, OG rasm nisbiy) — hammasi FAIL, tiklangach
+  PASS; xato-sahifa holati birinchi urinishda o‘tib ketgan edi (`?page=99` 404
+  holati qo‘shildi).
+- Brauzer (DB nusxasida): kurs sahifasi — `index, follow`, canonical sozlangan
+  origin’dan (brauzer 8047, canonical 8000), JSON-LD Course + BreadcrumbList;
+  login — `noindex, nofollow, noarchive`, canonical/OG yo‘q.
+- Route snapshot: PUB1.1a’dagi “noindex belgisi yo‘q” farqlari yopildi.
+- Davom etilishi kerak: PUB1.1c (robots.txt va published-only sitemap).
+  Production `.env`da `PUBLIC_CANONICAL_ORIGIN` ixtiyoriy (bo‘sh — `https://APP_DOMAIN`).
+
 ## 2026-10-17 [Claude]: PUBLIC-01 / PUB1.1a — har route public, ops yoki private deb tasniflandi
 
 Qaysi route anonimga ochiq ekanini hech narsa qayd qilmasdi: yangi view

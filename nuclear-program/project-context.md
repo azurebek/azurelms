@@ -1439,6 +1439,11 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 - `frontend/public_route_snapshot.json` — har route uchun anonim/kirgan/faolsiz GET va anonim HEAD/POST natijasi. Xulq ataylab o'zgarsa: `UPDATE_PUBLIC_ROUTE_SNAPSHOT=1 python manage.py test frontend.test_public_route_registry`.
 - `manage.py audit_public_routes` — statik hisobot (so'rov yubormaydi). Registry deklarativ: view'lar undan qaror olmaydi.
 
+### Public metadata (PUB1.1b, 2026-10-17)
+
+- Har `<head>` egasi `{% load public_meta %}{% public_meta_tags %}` ni chaqiradi (xato sahifasi `force_noindex=True`). Description/robots/canonical/OG/Twitter/JSON-LD **shablonlarga qo'lda yozilmaydi** — `frontend/public_meta.py` adapterlari kontekstdagi obyektdan (course, post, university, article, legal_page, page) quradi.
+- Absolute URL faqat `settings.PUBLIC_CANONICAL_ORIGIN` (`frontend.public_meta.absolute_url`); `request.build_absolute_uri` public sahifada ishlatilmaydi.
+
 ### Production safety
 
 - Local mode remote DB/Redis/S3'ga tasodifan ulanmaydi (`LOCAL_USE_REMOTE_SERVICES=True` bo'lmasa)
