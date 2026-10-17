@@ -112,7 +112,7 @@ class CleanDatabaseTests(WriteFreeMixin, TestCase):
                 with self.subTest(name=name, v1=enabled):
                     response = self.get_without_writes(reverse(name))
                     self.assertEqual(response.status_code, 503)
-                    self.assertEqual(response["X-Robots-Tag"], "noindex")
+                    self.assertIn("noindex", response["X-Robots-Tag"])
                     self.assertIn("no-store", response["Cache-Control"])
                     self.assertContains(response, "e’lon qilinmagan", status_code=503)
                     self.assertContains(response, LegalPage.UNAVAILABLE_TITLES[page_type], status_code=503)

@@ -254,6 +254,9 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
+    # Public route method/cache siyosati (PUB1.1d) — CSRF'dan oldin: GET-only
+    # sahifaga POST 405 oladi, 403 emas.
+    "frontend.public_response.PublicResponsePolicyMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",

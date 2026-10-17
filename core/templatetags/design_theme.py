@@ -17,7 +17,12 @@ def published_design_css(context):
     try:
         if not flag_enabled('backoffice_design_workspace'):
             return ''
-        theme_url = reverse('design_theme_css')
+        from core.design_views import published_theme
+
+        # Revision-keyed URL: publish/rollback changes it, so the stylesheet
+        # can be cached immutably without serving a stale theme (PUB1.1d).
+        _css, revision = published_theme()
+        theme_url = f"{reverse('design_theme_css')}?v={revision}"
         adapter_url = static('backoffice/design-runtime.css')
     except (DatabaseError, UnknownFlag, NoReverseMatch):
         # A missing migration/route or unreadable flag keeps the static theme.
