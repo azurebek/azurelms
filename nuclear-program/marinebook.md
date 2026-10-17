@@ -16,6 +16,35 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-17 [Claude]: PUBLIC-01 / PUB1.1a — har route public, ops yoki private deb tasniflandi
+
+Qaysi route anonimga ochiq ekanini hech narsa qayd qilmasdi: yangi view
+qo‘shilsa u jimgina public bo‘lib qolishi mumkin edi. Endi 221 nomli route’ning
+har biri `frontend/public_policy.py`da tasniflangan va `check` buni majburlaydi.
+
+- Branch: `claude/pub11a-public-route-registry`; kod commit **`458938a`**.
+  Migration yo‘q.
+- Qarorlar: public 30 (siyosat bilan: method, auditoriya, index, canonical,
+  sitemap, cache, rich profil), ops 5, private 186. `azurelms.E201`
+  tasniflanmagan route’da `check`ni va test runner’ni yiqitadi. Registry
+  deklarativ — view’lar undan qaror olmaydi. Xulq snapshot’i
+  (`frontend/public_route_snapshot.json`) ongli yangilanadi. Sertifikat (aniq ID
+  bilan) va Mini App kirishi sensitive public deb tasniflandi. Agent qoidalari
+  test matritsasiga “yangi route → tasnif” qatori qo‘shildi.
+- Test: safe env’da `manage.py test frontend.test_public_route_registry` —
+  **10 test, OK**; to‘liq `manage.py test` — **2919 test, OK (skipped=69)**;
+  `manage.py check`, `makemigrations --check` toza; `git diff --check` PASS.
+  Nazorat yugurishi: 5 ta buzilish (tasniflanmagan route, public sahifani
+  registrdan olish, sensitive-noindex qoidasini o‘chirish, blog ro‘yxatiga POST
+  qo‘shish, about’ga private matn) — ikkitasi `SystemCheckError` bilan test
+  runner’ni to‘xtatdi, qolganlari FAIL; tiklangach PASS. Audit avval 74 s edi
+  (har so‘rovga yangi `Client` → middleware qayta quriladi), Client qayta
+  ishlatilib 2.6 s.
+- Dalil sifatida ochiq farqlar: login/register/reset, sertifikat, Mini App,
+  maintenance/offline’da `noindex` va ko‘pida `no-store` yo‘q; bosh sahifa,
+  about, legal, SIT, offline GET-only bo‘lsa ham POST qabul qiladi.
+- Davom etilishi kerak: PUB1.1b (deterministik metadata va canonical origin).
+
 ## 2026-10-17 [Claude]: PUBLIC-01 / PUB1.0g — Blog anonim kuzatuvi yopildi (PUB1.0 bosqichi tugadi)
 
 Maqolani ochgan har anonimga bir yillik `blog_visitor` cookie qo‘yilar, o‘qish
