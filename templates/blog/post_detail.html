@@ -57,9 +57,14 @@
 
   <!-- Clap -->
   <div style="display:flex;justify-content:center;margin:0 0 36px;">
+    {% if user.is_authenticated %}
     <form method="post" action="{% url 'blog:clap' slug=post.slug %}">{% csrf_token %}
       <button type="submit" style="display:inline-flex;align-items:center;gap:9px;height:46px;padding:0 22px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:14px;font-weight:600;cursor:pointer;"><i class="bi bi-hand-thumbs-up{% if my_clap_count %}-fill{% endif %}" style="color:var(--azure);font-size:17px;"></i> Foydali{% if my_clap_count %} · {{ my_clap_count }}{% endif %}</button>
     </form>
+    {% else %}
+    {# Anonim olqish yashirin cookie yaratardi — kirish kerak (PUB1.0g). #}
+    <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}" data-clap-login style="display:inline-flex;align-items:center;gap:9px;height:46px;padding:0 22px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:14px;font-weight:600;"><i class="bi bi-hand-thumbs-up" style="color:var(--azure);font-size:17px;"></i> Foydali deb belgilash uchun kiring</a>
+    {% endif %}
   </div>
 
   <!-- Muallif kartasi -->

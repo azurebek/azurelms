@@ -34,7 +34,7 @@ WRITE = re.compile(r"^\s*(INSERT|UPDATE|DELETE|REPLACE)\b", re.IGNORECASE)
 TABLE = re.compile(r'^\s*(?:INSERT\s+INTO|UPDATE|DELETE\s+FROM|REPLACE\s+INTO)\s+"?([\w]+)"?', re.IGNORECASE)
 SINGLETONS = (SiteSettings, AuthPageSettings, LandingPage, AboutPage, BlogHomeSettings)
 LEGAL_ROUTES = {"privacy_policy": "privacy", "terms_of_service": "terms", "faq_page": "faq"}
-# Ataylab qilingan analytics (PUB1.0g): faqat shu jadvallar va faqat maqola sahifasida.
+# Ataylab qilingan analytics: faqat kirgan o'quvchi, faqat shu jadvallar (PUB1.0g).
 BLOG_READ_ANALYTICS_TABLES = {"blog_blogpostread", "blog_blogpost"}
 FLAG_SLUGS = ("frontend_v1_public", "frontend_v1_auth", "frontend_v1_records")
 
@@ -169,7 +169,12 @@ class PopulatedDatabaseTests(WriteFreeMixin, TestCase):
         set_v1(False)
         self.assertContains(self.client.get(reverse("login")), "Owner brendi")
 
-    def test_blog_post_read_writes_only_the_named_analytics_tables(self):
+    def test_anonymous_blog_post_read_writes_nothing(self):
+        # PUB1.0g: anonim o'qish kuzatilmaydi.
+        self.get_without_writes(reverse("blog:detail", args=[self.post.slug]))
+
+    def test_signed_in_blog_post_read_writes_only_the_named_analytics_tables(self):
+        self.client.force_login(self.staff)
         with CaptureQueriesContext(connection) as queries:
             response = self.client.get(reverse("blog:detail", args=[self.post.slug]))
         self.assertEqual(response.status_code, 200)

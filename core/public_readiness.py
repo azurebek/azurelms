@@ -42,6 +42,8 @@ class LegalPageState:
 class PublicReadiness:
     legal: tuple[LegalPageState, ...]
     missing_singletons: tuple[str, ...]
+    # PUB1.0g'gacha yig'ilgan anonim blog kuzatuvi (qator soni).
+    legacy_blog_tracking: int = 0
 
     @property
     def missing_legal(self):
@@ -79,4 +81,10 @@ def missing_singletons():
 
 
 def public_readiness():
-    return PublicReadiness(legal=legal_readiness(), missing_singletons=missing_singletons())
+    from blog.tracking_cleanup import legacy_tracking
+
+    return PublicReadiness(
+        legal=legal_readiness(),
+        missing_singletons=missing_singletons(),
+        legacy_blog_tracking=legacy_tracking().total,
+    )

@@ -32,21 +32,30 @@ class BlogFlowTests(TestCase):
         self.assertEqual(detail_response.status_code, 200)
         self.assertContains(detail_response, self.post.title)
 
-    def test_unique_view_counter_counts_per_visitor(self):
+    def test_unique_view_counter_counts_per_signed_in_reader(self):
+        # Anonim o'qish PUB1.0g'dan beri sanalmaydi (cookie/IP yozilmaydi).
         url = reverse("blog:detail", args=[self.post.slug])
+        reader = CustomUser.objects.create_user(username="reader", email="reader@example.com", password="testpass123")
+        self.client.force_login(reader)
 
         self.client.get(url)
         self.client.get(url)
         self.post.refresh_from_db()
         self.assertEqual(self.post.view_count, 1)
 
+        Client().get(url)
+        self.post.refresh_from_db()
+        self.assertEqual(self.post.view_count, 1)
+
         second_client = Client()
+        second_client.force_login(self.author)
         second_client.get(url)
         self.post.refresh_from_db()
         self.assertEqual(self.post.view_count, 2)
 
-    def test_clap_endpoint_accumulates_for_same_visitor(self):
+    def test_clap_endpoint_accumulates_for_same_reader(self):
         url = reverse("blog:clap", args=[self.post.slug])
+        self.client.force_login(self.author)
 
         first = self.client.post(url)
         second = self.client.post(url)

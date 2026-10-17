@@ -1,7 +1,7 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
-**Holat:** REJA TAYYOR; **PUB1.0a–f kodda (2026-10-16/17, lokal)**, PUB1.0g va keyingi
-bosqichlar boshlanmagan
+**Holat:** REJA TAYYOR; **PUB1.0 bosqichi (a–g) kodda (2026-10-16/17, lokal)**, PUB1.1 va
+keyingi bosqichlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
 **Kod tayanchi:** `main`dagi `72e82e0`
 **Birinchi implementatsiya kesimi:** `PUB1.0a`
@@ -1419,6 +1419,22 @@ log/eventda yo‘q; send exception enumeration leak bermaydi.
 delivery claim yo‘q; current one-use reset regressiyasi 0.
 
 #### PUB1.0g — Blog anonymous tracking containment
+
+**Holat — 2026-10-17: kodda, lokal tekshirilgan** (branch
+`claude/pub10g-blog-tracking`). PUB-D6 qarorigacha xavfsiz default: anonim
+maqola o‘qish write 0 va cookie 0; eski `blog_visitor` cookie ko‘rilsa
+o‘chiriladi va o‘qilmaydi. Kirgan o‘quvchi o‘qishi bir marta sanaladi — faqat
+(maqola, foydalanuvchi), IP xeshi va user-agent yozilmaydi; preview/bot 0.
+Anonim olqish **login talab qiladi** (`403 auth_required` JSON yoki login’ga
+redirect; legacy va V1’da anonimga forma o‘rniga kirish havolasi). Eski data:
+`blog/tracking_cleanup.py` + `manage.py purge_blog_read_tracking` (default faqat
+hisobot, `--apply` anonim qatorlarni o‘chiradi va IP/UA’ni bo‘shatadi; jami
+`view_count`/`clap_count` o‘zgarmaydi) — data o‘chirish owner buyrug‘i bilan,
+avtomatik migration emas. Control Center `public_content` eski kuzatuv qatorini
+sariq ko‘rsatadi. PUB1.0e write-free testi anonim maqola o‘qishini ham 0 deb
+qulfladi. **Ochiq:** ixtiyoriy (admitted) anonim analytics — PUB-D6 qarori va
+PUB1.5b/PUB1.8a; maqola sahifasidagi “N ko‘rish” endi asosan kirgan
+o‘quvchilarni sanaydi (aggregate, “unique reader” deb talqin qilinmaydi).
 
 **Ish:** Blog page renderini visitor cookie/IP hash/read mutationidan ajratish.
 PUB-D6gacha anonymous unique tracking default OFF; authenticated read ham
