@@ -1,7 +1,7 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
-**Holat:** REJA TAYYOR; **PUB1.0 bosqichi (a–g) va PUB1.1a–b kodda (2026-10-16/17, lokal)**,
-PUB1.1c va keyingi kesimlar boshlanmagan
+**Holat:** REJA TAYYOR; **PUB1.0 bosqichi (a–g) va PUB1.1a–c kodda (2026-10-16/17, lokal)**,
+PUB1.1d va keyingi kesimlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
 **Kod tayanchi:** `main`dagi `72e82e0`
 **Birinchi implementatsiya kesimi:** `PUB1.0a`
@@ -1531,6 +1531,23 @@ escaping, long descriptions, image privacy, visible-data metadata equality.
 duplicate/conflicting tags 0. Legacy/V1 security parity.
 
 #### PUB1.1c — robots va published-only sitemap
+
+**Holat — 2026-10-17: kodda, lokal tekshirilgan** (branch
+`claude/pub11c-robots-sitemap`). `frontend/public_sitemap.py` — manba registri
+(statik: bosh, about, kurslar, blog, SIT bosh/universitetlar; obyekt: faol kurs,
+`BlogPost.objects.published()`, e’lon qilingan universitet va qo‘llanma; huquqiy
+sahifa faqat qatori bo‘lsa); har manba sahifa view’i ishlatadigan ayni
+tanlovni ishlatadi, registryda `exclude`/sensitive route kirsa xato.
+`/robots.txt` — faqat `Disallow:` (bo‘sh) va sitemap ko‘rsatkichi, private yo‘l
+ro‘yxati yo‘q; `/sitemap.xml` — absolute URL faqat `PUBLIC_CANONICAL_ORIGIN`dan,
+XML escape, `lastmod` faqat haqiqiy `updated_at` (kursda yo‘q — o‘ylab
+topilmaydi; olqish/ko‘rish sanog‘i uni o‘zgartirmaydi). Ikkalasi GET/HEAD,
+`Cache-Control: no-cache` (obyekt olinsa keyingi so‘rovda chiqadi), route
+registrda ops. Test: har sitemap URL 200 + `index, follow` + canonical’ga teng;
+draft/kelajak/yashirin/faol bo‘lmagan/auth/sertifikat/tariflar kirmaydi.
+**Ochiq:** huquqiy sahifa “e’lon qilingan” = qatori bor (eski avtomatik namuna
+matn ham kiradi — Control Center `public_content` sariq; legal revision
+kesimlari); sitemap index (>50 000 URL) kerak bo‘lmaguncha yo‘q.
 
 **Ish:** root `robots.txt`, `sitemap.xml`, object registry; published/effective
 Course/Blog/SIT/legal policy. No secret-route dump; absolute configured URLs;

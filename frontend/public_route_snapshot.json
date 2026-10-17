@@ -1651,6 +1651,15 @@
   ]
  },
  {
+  "name": "robots_txt",
+  "class": "ops",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "200",
+  "post": "405"
+ },
+ {
   "name": "settings",
   "class": "private",
   "anonymous": "302>settings_account",
@@ -1832,6 +1841,15 @@
   "deactivated": "302>login",
   "head": "302>login",
   "post": "302>login"
+ },
+ {
+  "name": "sitemap_xml",
+  "class": "ops",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "200",
+  "post": "405"
  },
  {
   "name": "start_smart_onboarding",

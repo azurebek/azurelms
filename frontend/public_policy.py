@@ -124,6 +124,8 @@ OPS_ROUTES = {
     "design_theme_css": "Runtime dizayn token CSS'i (asset).",
     "ck_editor_5_upload_file": "CKEditor rasm upload'i (faqat xodim).",
     "bot:telegram_webhook": "Telegram webhook (secret token bilan).",
+    "robots_txt": "Crawler uchun sitemap ko'rsatkichi (sahifa emas).",
+    "sitemap_xml": "Faqat e'lon qilingan canonical URL'lar (frontend/public_sitemap.py).",
 }
 # Faqat sozlama yoqilganda mount bo'ladigan ops route'lar.
 OPTIONAL_OPS_ROUTES = {
