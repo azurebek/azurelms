@@ -16,6 +16,30 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-17 [Claude]: PUBLIC-01 / PUB1.1d — sarlavha va method matritsasi (PUB1.1 bosqichi tugadi)
+
+Public sahifalar sarlavhasi tarqoq edi: legacy hech narsa yozmasdi (brauzer va
+proxy taxminiy keshlardi), V1 hammasiga `no-store`; login/parol sahifalarida
+`no-store` yo‘q, GET-only sahifalar POST’ni ham render qilardi.
+
+- Branch: `claude/pub11d-header-matrix`; kod commit **`dbfae24`**. Migration yo‘q.
+- Qarorlar: bitta middleware registrdan (CSRF’dan oldin): undeclared method
+  `405`; sensitive `private, no-store` + `no-referrer` + noindex; holat/xato/
+  preview `no-store`; mehmon sahifasi `private, no-cache` + ETag, kirgan
+  foydalanuvchi yoki cookie qo‘yadigan javob `private, no-store`; shared cache
+  hech qayerda; `Permissions-Policy`. Theme CSS kontent-xeshli immutable URL.
+  V1’ning “hammasi no-store” qoidasi shaxsiy javob uchun saqlandi.
+- Test: safe env’da `manage.py test frontend.test_public_response` — **7 test,
+  OK**; to‘liq `manage.py test` — **2946 test, OK (skipped=69)**; `manage.py
+  check`, `makemigrations --check` toza; `git diff --check` PASS. Nazorat
+  yugurishi: 8 ta buzilish (method gate, sensitive referrer, shaxsiy javob
+  keshlanishi, xato keshlanishi, ETag yo‘q, preview keshlanishi, har `v`
+  immutable, kalitsiz URL) — hammasi FAIL, tiklangach PASS.
+- Route snapshot: PUB1.1a’da dalil sifatida qayd etilgan farqlar — **0 qoldi**.
+- Ochiq: Caddy `encode` ETag suffiksi tufayli prod’da 304 kafolatsiz (eskirish
+  xavfi yo‘q); private route sarlavha matritsasi keyingi ish.
+- Davom etilishi kerak: PUB1.2a (claim evidence va readiness).
+
 ## 2026-10-17 [Claude]: PUBLIC-01 / PUB1.1c — robots.txt va faqat e’lon qilingan sitemap
 
 Saytda `robots.txt` ham, `sitemap.xml` ham yo‘q edi: crawler sahifalarni faqat
