@@ -39,6 +39,9 @@ menyu har sahifada 5 so‘rov; tartiblarda tiebreak yo‘q edi.
   qadamlari, kurslar; theme CSS versiyalangan URL bilan. (Nusxa bazada PR #213
   oldingi 0021 versiyasi qo‘llangan edi — `consent_digest` ustuni qo‘lda
   qo‘shildi; haqiqiy bazalarga tegishli emas.)
+- PR #214 Codex review (P2, to‘g‘ri): proyeksiya va `render_public` bayroqni alohida
+  o‘qirdi — oraliqda o‘zgarsa shablon/kontekst mos kelmasdi. `fabf622`: renderer bir
+  marta tanlanadi, `render_public(..., v1=...)`; regressiya testi bilan.
 - Davom etilishi kerak: PUB1.2c (B3.5 writer/readiness integratsiyasi).
 
 ## 2026-10-18 [Claude]: PUBLIC-01 / PUB1.2a — statistika faqat dalil bilan, fikr faqat rozilik bilan
