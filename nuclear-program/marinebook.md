@@ -16,6 +16,31 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-17 [Claude]: PUBLIC-01 / PUB1.1c — robots.txt va faqat e’lon qilingan sitemap
+
+Saytda `robots.txt` ham, `sitemap.xml` ham yo‘q edi: crawler sahifalarni faqat
+havolalar orqali topardi va qaysi URL asosiy ekanini bilmasdi.
+
+- Branch: `claude/pub11c-robots-sitemap`; kod commit **`e8bea13`**. Migration yo‘q.
+- Qarorlar: `frontend/public_sitemap.py` manba registri — har manba sahifa
+  view’ining ayni tanlovi (faol kurs, `published()` blog/SIT, qatori bor huquqiy
+  sahifa); exclude/sensitive route kirsa xato. `robots.txt` private yo‘l
+  ro‘yxatisiz (faqat sitemap ko‘rsatkichi), noindex sahifalar crawler’ga ochiq.
+  `lastmod` faqat haqiqiy `updated_at`; kursda o‘ylab topilmaydi. GET/HEAD,
+  `no-cache`. Tariflar PUB1.2 gacha sitemap’da yo‘q.
+- Test: safe env’da `manage.py test frontend.test_public_sitemap` — **10 test,
+  OK**; to‘liq `manage.py test` — **2939 test, OK (skipped=69)**; `manage.py
+  check`, `makemigrations --check` toza; `git diff --check` PASS. Nazorat
+  yugurishi: 8 ta buzilish (draft, tariflar, faol bo‘lmagan kurs, Host’dan
+  robots, soxta lastmod, private yo‘l ro‘yxati, uzoq cache, escape’siz XML) —
+  hammasi FAIL, tiklangach PASS. Route snapshot HEAD 405’ni ko‘rsatdi —
+  `require_safe`ga o‘tkazildi.
+- Brauzer (DB nusxasida): sitemap 15 URL, login/private/tariflar yo‘q; robots
+  sitemap’ni sozlangan origin bilan ko‘rsatadi.
+- Diqqat: huquqiy sahifalar qatori bor bo‘lsa sitemap’da — lokal nusxada ular
+  hali eski avtomatik namuna matnda (Control Center sariq).
+- Davom etilishi kerak: PUB1.1d (response/cache/security header matritsasi).
+
 ## 2026-10-17 [Claude]: PUBLIC-01 / PUB1.1b — yagona metadata va sozlangan canonical origin
 
 Metadata tarqoq edi: ko‘p sahifada description/robots/canonical umuman yo‘q,

@@ -1443,6 +1443,7 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 
 - Har `<head>` egasi `{% load public_meta %}{% public_meta_tags %}` ni chaqiradi (xato sahifasi `force_noindex=True`). Description/robots/canonical/OG/Twitter/JSON-LD **shablonlarga qo'lda yozilmaydi** — `frontend/public_meta.py` adapterlari kontekstdagi obyektdan (course, post, university, article, legal_page, page) quradi.
 - Absolute URL faqat `settings.PUBLIC_CANONICAL_ORIGIN` (`frontend.public_meta.absolute_url`); `request.build_absolute_uri` public sahifada ishlatilmaydi.
+- `/robots.txt` va `/sitemap.xml` (`frontend/crawler_views.py`, PUB1.1c). Sitemap manbalari `frontend/public_sitemap.py::SOURCES`da — yangi public obyekt turi (masalan SIT1.7a) ikkinchi sitemap emas, shu yerga manba qo'shadi va sahifa view'ining ayni tanlovini ishlatadi.
 
 ### Production safety
 
