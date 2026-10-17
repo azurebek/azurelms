@@ -1,7 +1,7 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
-**Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) kodda (2026-10-16/17, lokal)**,
-PUB1.2 va keyingi bosqichlar boshlanmagan
+**Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) hamda PUB1.2a kodda
+(2026-10-16/18, lokal)**, PUB1.2b va keyingi kesimlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
 **Kod tayanchi:** `main`dagi `72e82e0`
 **Birinchi implementatsiya kesimi:** `PUB1.0a`
@@ -1595,6 +1595,28 @@ emas; stale publish rollback testli. Global CSP weakening yo‘q.
 ### PUB1.2 — landing, trust va content readiness
 
 #### PUB1.2a — claim evidence va readiness foundation
+
+**Holat — 2026-10-18: kodda, lokal tekshirilgan** (branch
+`claude/pub12a-claim-evidence`). Additive `frontend 0021`: `PublicClaimEvidence`
+(claim_key, content_digest, source_url, evidence_note, verified_at, expires_at,
+approved_by, approval_reason, revoked_at, revision) va `Testimonial` rozilik/tartib
+maydonlari (display_name, consent_scope, consent_confirmed_at, consent_revoked_at,
+source_reference, order). `frontend/public_claims.py` — da’vo matni (qiymat + nomi)
+SHA-256 bilan bog‘lanadi: tahrir → `stale`, `expires_at` (chegara inklyuziv) →
+`expired`, qaytarish → `revoked`; faqat `verified` ko‘rinadi. Tasdiqlash/qaytarish
+sabab, revizion (CAS → `ClaimConflict`) va `SystemAuditEvent` bilan; manba faqat
+https. Bosh sahifa va “Biz haqimizda” statistikasi hamda legacy auth panelidagi
+(oldin qattiq yozilgan `2,400+/94%/4.9`) raqamlar shu selektordan; fikrlar faqat
+rozilik bilan, barqaror tartibda (random olib tashlandi), “umumiy reyting emas”
+izohi bilan. Owner sahifasi `backoffice/claims/` (Sayt va dizayn hub’ida; sabab +
+tasdiq belgisi). `manage.py audit_public_readiness` — faqat o‘qiydi; Control
+Center `public_content` hisoblari, ogohlantirish faqat tasdiqlangan da’vo
+eskirganda (dalilsiz = yashirin, xavfsiz holat). Seed qatorlar tasdiqlanmadi.
+**Qaror:** landing “namuna” dashboard (demo_stat_*, “94% Exam natija”) mahsulot
+UI illyustratsiyasi deb boshqariladigan da’voga kiritilmadi; `hero_badge`
+(“2026 yilning eng yaxshi platformasi”) hech qayerda chiqmaydi. **Ochiq:**
+qo‘llab-quvvatlash javob vaqti matnlari (“3 ish kunida”, “3 soatda”) shablonda —
+keyingi selector kesimi; bosh sahifadagi `recent_students` PII proyeksiyasi.
 
 **Ish:** additive `PublicClaimEvidence`, digest/freshness/approval service,
 testimonial consent/order maydonlari, read-only audit command va Control Center
