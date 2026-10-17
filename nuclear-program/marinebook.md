@@ -16,6 +16,33 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-17 [Claude]: PUBLIC-01 / PUB1.0g — Blog anonim kuzatuvi yopildi (PUB1.0 bosqichi tugadi)
+
+Maqolani ochgan har anonimga bir yillik `blog_visitor` cookie qo‘yilar, o‘qish
+IP xeshi (soxtalashtiriladigan chap XFF’dan) va user-agent bilan yozilar, anonim
+olqish ham ayni cookie’ni yaratardi — owner qarorisiz yashirin kuzatuv.
+
+- Branch: `claude/pub10g-blog-tracking`; kod commit **`ea10819`**. Migration yo‘q.
+- Qarorlar (PUB-D6 qarorigacha xavfsiz default): anonim o‘qish write/cookie 0,
+  eski cookie o‘chiriladi; kirgan o‘quvchi bir marta, IP/UA’siz; preview/bot 0;
+  anonim olqish login talab qiladi (izoh va izohni yoqtirish kabi); eski data
+  avtomatik o‘chirilmaydi — `purge_blog_read_tracking` default hisobot,
+  `--apply` bilan tozalaydi, jami sonlar saqlanadi; Control Center sariq.
+  BLOG1.0a3 cookie qismi shu implementatsiyani reuse qiladi (BLOG-01’da eslatma).
+- Test: safe env’da `manage.py test blog frontend.test_public_get_write_free`
+  ichida yangi `blog.test_tracking_containment` — **10 test, OK**; to‘liq
+  `manage.py test` — **2909 test, OK (skipped=69)**; `manage.py check`,
+  `makemigrations --check` toza; `git diff --check` PASS. Nazorat yugurishi:
+  7 ta buzilish (anonim kuzatuv, UA saqlash, eski cookie qoldirish, anonim
+  olqish, redaction yo‘qligi, probe ko‘rmasligi, V1 forma anonimga) testlarda
+  FAIL, tiklangach PASS.
+- Brauzer (DB nusxasida): anonim V1 maqola — eski `blog_visitor` cookie
+  o‘chirildi, faqat `csrftoken` qoldi; “Olqish uchun kirish” havolasi
+  `next` bilan; `view_count` va o‘qish qatorlari o‘zgarmadi. Lokal nusxada
+  1 ta IP/UA’li eski o‘qish qatori bor (hisobot rejimida ko‘rindi).
+- Davom etilishi kerak: PUB1.1a (public route registry). Productionda bir marta
+  `purge_blog_read_tracking` hisobotini ko‘rib, `--apply` qilish owner qarori.
+
 ## 2026-10-17 [Claude]: PUBLIC-01 / PUB1.0f — parol tiklash xati: o‘zbekcha, fail-closed, release check
 
 Non-local profilda `EMAIL_HOST` bo‘lmasa console backend tanlanardi: sahifa

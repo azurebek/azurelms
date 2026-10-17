@@ -447,6 +447,10 @@ view/reaction/comment/metrics0. Slugni bilish capability bermaydi.
 cookie, non-integer/cross-post/deep `parent_id` va sanitizer errori 4xx/form
 error yoki safe fallback; hech biri 500/partial write bermaydi. Cookie/trusted
 proxy privacy qarorigacha bounded compatibility yo‘lida.
+*2026-10-17 eslatma:* visitor cookie/identity qismi PUB1.0g’da bajarildi —
+`blog/utils.py` anonim cookie’ni umuman o‘qimaydi va o‘chiradi, o‘qish/olqish
+faqat kirgan foydalanuvchi kaliti (`reader_key`) bilan. BLOG1.0a3 shu
+implementatsiyani reuse qiladi va faqat `parent_id`/sanitizer qismini qoldiradi.
 
 **BLOG1.0b — o‘lchash va data qarori.**
 

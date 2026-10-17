@@ -1426,6 +1426,13 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 - `users/forms.py::UzbekPasswordResetForm` — o'zbekcha `registration/password_reset_subject.txt`, `..._email.txt`, `..._email.html`; SMTP xatosi foydalanuvchiga ko'rinmaydi, `auth.password_reset.delivery_failed` audit yozuvi (id + xato turi) va email chirog'i sariq.
 - Tasdiq havolasi sahifasi `Referrer-Policy: no-referrer`. Production'da `EMAIL_HOST`/`EMAIL_HOST_USER`/`EMAIL_HOST_PASSWORD`/`DEFAULT_FROM_EMAIL` majburiy (`deploy/env.example`).
 
+### Blog o'qish va olqish kuzatuvi (PUB1.0g, 2026-10-17)
+
+- `blog/utils.py::reader_key` — faqat kirgan foydalanuvchi (`user:<id>`); anonim uchun `None`. Anonim maqola o'qish hech narsa yozmaydi va cookie qo'ymaydi; eski bir yillik `blog_visitor` cookie ko'rilsa o'chiriladi.
+- Kirgan o'quvchi: `BlogPostRead(post, user)` bir marta, IP xeshi/user-agent yozilmaydi. Olqish (`blog:clap`) login talab qiladi.
+- Eski yig'ilgan data: `manage.py purge_blog_read_tracking` (hisobot) / `--apply` (anonim qatorlar o'chadi, IP/UA bo'shatiladi, jami sonlar saqlanadi). Control Center `public_content` qolgan qatorlarni sariq ko'rsatadi.
+- Ixtiyoriy anonim analytics faqat PUB-D6 owner qarori bilan (PUB1.5b/PUB1.8a).
+
 ### Production safety
 
 - Local mode remote DB/Redis/S3'ga tasodifan ulanmaydi (`LOCAL_USE_REMOTE_SERVICES=True` bo'lmasa)
