@@ -1,7 +1,7 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
-**Holat:** REJA TAYYOR; **PUB1.0 bosqichi (a–g) va PUB1.1a–c kodda (2026-10-16/17, lokal)**,
-PUB1.1d va keyingi kesimlar boshlanmagan
+**Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) kodda (2026-10-16/17, lokal)**,
+PUB1.2 va keyingi bosqichlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
 **Kod tayanchi:** `main`dagi `72e82e0`
 **Birinchi implementatsiya kesimi:** `PUB1.0a`
@@ -1561,6 +1561,25 @@ truth, canonical equality, query exclusion, 404 object removal, cache/purge.
 0; robots sitemap pointer to‘g‘ri.
 
 #### PUB1.1d — response/cache/security header matrix
+
+**Holat — 2026-10-17: kodda, lokal tekshirilgan** (branch
+`claude/pub11d-header-matrix`). `frontend/public_response.py` — CSRF’dan oldingi
+middleware registrdan qo‘llaydi: registryda yo‘q method `405` + `Allow`
+(OPTIONS’dan tashqari); `SENSITIVE_NO_STORE` — `private, no-store`, `Pragma`,
+`X-Robots-Tag`, `Referrer-Policy: no-referrer`, ETag’siz; `STATUS_NO_STORE` va har
+4xx/5xx — `no-store` + noindex; preview — `private, no-store` + noindex;
+`PUBLIC_CONTENT/QUERY` — mehmon va cookie qo‘ymaydigan javobda `private,
+no-cache` + ETag (304), kirgan foydalanuvchi yoki cookie qo‘yadigan javobda
+`private, no-store`. Shared/`public` cache hech bir HTML’da yo‘q (anonim-invariant
+proyeksiya isbotigacha). Hammasiga `Permissions-Policy` (kamera, mikrofon,
+geolokatsiya, to‘lov, USB yopiq). Legacy va V1 bir xil sarlavha oladi; CSP
+tegilmadi. Theme CSS: `?v=<kontent xeshi>` — joriy revizion `public, max-age=1 yil,
+immutable`, boshqa har so‘rov `no-store`; publish/rollback URL’ni o‘zgartiradi
+(kontent xeshi — default’lar yangilansa ham eskirgan CSS chiqmaydi); GET/HEAD.
+PUB1.1a snapshot’idagi barcha farqlar yopildi (qolgan farq: 0).
+**Ochiq:** Caddy `encode` ETag’ga suffiks qo‘shadi — prod’da 304 har doim
+ishlamasligi mumkin (eskirish xavfi yo‘q, faqat 200); private route’lar
+matritsasi bu kesimda emas.
 
 **Ish:** `frontend/public_response.py` registrydan cache, Referrer, frame,
 nosniff va Permissions headerlarni qo‘llaydi. Hozirgi all-no-store xavfsiz

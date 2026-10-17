@@ -1,5 +1,6 @@
 """Thin HTTP adapter for the owner design workspace and public theme."""
 from functools import wraps
+import hashlib
 import json
 from uuid import UUID
 
@@ -12,7 +13,7 @@ from django.shortcuts import render
 from django.utils.cache import patch_cache_control
 from django.utils.crypto import salted_hmac
 from django.views.decorators.csrf import csrf_protect
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_GET, require_POST, require_safe
 
 from core import design_service as service
 from core.backoffice_workspace import _nav
@@ -130,9 +131,8 @@ def command(request):
     return JsonResponse(service.execute(request.user, data['command'], operation, data['payload'], request=request))
 
 
-@require_GET
-def theme_css(request):
-    """Public, screen-only projection; never expose private editorial metadata."""
+def published_theme():
+    """(css, revision): public CSS and the content hash that keys its URL."""
     css = ''
     try:
         if flag_enabled(FLAG):
@@ -140,7 +140,22 @@ def theme_css(request):
     except (DatabaseError, ValueError, service.DesignError):
         # Static token files remain usable during an additive migration/outage.
         pass
+    return css, hashlib.sha256(css.encode('utf-8')).hexdigest()[:16]
+
+
+@require_safe
+def theme_css(request):
+    """Public, screen-only projection; never expose private editorial metadata.
+
+    `?v=<revision>` is a content hash: a publish or rollback changes the CSS and
+    therefore the URL pages reference, so the matching response may be cached
+    immutably (PUB1.1d). Any other request stays `no-store`.
+    """
+    css, revision = published_theme()
     response = HttpResponse(css, content_type='text/css; charset=utf-8')
     response['X-Content-Type-Options'] = 'nosniff'
-    patch_cache_control(response, no_store=True)
+    if css and request.GET.get('v') == revision:
+        response['Cache-Control'] = 'public, max-age=31536000, immutable'
+    else:
+        patch_cache_control(response, no_store=True)
     return response

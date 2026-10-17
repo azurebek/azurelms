@@ -6,10 +6,8 @@
   "authenticated": "200",
   "deactivated": "200",
   "head": "200",
-  "post": "200",
-  "differences": [
-   "POST qabul qilinadi, registryda yo'q"
-  ]
+  "post": "405",
+  "differences": []
  },
  {
   "name": "ai_memory",
@@ -696,11 +694,8 @@
   "authenticated": "200",
   "deactivated": "200",
   "head": "200",
-  "post": "200",
-  "differences": [
-   "POST qabul qilinadi, registryda yo'q",
-   "no-store yo'q"
-  ]
+  "post": "405",
+  "differences": []
  },
  {
   "name": "bot:miniapp_home",
@@ -737,9 +732,7 @@
   "deactivated": "200",
   "head": "200",
   "post": "405",
-  "differences": [
-   "no-store yo'q"
-  ]
+  "differences": []
  },
  {
   "name": "certificate_detail",
@@ -749,9 +742,7 @@
   "deactivated": "200",
   "head": "200",
   "post": "405",
-  "differences": [
-   "no-store yo'q"
-  ]
+  "differences": []
  },
  {
   "name": "certificates",
@@ -1103,7 +1094,7 @@
   "anonymous": "200",
   "authenticated": "200",
   "deactivated": "200",
-  "head": "405",
+  "head": "200",
   "post": "405"
  },
  {
@@ -1149,10 +1140,8 @@
   "authenticated": "200",
   "deactivated": "200",
   "head": "200",
-  "post": "200",
-  "differences": [
-   "POST qabul qilinadi, registryda yo'q"
-  ]
+  "post": "405",
+  "differences": []
  },
  {
   "name": "healthz",
@@ -1179,10 +1168,8 @@
   "authenticated": "302>dashboard",
   "deactivated": "200",
   "head": "200",
-  "post": "200",
-  "differences": [
-   "POST qabul qilinadi, registryda yo'q"
-  ]
+  "post": "405",
+  "differences": []
  },
  {
   "name": "leaderboard",
@@ -1345,11 +1332,8 @@
   "authenticated": "503",
   "deactivated": "503",
   "head": "503",
-  "post": "503",
-  "differences": [
-   "POST qabul qilinadi, registryda yo'q",
-   "no-store yo'q"
-  ]
+  "post": "405",
+  "differences": []
  },
  {
   "name": "messenger:ai",
@@ -1547,11 +1531,8 @@
   "authenticated": "200",
   "deactivated": "200",
   "head": "200",
-  "post": "200",
-  "differences": [
-   "POST qabul qilinadi, registryda yo'q",
-   "no-store yo'q"
-  ]
+  "post": "405",
+  "differences": []
  },
  {
   "name": "onboarding_choice",
@@ -1570,9 +1551,7 @@
   "deactivated": "200",
   "head": "200",
   "post": "200",
-  "differences": [
-   "no-store yo'q"
-  ]
+  "differences": []
  },
  {
   "name": "password_reset_complete",
@@ -1582,9 +1561,7 @@
   "deactivated": "200",
   "head": "200",
   "post": "405",
-  "differences": [
-   "no-store yo'q"
-  ]
+  "differences": []
  },
  {
   "name": "password_reset_confirm",
@@ -1604,9 +1581,7 @@
   "deactivated": "200",
   "head": "200",
   "post": "405",
-  "differences": [
-   "no-store yo'q"
-  ]
+  "differences": []
  },
  {
   "name": "privacy_policy",
@@ -1615,10 +1590,8 @@
   "authenticated": "200",
   "deactivated": "200",
   "head": "200",
-  "post": "200",
-  "differences": [
-   "POST qabul qilinadi, registryda yo'q"
-  ]
+  "post": "405",
+  "differences": []
  },
  {
   "name": "profile",
@@ -1646,9 +1619,7 @@
   "deactivated": "200",
   "head": "200",
   "post": "200",
-  "differences": [
-   "no-store yo'q"
-  ]
+  "differences": []
  },
  {
   "name": "robots_txt",
@@ -1711,10 +1682,8 @@
   "authenticated": "200",
   "deactivated": "200",
   "head": "200",
-  "post": "200",
-  "differences": [
-   "POST qabul qilinadi, registryda yo'q"
-  ]
+  "post": "405",
+  "differences": []
  },
  {
   "name": "sit:knowledge_detail",
@@ -1723,10 +1692,8 @@
   "authenticated": "200",
   "deactivated": "200",
   "head": "200",
-  "post": "200",
-  "differences": [
-   "POST qabul qilinadi, registryda yo'q"
-  ]
+  "post": "405",
+  "differences": []
  },
  {
   "name": "sit:university_detail",
@@ -1735,10 +1702,8 @@
   "authenticated": "200",
   "deactivated": "200",
   "head": "200",
-  "post": "200",
-  "differences": [
-   "POST qabul qilinadi, registryda yo'q"
-  ]
+  "post": "405",
+  "differences": []
  },
  {
   "name": "sit:university_list",
@@ -1747,10 +1712,8 @@
   "authenticated": "200",
   "deactivated": "200",
   "head": "200",
-  "post": "200",
-  "differences": [
-   "POST qabul qilinadi, registryda yo'q"
-  ]
+  "post": "405",
+  "differences": []
  },
  {
   "name": "sit_backoffice:announcement_create",
@@ -2007,9 +1970,7 @@
   "deactivated": "200",
   "head": "405",
   "post": "405",
-  "differences": [
-   "noindex belgisi yo'q"
-  ]
+  "differences": []
  },
  {
   "name": "terms_of_service",
@@ -2018,10 +1979,8 @@
   "authenticated": "200",
   "deactivated": "200",
   "head": "200",
-  "post": "200",
-  "differences": [
-   "POST qabul qilinadi, registryda yo'q"
-  ]
+  "post": "405",
+  "differences": []
  },
  {
   "name": "update_ai_model",

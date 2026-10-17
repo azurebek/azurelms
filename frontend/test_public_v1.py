@@ -62,7 +62,9 @@ class PublicV1Tests(TestCase):
                         self.assertNotContains(response, 'css/public-shell.css')
                         self.assertNotContains(response, 'css/sit.css')
                         self.assertNotContains(response, 'preview-bootstrap')
-                        self.assertIn('no-store', response['Cache-Control'])
+                        # Registry matritsasi (PUB1.1d): hech qachon shared cache emas.
+                        self.assertIn('private', response['Cache-Control'])
+                        self.assertNotIn('public', response['Cache-Control'])
 
     def test_flag_defaults_off_without_override(self):
         self.flag.delete()
