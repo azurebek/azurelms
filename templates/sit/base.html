@@ -1,11 +1,11 @@
-{% load static %}
+{% load static public_meta %}
 <!DOCTYPE html>
 <html lang="uz">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="{% block meta_description %}Turkiyada o'qish, universitetlar, qabul talablari va hujjat topshirish bo'yicha SIT portali.{% endblock %}">
   <title>{% block title %}SIT — Study in Turkey{% endblock %} · {{ site_settings.brand_name|default:"AzureLMS" }}</title>
+  {% public_meta_tags %}
   {% include "components/brand_favicon.html" %}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

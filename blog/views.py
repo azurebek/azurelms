@@ -1,5 +1,6 @@
 from urllib.parse import quote
 from core.flags import flag_enabled
+from frontend.public_meta import absolute_url
 from frontend.public_v1 import PublicFrontendV1Mixin
 
 from django.contrib import messages
@@ -131,7 +132,8 @@ class BlogDetailView(PublicFrontendV1Mixin, DetailView):
         context = super().get_context_data(**kwargs)
         post = self.object
         request = self.request
-        share_url = request.build_absolute_uri(post.get_absolute_url())
+        # Ulashish havolasi sozlangan domendan: so'rovdagi `Host` uni o'zgartira olmaydi (PUB1.1b).
+        share_url = absolute_url(post.get_absolute_url())
         share_text = f"{post.share_title} - {post.share_description}"
         viewer_key = reader_key(request)
 

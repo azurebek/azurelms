@@ -1,4 +1,4 @@
-{% load static %}<!DOCTYPE html>
+{% load static public_meta %}<!DOCTYPE html>
 {% comment %}
    ============================================================
    ExamShell — fullscreen imtihon topshirish sahifasi.
@@ -11,6 +11,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ exam.title }} — Imtihon | {{ site_settings.brand_name|default:"AzureLMS" }}</title>
+  {% public_meta_tags %}
   {% include "components/brand_favicon.html" %}
   <script>(function(){try{var t=localStorage.getItem('az-v2-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

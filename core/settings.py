@@ -165,6 +165,13 @@ CSRF_TRUSTED_ORIGINS = env_list(
     default_csrf_trusted_origins,
 )
 
+# Public sahifalardagi absolute URL'lar (canonical, og:url, ulashish havolasi)
+# faqat shu manbadan quriladi — so'rovdagi `Host` sarlavhasidan emas (PUB1.1b).
+PUBLIC_CANONICAL_ORIGIN = os.getenv(
+    "PUBLIC_CANONICAL_ORIGIN",
+    "http://localhost:8000" if IS_LOCAL else f"https://{APP_DOMAIN}",
+).strip().rstrip("/")
+
 # Security settings (Enforce HTTPS in production)
 SECURITY_STRICT = env_bool("SECURITY_STRICT", not IS_LOCAL)
 if SECURITY_STRICT:

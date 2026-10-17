@@ -1,7 +1,7 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
-**Holat:** REJA TAYYOR; **PUB1.0 bosqichi (a–g) va PUB1.1a kodda (2026-10-16/17, lokal)**,
-PUB1.1b va keyingi kesimlar boshlanmagan
+**Holat:** REJA TAYYOR; **PUB1.0 bosqichi (a–g) va PUB1.1a–b kodda (2026-10-16/17, lokal)**,
+PUB1.1c va keyingi kesimlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
 **Kod tayanchi:** `main`dagi `72e82e0`
 **Birinchi implementatsiya kesimi:** `PUB1.0a`
@@ -1499,6 +1499,26 @@ anonymous/auth/deactivated; health/upload classification.
 takrorlamaydi; current behavior differences evidence sifatida ko‘rinadi.
 
 #### PUB1.1b — deterministic metadata va canonical origin
+
+**Holat — 2026-10-17: kodda, lokal tekshirilgan** (branch
+`claude/pub11b-public-metadata`). `frontend/public_meta.py` — `PublicPageMeta`
+(OpenGraph, Twitter, breadcrumb, JSON-LD) va `{% public_meta_tags %}`; har
+`<head>` egasi (legacy/V1 base, legacy SIT, sertifikat, xato, Mini App, imtihon)
+shu bitta blokni ishlatadi, V1 blog/SIT va legacy SIT’dagi ad-hoc meta olib
+tashlandi. `PUBLIC_CANONICAL_ORIGIN` (env; bo‘sh bo‘lsa `https://APP_DOMAIN`,
+lokal `http://localhost:8000`; `azurelms.E202` yo‘l/login/serverda http’ni rad
+etadi) — canonical, og:url, JSON-LD va blog ulashish havolasi faqat shundan,
+`Host` ta’sir qilmaydi. Robots registrdan: sensitive `noindex, nofollow,
+noarchive`; holat/xato/private/preview/e’lon qilinmagan `noindex, nofollow`,
+canonical va OG’siz; filtr/qidiruv/sahifa so‘rovi `noindex, follow` + toza
+canonical (`utm_*` hisobga olinmaydi). Kurs/blog/SIT/huquqiy/bosh/about —
+kontekstdagi obyektdan adapter; tavsif oddiy matn ≤160; OG rasm faqat public
+media; JSON-LD Course (narx/taklifsiz), BlogPosting, BreadcrumbList.
+**Qaror:** tariflar sahifasi PUB1.2 haqqoniy taklif proyeksiyasigacha
+`noindex`. PUB1.1a snapshot’idagi “noindex belgisi yo‘q” farqlari yopildi
+(qolgani: `no-store`, POST — PUB1.1d). **Ochiq:** `<title>` hali shablon
+bloklarida (og:title bilan bir xil manba emas); Telegram status JSON’ida
+`X-Robots-Tag` yo‘q (PUB1.1d).
 
 **Ish:** `PublicPageMeta`, configured canonical origin, base template contract,
 route-specific title/description/robots/OG/Twitter/breadcrumbs. Blog/SIT faqat

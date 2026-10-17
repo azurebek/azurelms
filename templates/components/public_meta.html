@@ -1,0 +1,17 @@
+{% comment %}Yagona metadata bloki (frontend/public_meta.py, PUB1.1b). <title> shablonning o'zida; bu yerda takrorlanmaydi.{% endcomment %}{% if meta %}{% if meta.description %}
+  <meta name="description" content="{{ meta.description }}">{% endif %}
+  <meta name="robots" content="{{ meta.robots }}">{% if meta.canonical_url %}
+  <link rel="canonical" href="{{ meta.canonical_url }}">{% endif %}{% if meta.open_graph %}
+  <meta property="og:type" content="{{ meta.open_graph.type }}">
+  <meta property="og:title" content="{{ meta.open_graph.title }}">{% if meta.open_graph.description %}
+  <meta property="og:description" content="{{ meta.open_graph.description }}">{% endif %}
+  <meta property="og:url" content="{{ meta.open_graph.url }}">
+  <meta property="og:locale" content="{{ meta.open_graph.locale }}">{% if meta.open_graph.image %}
+  <meta property="og:image" content="{{ meta.open_graph.image }}">
+  <meta property="og:image:alt" content="{{ meta.open_graph.image_alt }}">{% endif %}{% endif %}{% if meta.twitter %}
+  <meta name="twitter:card" content="{{ meta.twitter.card }}">
+  <meta name="twitter:title" content="{{ meta.twitter.title }}">{% if meta.twitter.description %}
+  <meta name="twitter:description" content="{{ meta.twitter.description }}">{% endif %}{% if meta.twitter.image %}
+  <meta name="twitter:image" content="{{ meta.twitter.image }}">{% endif %}{% endif %}{% if meta.modified_at and meta.open_graph.type == "article" %}
+  <meta property="article:modified_time" content="{{ meta.modified_at|date:'c' }}">{% endif %}{% for block in meta.structured_data %}
+  <script type="application/ld+json">{{ block }}</script>{% endfor %}{% endif %}

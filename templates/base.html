@@ -1,4 +1,4 @@
-{% load static design_theme %}<!DOCTYPE html>
+{% load static design_theme public_meta %}<!DOCTYPE html>
 {% comment %}
   AzureLMS — Global hujjat qobig'i (barcha shell'lar uchun).
   Proto: azurelms-proto/shared/ (tokens.css + base.css + app.js).
@@ -9,6 +9,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}</title>
+  {% public_meta_tags %}
   {% include "components/brand_favicon.html" %}
   <script>(function(){try{var t=localStorage.getItem('az-v2-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 
