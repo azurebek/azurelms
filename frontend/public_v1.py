@@ -67,8 +67,12 @@ class PublicFrontendV1Mixin:
         return response
 
 
-def render_public(request, template, context):
-    if not flag_enabled("frontend_v1_public"):
+def render_public(request, template, context, *, v1=None):
+    # `v1` berilsa qaror qayta o'qilmaydi: kontekst va shablon bir xil qarordan
+    # (bayroq ikki o'qish orasida o'zgarsa ham mos kelmaslik bo'lmaydi).
+    if v1 is None:
+        v1 = flag_enabled("frontend_v1_public")
+    if not v1:
         return render(request, template, context)
     response = render(request, "frontend_v1/public/" + template, public_context(request, template, context))
     patch_cache_control(response, private=True, no_store=True)

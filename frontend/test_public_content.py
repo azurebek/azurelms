@@ -133,6 +133,18 @@ class ProjectionTests(ContentWorld, TestCase):
             self.assertNotIn("YOPIQ-KURS", body)
             self.assertNotIn("DALILSIZ-STAT", body)
 
+    def test_renderer_is_decided_once_per_request(self):
+        """Codex review (PR #214): bayroq ikki o'qish orasida o'zgarsa ham shablon va kontekst mos."""
+        from unittest import mock
+
+        self.populate(1)
+        for first, template, key in ((True, "frontend_v1/public/index.html", "popular_courses"),
+                                     (False, "index.html", "level_stages")):
+            with self.subTest(first_read=first),                     mock.patch("frontend.public_content.flag_enabled", return_value=first),                     mock.patch("frontend.public_v1.flag_enabled", return_value=not first):
+                response = self.client.get(reverse("home"))
+                self.assertTemplateUsed(response, template)
+                self.assertIn(key, response.context)
+
     def test_empty_site_shows_truthful_empty_states(self):
         Statistic.objects.all().delete()
         for name in renderers():
