@@ -273,6 +273,7 @@ Bu fayllarga tegishda `git diff`'ni tez-tez ko'r:
 | CSS/template only | browser verify + `python manage.py check` |
 | Python view/form | `python manage.py check` + app tests |
 | Model/migration | `python manage.py makemigrations --check` + app tests |
+| Yangi yoki o'zgargan URL route | `frontend/public_policy.py`da public/ops/private tasnifi + `python manage.py test frontend.test_public_route_registry` (tasniflanmagan route `azurelms.E201` bilan `check`ni yiqitadi; xulq ataylab o'zgarsa snapshot `UPDATE_PUBLIC_ROUTE_SNAPSHOT=1` bilan) |
 | Messenger | `python manage.py test messenger` |
 | Users/dashboard/settings | `python manage.py test users` |
 | Courses/lesson/exam | focused `courses` tests |

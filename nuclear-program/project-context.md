@@ -1433,6 +1433,12 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 - Eski yig'ilgan data: `manage.py purge_blog_read_tracking` (hisobot) / `--apply` (anonim qatorlar o'chadi, IP/UA bo'shatiladi, jami sonlar saqlanadi). Control Center `public_content` qolgan qatorlarni sariq ko'rsatadi.
 - Ixtiyoriy anonim analytics faqat PUB-D6 owner qarori bilan (PUB1.5b/PUB1.8a).
 
+### Public route registri (PUB1.1a, 2026-10-17)
+
+- `frontend/public_policy.py`: har nomli route `PUBLIC_SURFACES` (siyosat bilan), `OPS_ROUTES` yoki `PRIVATE_ROUTES`/`PRIVATE_NAMESPACES`da. **Yangi route qo'shganda shu faylda tasniflang** — aks holda `manage.py check` `azurelms.E201` beradi va test runner ishga tushmaydi.
+- `frontend/public_route_snapshot.json` — har route uchun anonim/kirgan/faolsiz GET va anonim HEAD/POST natijasi. Xulq ataylab o'zgarsa: `UPDATE_PUBLIC_ROUTE_SNAPSHOT=1 python manage.py test frontend.test_public_route_registry`.
+- `manage.py audit_public_routes` — statik hisobot (so'rov yubormaydi). Registry deklarativ: view'lar undan qaror olmaydi.
+
 ### Production safety
 
 - Local mode remote DB/Redis/S3'ga tasodifan ulanmaydi (`LOCAL_USE_REMOTE_SERVICES=True` bo'lmasa)

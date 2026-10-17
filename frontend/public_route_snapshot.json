@@ -1,0 +1,2075 @@
+[
+ {
+  "name": "about",
+  "class": "public",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "200",
+  "post": "200",
+  "differences": [
+   "POST qabul qilinadi, registryda yo'q"
+  ]
+ },
+ {
+  "name": "ai_memory",
+  "class": "private",
+  "anonymous": "302>settings_privacy",
+  "authenticated": "302>settings_privacy",
+  "deactivated": "302>settings_privacy",
+  "head": "302>settings_privacy",
+  "post": "302>settings_privacy"
+ },
+ {
+  "name": "ai_memory_archive",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "ai_memory_clear",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "ai_memory_reject",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "ai_memory_toggle",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "api_exam_audio_play",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "404",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "api_exam_audio_upload",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "404",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "api_exam_blur",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "404",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "api_exam_review_flag",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "404",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "api_exam_save",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "404",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "api_exam_section_state",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "404",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "api_exam_start",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "api_exam_submit",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "404",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "api_exam_v1",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "404",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "api_quiz_submit",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "assignment_submit",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "attendance_calendar",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "attendance_manage",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_ai_circuit_reset",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_ai_control",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_ai_cost",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_ai_kill_switch",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_brand",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_catalog",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_chats",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_cohort_create",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_cohort_edit",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_cohort_members",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_control",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_course_create",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_course_edit",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_courses",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_dashboard",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_dead_letter",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_design",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_design_command",
+  "class": "private",
+  "anonymous": "405",
+  "authenticated": "405",
+  "deactivated": "405",
+  "head": "405",
+  "post": "403"
+ },
+ {
+  "name": "backoffice_design_state",
+  "class": "private",
+  "anonymous": "403",
+  "authenticated": "403",
+  "deactivated": "403",
+  "head": "405",
+  "post": "405"
+ },
+ {
+  "name": "backoffice_exam_edit",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_exams",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_feature_flags",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_landing",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_lesson_edit",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_lessons",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_plan_edit",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_receipts",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_runtime_settings",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_users",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_workspace_assignment_edit",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_workspace_assignment_new",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_workspace_course",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_workspace_course_create",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_workspace_course_edit",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_workspace_courses",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_workspace_groups",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_workspace_home",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_workspace_payments",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_workspace_plans",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_workspace_quiz_edit",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_workspace_quiz_new",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_workspace_search",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_workspace_settings",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_workspace_site",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_workspace_student",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_workspace_students",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "blog:clap",
+  "class": "private",
+  "anonymous": "405",
+  "authenticated": "405",
+  "deactivated": "405",
+  "head": "405",
+  "post": "302>login"
+ },
+ {
+  "name": "blog:comment_create",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "blog:comment_like",
+  "class": "private",
+  "anonymous": "405",
+  "authenticated": "405",
+  "deactivated": "405",
+  "head": "405",
+  "post": "403"
+ },
+ {
+  "name": "blog:detail",
+  "class": "public",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "200",
+  "post": "405",
+  "differences": []
+ },
+ {
+  "name": "blog:list",
+  "class": "public",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "200",
+  "post": "405",
+  "differences": []
+ },
+ {
+  "name": "blog:studio",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "blog:studio_create",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "blog:studio_edit",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "bot:miniapp_ai",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "bot:miniapp_auth",
+  "class": "public",
+  "anonymous": "405",
+  "authenticated": "405",
+  "deactivated": "405",
+  "head": "405",
+  "post": "400",
+  "differences": []
+ },
+ {
+  "name": "bot:miniapp_courses",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "bot:miniapp_entry",
+  "class": "public",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "200",
+  "post": "200",
+  "differences": [
+   "POST qabul qilinadi, registryda yo'q",
+   "no-store yo'q",
+   "noindex belgisi yo'q"
+  ]
+ },
+ {
+  "name": "bot:miniapp_home",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "bot:miniapp_profile",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "bot:telegram_webhook",
+  "class": "ops",
+  "anonymous": "403",
+  "authenticated": "403",
+  "deactivated": "403",
+  "head": "403",
+  "post": "403"
+ },
+ {
+  "name": "certificate_appendix",
+  "class": "public",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "200",
+  "post": "405",
+  "differences": [
+   "no-store yo'q",
+   "noindex belgisi yo'q"
+  ]
+ },
+ {
+  "name": "certificate_detail",
+  "class": "public",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "200",
+  "post": "405",
+  "differences": [
+   "no-store yo'q",
+   "noindex belgisi yo'q"
+  ]
+ },
+ {
+  "name": "certificates",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "ck_editor_5_upload_file",
+  "class": "ops",
+  "anonymous": "405",
+  "authenticated": "405",
+  "deactivated": "405",
+  "head": "405",
+  "post": "403"
+ },
+ {
+  "name": "classbook:activity_close",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "classbook:activity_media",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "404",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "classbook:activity_open",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "classbook:activity_result",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "404",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "classbook:exercise_create",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "classbook:exercise_edit",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "classbook:exercise_list",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "classbook:live_activity",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "404",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "classbook:live_activity_state",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "404",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "classbook:live_activity_submit",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "classbook:live_home",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "classbook:live_session",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "404",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "classbook:live_session_state",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "404",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "classbook:playbook_add_exercise",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "classbook:playbook_edit",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "classbook:playbook_move_exercise",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "classbook:playbook_remove_exercise",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "classbook:session_finish",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "classbook:session_start",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "classbook:teacher_activity_export",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "classbook:teacher_activity_result",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "classbook:teacher_home",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "classbook:teacher_session",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "classbook:teacher_session_export",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "classbook:teacher_session_state",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "cohorts:checkout",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>course_detail",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "cohorts:checkout_pending",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "404",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "cohorts:checkout_promo_preview",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "400",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "cohorts:checkout_success",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "404",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "cohorts:checkout_success_latest",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>subscriptions",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "cohorts:difference_upload",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "cohorts:receipt_file",
+  "class": "private",
+  "anonymous": "404",
+  "authenticated": "404",
+  "deactivated": "404",
+  "head": "404",
+  "post": "404"
+ },
+ {
+  "name": "course_detail",
+  "class": "public",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "200",
+  "post": "405",
+  "differences": []
+ },
+ {
+  "name": "course_study",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>course_detail",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "courses",
+  "class": "public",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "200",
+  "post": "405",
+  "differences": []
+ },
+ {
+  "name": "dashboard",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "design_theme_css",
+  "class": "ops",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "405",
+  "post": "405"
+ },
+ {
+  "name": "exam_answer_audio",
+  "class": "private",
+  "anonymous": "404",
+  "authenticated": "404",
+  "deactivated": "404",
+  "head": "404",
+  "post": "404"
+ },
+ {
+  "name": "exam_center",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "exam_detail",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>course_detail",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "exam_result",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>course_detail",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "faq_page",
+  "class": "public",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "200",
+  "post": "200",
+  "differences": [
+   "POST qabul qilinadi, registryda yo'q"
+  ]
+ },
+ {
+  "name": "healthz",
+  "class": "ops",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "405",
+  "post": "405"
+ },
+ {
+  "name": "help_center",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "home",
+  "class": "public",
+  "anonymous": "200",
+  "authenticated": "302>dashboard",
+  "deactivated": "200",
+  "head": "200",
+  "post": "200",
+  "differences": [
+   "POST qabul qilinadi, registryda yo'q"
+  ]
+ },
+ {
+  "name": "leaderboard",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "lesson_completion",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "lesson_detail",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>course_detail",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "library:material_file",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "404",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "library_backoffice:lesson_picker",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "library_backoffice:material_attach",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "library_backoffice:material_detach",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "library_backoffice:material_reorder",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "library_backoffice:material_update",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "library_backoffice:resource_archive",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "library_backoffice:resource_create",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "library_backoffice:resource_delete",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "library_backoffice:resource_edit",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "library_backoffice:resource_file",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "library_backoffice:resources",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "login",
+  "class": "public",
+  "anonymous": "200",
+  "authenticated": "302>dashboard",
+  "deactivated": "200",
+  "head": "200",
+  "post": "200",
+  "differences": [
+   "noindex belgisi yo'q"
+  ]
+ },
+ {
+  "name": "logout",
+  "class": "private",
+  "anonymous": "405",
+  "authenticated": "405",
+  "deactivated": "405",
+  "head": "405",
+  "post": "302>home"
+ },
+ {
+  "name": "maintenance",
+  "class": "public",
+  "anonymous": "503",
+  "authenticated": "503",
+  "deactivated": "503",
+  "head": "503",
+  "post": "503",
+  "differences": [
+   "POST qabul qilinadi, registryda yo'q",
+   "no-store yo'q",
+   "noindex belgisi yo'q"
+  ]
+ },
+ {
+  "name": "messenger:ai",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "messenger:ai_room",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "404",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "messenger:chat_assistant_profile",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "messenger:chat_profile",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "404",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "messenger:delete_message",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "messenger:edit_message",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "messenger:get_room_messages",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "403",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "messenger:get_user_rooms",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "messenger:group",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "messenger:index",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "messenger:message_attachment",
+  "class": "private",
+  "anonymous": "404",
+  "authenticated": "404",
+  "deactivated": "404",
+  "head": "404",
+  "post": "404"
+ },
+ {
+  "name": "messenger:new_ai_chat",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "messenger:submit_ai_feedback",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "messenger:toggle_room_pin",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "messenger:tutor",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "messenger:upload_message_attachment",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "messenger:widget_ai_message",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "my_courses",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "notification_open",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "404",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "notifications",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "notifications_read_all",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "offline",
+  "class": "public",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "200",
+  "post": "200",
+  "differences": [
+   "POST qabul qilinadi, registryda yo'q",
+   "no-store yo'q",
+   "noindex belgisi yo'q"
+  ]
+ },
+ {
+  "name": "onboarding_choice",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "password_reset",
+  "class": "public",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "200",
+  "post": "200",
+  "differences": [
+   "no-store yo'q",
+   "noindex belgisi yo'q"
+  ]
+ },
+ {
+  "name": "password_reset_complete",
+  "class": "public",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "200",
+  "post": "405",
+  "differences": [
+   "no-store yo'q",
+   "noindex belgisi yo'q"
+  ]
+ },
+ {
+  "name": "password_reset_confirm",
+  "class": "public",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "200",
+  "post": "200",
+  "differences": [
+   "noindex belgisi yo'q"
+  ]
+ },
+ {
+  "name": "password_reset_done",
+  "class": "public",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "200",
+  "post": "405",
+  "differences": [
+   "no-store yo'q",
+   "noindex belgisi yo'q"
+  ]
+ },
+ {
+  "name": "privacy_policy",
+  "class": "public",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "200",
+  "post": "200",
+  "differences": [
+   "POST qabul qilinadi, registryda yo'q"
+  ]
+ },
+ {
+  "name": "profile",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "readyz",
+  "class": "ops",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "405",
+  "post": "405"
+ },
+ {
+  "name": "register",
+  "class": "public",
+  "anonymous": "200",
+  "authenticated": "302>dashboard",
+  "deactivated": "200",
+  "head": "200",
+  "post": "200",
+  "differences": [
+   "no-store yo'q",
+   "noindex belgisi yo'q"
+  ]
+ },
+ {
+  "name": "settings",
+  "class": "private",
+  "anonymous": "302>settings_account",
+  "authenticated": "302>settings_account",
+  "deactivated": "302>settings_account",
+  "head": "302>settings_account",
+  "post": "302>settings_account"
+ },
+ {
+  "name": "settings_account",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "settings_billing",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "settings_capabilities",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "settings_privacy",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "sit:home",
+  "class": "public",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "200",
+  "post": "200",
+  "differences": [
+   "POST qabul qilinadi, registryda yo'q"
+  ]
+ },
+ {
+  "name": "sit:knowledge_detail",
+  "class": "public",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "200",
+  "post": "200",
+  "differences": [
+   "POST qabul qilinadi, registryda yo'q"
+  ]
+ },
+ {
+  "name": "sit:university_detail",
+  "class": "public",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "200",
+  "post": "200",
+  "differences": [
+   "POST qabul qilinadi, registryda yo'q"
+  ]
+ },
+ {
+  "name": "sit:university_list",
+  "class": "public",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "200",
+  "post": "200",
+  "differences": [
+   "POST qabul qilinadi, registryda yo'q"
+  ]
+ },
+ {
+  "name": "sit_backoffice:announcement_create",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "sit_backoffice:announcement_edit",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "sit_backoffice:announcements",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "sit_backoffice:dashboard",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "sit_backoffice:guide_create",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "sit_backoffice:guide_edit",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "sit_backoffice:guides",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "sit_backoffice:universities",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "sit_backoffice:university_create",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "sit_backoffice:university_edit",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "start_smart_onboarding",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "submission_file",
+  "class": "private",
+  "anonymous": "404",
+  "authenticated": "404",
+  "deactivated": "404",
+  "head": "404",
+  "post": "404"
+ },
+ {
+  "name": "subscriptions",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "200",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "subscriptions:pricing",
+  "class": "public",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "200",
+  "post": "405",
+  "differences": []
+ },
+ {
+  "name": "teacher_attendance",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "teacher_cohorts",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "teacher_courses",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "teacher_dashboard",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "teacher_grade_assignment",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "teacher_grade_exam",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "teacher_grading",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "teacher_release",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "teacher_students",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "telegram_auth_cancel",
+  "class": "public",
+  "anonymous": "405",
+  "authenticated": "405",
+  "deactivated": "405",
+  "head": "405",
+  "post": "200",
+  "differences": []
+ },
+ {
+  "name": "telegram_auth_consume",
+  "class": "public",
+  "anonymous": "405",
+  "authenticated": "405",
+  "deactivated": "405",
+  "head": "405",
+  "post": "200",
+  "differences": []
+ },
+ {
+  "name": "telegram_auth_init",
+  "class": "public",
+  "anonymous": "405",
+  "authenticated": "405",
+  "deactivated": "405",
+  "head": "405",
+  "post": "200",
+  "differences": []
+ },
+ {
+  "name": "telegram_auth_status",
+  "class": "public",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "405",
+  "post": "405",
+  "differences": [
+   "noindex belgisi yo'q"
+  ]
+ },
+ {
+  "name": "terms_of_service",
+  "class": "public",
+  "anonymous": "200",
+  "authenticated": "200",
+  "deactivated": "200",
+  "head": "200",
+  "post": "200",
+  "differences": [
+   "POST qabul qilinadi, registryda yo'q"
+  ]
+ },
+ {
+  "name": "update_ai_model",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "update_ai_skill",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "update_ai_tone",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "update_ai_web_search_effort",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "update_avatar",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "update_password",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "405",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ }
+]

@@ -1,7 +1,7 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
-**Holat:** REJA TAYYOR; **PUB1.0 bosqichi (a–g) kodda (2026-10-16/17, lokal)**, PUB1.1 va
-keyingi bosqichlar boshlanmagan
+**Holat:** REJA TAYYOR; **PUB1.0 bosqichi (a–g) va PUB1.1a kodda (2026-10-16/17, lokal)**,
+PUB1.1b va keyingi kesimlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
 **Kod tayanchi:** `main`dagi `72e82e0`
 **Birinchi implementatsiya kesimi:** `PUB1.0a`
@@ -1465,6 +1465,28 @@ yozmaydi.
 ### PUB1.1 — route, metadata va response policy poydevori
 
 #### PUB1.1a — public route registry va method/disclosure contracti
+
+**Holat — 2026-10-17: kodda, lokal tekshirilgan** (branch
+`claude/pub11a-public-route-registry`). `frontend/public_policy.py` —
+`PublicSurfacePolicy` + `CacheClass` (§5.2/§5.3 maqsad qiymatlari), 221 nomli
+route’ning hammasi tasniflangan: public 30, ops 5 (healthz, readyz, runtime
+theme CSS, CKEditor upload, Telegram webhook; Prometheus ixtiyoriy), private
+186 (namespace + aniq ro‘yxat). System check `azurelms.E201` tasniflanmagan,
+noma’lum, takroriy, ikki guruhdagi route va siyosat ziddiyatini (sensitive
+index/shared cache, canonical’siz sitemap, noma’lum rich profil, mixed shared
+cache) rad etadi — yangi route ongli tasniflanmaguncha `check`/test yiqiladi.
+`frontend/public_route_audit.py` har route uchun anonim/kirgan/faolsiz GET,
+anonim HEAD/POST natijasini o‘lchaydi; `frontend/public_route_snapshot.json` —
+data/disclosure dalili, snapshot testi xulq o‘zgarishini ko‘rsatadi
+(`UPDATE_PUBLIC_ROUTE_SNAPSHOT=1` bilan ongli yangilanadi). Invariantlar: mehmon
+ocha oladigan har route registrda; private route mehmonga hech qachon 2xx
+bermaydi (zanjir login’da tugaydi); faolsizlantirilgan hisob aynan mehmon
+ko‘rganini ko‘radi; public sahifada boshqa foydalanuvchi email/telefoni va
+private dars matni chiqmaydi. `manage.py audit_public_routes` — statik hisobot.
+**Dalil sifatida ochiq farqlar (PUB1.1b–d yopadi):** login/register/reset va
+sertifikat, Mini App, maintenance/offline’da `noindex` va (ko‘pida) `no-store`
+yo‘q; bosh sahifa, about, legal, SIT, Mini App kirishi, offline/maintenance
+GET-only bo‘lsa ham POST’ni qabul qiladi.
 
 **Ish:** `PublicSurfacePolicy` registry, inventory system check va har named
 route uchun anonymous/authenticated status, redirect, allowed method, data
