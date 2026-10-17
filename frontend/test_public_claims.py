@@ -165,6 +165,58 @@ class TestimonialConsentTests(ClaimMixin, TestCase):
         self.assertEqual(public_claims.public_testimonials(), [])
 
 
+class ConsentIntegrityTests(ClaimMixin, TestCase):
+    """Codex review (PR #213): rozilikni admin'dan chetlab o'tib bo'lmaydi va tahrir uni eskirtiradi."""
+
+    def consented(self):
+        item = Testimonial.objects.create(name="Ali Valiyev", role="B1 talaba", text="Darslar foydali bo‘ldi.", order=1)
+        public_claims.set_testimonial_consent(item, actor=self.owner, confirmed=True, reason="Telegramda rozilik",
+                                              display_name="Ali V.", source_reference="2026-10-18 xabar")
+        return item
+
+    def test_editing_name_role_or_text_after_consent_hides_the_testimonial(self):
+        for field, value in (("text", "Boshqa matn"), ("role", "C1 talaba"), ("name", "Boshqa odam")):
+            with self.subTest(field=field):
+                Testimonial.objects.all().delete()
+                item = self.consented()
+                self.assertEqual(len(public_claims.public_testimonials()), 1)
+                if field == "name":
+                    Testimonial.objects.filter(pk=item.pk).update(display_name="")
+                else:
+                    Testimonial.objects.filter(pk=item.pk).update(**{field: value})
+                self.assertEqual(public_claims.public_testimonials(), [])
+                item.refresh_from_db()
+                self.assertTrue(item.consent_is_stale)
+
+    def test_owner_page_flags_stale_consent_and_reconsent_restores_it(self):
+        item = self.consented()
+        Testimonial.objects.filter(pk=item.pk).update(text="Tahrirlangan matn")
+        self.client.force_login(self.owner)
+        self.assertContains(self.client.get(reverse("backoffice_claim_evidence")), "rozilikni qayta qayd eting")
+        public_claims.set_testimonial_consent(Testimonial.objects.get(pk=item.pk), actor=self.owner, confirmed=True,
+                                              reason="Yangi matnga rozilik", display_name="Ali V.", source_reference="yangi xabar")
+        self.assertEqual([t.pk for t in public_claims.public_testimonials()], [item.pk])
+
+    def test_generic_admin_cannot_write_consent_fields(self):
+        from django.contrib.admin.sites import AdminSite
+        from django.test import RequestFactory
+
+        from frontend.admin import TestimonialAdmin
+
+        model_admin = TestimonialAdmin(Testimonial, AdminSite())
+        request = RequestFactory().get("/")
+        request.user = self.owner
+        form_fields = model_admin.get_form(request)().fields
+        for field in ("display_name", "consent_scope", "consent_confirmed_at", "consent_revoked_at",
+                      "source_reference", "consent_digest"):
+            with self.subTest(field=field):
+                self.assertIn(field, model_admin.get_readonly_fields(request))
+                self.assertNotIn(field, form_fields)
+        from django.contrib import admin
+
+        self.assertNotIn(PublicClaimEvidence, admin.site._registry)
+
+
 class OwnerPageTests(ClaimMixin, TestCase):
     def test_owner_approves_with_reason_and_confirmation(self):
         self.client.force_login(self.owner)

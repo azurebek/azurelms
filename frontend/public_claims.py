@@ -134,7 +134,9 @@ def public_testimonials(limit=3):
         is_active=True, consent_scope=Testimonial.CONSENT_PUBLIC_SITE,
         consent_confirmed_at__isnull=False, consent_revoked_at__isnull=True,
     ).order_by("order", "id")
-    return list(queryset[:limit] if limit else queryset)
+    # Rozilikdan keyin ism, rol yoki matn o'zgargan bo'lsa fikr chiqmaydi.
+    consented = [item for item in queryset if item.has_public_consent]
+    return consented[:limit] if limit else consented
 
 
 def _claim_for(key, now=None):
@@ -225,6 +227,8 @@ def set_testimonial_consent(testimonial, *, actor, confirmed, reason, display_na
             row.consent_revoked_at = None
             row.display_name = (display_name or "").strip()[:100]
             row.source_reference = (source_reference or "").strip()[:240]
+            # Rozilik aynan hozirgi ism, rol va matnga bog'lanadi.
+            row.consent_digest = row.content_digest()
         else:
             row.consent_revoked_at = now
         row.save()

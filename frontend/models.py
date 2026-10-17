@@ -571,6 +571,9 @@ class Testimonial(models.Model):
         help_text="Owner uchun: rozilik qayerda olingan (masalan, Telegram xabari sanasi). Publicga chiqmaydi.",
     )
     order = models.PositiveIntegerField(default=0, verbose_name="Tartib raqami")
+    # Rozilik aynan qaysi ism, rol va matn uchun berilgan: biri o'zgarsa
+    # rozilik o'z kuchini yo'qotadi va qayta tasdiqlanadi.
+    consent_digest = models.CharField(max_length=64, blank=True, verbose_name="Rozilik berilgan matn xeshi")
 
     class Meta:
         verbose_name = "Fikr"
@@ -581,12 +584,23 @@ class Testimonial(models.Model):
     def public_name(self):
         return self.display_name or self.name
 
+    def content_digest(self):
+        import hashlib
+
+        content = " | ".join(" ".join(str(part or "").split()) for part in (self.public_name, self.role, self.text))
+        return hashlib.sha256(content.encode("utf-8")).hexdigest()
+
+    @property
+    def consent_is_stale(self):
+        return bool(self.consent_digest) and self.consent_digest != self.content_digest()
+
     @property
     def has_public_consent(self):
         return (
             self.consent_scope == self.CONSENT_PUBLIC_SITE
             and self.consent_confirmed_at is not None
             and self.consent_revoked_at is None
+            and self.consent_digest == self.content_digest()
         )
 
     def __str__(self):
