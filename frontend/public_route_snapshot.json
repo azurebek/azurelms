@@ -235,6 +235,15 @@
   "post": "302>login"
  },
  {
+  "name": "backoffice_claim_evidence",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
   "name": "backoffice_cohort_create",
   "class": "private",
   "anonymous": "302>login",

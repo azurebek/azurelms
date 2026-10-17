@@ -109,14 +109,15 @@
   <!-- O'quvchilar fikri -->
   {% if testimonials %}
   <div class="ab-section-label"><span style="color:var(--azure);">02</span> / O'quvchilar fikri <span class="ln"></span></div>
+  <p style="font-size:12.5px;color:var(--ink-3);margin:-6px 0 14px;">Roziligi bilan e’lon qilingan alohida fikrlar — umumiy reyting emas.</p>
   <div class="ab-tgrid">
     {% for t in testimonials %}
     <figure class="ab-quote">
       <div class="ab-stars">{% for _ in "12345"|make_list %}{% if forloop.counter <= t.rating %}★{% else %}<span style="color:var(--line-2);">★</span>{% endif %}{% endfor %}</div>
       <blockquote class="ab-qtext">"{{ t.text }}"</blockquote>
       <figcaption class="ab-qfoot">
-        {% if t.avatar %}<img class="ab-qav" src="{{ t.avatar.url }}" alt="{{ t.name }}">{% else %}<span class="ab-qav">{{ t.name|slice:":1" }}</span>{% endif %}
-        <div><div style="font-size:13.5px;font-weight:600;color:var(--ink);">{{ t.name }}</div><div style="font-size:11.5px;color:var(--ink-3);">{{ t.role }}</div></div>
+        {% if t.avatar %}<img class="ab-qav" src="{{ t.avatar.url }}" alt="{{ t.public_name }}">{% else %}<span class="ab-qav">{{ t.public_name|slice:":1" }}</span>{% endif %}
+        <div><div style="font-size:13.5px;font-weight:600;color:var(--ink);">{{ t.public_name }}</div><div style="font-size:11.5px;color:var(--ink-3);">{{ t.role }}</div></div>
       </figcaption>
     </figure>
     {% endfor %}

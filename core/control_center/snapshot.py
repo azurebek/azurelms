@@ -1030,6 +1030,11 @@ def _public_content_probe(definition: CapabilityDefinition) -> CapabilityResult:
         legal_generated=", ".join(readiness.generated_legal) or "-",
         settings_missing=", ".join(readiness.missing_singletons) or "-",
         blog_legacy_tracking=readiness.legacy_blog_tracking,
+        claims_verified=readiness.claim_count("verified"),
+        claims_without_evidence=readiness.claim_count("missing"),
+        claims_stale_or_expired=readiness.claim_count("stale") + readiness.claim_count("expired"),
+        testimonials_public=readiness.testimonials_public,
+        testimonials_without_consent=readiness.testimonials_hidden,
     )
     if readiness.missing_legal:
         return _result(
@@ -1047,6 +1052,15 @@ def _public_content_probe(definition: CapabilityDefinition) -> CapabilityResult:
         return _result(
             definition, "amber",
             "Sozlama qatori yo'q, sahifa kod default'lari bilan chiqmoqda.",
+            **details,
+        )
+    stale = readiness.claim_count("stale") + readiness.claim_count("expired")
+    if stale:
+        # Ilgari tasdiqlangan, endi yashiringan da'vo — owner bilishi kerak.
+        # Hech qachon tasdiqlanmagani (missing) xavfsiz holat, ogohlantirmaydi.
+        return _result(
+            definition, "amber",
+            f"{stale} ta tasdiqlangan da'vo matni o'zgargani yoki muddati o'tgani uchun saytdan yashirildi.",
             **details,
         )
     if readiness.legacy_blog_tracking:

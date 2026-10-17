@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.urls import NoReverseMatch, reverse
@@ -551,9 +552,42 @@ class Testimonial(models.Model):
     avatar = models.ImageField(upload_to='testimonials/', blank=True, null=True, verbose_name="Rasm")
     is_active = models.BooleanField(default=True, verbose_name="Faolmi?")
 
+    # Rozilik (PUB1.2a): fikr egasining roziligisiz yoki rozilik qaytarilgan
+    # bo'lsa public sahifada chiqmaydi. Random tanlov o'rniga barqaror tartib.
+    CONSENT_PUBLIC_SITE = "public_site"
+    CONSENT_SCOPE_CHOICES = [(CONSENT_PUBLIC_SITE, "Ochiq saytda ism bilan ko'rsatish")]
+
+    display_name = models.CharField(
+        max_length=100, blank=True, verbose_name="Saytda ko'rinadigan ism",
+        help_text="Bo'sh bo'lsa ism-familiya ishlatiladi. Rozilikda kelishilgan shakl (masalan, faqat ism).",
+    )
+    consent_scope = models.CharField(
+        max_length=30, blank=True, choices=CONSENT_SCOPE_CHOICES, verbose_name="Rozilik doirasi",
+    )
+    consent_confirmed_at = models.DateTimeField(null=True, blank=True, verbose_name="Rozilik tasdiqlangan vaqt")
+    consent_revoked_at = models.DateTimeField(null=True, blank=True, verbose_name="Rozilik qaytarilgan vaqt")
+    source_reference = models.CharField(
+        max_length=240, blank=True, verbose_name="Rozilik manbasi",
+        help_text="Owner uchun: rozilik qayerda olingan (masalan, Telegram xabari sanasi). Publicga chiqmaydi.",
+    )
+    order = models.PositiveIntegerField(default=0, verbose_name="Tartib raqami")
+
     class Meta:
         verbose_name = "Fikr"
         verbose_name_plural = "3. O'quvchilar fikrlari"
+        ordering = ["order", "id"]
+
+    @property
+    def public_name(self):
+        return self.display_name or self.name
+
+    @property
+    def has_public_consent(self):
+        return (
+            self.consent_scope == self.CONSENT_PUBLIC_SITE
+            and self.consent_confirmed_at is not None
+            and self.consent_revoked_at is None
+        )
 
     def __str__(self):
         return self.name
@@ -996,3 +1030,36 @@ class LegalPage(models.Model):
         va siyosat sifatida e'lon qilinardi.
         """
         return cls.objects.filter(page_type=page_type).first()
+
+
+class PublicClaimEvidence(models.Model):
+    """Public sahifadagi da'vo uchun owner tasdiqlagan dalil (PUB1.2a).
+
+    Statistika, reyting, talaba soni kabi da'vo faqat shu yozuv mavjud,
+    `content_digest` ko'rsatilayotgan matnga teng, muddati o'tmagan va
+    qaytarib olinmagan bo'lsa chiqadi. Matn o'zgarsa digest mos kelmay
+    qoladi — da'vo qayta tasdiqlanmaguncha yashirin.
+    """
+
+    claim_key = models.CharField(max_length=120, unique=True, verbose_name="Da'vo kaliti")
+    content_digest = models.CharField(max_length=64, verbose_name="Matn xeshi (SHA-256)")
+    source_url = models.URLField(max_length=500, blank=True, verbose_name="Manba havolasi")
+    evidence_note = models.TextField(max_length=1000, blank=True, verbose_name="Dalil izohi")
+    verified_at = models.DateTimeField(verbose_name="Tekshirilgan vaqt")
+    expires_at = models.DateTimeField(verbose_name="Amal qilish muddati")
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="approved_public_claims", verbose_name="Tasdiqlagan",
+    )
+    approval_reason = models.CharField(max_length=240, verbose_name="Tasdiqlash sababi")
+    revoked_at = models.DateTimeField(null=True, blank=True, verbose_name="Qaytarib olingan vaqt")
+    revision = models.PositiveIntegerField(default=1, verbose_name="Revizion")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Da'vo dalili"
+        verbose_name_plural = "9. Da'volar dalili"
+        ordering = ["claim_key"]
+
+    def __str__(self):
+        return self.claim_key

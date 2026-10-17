@@ -1,0 +1,83 @@
+{% extends "backoffice/base.html" %}
+{% load static %}
+{% comment %}Owner: public da'volar dalili va fikrlar roziligi (core/backoffice_claims.py, PUB1.2a).{% endcomment %}
+
+{% block bo_title %}Da’volar dalili{% endblock %}
+{% block bo_icon %}bi-patch-check{% endblock %}
+{% block bo_topbar %}Da’volar dalili{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/landing-control.css' %}">{% endblock %}
+
+{% block bo_content %}
+<div class="bo-editor">
+<section class="lc-hero">
+  <div>
+    <span class="lc-kicker">SAYTDAGI DA’VOLAR</span>
+    <h1>Da’volar dalili</h1>
+    <p>Talaba soni, foiz va reyting kabi raqamlar dalil bilan tasdiqlanmaguncha saytda ko‘rinmaydi. Matn o‘zgarsa yoki muddat tugasa raqam o‘zi yashirinadi. O‘quvchi fikri faqat uning roziligi bilan chiqadi.</p>
+  </div>
+  <a class="lc-back" href="/" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i> Saytni ko‘rish</a>
+</section>
+
+{% if errors %}<div class="lc-errors" role="alert" data-claim-errors>{% for error in errors %}<p>{{ error }}</p>{% endfor %}</div>{% endif %}
+
+<section class="lc-panel" aria-labelledby="claims-title">
+  <div class="lc-panel-head"><div class="lc-panel-title"><h2 id="claims-title">Statistika</h2><p>Har qatorda saytda aynan ko‘rinadigan qiymat va nomi. Tasdiqlash shu matnga bog‘lanadi.</p></div></div>
+  {% for claim in claims %}
+  <article class="lc-panel lc-approval" data-claim="{{ claim.key }}" data-claim-status="{{ claim.status }}" style="margin-bottom:12px;">
+    <p><strong>{{ claim.text }}</strong> · {{ claim.surface }} · <span>{{ claim.status_label }}</span>{% if claim.evidence and claim.status == "verified" %} · {{ claim.evidence.expires_at|date:"d.m.Y" }} gacha{% endif %}</p>
+    {% if claim.evidence %}<p class="lc-empty">Oxirgi tasdiq: {{ claim.evidence.verified_at|date:"d.m.Y H:i" }} — {{ claim.evidence.approval_reason }}{% if claim.evidence.source_url %} · <a href="{{ claim.evidence.source_url }}" rel="noopener noreferrer" target="_blank">manba</a>{% endif %}</p>{% endif %}
+    <details>
+      <summary>Dalil bilan tasdiqlash</summary>
+      <form method="post" class="lc-form">{% csrf_token %}
+        <input type="hidden" name="action" value="approve"><input type="hidden" name="claim_key" value="{{ claim.key }}"><input type="hidden" name="revision" value="{{ claim.evidence.revision|default:0 }}">
+        <label class="lc-field">Qachongacha amal qiladi <input class="lc-input" type="date" name="expires_on" value="{{ default_expiry|date:'Y-m-d' }}" required></label>
+        <label class="lc-field">Manba havolasi (ixtiyoriy, https) <input class="lc-input" type="url" name="source_url"></label>
+        <label class="lc-field">Dalil izohi (saytga chiqmaydi) <textarea class="lc-input" name="evidence_note" rows="2" maxlength="1000"></textarea></label>
+        <label class="lc-field">Sabab <textarea class="lc-input" name="reason" rows="2" maxlength="240" required></textarea></label>
+        <label class="lc-confirm"><input type="checkbox" name="confirm" required> Saytdagi o‘zgarishni tasdiqlayman</label>
+        <button class="lc-save" type="submit">Tasdiqlash</button>
+      </form>
+    </details>
+    {% if claim.evidence and claim.status != "revoked" %}
+    <details>
+      <summary>Qaytarib olish</summary>
+      <form method="post" class="lc-form">{% csrf_token %}
+        <input type="hidden" name="action" value="revoke"><input type="hidden" name="claim_key" value="{{ claim.key }}"><input type="hidden" name="revision" value="{{ claim.evidence.revision }}">
+        <label class="lc-field">Sabab <textarea class="lc-input" name="reason" rows="2" maxlength="240" required></textarea></label>
+        <label class="lc-confirm"><input type="checkbox" name="confirm" required> Saytdagi o‘zgarishni tasdiqlayman</label>
+        <button class="lc-save" type="submit">Qaytarib olish</button>
+      </form>
+    </details>
+    {% endif %}
+  </article>
+  {% empty %}<p class="lc-empty">Saytda statistika qatori yo‘q.</p>{% endfor %}
+</section>
+
+<section class="lc-panel" aria-labelledby="testimonials-title" style="margin-top:16px;">
+  <div class="lc-panel-head"><div class="lc-panel-title"><h2 id="testimonials-title">O‘quvchilar fikri</h2><p>Fikr faqat egasining ochiq saytda ko‘rsatishga roziligi qayd etilsa chiqadi.</p></div></div>
+  {% for item in testimonials %}
+  <article class="lc-panel lc-approval" data-testimonial="{{ item.pk }}" data-public="{{ item.has_public_consent|yesno:'1,0' }}" style="margin-bottom:12px;">
+    <p><strong>{{ item.public_name }}</strong> · {% if item.has_public_consent %}Rozilik bor ({{ item.consent_confirmed_at|date:"d.m.Y" }}){% elif item.consent_revoked_at %}Rozilik qaytarilgan{% else %}Rozilik yo‘q{% endif %}{% if not item.is_active %} · faol emas{% endif %}</p>
+    <p class="lc-empty">“{{ item.text|truncatechars:160 }}”</p>
+    <form method="post" class="lc-form">{% csrf_token %}
+      {% if item.has_public_consent %}
+      <input type="hidden" name="action" value="consent_revoke"><input type="hidden" name="testimonial_id" value="{{ item.pk }}">
+      {% else %}
+      <input type="hidden" name="action" value="consent"><input type="hidden" name="testimonial_id" value="{{ item.pk }}">
+      <label class="lc-field">Saytda ko‘rinadigan ism <input class="lc-input" name="display_name" maxlength="100" value="{{ item.display_name }}"></label>
+      <label class="lc-field">Rozilik qayerda olingan <input class="lc-input" name="source_reference" maxlength="240" required></label>
+      {% endif %}
+      <label class="lc-field">Sabab <textarea class="lc-input" name="reason" rows="2" maxlength="240" required></textarea></label>
+      <label class="lc-confirm"><input type="checkbox" name="confirm" required> Saytdagi o‘zgarishni tasdiqlayman</label>
+      <button class="lc-save" type="submit">{% if item.has_public_consent %}Roziligini qaytarish{% else %}Rozilikni qayd etish{% endif %}</button>
+    </form>
+  </article>
+  {% empty %}<p class="lc-empty">Fikrlar yo‘q.</p>{% endfor %}
+</section>
+
+<section class="lc-panel lc-audit" aria-labelledby="claims-audit" style="margin-top:16px;">
+  <h2 id="claims-audit">Oxirgi o‘zgarishlar</h2>
+  {% for event in recent_changes %}<article><strong>{{ event.target_label }}</strong><time>{{ event.created_at|date:"d.m.Y H:i" }}</time><p>{{ event.actor_label|default:"—" }}: {{ event.reason }}</p></article>{% empty %}<p class="lc-empty">Hali o‘zgarish yo‘q.</p>{% endfor %}
+</section>
+</div>
+{% endblock %}

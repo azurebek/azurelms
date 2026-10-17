@@ -1,6 +1,8 @@
 from django.test import TestCase
 from django.urls import reverse
 
+from frontend.test_public_claims import approve_for_test
+
 from .models import (
     LandingAIFeature,
     LandingExamSkill,
@@ -122,7 +124,9 @@ class LandingAdminControlledContentTests(TestCase):
         )
         LandingAIFeature.objects.create(text="AI-FEATURE-XYZ", order=1)
         LandingExamSkill.objects.create(name="SKILL-XYZ", meta="10 MIN", icon_class="bi bi-mic", order=1)
-        Statistic.objects.create(numeric_value=1234, suffix="+", decimals=0, label="STAT-LABEL-XYZ", order=1)
+        stat = Statistic.objects.create(numeric_value=1234, suffix="+", decimals=0, label="STAT-LABEL-XYZ", order=1)
+        # Statistika faqat dalil bilan chiqadi (PUB1.2a).
+        approve_for_test(stat)
 
         response = self.client.get("/")
 
