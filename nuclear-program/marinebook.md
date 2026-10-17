@@ -39,6 +39,11 @@ hech biriga dalil yo‘q. Fikrlar random tanlanar, rozilik qayd etilmasdi.
 - Brauzer (DB nusxasida, migratsiyadan keyin): 4 seed statistika `missing`,
   mehmon bosh sahifasida ko‘rinmaydi; sinov owner `backoffice/claims/`da
   “6 | Daraja”ni tasdiqladi → audit yozuvi, bosh sahifada faqat shu chiqdi.
+- PR #213 Codex review (P1, to‘g‘ri): generic admin rozilik maydonlarini audit’siz
+  o‘zgartira olardi va matn tahriri rozilikni bekor qilmasdi. Tuzatildi: rozilik
+  ism + rol + matn xeshiga bog‘landi (`consent_digest`, migration 0021 merge’dan
+  oldin qayta qurildi), admin bu maydonlarni faqat o‘qiydi; 3 ta yangi test,
+  2 ta nazorat buzilishi FAIL.
 - Ochiq: “3 ish kunida/3 soatda javob” matnlari shablonda; `recent_students`.
 - Davom etilishi kerak: PUB1.2b (deterministik landing/About selektorlari).
 

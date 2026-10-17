@@ -1601,14 +1601,15 @@ emas; stale publish rollback testli. Global CSP weakening yo‘q.
 (claim_key, content_digest, source_url, evidence_note, verified_at, expires_at,
 approved_by, approval_reason, revoked_at, revision) va `Testimonial` rozilik/tartib
 maydonlari (display_name, consent_scope, consent_confirmed_at, consent_revoked_at,
-source_reference, order). `frontend/public_claims.py` — da’vo matni (qiymat + nomi)
+source_reference, order, consent_digest). `frontend/public_claims.py` — da’vo matni (qiymat + nomi)
 SHA-256 bilan bog‘lanadi: tahrir → `stale`, `expires_at` (chegara inklyuziv) →
 `expired`, qaytarish → `revoked`; faqat `verified` ko‘rinadi. Tasdiqlash/qaytarish
 sabab, revizion (CAS → `ClaimConflict`) va `SystemAuditEvent` bilan; manba faqat
 https. Bosh sahifa va “Biz haqimizda” statistikasi hamda legacy auth panelidagi
 (oldin qattiq yozilgan `2,400+/94%/4.9`) raqamlar shu selektordan; fikrlar faqat
 rozilik bilan, barqaror tartibda (random olib tashlandi), “umumiy reyting emas”
-izohi bilan. Owner sahifasi `backoffice/claims/` (Sayt va dizayn hub’ida; sabab +
+izohi bilan; rozilik ism + rol + matn xeshiga bog‘langan (tahrir uni eskirtiradi),
+generic Django admin rozilik maydonlarini faqat o‘qiydi (PR #213 Codex review). Owner sahifasi `backoffice/claims/` (Sayt va dizayn hub’ida; sabab +
 tasdiq belgisi). `manage.py audit_public_readiness` — faqat o‘qiydi; Control
 Center `public_content` hisoblari, ogohlantirish faqat tasdiqlangan da’vo
 eskirganda (dalilsiz = yashirin, xavfsiz holat). Seed qatorlar tasdiqlanmadi.
