@@ -1449,6 +1449,7 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 ### Public da'volar dalili (PUB1.2a, 2026-10-18)
 
 - Statistika (talaba soni, foiz, reyting) va o'quvchi fikri public sahifaga faqat `frontend/public_claims.py` selektorlari orqali (`verified_landing_statistics`, `verified_about_statistics`, `public_testimonials`). **To'g'ridan-to'g'ri `Statistic.objects`/`Testimonial.objects` public shablon/view'da ishlatilmaydi.**
+- Bosh sahifa va "Biz haqimizda" konteksti `frontend/public_content.py` proyeksiyasidan (PUB1.2b): renderer'ga xos, to'liq tartibli, learner PII'siz; `frontend/test_public_content.py` so'rov budjetini qulflaydi.
 - Dalil: `PublicClaimEvidence` (matn xeshi, muddat, sabab, revizion); owner `backoffice/claims/` sahifasida tasdiqlaydi/qaytaradi; `manage.py audit_public_readiness` — o'qish hisoboti. Testlarda statistikani ko'rsatish uchun `frontend.test_public_claims.approve_for_test`.
  Sitemap manbalari `frontend/public_sitemap.py::SOURCES`da — yangi public obyekt turi (masalan SIT1.7a) ikkinchi sitemap emas, shu yerga manba qo'shadi va sahifa view'ining ayni tanlovini ishlatadi.
 
