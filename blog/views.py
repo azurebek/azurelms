@@ -15,7 +15,7 @@ from django.views.generic import CreateView, DetailView, ListView, TemplateView,
 
 from .forms import BlogCommentForm, BlogPostForm
 from .models import BlogComment, BlogCommentLike, BlogHomeSettings, BlogPost, BlogPostClap, BlogPostRead, BlogTag
-from .utils import build_ip_hash, ensure_visitor_token, is_probable_bot, set_visitor_cookie, viewer_key_for_request
+from .utils import forget_legacy_visitor_cookie, is_probable_bot, reader_key
 
 
 class BlogStaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -100,22 +100,19 @@ class BlogDetailView(PublicFrontendV1Mixin, DetailView):
         self.is_preview = False
         return queryset.published()
 
-    def _register_view(self, post, viewer_key):
-        user_agent = (self.request.META.get("HTTP_USER_AGENT") or "")[:255]
-        if self.is_preview or is_probable_bot(user_agent):
+    def _register_view(self, post):
+        # Anonim o'qish yozilmaydi; kirgan foydalanuvchi uchun faqat (maqola,
+        # foydalanuvchi) - IP xeshi va user-agent saqlanmaydi (PUB1.0g, PUB-D6).
+        viewer_key = reader_key(self.request)
+        user_agent = self.request.META.get("HTTP_USER_AGENT") or ""
+        if viewer_key is None or self.is_preview or is_probable_bot(user_agent):
             return
-
-        defaults = {
-            "user": self.request.user if self.request.user.is_authenticated else None,
-            "ip_hash": build_ip_hash(self.request),
-            "user_agent": user_agent,
-        }
         try:
             with transaction.atomic():
                 _, created = BlogPostRead.objects.get_or_create(
                     post=post,
                     viewer_key=viewer_key,
-                    defaults=defaults,
+                    defaults={"user": self.request.user},
                 )
                 if created:
                     BlogPost.objects.filter(pk=post.pk).update(view_count=F("view_count") + 1)
@@ -124,15 +121,11 @@ class BlogDetailView(PublicFrontendV1Mixin, DetailView):
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
-        self.visitor_token, cookie_created = ensure_visitor_token(request)
-        viewer_key = viewer_key_for_request(request, self.visitor_token)
-        self._register_view(self.object, viewer_key)
+        self._register_view(self.object)
 
         context = self.get_context_data(object=self.object)
         response = self.render_to_response(context)
-        if cookie_created:
-            set_visitor_cookie(response, self.visitor_token)
-        return response
+        return forget_legacy_visitor_cookie(request, response)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -140,7 +133,7 @@ class BlogDetailView(PublicFrontendV1Mixin, DetailView):
         request = self.request
         share_url = request.build_absolute_uri(post.get_absolute_url())
         share_text = f"{post.share_title} - {post.share_description}"
-        viewer_key = viewer_key_for_request(request, getattr(self, "visitor_token", request.COOKIES.get("blog_visitor", "")))
+        viewer_key = reader_key(request)
 
         comments = list(
             BlogComment.objects.filter(post=post, is_deleted=False)
@@ -168,7 +161,7 @@ class BlogDetailView(PublicFrontendV1Mixin, DetailView):
 
         my_clap_count = (
             BlogPostClap.objects.filter(post=post, viewer_key=viewer_key).values_list("clap_count", flat=True).first() or 0
-        )
+        ) if viewer_key else 0
 
         context["is_preview"] = self.is_preview
         context["comment_form"] = BlogCommentForm()
@@ -273,14 +266,23 @@ class BlogPostUpdateView(BlogStudioFormCopyMixin, BlogStaffRequiredMixin, Update
 class BlogPostClapView(View):
     def post(self, request, slug):
         post = get_object_or_404(BlogPost.objects.published(), slug=slug)
-        visitor_token, cookie_created = ensure_visitor_token(request)
-        viewer_key = viewer_key_for_request(request, visitor_token)
+        viewer_key = reader_key(request)
+        if viewer_key is None:
+            # Anonim olqish bir yillik yashirin cookie yaratardi. PUB-D6 qarorigacha
+            # olqish uchun kirish kerak (izoh va izohni yoqtirish kabi) (PUB1.0g).
+            login_url = f"{reverse('login')}?next={quote(post.get_absolute_url())}"
+            accepts_json = "application/json" in request.headers.get("Accept", "") or (
+                request.headers.get("X-Requested-With") == "XMLHttpRequest"
+            )
+            if accepts_json:
+                return JsonResponse({"ok": False, "error": "auth_required", "login_url": login_url}, status=403)
+            return redirect(login_url)
 
         with transaction.atomic():
             clap, _ = BlogPostClap.objects.get_or_create(
                 post=post,
                 viewer_key=viewer_key,
-                defaults={"user": request.user if request.user.is_authenticated else None},
+                defaults={"user": request.user},
             )
             added = clap.add_clap()
 
@@ -293,9 +295,7 @@ class BlogPostClapView(View):
                 "my_clap_count": clap.clap_count,
             }
         )
-        if cookie_created:
-            set_visitor_cookie(response, visitor_token)
-        return response
+        return forget_legacy_visitor_cookie(request, response)
 
 
 class BlogCommentCreateView(LoginRequiredMixin, View):

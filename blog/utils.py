@@ -1,44 +1,33 @@
-import hashlib
-import uuid
+"""Blog o'qish va olqish kimga bog'lanadi (PUB1.0g).
 
-from django.conf import settings
+PUB1.0g'gacha har anonim tashrifchiga bir yillik `blog_visitor` cookie qo'yilar,
+maqola o'qilishi IP xeshi (soxtalashtiriladigan chap XFF'dan) va brauzer
+user-agent'i bilan yozilardi. Owner qarori (PUB-D6) bo'lmaguncha:
 
+- anonim o'qish va olqish hech narsa yozmaydi va cookie qo'ymaydi;
+- kirgan foydalanuvchi uchun faqat (maqola, foydalanuvchi) - IP va UA yo'q;
+- eski cookie ko'rilsa brauzerdan o'chiriladi.
+"""
 
-BLOG_VISITOR_COOKIE = "blog_visitor"
-BLOG_VISITOR_COOKIE_AGE = 60 * 60 * 24 * 365
-
-
-def ensure_visitor_token(request):
-    existing = request.COOKIES.get(BLOG_VISITOR_COOKIE)
-    if existing:
-        return existing, False
-    return uuid.uuid4().hex, True
-
-
-def set_visitor_cookie(response, visitor_token):
-    response.set_cookie(
-        BLOG_VISITOR_COOKIE,
-        visitor_token,
-        max_age=BLOG_VISITOR_COOKIE_AGE,
-        httponly=True,
-        secure=getattr(settings, "SESSION_COOKIE_SECURE", False),
-        samesite="Lax",
-    )
+# PUB1.0g'gacha qo'yilgan bir yillik anonim identifikator. Endi o'qilmaydi,
+# faqat brauzerdan o'chirish uchun nomi saqlanadi.
+LEGACY_VISITOR_COOKIE = "blog_visitor"
+# Eski yozuvlardagi anonim kalit prefiksi (tozalash buyrug'i uchun).
+LEGACY_ANONYMOUS_KEY_PREFIX = "anon:"
 
 
-def viewer_key_for_request(request, visitor_token):
+def reader_key(request):
+    """Kirgan foydalanuvchining kaliti yoki ``None`` (anonim kuzatilmaydi)."""
     if request.user.is_authenticated:
         return f"user:{request.user.pk}"
-    return f"anon:{visitor_token}"
+    return None
 
 
-def build_ip_hash(request):
-    forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
-    ip = forwarded.split(",")[0].strip() if forwarded else request.META.get("REMOTE_ADDR", "").strip()
-    if not ip:
-        return ""
-    salted = f"{settings.SECRET_KEY}:{ip}"
-    return hashlib.sha256(salted.encode("utf-8")).hexdigest()
+def forget_legacy_visitor_cookie(request, response):
+    """Brauzerda qolgan eski bir yillik cookie'ni o'chiradi."""
+    if LEGACY_VISITOR_COOKIE in request.COOKIES:
+        response.delete_cookie(LEGACY_VISITOR_COOKIE, samesite="Lax")
+    return response
 
 
 def is_probable_bot(user_agent):

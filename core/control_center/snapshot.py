@@ -1029,6 +1029,7 @@ def _public_content_probe(definition: CapabilityDefinition) -> CapabilityResult:
         legal_missing=", ".join(readiness.missing_legal) or "-",
         legal_generated=", ".join(readiness.generated_legal) or "-",
         settings_missing=", ".join(readiness.missing_singletons) or "-",
+        blog_legacy_tracking=readiness.legacy_blog_tracking,
     )
     if readiness.missing_legal:
         return _result(
@@ -1046,6 +1047,13 @@ def _public_content_probe(definition: CapabilityDefinition) -> CapabilityResult:
         return _result(
             definition, "amber",
             "Sozlama qatori yo'q, sahifa kod default'lari bilan chiqmoqda.",
+            **details,
+        )
+    if readiness.legacy_blog_tracking:
+        return _result(
+            definition, "amber",
+            f"Eski anonim blog kuzatuvi qolgan: {readiness.legacy_blog_tracking} qator "
+            "(`manage.py purge_blog_read_tracking --apply`).",
             **details,
         )
     return _result(definition, "green", "Huquqiy sahifalar va public sozlamalar owner tomonidan yozilgan.", **details)

@@ -202,7 +202,8 @@ CAPABILITY_REGISTRY = (
         runbook=(
             "Admin → Huquqiy sahifalar: maxfiylik, shartlar va FAQ'ni haqiqiy matn bilan "
             "yarating yoki eski umumiy namunani almashtiring. Sozlama qatori yo'q bo'lsa "
-            "sahifa kod default'lari bilan chiqadi — backoffice'da bir marta saqlang."
+            "sahifa kod default'lari bilan chiqadi — backoffice'da bir marta saqlang. "
+            "Eski anonim blog kuzatuvi: `manage.py purge_blog_read_tracking --apply`."
         ),
     ),
     CapabilityDefinition(
