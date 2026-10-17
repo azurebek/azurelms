@@ -108,11 +108,13 @@ def _govern(items, key_for, text_for, surface, now=None):
 
 
 def landing_statistic_claims(now=None):
-    return _govern(Statistic.objects.filter(is_active=True), statistic_key, statistic_text, "Bosh sahifa", now)
+    stats = Statistic.objects.filter(is_active=True).order_by("order", "id")
+    return _govern(stats, statistic_key, statistic_text, "Bosh sahifa", now)
 
 
 def about_statistic_claims(now=None):
-    return _govern(AboutStatistic.objects.all(), about_statistic_key, about_statistic_text, "Biz haqimizda", now)
+    stats = AboutStatistic.objects.order_by("order", "id")
+    return _govern(stats, about_statistic_key, about_statistic_text, "Biz haqimizda", now)
 
 
 def all_claims(now=None):
