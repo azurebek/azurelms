@@ -1701,7 +1701,11 @@ bo‘linmaydi, uzun owner matnida butun element keyingi qatorga o‘tadi. Legacy
 sahifa bo‘lim relsi va footer ustunlari nomlangan landmark. SIT bo‘limi o‘z
 qobig‘ida qoladi (SIT-01 scope’i). **Ochiq:** footer’da “Yordam markazi” va “FAQ”
 ikkalasi `/faq/`ga (owner qatori — tegilmadi); `SiteSettings` to‘lov kartasi
-namunasi COMMERCE-01 scope’ida.
+namunasi COMMERCE-01 scope’ida. Review tuzatishi (PR #215): migratsiya seed qatorini
+faqat to‘liq seed holatida (ko‘rinish, tartib, yangi tab ham) o‘chiradi; menyu
+filtri URL yo‘lini parse qiladi (`#fragment` ham); ro‘yxat yopiq bo‘lsa narx
+sahifasi tarif tugmasi mehmonni kirishga (narxga qaytib), kurs detali va kirish
+sahifasi ro‘yxat havolasisiz — ikki renderer’da.
 
 **Ish:** owner qaroridagi IA; grouped header/footer; hardcoded/duplicate SIT va
 misrouted certificate linklarni tuzatish; configured contact/help. Landing first

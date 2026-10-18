@@ -48,6 +48,13 @@ namunasini (`+998 90 123 45 67`, `info@azurelms.uz`, `legal@azurelms.uz`) va
   bo‘linib ikki qatorga tushardi — CSS tuzatildi: 1181/1440px bir qator, 1180px
   dan mobil menyu, 320px’da gorizontal siljish yo‘q, 44px+ nishon; uzun owner
   yorlig‘ida butun element keyingi qatorga o‘tadi. V1 1024/375px toza.
+- Codex review (PR #215) — tuzatish commit **`6ae5d3d`**: P1 — migratsiya seed
+  qatorini faqat to‘liq seed holatida o‘chiradi (owner ko‘rinish/tartib/yangi tabni
+  o‘zgartirgan bo‘lsa qoladi; reverse noop); P2 — narx, kurs detali va kirish
+  sahifalaridagi ro‘yxat havolalari ham gate qilindi (narxda mehmonga kirish);
+  P2 — menyu filtri URL yo‘lini parse qiladi (`/users/register/#...`). Test:
+  `frontend.test_public_shell` 18 OK; to‘liq suite **2987 OK (skipped=69)**;
+  5 ta qo‘shimcha nazorat buzilishi FAIL → tiklangach PASS.
 - Davom etilishi kerak: PUB1.2c (B3.5 writer bilan birga); keyingi kesim PUB1.3a.
   Footer’da “Yordam markazi” va “FAQ” ikkalasi `/faq/`ga (owner qatori);
   `SiteSettings` to‘lov kartasi namunasi COMMERCE-01 scope’ida.
