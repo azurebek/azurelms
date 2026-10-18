@@ -6,6 +6,8 @@ from .exam_attempt_v1 import ExamAttemptV1View
 
 urlpatterns = [
     path('', views.CourseListView.as_view(), name='courses'),
+    # Imzoli xarid niyati: auth'dan keyin kursga qaytish (PUB1.3d).
+    path('continue/', views.public_intent_continue, name='public_intent_continue'),
     path('exams/', views.ExamCenterView.as_view(), name='exam_center'),
     path('<int:pk>/', views.CourseDetailView.as_view(), name='course_detail'),
     path('<int:course_id>/study/', views.CourseStudyRedirectView.as_view(), name='course_study'),

@@ -295,3 +295,72 @@ def _has_continuing_membership(user, course_id):
         .exclude(status=Enrollment.STATUS_FROZEN)
         .exists()
     )
+
+
+@dataclass(frozen=True)
+class IntentResolution:
+    url: str
+    message: str = ""
+    outcome: str = ""
+
+
+def resolve_purchase_intent(intent, *, user, today=None):
+    """Imzoli niyatni hozirgi holatga ko'ra manzilga aylantiradi (PUB1.3d) — hech narsa yozmaydi.
+
+    Niyat buyurtma emas: kurs faolligi, o'quvchining a'zoligi, qabul va tarif
+    shu yerda qayta tekshiriladi; narxni checkout o'zi hisoblaydi. Kurs yopilgan
+    yoki tarif endi sotilmasa odam checkout'ga yuborilib qaytarilmaydi — sabab
+    xabar bilan aytiladi.
+    """
+    from django.urls import reverse
+
+    from cohorts.models import Enrollment, enrollment_active_access_q
+    from courses.models import Course
+    from frontend import public_intent
+
+    catalog = reverse("courses")
+    if intent.destination == public_intent.CATALOG:
+        return IntentResolution(catalog, outcome="catalog")
+    course = Course.objects.filter(pk=intent.course_id, is_active=True).first()
+    if course is None:
+        return IntentResolution(catalog, "Bu kurs hozir mavjud emas. Boshqa kurslarni ko‘ring.", "course_gone")
+    detail = reverse("course_detail", args=[course.pk])
+    if intent.destination == public_intent.COURSE_DETAIL:
+        return IntentResolution(detail, outcome="course_detail")
+    if Enrollment.objects.filter(enrollment_active_access_q(), student=user, cohort__course=course).exists():
+        return IntentResolution(detail, "Siz bu kursda allaqachon o‘qiyapsiz.", "enrolled")
+    offer = build_offer(course, today=today)
+    if offer_cta(offer, user=user, is_enrolled=False).destination != CHECKOUT:
+        return IntentResolution(detail, offer.reason_text, "closed")
+    checkout = reverse("cohorts:checkout", kwargs={"course_id": course.pk})
+    if not intent.plan_code:
+        return IntentResolution(checkout, outcome="checkout")
+    plan = next((plan for plan in offer.plans if plan.code == intent.plan_code), None)
+    if plan is not None and plan.available:
+        return IntentResolution(f"{checkout}?plan_id={plan.plan_id}", outcome="checkout_plan")
+    return IntentResolution(
+        checkout, "Tanlangan tarif hozir mavjud emas — mavjud tariflardan birini tanlang.", "plan_unavailable",
+    )
+
+
+def plan_links(offer, *, course_id, user):
+    """Sidebar'dagi har mavjud tarif uchun “shu tarif bilan davom etish” manzili.
+
+    Kirgan odam — to'g'ridan-to'g'ri checkout (`plan_id` bilan; checkout uni qayta
+    tekshiradi). Mehmon — imzoli niyat bilan kirish sahifasi.
+    """
+    from urllib.parse import urlencode
+
+    from django.urls import reverse
+
+    from frontend import public_intent
+
+    links = []
+    for plan in offer.available_plans:
+        if getattr(user, "is_authenticated", False):
+            url = reverse("cohorts:checkout", kwargs={"course_id": course_id}) + f"?plan_id={plan.plan_id}"
+        else:
+            target = public_intent.continue_url(public_intent.COURSE_CHECKOUT, course_id=course_id, plan_code=plan.code or None)
+            url = reverse("login") + "?" + urlencode({"next": target})
+        links.append((plan, url))
+    return links

@@ -49,6 +49,21 @@
       <button class="brand-submit" type="submit">{% if backoffice_unified_enabled %}To‘lov muddatini saqlash{% else %}Checkout muddatini saqlash{% endif %}</button>
     </form>
     {% if backoffice_unified_enabled %}</details>{% endif %}
+    {% if backoffice_unified_enabled %}<details class="bo-settings-detail" id="settings-public_intent"{% if public_intent_form.is_bound or public_intent_form.errors %} open{% endif %}><summary><strong>Kursga qaytish havolasi</strong><span>Kurs sahifasidan kirgan mehmon qancha vaqt ichida o‘sha kursga qaytariladi.</span></summary>{% endif %}
+<form class="brand-form" method="post">
+      {% csrf_token %}<input type="hidden" name="form_name" value="public_intent">
+      <section class="brand-panel">
+        <div class="brand-panel-head"><span>Kurs</span><div><h2>Kursga qaytish havolasi muddati</h2><p>Yangi havolalarga va ochiq havolalarni tekshirishga keyingi so‘rovdan amal qiladi. Narx va qabul qaytishda qayta tekshiriladi.</p></div></div>
+        {% if public_intent_form.non_field_errors %}<div class="brand-errors">{{ public_intent_form.non_field_errors }}</div>{% endif %}
+        <div class="brand-fields brand-fields--nums">{% for field, unit in public_intent_form.numeric_fields %}<label class="brand-field"><span>{{ field.label }}</span><span class="brand-numfield">{{ field }}<span class="brand-unit">{{ unit }}</span></span><small>{{ field.help_text }}</small>{% for error in field.errors %}<em>{{ error }}</em>{% endfor %}</label>{% endfor %}</div>
+      </section>
+      <section class="brand-panel"><div class="brand-fields">
+        <label class="brand-field"><span>{{ public_intent_form.change_reason.label }}</span>{{ public_intent_form.change_reason }}{% for error in public_intent_form.change_reason.errors %}<em>{{ error }}</em>{% endfor %}</label>
+        <label class="brand-field brand-field--check">{{ public_intent_form.confirm_change }}<span>{{ public_intent_form.confirm_change.label }}</span>{% for error in public_intent_form.confirm_change.errors %}<em>{{ error }}</em>{% endfor %}</label>
+      </div></section>
+      <button class="brand-submit" type="submit">Havola muddatini saqlash</button>
+    </form>
+    {% if backoffice_unified_enabled %}</details>{% endif %}
     {% if backoffice_unified_enabled %}<details class="bo-settings-detail" id="settings-auth_throttle"{% if auth_throttle_form.is_bound or auth_throttle_form.errors %} open{% endif %}><summary><strong>Kirish urinishlari cheklovi</strong><span>Parol taxmini va yangi hisob/email toshqinidan himoya.</span></summary>{% endif %}
 <form class="brand-form" method="post">
       {% csrf_token %}<input type="hidden" name="form_name" value="auth_throttle">

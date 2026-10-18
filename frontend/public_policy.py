@@ -138,8 +138,8 @@ PRIVATE_NAMESPACES = frozenset({
 })
 
 PRIVATE_ROUTES = frozenset({
-    # Hisob, sozlamalar va onboarding.
-    "onboarding_choice", "start_smart_onboarding", "logout", "profile", "settings", "settings_account",
+    # Hisob, sozlamalar va onboarding; auth'dan keyingi kursga qaytish (PUB1.3d).
+    "public_intent_continue", "onboarding_choice", "start_smart_onboarding", "logout", "profile", "settings", "settings_account",
     "settings_privacy", "settings_billing", "settings_capabilities", "update_avatar", "update_password",
     "update_ai_tone", "update_ai_model", "update_ai_skill", "update_ai_web_search_effort", "ai_memory",
     "ai_memory_toggle", "ai_memory_clear", "ai_memory_archive", "ai_memory_reject",

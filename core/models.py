@@ -229,6 +229,15 @@ class OperationalSettings(models.Model):
         verbose_name="Cheklov jadvali: AMBER chegarasi (qator)",
         help_text="Cheklov hisoblagichlari jadvali shundan oshsa Control Center ogohlantiradi (tozalash ishlamayotgan yoki hujum bo'lishi mumkin).",
     )
+    public_intent_minutes = models.PositiveIntegerField(
+        default=120,
+        validators=[MinValueValidator(5), MaxValueValidator(1440)],
+        verbose_name="Kursga qaytish havolasi muddati (daqiqa)",
+        help_text=(
+            "5–1440 daqiqa. Mehmon kurs sahifasidan kirish yoki ro‘yxatdan o‘tishga o‘tsa, shu muddat ichida "
+            "o‘sha kursning to‘lov sahifasiga qaytariladi. Narx va qabul qaytishda qayta tekshiriladi."
+        ),
+    )
 
     updated_at = models.DateTimeField(auto_now=True)
     updated_by = models.ForeignKey(

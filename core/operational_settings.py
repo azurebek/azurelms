@@ -38,6 +38,9 @@ DEFAULTS = {
     "auth_telegram_init_ip_limit": 10,
     "auth_telegram_init_window_minutes": 10,
     "auth_throttle_rows_amber": 50000,
+    # Kurs sahifasidan kirish/ro'yxatga o'tgan mehmonni o'sha kursga qaytaruvchi
+    # imzoli havola muddati (PUB1.3d). Narx va qabul qaytishda qayta tekshiriladi.
+    "public_intent_minutes": 120,
 }
 
 BOUNDS = {
@@ -64,6 +67,7 @@ BOUNDS = {
     "auth_telegram_init_ip_limit": (1, 5000),
     "auth_telegram_init_window_minutes": (1, 1440),
     "auth_throttle_rows_amber": (100, 10000000),
+    "public_intent_minutes": (5, 1440),
 }
 
 #: AMBER/RED juftliklari — RED har doim kattaroq bo'lishi kerak.
@@ -144,6 +148,7 @@ class Thresholds:
     auth_telegram_init_ip_limit: int
     auth_telegram_init_window_minutes: int
     auth_throttle_rows_amber: int
+    public_intent_minutes: int
 
     @classmethod
     def defaults(cls):
