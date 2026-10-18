@@ -31,7 +31,7 @@
       <div style="display:flex;align-items:baseline;gap:4px;">
         {% if plan.price > 0 %}<span style="font-family:'Space Mono',monospace;font-size:34px;font-weight:700;color:var(--ink);letter-spacing:-.02em;">{{ plan.price|floatformat:0 }}</span><span style="font-size:13px;color:var(--ink-3);">so'm/oy</span>{% else %}<span style="font-family:'Space Mono',monospace;font-size:34px;font-weight:700;color:var(--ink);letter-spacing:-.02em;">Bepul</span>{% endif %}
       </div>
-      <a href="{% if user.is_authenticated %}{% url 'courses' %}{% else %}{% url 'register' %}{% endif %}" style="display:flex;align-items:center;justify-content:center;gap:8px;height:44px;border-radius:11px;font-size:14px;font-weight:600;margin-top:20px;{% if plan.is_popular %}background:var(--azure);color:var(--on-azure);{% else %}background:transparent;border:1px solid var(--line);color:var(--ink);{% endif %}">{{ plan.button_text }}</a>
+      <a href="{% if user.is_authenticated %}{% url 'courses' %}{% elif public_registration_open %}{% url 'register' %}{% else %}{% url 'login' %}?next={% url 'subscriptions:pricing' %}{% endif %}" style="display:flex;align-items:center;justify-content:center;gap:8px;height:44px;border-radius:11px;font-size:14px;font-weight:600;margin-top:20px;{% if plan.is_popular %}background:var(--azure);color:var(--on-azure);{% else %}background:transparent;border:1px solid var(--line);color:var(--ink);{% endif %}">{{ plan.button_text }}</a>
       {% if plan.features.all or plan.group_size_claim %}
       <div style="height:1px;background:var(--line);margin:22px 0;"></div>
       <div style="display:flex;flex-direction:column;gap:11px;">

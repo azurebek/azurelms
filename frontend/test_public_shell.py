@@ -176,6 +176,11 @@ class SeedMigrationTests(TestCase):
                                       custom_url="/certificates/verify/", order=1)
         LandingNavItem.objects.create(placement="footer_platform", key="custom", label="SIT",
                                       custom_url="/sit/", order=2)
+        # Seed matni va manzili o'zgarmagan, lekin owner boshqa maydonni tahrirlagan
+        # (PR #215 review): reverse noop — bunday qator yo'qolmasligi kerak.
+        for edit in ({"is_visible": False}, {"order": 9}, {"open_in_new_tab": True}):
+            row = {"order": 4, "is_visible": True, "open_in_new_tab": False, **edit}
+            LandingNavItem.objects.create(placement="footer_platform", key="register", label="Qabul yo'li", **row)
         before = self.rows("footer_platform")
         nav_migration.fix_public_navigation(apps, None)
         self.assertEqual(self.rows("footer_platform"), before)
@@ -202,11 +207,40 @@ class RegistrationStateTests(ShellMixin, TestCase):
     def test_custom_register_menu_row_hides_while_closed(self):
         LandingNavItem.objects.create(placement="footer_company", key="custom", label="QABUL-CUSTOM",
                                       custom_url="/users/register/?from=footer", order=9)
+        LandingNavItem.objects.create(placement="footer_company", key="custom", label="QABUL-FRAGMENT",
+                                      custom_url="/users/register/#footer", order=10)
         for state in (True, False):
             set_flag("public_registration", state)
             for name in renderers():
                 with self.subTest(renderer=name, open=state):
-                    self.assertEqual("QABUL-CUSTOM" in self.page("about"), state)
+                    html = self.page("about")
+                    self.assertEqual("QABUL-CUSTOM" in html, state)
+                    self.assertEqual("QABUL-FRAGMENT" in html, state)
+
+    def test_offer_and_login_pages_follow_the_registration_state(self):
+        """PR #215 review: narx, kurs va kirish sahifasi ham yopiq eshikka olib bormaydi."""
+        from courses.models import Course
+        from subscriptions.models import Plan
+
+        course = Course.objects.create(title="Kurs", description="<p>d</p>", level="beginner")
+        Plan.objects.create(name="Tarif", price=100000, description="d", order=1)
+        register = reverse("register")
+        pages = {
+            "pricing": (reverse("subscriptions:pricing"), f'{reverse("login")}?next={reverse("subscriptions:pricing")}'),
+            "course": (reverse("course_detail", args=[course.pk]), reverse("login")),
+            "login": (reverse("login"), None),
+        }
+        for state in (True, False):
+            set_flag("public_registration", state)
+            for name in renderers():
+                set_flag("frontend_v1_auth", name == "v1")  # kirish sahifasi o'z bayrog'ida
+                for page, (url, fallback) in pages.items():
+                    html = self.client.get(url).content.decode()
+                    found = [href for href in links(html) if urlsplit(href).path == register]
+                    with self.subTest(renderer=name, page=page, open=state):
+                        self.assertEqual(bool(found), state)
+                        if fallback and not state:
+                            self.assertTrue(any(href.startswith(fallback) for href in links(html)), fallback)
 
 
 class ContactAndPromiseTests(ShellMixin, TestCase):

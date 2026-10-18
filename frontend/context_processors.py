@@ -1,3 +1,5 @@
+from urllib.parse import urlsplit
+
 from django.db.utils import OperationalError, ProgrammingError
 from django.urls import reverse
 
@@ -107,7 +109,7 @@ def site_settings_context(request):
 
     def nav(place):
         rows = _serialize_landing_nav_items(request, place, grouped)
-        return [row for row in rows if row["url"].split("?")[0] not in closed_paths]
+        return [row for row in rows if urlsplit(row["url"]).path not in closed_paths]
 
     context = {
         # Ro'yxat yopiq bo'lsa "Ro'yxatdan o'tish" CTA'si o'lik yo'lga olib

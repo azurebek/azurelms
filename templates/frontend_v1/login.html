@@ -16,7 +16,7 @@
         <button class="c-button c-button--primary p-auth-submit" type="submit">Kirish{% include "frontend_v1/icon.html" with name="arrow" %}</button>
       </div>
     </form>
-    <div class="p-auth-links"><a class="c-text-link" href="{% url 'password_reset' %}">Parolni unutdingizmi?</a><a class="c-text-link" href="{% url 'register' %}{% if next %}?next={{ next|urlencode:'' }}{% endif %}">Yangi hisob ochish</a></div>
+    <div class="p-auth-links"><a class="c-text-link" href="{% url 'password_reset' %}">Parolni unutdingizmi?</a>{% if public_registration_open %}<a class="c-text-link" href="{% url 'register' %}{% if next %}?next={{ next|urlencode:'' }}{% endif %}">Yangi hisob ochish</a>{% endif %}</div>
     {% include "frontend_v1/telegram_auth.html" %}
     <noscript><p class="c-caption">Email va parol bilan kirish ishlaydi. Telegram orqali kirish uchun JavaScript kerak.</p></noscript>
   </section>

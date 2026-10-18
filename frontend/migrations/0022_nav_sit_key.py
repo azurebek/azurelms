@@ -3,21 +3,23 @@
 from django.db import migrations, models
 
 # 0016 seed'idagi ikki footer qatori nomiga mos bo'lmagan joyga olib borardi:
-# "Sertifikatlar" -> /about/, "Qabul yo'li" -> ro'yxat. Faqat seed'dagi aynan
-# shu qatorlar o'chiriladi; owner matnini yoki manzilini o'zgartirgan bo'lsa
-# qator tegilmaydi.
+# "Sertifikatlar" -> /about/, "Qabul yo'li" -> ro'yxat. Faqat seed holatida
+# to'liq qolgan qator o'chiriladi: owner istalgan maydonini (matn, manzil,
+# ko'rinish, tartib, yangi tab) o'zgartirgan bo'lsa qator tegilmaydi — reverse
+# noop bo'lgani uchun owner sozlamasi yo'qolmasligi kerak (PR #215 review).
 MISROUTED_SEED_ROWS = (
-    ("footer_platform", "about", "Sertifikatlar"),
-    ("footer_platform", "register", "Qabul yo'li"),
+    {"placement": "footer_platform", "key": "about", "label": "Sertifikatlar", "order": 3},
+    {"placement": "footer_platform", "key": "register", "label": "Qabul yo'li", "order": 4},
 )
+SEED_DEFAULTS = {"custom_url": "", "is_visible": True, "open_in_new_tab": False}
 SIT_PATH = "/sit/"
 SIT_LABEL = "Turkiyada o‘qish"
 
 
 def fix_public_navigation(apps, schema_editor):
     LandingNavItem = apps.get_model("frontend", "LandingNavItem")
-    for placement, key, label in MISROUTED_SEED_ROWS:
-        LandingNavItem.objects.filter(placement=placement, key=key, label=label, custom_url="").delete()
+    for seed in MISROUTED_SEED_ROWS:
+        LandingNavItem.objects.filter(**seed, **SEED_DEFAULTS).delete()
 
     # Legacy navbar SIT havolasini shablonga qotirib chizardi; endi menyu bitta
     # manbadan (PUB-D16). Owner allaqachon qator kiritgan joylashuvda SIT yo'q
