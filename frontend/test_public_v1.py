@@ -81,6 +81,8 @@ class PublicV1Tests(TestCase):
         self.assertEqual(Enrollment.objects.count(), 0)
         self.client.force_login(self.user)
         self.assertRedirects(self.client.get(reverse('home')), reverse('dashboard'), fetch_redirect_response=False)
+        # PUB1.3b: checkout havolasi faqat qabul ochiq bo'lsa (checkout ham shunda qabul qiladi).
+        Cohort.objects.create(course=self.course, name='Ochiq guruh', start_date=datetime.date.today())
         detail = self.client.get(reverse('course_detail', args=[self.course.pk]))
         self.assertContains(detail, reverse('cohorts:checkout', kwargs={'course_id': self.course.pk}))
         self.assertNotContains(detail, 'PRIVATE LESSON BODY')
