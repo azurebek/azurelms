@@ -63,7 +63,11 @@
 /* ---- Footer ---- */
 .pub-footer{ border-top:1px solid var(--line); }
 .pub-footer-inner{ max-width:1180px; margin:0 auto; padding:52px clamp(20px,4vw,32px) 36px; }
-.pub-footer-cols{ display:grid; grid-template-columns:1.6fr 1fr 1fr 1fr; gap:28px; margin-bottom:40px; }
+/* Brend + owner guruhlari (+ sozlangan bo'lsa Aloqa): ustunlar soni guruhlarga moslashadi. */
+.pub-footer-cols{ display:grid; grid-template-columns:minmax(14rem,1.6fr) repeat(auto-fit,minmax(8.5rem,1fr)); gap:28px; margin-bottom:40px; }
+.pub-foot-fold>summary{ list-style:none; cursor:default; }
+.pub-foot-fold>summary::-webkit-details-marker{ display:none; }
+.pub-foot-sign{ display:none; }
 .pub-foot-brand a{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
 .pub-foot-brand p{ font-size:13.5px; line-height:1.6; color:var(--ink-3); max-width:30ch; margin:0; }
 .pub-foot-title{ font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-4); margin-bottom:13px; }
@@ -101,7 +105,18 @@
   .pub-actions{flex:0 0 auto}
 }
 @media (max-width:760px){
-  .pub-footer-cols{ grid-template-columns:1fr 1fr; }
+  /* Footer: guruhlar tepada, har biri yig'iladi (+/−); brend pastda. */
+  .pub-footer-cols{ display:flex; flex-direction:column; gap:0; }
+  .pub-foot-brand{ order:1; margin-top:28px; }
+  .pub-foot-group{ border-bottom:1px solid var(--line); }
+  .pub-foot-group:first-of-type{ border-top:1px solid var(--line); }
+  .pub-foot-fold>summary.pub-foot-title{ display:flex; align-items:center; justify-content:space-between; min-height:44px; margin:0; font-size:11.5px; color:var(--ink-2); cursor:pointer; }
+  .pub-foot-sign{ display:block; position:relative; width:14px; height:14px; flex:0 0 auto; color:var(--ink-3); }
+  .pub-foot-sign::before,.pub-foot-sign::after{ content:""; position:absolute; left:0; right:0; top:50%; height:2px; margin-top:-1px; border-radius:1px; background:currentColor; }
+  .pub-foot-sign::after{ transform:rotate(90deg); transition:transform .2s ease; }
+  .pub-foot-fold[open] .pub-foot-sign::after{ transform:rotate(0deg); }
+  .pub-foot-fold .pub-foot-links{ padding-bottom:12px; }
+  .pub-foot-fold .pub-foot-links a{ min-height:40px; }
 }
 
 /* Telefon: sarlavhadagi amallar sobit o'lchamda, brend esa cho'ziluvchan.

@@ -22,10 +22,27 @@
     menu.querySelector('nav').addEventListener('click', (event) => {
       if (event.target.closest('a')) menu.open = false;
     });
-    window.matchMedia('(max-width: 1040px)').addEventListener('change', () => {
+    // `public-shell.css` dagi mobil menyu chegarasi bilan bir xil (PUB1.2d).
+    window.matchMedia('(max-width: 1180px)').addEventListener('change', () => {
       menu.open = false;
     });
   }
+  // Footer guruhlari telefonda yig'iladi; kengroq ekranda doim ochiq ustun.
+  // Server `open` bilan chizadi — JS bo'lmasa hech narsa yashirinmaydi.
+  const folds = [...document.querySelectorAll('[data-footer-fold]')];
+  if (folds.length) {
+    const compact = window.matchMedia('(max-width: 760px)');
+    const syncFolds = () => folds.forEach((fold) => {
+      fold.open = !compact.matches;
+      fold.querySelector('summary').tabIndex = compact.matches ? 0 : -1;
+    });
+    folds.forEach((fold) => fold.querySelector('summary').addEventListener('click', (event) => {
+      if (!compact.matches) event.preventDefault();
+    }));
+    compact.addEventListener('change', syncFolds);
+    syncFolds();
+  }
+
   // 1) Sticky header soyasi (nav+footer varianti)
   const header = document.querySelector('[data-pub-header]');
   if (header) {
