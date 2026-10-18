@@ -32,6 +32,21 @@ def public_plain(value, max_chars=None):
 
 
 @register.filter
+def public_som(value):
+    """Narx o'zbekcha ko'rinishda: `200000` → `200 000` (guruhlar bo'linmaydigan bo'shliq bilan).
+
+    Faqat ko'rinish: qiymat `Plan.price`dan o'zgarmay keladi (PUB1.3c).
+    """
+    from decimal import Decimal, InvalidOperation
+
+    try:
+        number = int(Decimal(str(value)))
+    except (InvalidOperation, TypeError, ValueError):
+        return ""
+    return f"{number:,}".replace(",", "\u00a0")
+
+
+@register.filter
 def public_nav(value):
     """Navbar/footer/ijtimoiy tarmoq havolasi; ruxsatsiz bo'lsa ``""``."""
     return public_nav_url(value)

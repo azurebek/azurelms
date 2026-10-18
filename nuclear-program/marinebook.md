@@ -16,6 +16,32 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-19 [Claude]: PUBLIC-01 / PUB1.3c — kurs sahifasi va kartasi faqat bor faktlar bilan
+
+Kurs sahifasi “0 imtihon”, “0 o‘quvchi” kabi bo‘sh faktlarni ko‘rsatardi, legacy
+sidebar esa dalilsiz va’dalar ro‘yxatini qotirib chizardi (“Cheksiz AI repetitor”,
+“Jonli guruh darslari”, “To‘liq imtihon muhiti”, “Tasdiqlangan sertifikat”). Narx
+va tariflar kurs sahifasida umuman yo‘q edi; telefonda keyingi qadam sahifa oxirida.
+
+- Branch: `claude/pub13c-course-page`; kod commit **`09e60c1`**. Migration yo‘q.
+- Qarorlar: `build_course_facts` (sertifikat faqat oraliq + yakuniy imtihon bo‘lsa —
+  `completion_service` shuni talab qiladi; kurs shartlari ro‘yxat); sidebar’da PUB1.3b
+  taklifidagi mavjud tariflar (narx `public_som`, 30 kun, imkoniyatlar); yopiq qabulda narx
+  yo‘q; sozlangan aloqa bo‘lsa “Savolingiz bormi?”; tanishtiruv videosi (`preload="none"`);
+  tor ekranda birinchi ekranda qisqa taklif; katalog kartasida eng arzon mavjud narx,
+  0 son yo‘q, V1 havola nomi noyob. Natija/talab/yuklama maydoni yo‘q — taxmin qilinmadi.
+- Test: safe env’da `manage.py test courses.test_public_course_page` — **10 test, OK**;
+  to‘liq `manage.py test` — **3036 test, OK (skipped=69)**; `node --test` 179/179;
+  `check`, `makemigrations --check` toza. Nazorat yugurishi: 10 ta buzilish (legacy
+  dalilsiz band, sertifikat qoidasi, V1/legacy 0 fakt, yopiqda narx, aloqa namunasi,
+  karta nomi, eng arzon narx manbai, narx formati) — hammasi FAIL, tiklangach PASS.
+- Brauzer (DB nusxasi, V1 :8050 va legacy :8051): uch tarif (99 000 / 199 000 /
+  299 000 so‘m) imkoniyatlari bilan; “8 dars, 3 modul”, imtihonsiz kursda sertifikat
+  va’dasi yo‘q; 375px’da qisqa taklif 341–548px oralig‘ida (birinchi ekran), gorizontal
+  siljish yo‘q; legacy telefonda bitta ustun. Owner jonli serverni telefonda ham ochishi
+  uchun DB nusxasi serveri LAN’da (`0.0.0.0:8050`, faqat scratch sozlama) ishga tushirildi.
+- Davom etilishi kerak: keyingi kesim PUB1.3d (signed intent va exact auth return).
+
 ## 2026-10-18 [Claude]: PUBLIC-01 / owner ko‘rigi — yig‘iladigan footer, bir qatorli sarlavha, tekis filtr
 
 Owner jonli serverda ko‘rdi: telefonda footer “dabdala” (ikki ustun, bo‘shliqlar
