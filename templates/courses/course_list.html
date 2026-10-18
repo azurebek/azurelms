@@ -5,6 +5,7 @@
   Proto: azurelms-proto/public/courses.html.
   Kontekst: courses (annotated_lessons_count, annotated_students_count, level, instructor),
   search_query, selected_levels, level_choices, current_sort, pagination (page_obj, is_paginated).
+  PUB1.3a: barcha havolalar view'dagi normallashgan `catalog` dan (q URL-kodlangan).
 {% endcomment %}
 
 {% block title %}Kurslar — {{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}
@@ -17,22 +18,22 @@
       <h1 style="font-size:clamp(26px,3.4vw,38px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0 0 8px;">Kurslar</h1>
       <p style="font-size:15px;color:var(--ink-3);margin:0;max-width:52ch;line-height:1.6;">Turk tili A1 dan C1 gacha — tartibli dastur, jonli darslar va imtihon tayyorgarligi.</p>
     </div>
-    <form method="get" style="position:relative;flex:0 0 auto;">
+    <form method="get" action="{% url 'courses' %}" role="search" style="position:relative;flex:0 0 auto;">
       {% for lv in selected_levels %}<input type="hidden" name="level" value="{{ lv }}">{% endfor %}
-      {% if current_sort %}<input type="hidden" name="sort" value="{{ current_sort }}">{% endif %}
+      {% if catalog.custom_sort %}<input type="hidden" name="sort" value="{{ catalog.custom_sort }}">{% endif %}
       <i class="bi bi-search" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--ink-3);font-size:13px;"></i>
-      <input type="search" name="q" value="{{ search_query }}" placeholder="Kurs qidirish…" style="height:44px;width:min(280px,70vw);padding:0 14px 0 38px;border-radius:11px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:14px;outline:none;">
+      <input type="search" name="q" value="{{ search_query }}" maxlength="{{ max_query_chars }}" aria-label="Kurs qidirish" placeholder="Kurs qidirish…" style="height:44px;width:min(280px,70vw);padding:0 14px 0 38px;border-radius:11px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:14px;outline:none;">
     </form>
   </div>
 
   <!-- Filtr bari -->
   <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--line);">
-    <div style="display:flex;gap:6px;background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:4px;flex-wrap:wrap;">
-      <a href="?{% if search_query %}q={{ search_query }}{% endif %}" style="height:32px;display:inline-flex;align-items:center;padding:0 14px;border-radius:7px;font-size:12.5px;font-weight:600;{% if not selected_levels %}background:var(--azure-soft);color:var(--azure);{% else %}color:var(--ink-3);{% endif %}">Hammasi</a>
-      {% for val, label in level_choices %}
-      <a href="?level={{ val }}{% if search_query %}&q={{ search_query }}{% endif %}" style="height:32px;display:inline-flex;align-items:center;padding:0 14px;border-radius:7px;font-size:12.5px;font-weight:600;{% if val in selected_levels %}background:var(--azure-soft);color:var(--azure);{% else %}color:var(--ink-3);{% endif %}">{{ label }}</a>
+    <nav aria-label="Daraja bo‘yicha" style="display:flex;gap:6px;background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:4px;flex-wrap:wrap;">
+      <a href="{{ all_levels_url }}"{% if not selected_levels %} aria-current="page"{% endif %} style="height:32px;display:inline-flex;align-items:center;padding:0 14px;border-radius:7px;font-size:12.5px;font-weight:600;{% if not selected_levels %}background:var(--azure-soft);color:var(--azure);{% else %}color:var(--ink-3);{% endif %}">Hammasi</a>
+      {% for link in level_links %}
+      <a href="{{ link.url }}"{% if link.selected %} aria-current="page"{% endif %} style="height:32px;display:inline-flex;align-items:center;padding:0 14px;border-radius:7px;font-size:12.5px;font-weight:600;{% if link.value in selected_levels %}background:var(--azure-soft);color:var(--azure);{% else %}color:var(--ink-3);{% endif %}">{{ link.label }}</a>
       {% endfor %}
-    </div>
+    </nav>
     <span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--ink-3);">{{ paginator.count }} ta kurs</span>
   </div>
 
@@ -63,12 +64,12 @@
     {% endfor %}
   </div>
 
-  {% if is_paginated %}
-  <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:32px;">
-    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% for lv in selected_levels %}&level={{ lv }}{% endfor %}{% if current_sort %}&sort={{ current_sort }}{% endif %}" style="height:38px;display:inline-flex;align-items:center;gap:6px;padding:0 14px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);font-size:13px;font-weight:600;"><i class="bi bi-chevron-left"></i> Oldingi</a>{% endif %}
-    <span style="font-family:'Space Mono',monospace;font-size:12.5px;color:var(--ink-3);">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% for lv in selected_levels %}&level={{ lv }}{% endfor %}{% if current_sort %}&sort={{ current_sort }}{% endif %}" style="height:38px;display:inline-flex;align-items:center;gap:6px;padding:0 14px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);font-size:13px;font-weight:600;">Keyingi <i class="bi bi-chevron-right"></i></a>{% endif %}
-  </div>
+  {% if page_links %}
+  <nav aria-label="Kurslar sahifalari" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:32px;flex-wrap:wrap;">
+    {% if previous_page_url %}<a href="{{ previous_page_url }}" rel="prev" style="height:38px;display:inline-flex;align-items:center;gap:6px;padding:0 14px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);font-size:13px;font-weight:600;"><i class="bi bi-chevron-left" aria-hidden="true"></i> Oldingi</a>{% endif %}
+    {% for link in page_links %}{% if link %}<a href="{{ link.url }}" aria-label="{{ link.number }}-sahifa"{% if link.current %} aria-current="page"{% endif %} style="height:38px;display:inline-flex;align-items:center;gap:6px;padding:0 14px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);font-size:13px;font-weight:600;min-width:38px;justify-content:center;{% if link.current %}background:var(--azure-soft);color:var(--azure);border-color:var(--azure);{% endif %}">{{ link.number }}</a>{% else %}<span aria-hidden="true" style="color:var(--ink-3);">…</span>{% endif %}{% endfor %}
+    {% if next_page_url %}<a href="{{ next_page_url }}" rel="next" style="height:38px;display:inline-flex;align-items:center;gap:6px;padding:0 14px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);font-size:13px;font-weight:600;">Keyingi <i class="bi bi-chevron-right" aria-hidden="true"></i></a>{% endif %}
+  </nav>
   {% endif %}
 
   {% else %}
