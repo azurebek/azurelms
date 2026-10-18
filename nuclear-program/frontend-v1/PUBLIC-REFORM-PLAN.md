@@ -1740,8 +1740,10 @@ daraja va “Katalogga qaytish” havolalari faqat normallashgan parametrlardan
 filtrli/filtrsiz ajratiladi. So‘rov budjeti: legacy va V1 — 9 (bo‘sh katalogda 8),
 kurslar sonidan qat’i nazar. SEO PUB1.1b’dan: qidiruv/filtr `noindex, follow`,
 canonical toza `/courses/`. Per-IP qidiruv budjeti qo‘shilmadi (ixtiyoriy):
-kirish chegaralangan va jadval kichik. **Ochiq:** Blog `q` hali boy HTML’da
-`icontains` (BLOG-01 scope’i).
+kirish chegaralangan va jadval kichik. Review tuzatishi (PR #216): backfill va
+`rebuild_course_search` kurslarni `pk` bo‘yicha 200 talik keyset sahifalarda
+o‘qib yozadi — katta katalogda ham hammasi birdan xotiraga olinmaydi.
+**Ochiq:** Blog `q` hali boy HTML’da `icontains` (BLOG-01 scope’i).
 
 **Ish:** plain searchable projection yoki sanitized text, q length/normalization,
 allowed level/sort, stable tie-breaker, filter validation, pagination/accessibility,

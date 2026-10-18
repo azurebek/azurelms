@@ -49,6 +49,11 @@ bo‘lib yuborardi).
   `noindex, follow`, canonical toza; V1 detal “Katalogga qaytish” → ayni
   filtr; legacy daraja havolalari `q=turk+%26+%23x` bilan; 375/1280px’da
   gorizontal siljish yo‘q.
+- Codex review (PR #216) — tuzatish commit **`02615ff`**. P2: backfill butun katalogni xotiraga olardi.
+  Tuzatish: `refresh_search_text` `pk` bo‘yicha 200 talik keyset sahifalarda
+  o‘qiydi/yozadi, migratsiya ham shuni chaqiradi (tarixiy model bilan). Test
+  `courses.test_public_catalog` 19 OK; partiyasiz o‘qish nazorat buzilishi
+  FAIL → tiklangach PASS; DB nusxasida 0026 orqaga va qayta qo‘llandi, `rebuild_course_search` → 0 eskirgan.
 - Davom etilishi kerak: keyingi kesim PUB1.3b (`PublicOfferProjection`).
   Blog `q` hali boy HTML’da `icontains` (BLOG-01).
 
