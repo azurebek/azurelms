@@ -1,0 +1,243 @@
+"""Ochiq kurs taklifi — kurs, faol guruh va sotuvdagi tariflarning o'qish proyeksiyasi (PUB1.3b).
+
+Yangi model yoki narx manbai emas. Hammasi checkout ishlatadigan canonical
+manbalardan olinadi:
+
+* sotuvdagi tariflar — `subscriptions.catalog.purchase_plans()` (mehmon uchun);
+* xaridor qo'shiladigan guruh — `cohorts.checkout_service.choose_checkout_cohort`
+  (checkout'dagi `pick_checkout_cohort` ham aynan shu funksiya);
+* to'lov davri — `cohorts.checkout_service.checkout_period`;
+* narx — `Plan.price` (Kursdagi eski `price` maydoni ishlatilmaydi).
+
+Natija faqat o'qiladi: sahifa ochilishi hech narsa yozmaydi. Joy va narx
+render paytidagi surat — checkout POST ularni qayta tekshiradi. Ma'lum
+bo'lmagan qiymat taxmin qilinmaydi: guruh yo'q bo'lsa sana ham yo'q.
+"""
+
+import hashlib
+import json
+from collections import defaultdict
+from dataclasses import dataclass, field, replace
+from datetime import date
+from decimal import Decimal
+
+from django.db.models import Prefetch
+from django.utils import timezone
+
+# Mavjudlik sababi (taxonomy). Matn shablonda emas — bitta joyda.
+AVAILABLE = "available"
+NOT_OPEN = "not_open"  # tarifga mos faol guruh yo'q
+FULL = "full"  # mos guruhlar bor, hammasi to'lgan
+NO_PLANS = "no_plans"  # sotuvdagi tarif yo'q
+
+REASON_TEXT = {
+    AVAILABLE: "Qabul ochiq",
+    NOT_OPEN: "Bu kursga qabul hozircha ochilmagan.",
+    FULL: "Bu kursdagi guruhlar hozircha to‘lgan.",
+    NO_PLANS: "Bu kurs uchun tariflar hali e’lon qilinmagan.",
+}
+REASON_LABEL = {
+    AVAILABLE: "Qabul ochiq",
+    NOT_OPEN: "Qabul hali ochilmagan",
+    FULL: "Guruhlar to‘lgan",
+    NO_PLANS: "Tariflar e’lon qilinmagan",
+}
+
+# CTA manzili (enum) — shablon URL'ni o'zi tanlamaydi.
+STUDY = "study"
+CHECKOUT = "checkout"
+CATALOG = "catalog"
+
+
+@dataclass(frozen=True)
+class PlanOffer:
+    plan_id: int
+    code: str
+    name: str
+    price: Decimal
+    period_days: int
+    included: tuple
+    excluded: tuple
+    group_size_claim: str
+    is_popular: bool
+    reason: str
+    cohort_id: int | None = None
+    cohort_start: date | None = None
+
+    @property
+    def available(self):
+        return self.reason == AVAILABLE
+
+
+@dataclass(frozen=True)
+class CourseOffer:
+    course_id: int
+    active_cohort_count: int
+    plans: tuple
+    reason: str
+    next_start: date | None
+    today: date
+    source_revision: str = field(default="")
+
+    @property
+    def available(self):
+        return self.reason == AVAILABLE
+
+    @property
+    def reason_text(self):
+        return REASON_TEXT[self.reason]
+
+    @property
+    def reason_label(self):
+        return REASON_LABEL[self.reason]
+
+    @property
+    def starts_later(self):
+        """Keyingi guruh hali boshlanmagan (sana kelajakda)."""
+        return self.next_start is not None and self.next_start > self.today
+
+    def plan(self, plan_id):
+        return next((plan for plan in self.plans if plan.plan_id == plan_id), None)
+
+
+@dataclass(frozen=True)
+class OfferCta:
+    destination: str
+    auth_required: bool
+    reason: str
+
+
+def _period_days(today):
+    from cohorts.checkout_service import checkout_period
+
+    start, end = checkout_period(None, today=today)
+    return (end - start).days
+
+
+def _sale_plans():
+    from subscriptions.catalog import purchase_plans
+    from subscriptions.models import PlanFeature
+
+    features = Prefetch("features", queryset=PlanFeature.objects.order_by("order", "id"))
+    return list(purchase_plans().prefetch_related(features))
+
+
+def _plan_offer(plan, cohorts, *, today, period_days):
+    from cohorts.checkout_service import choose_checkout_cohort, cohort_matches_plan
+
+    cohort = choose_checkout_cohort(cohorts, today=today, plan=plan)
+    if cohort is not None:
+        reason = AVAILABLE
+    elif any(cohort_matches_plan(candidate, plan) for candidate in cohorts):
+        reason = FULL
+    else:
+        reason = NOT_OPEN
+    features = list(plan.features.all())
+    return PlanOffer(
+        plan_id=plan.pk,
+        code=plan.code,
+        name=plan.name,
+        price=plan.price,
+        period_days=period_days,
+        included=tuple(feature.name for feature in features if feature.is_included),
+        excluded=tuple(feature.name for feature in features if not feature.is_included),
+        group_size_claim=plan.group_size_claim,
+        is_popular=plan.is_popular,
+        reason=reason,
+        cohort_id=cohort.pk if cohort else None,
+        cohort_start=cohort.start_date if cohort else None,
+    )
+
+
+def _course_offer(course_id, cohorts, plans, *, today, period_days):
+    plan_offers = tuple(_plan_offer(plan, cohorts, today=today, period_days=period_days) for plan in plans)
+    reasons = {offer.reason for offer in plan_offers}
+    if not plan_offers:
+        reason = NO_PLANS
+    elif AVAILABLE in reasons:
+        reason = AVAILABLE
+    elif FULL in reasons:
+        reason = FULL
+    else:
+        reason = NOT_OPEN
+    starts = [offer.cohort_start for offer in plan_offers if offer.available]
+    offer = CourseOffer(
+        course_id=course_id,
+        active_cohort_count=len(cohorts),
+        plans=plan_offers,
+        reason=reason,
+        next_start=min(starts) if starts else None,
+        today=today,
+    )
+    return _with_revision(offer)
+
+
+def _with_revision(offer):
+    """Kirish faktlarining barmoq izi: ularning birortasi o'zgarsa qiymat o'zgaradi."""
+    facts = {
+        "course": offer.course_id,
+        "cohorts": offer.active_cohort_count,
+        "reason": offer.reason,
+        "plans": [
+            [plan.plan_id, plan.code, plan.name, str(plan.price), plan.period_days, plan.included, plan.excluded,
+             plan.group_size_claim, plan.reason, plan.cohort_id, plan.cohort_start]
+            for plan in offer.plans
+        ],
+    }
+    digest = hashlib.sha256(json.dumps(facts, sort_keys=True, default=str).encode("utf-8")).hexdigest()[:16]
+    return replace(offer, source_revision=digest)
+
+
+def build_offers(courses, *, today=None):
+    """Bir nechta kurs uchun takliflar `{course_id: CourseOffer}` — kurslar sonidan qat'i nazar 3 so'rov."""
+    from cohorts.models import Cohort
+
+    course_ids = [course.pk for course in courses]
+    if not course_ids:
+        return {}
+    today = today or timezone.localdate()
+    plans = _sale_plans()
+    cohorts = defaultdict(list)
+    for cohort in (
+        Cohort.objects.filter(course_id__in=course_ids, is_active=True)
+        .with_seat_metrics(today=today)
+        .order_by("course_id", "start_date", "id")
+    ):
+        cohorts[cohort.course_id].append(cohort)
+    period_days = _period_days(today)
+    return {
+        course_id: _course_offer(course_id, cohorts[course_id], plans, today=today, period_days=period_days)
+        for course_id in course_ids
+    }
+
+
+def build_offer(course, *, today=None):
+    return build_offers([course], today=today)[course.pk]
+
+
+def offer_cta(offer, *, user, is_enrolled):
+    """Ko'rayotgan odam uchun keyingi qadam.
+
+    O'qiyotgan a'zo — darsga. Qabul ochiq bo'lsa — checkout (mehmonga avval
+    kirish kerak). Qabul yopiq bo'lsa ham kursda a'zoligi bor odam (muddati
+    o'tgan, kutilayotgan) checkout'da davom eta oladi — checkout shuni
+    ruxsat beradi. Qolganlarga — sabab va katalog.
+    """
+    if is_enrolled:
+        return OfferCta(STUDY, False, "enrolled")
+    authenticated = bool(getattr(user, "is_authenticated", False))
+    if offer.available:
+        return OfferCta(CHECKOUT, not authenticated, AVAILABLE)
+    if authenticated and _has_continuing_membership(user, offer.course_id):
+        return OfferCta(CHECKOUT, False, "continuing_member")
+    return OfferCta(CATALOG, False, offer.reason)
+
+
+def _has_continuing_membership(user, course_id):
+    from cohorts.models import Enrollment
+
+    return (
+        Enrollment.objects.filter(student=user, cohort__course_id=course_id)
+        .exclude(status=Enrollment.STATUS_FROZEN)
+        .exists()
+    )

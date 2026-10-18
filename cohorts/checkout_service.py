@@ -26,27 +26,38 @@ class CheckoutUnavailable(Exception):
     pass
 
 
+def cohort_matches_plan(cohort, plan):
+    """Delivery tarif faqat o'z guruhiga; legacy tarif (yoki tarifsiz) faqat tarifsiz guruhga."""
+    # A delivery package never falls back into an untyped legacy cohort.
+    if plan is not None and plan.cohort_capacity_limit is not None:
+        return cohort.plan_id == plan.pk
+    return cohort.plan_id is None
+
+
+def choose_checkout_cohort(cohorts, *, today, plan=None):
+    """Yangi xaridor qo'shiladigan guruh — yagona qoida (faqat o'qish, so'rovsiz).
+
+    `cohorts` — kursning guruhlari `start_date, id` tartibida. Checkout ham,
+    public taklif proyeksiyasi ham (`courses/public_offer.py`) shu funksiyadan
+    o'tadi: sahifa “qabul ochiq” desa, checkout ham aynan shu guruhni tanlaydi.
+    Tartib: owner belgilagan default, so'ng eng yaqin boshlanadigan, bo'lmasa
+    eng oxirgi boshlangan (davom etayotgan) guruh. To'lgan guruh tanlanmaydi.
+    """
+    available = [c for c in cohorts if c.is_active and cohort_matches_plan(c, plan) and not c.is_full]
+    for cohort in available:
+        if cohort.is_checkout_default:
+            return cohort
+    for cohort in available:
+        if cohort.start_date >= today:
+            return cohort
+    return available[-1] if available else None
+
+
 def pick_checkout_cohort(*, course, today=None, plan=None):
     """Faol cohortlar orasidan checkout uchun mosini tanlaydi (faqat o'qish)."""
     today = today or timezone.localdate()
-    active_cohorts = course.cohorts.filter(is_active=True).order_by("start_date", "id")
-    # A delivery package never falls back into an untyped legacy cohort.
-    if plan is not None and plan.cohort_capacity_limit is not None:
-        active_cohorts = active_cohorts.filter(plan=plan)
-    else:
-        active_cohorts = active_cohorts.filter(plan__isnull=True)
-    available_ids = [c.pk for c in active_cohorts if not c.is_full]
-    active_cohorts = active_cohorts.filter(pk__in=available_ids)
-
-    default_cohort = active_cohorts.filter(is_checkout_default=True).first()
-    if default_cohort:
-        return default_cohort
-
-    upcoming_cohort = active_cohorts.filter(start_date__gte=today).first()
-    if upcoming_cohort:
-        return upcoming_cohort
-
-    return active_cohorts.order_by("-start_date", "-id").first()
+    cohorts = course.cohorts.filter(is_active=True).order_by("start_date", "id")
+    return choose_checkout_cohort(cohorts, today=today, plan=plan)
 
 
 def ensure_checkout_cohort(*, course, today=None, plan=None):

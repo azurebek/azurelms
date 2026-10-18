@@ -19,6 +19,7 @@ from django.views.decorators.http import require_POST
 
 from .access_service import build_lesson_access_bundle, check_lesson_access
 from .catalog import MAX_QUERY_CHARS, CatalogQuery, catalog_queryset, page_links
+from .public_offer import build_offer, build_offers, offer_cta
 
 from .models import (
     Assignment,
@@ -162,7 +163,16 @@ class CourseListView(PublicFrontendV1Mixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         catalog, page_obj = self.catalog, context['page_obj']
+        # Karta mavjudlik faktini checkout bilan bir manbadan oladi (PUB1.3b);
+        # sahifadagi kurslar soniga bog'liq bo'lmagan 3 so'rov.
+        courses = list(page_obj.object_list)
+        offers = build_offers(courses)
+        for course in courses:
+            course.public_offer = offers[course.pk]
+        page_obj.object_list = courses
         context.update(
+            courses=courses,
+            object_list=courses,
             catalog=catalog,
             search_query=catalog.q,
             max_query_chars=MAX_QUERY_CHARS,
@@ -212,7 +222,6 @@ class CourseDetailView(PublicFrontendV1Mixin, DetailView):
         context['preview_lesson'] = preview_lesson
         context['course_lessons_count'] = self.object.lessons_count
         context['course_students_count'] = self.object.students_count
-        context['active_cohort_count'] = self.object.cohorts.filter(is_active=True).count()
         context['instructor_course_count'] = (
             self.object.instructor.courses.filter(is_active=True).count()
             if self.object.instructor_id
@@ -227,6 +236,12 @@ class CourseDetailView(PublicFrontendV1Mixin, DetailView):
             ).exists()
         else:
             context['is_enrolled'] = False
+        # Qabul, tarif va keyingi qadam checkout bilan bir manbadan (PUB1.3b):
+        # sahifa “yoziling” desa, checkout ham qabul qiladi.
+        offer = build_offer(self.object)
+        context['offer'] = offer
+        context['offer_cta'] = offer_cta(offer, user=self.request.user, is_enrolled=context['is_enrolled'])
+        context['active_cohort_count'] = offer.active_cohort_count
         context['active_nav'] = 'courses'
         return context
 

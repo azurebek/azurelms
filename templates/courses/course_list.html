@@ -54,6 +54,8 @@
       <div style="padding:20px;display:flex;flex-direction:column;flex:1;">
         <h3 style="font-size:17px;font-weight:600;letter-spacing:-.01em;color:var(--ink);margin:0 0 6px;">{{ course.title }}</h3>
         <p style="font-size:13.5px;line-height:1.55;color:var(--ink-3);margin:0 0 16px;flex:1;">{{ course.description|public_plain|truncatewords:18 }}</p>
+        {# Qabul holati checkout bilan bir manbadan (PUB1.3b). #}
+        {% if course.public_offer %}<div style="font-size:12.5px;font-weight:600;margin:-6px 0 14px;color:{% if course.public_offer.available %}var(--azure){% else %}var(--ink-3){% endif %};">{{ course.public_offer.reason_label }}{% if course.public_offer.starts_later %} · keyingi guruh {{ course.public_offer.next_start|date:"d.m.Y" }}{% endif %}</div>{% endif %}
         <div style="display:flex;align-items:center;gap:16px;font-family:'Space Mono',monospace;font-size:11.5px;color:var(--ink-3);padding-top:14px;border-top:1px solid var(--line-2);">
           <span style="display:flex;align-items:center;gap:6px;"><i class="bi bi-collection-play" style="font-size:13px;"></i> {{ course.annotated_lessons_count }} dars</span>
           <span style="display:flex;align-items:center;gap:6px;"><i class="bi bi-people" style="font-size:13px;"></i> {{ course.annotated_students_count }} o'quvchi</span>

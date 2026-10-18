@@ -25,8 +25,9 @@ from courses.catalog import MAX_QUERY_CHARS, MAX_TERMS, CatalogQuery, fold, sear
 from courses.models import Course
 
 search_migration = importlib.import_module("courses.migrations.0026_course_search_text")
-# Har renderer uchun so'rovlar chegarasi (kurslar sonidan qat'i nazar; bo'sh katalogda biri kam).
-CATALOG_QUERY_BUDGET = {"legacy": 9, "v1": 9}
+# Har renderer uchun so'rovlar chegarasi (kurslar sonidan qat'i nazar; bo'sh katalogda kamroq).
+# PUB1.3b: +3 — kartadagi qabul holati (tariflar, ularning imkoniyatlari, faol guruhlar).
+CATALOG_QUERY_BUDGET = {"legacy": 12, "v1": 12}
 
 
 def renderers():
