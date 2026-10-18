@@ -35,7 +35,10 @@ British Council saytidagi yig‘iladigan footer namuna sifatida ko‘rsatildi.
 - Test: safe env’da `manage.py test frontend.test_public_responsive` — **6 test, OK**
   (CSS/JS chegaralari mosligi, ochiq chiziladigan fold’lar, “Aloqa” sharti, filtr
   tartibi); to‘liq `manage.py test` — **3026 test, OK (skipped=69)**. Nazorat
-  yugurishi: 7 ta buzilish — hammasi FAIL, tiklangach PASS.
+  yugurishi: 7 ta buzilish — hammasi FAIL, tiklangach PASS. CI’dagi Node to‘plami
+  (`node --test tests/frontend_v1/*.test.mjs`) lokal yugurilmagan edi: `public-header.js`
+  stub `document`ida `querySelectorAll` yo‘q — 3 test yiqildi. Tuzatish **`c15ca76`**: harness
+  kengaytirildi, fold’lar uchun 3 Node test qo‘shildi — 179/179 PASS.
 - Brauzer (DB nusxasi, V1 :8050 va legacy :8051): sarlavha 1024/1199/1200/1440px’da
   64px bir qator; filtr 1440px’da chiplar, tartib va tugma bir chiziqda, 900 va
   375px’da tartibli ustun, gorizontal siljish yo‘q; 375px’da footer yig‘ilgan,
