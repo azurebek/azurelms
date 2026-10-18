@@ -16,6 +16,37 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-18 [Claude]: PUBLIC-01 / PUB1.3b — kurs taklifi checkout bilan bir manbadan
+
+Kurs sahifasi qabul holatini bilmasdi: tizimga kirgan har odamga “Kursga
+yozilish” chiqardi, guruh ochilmagan yoki to‘lgan bo‘lsa checkout uni “qabul hali
+ochilmagan” xabari bilan kurs sahifasiga qaytarardi. Faol guruhlar soni alohida
+so‘rov bilan hisoblanardi, legacy sidebar esa 30 kunlik obunaga zid “umrbod
+kirish” deb yozardi.
+
+- Branch: `claude/pub13b-offer-projection`; kod commit **`e281b64`**. Migration yo‘q.
+- Qarorlar: `courses/public_offer.py` (yangi model emas) — tariflar
+  `purchase_plans()`, narx `Plan.price`, davr `checkout_period`, guruh tanlash
+  yangi `choose_checkout_cohort` (checkout’dagi `pick_checkout_cohort` ham endi
+  shuni chaqiradi, xulq o‘zgarmagan); sabab taxonomy’si `available/not_open/full/
+  no_plans`; `source_revision` — kirish faktlari barmoq izi; CTA enum
+  `study/checkout/catalog`. Yopiq kursda sahifa sababni aytadi va katalogni beradi;
+  kursda a’zoligi bor odam checkout’da davom etadi. Katalog kartasi qabul holatini
+  ko‘rsatadi; “umrbod kirish” olib tashlandi.
+- Test: safe env’da `manage.py test courses.test_public_offer` — **14 test, OK**
+  (6 holat × 2 tarif × 2 checkout renderer’da taklif = checkout: guruh, narx, davr,
+  imkoniyatlar; yopiqda rad; GET yozuvi 0); to‘liq `manage.py test` — **3020 test,
+  OK (skipped=69)**; `check`, `makemigrations --check` toza; `git diff --check` PASS.
+  Katalog so‘rov budjeti 9 → 12 (tariflar, imkoniyatlar, guruhlar — kurslar
+  sonidan qat’i nazar). Eski V1 testi guruhsiz kursda checkout havolasini kutardi —
+  testga ochiq guruh qo‘shildi. Nazorat yugurishi: 10 ta buzilish (o‘z guruh
+  qoidasi, to‘lgan guruh e’tiborsiz, legacy/V1 CTA, a’zo davomi, joy N+1, narx,
+  davr, karta yorlig‘i, mahalliy sana) — hammasi FAIL, tiklangach PASS.
+- Brauzer (DB nusxasi, jonli server :8050): ikki kurs “Qabul ochiq”, guruhlar
+  davom etmoqda — “keyingi guruh” sanasi ko‘rsatilmaydi; mehmon detalda kirish CTA.
+- Davom etilishi kerak: PUB1.3c — first-fold narx/tarif, legacy sidebar’dagi qolgan
+  dalilsiz bandlar (“Cheksiz AI repetitor” va h.k.).
+
 ## 2026-10-18 [Claude]: PUBLIC-01 / PUB1.3a — katalog qidiruvi chegaralangan va oddiy matnda
 
 Katalog `q`ni uzunliksiz `icontains` bilan kurs tavsifining boy HTML’ida

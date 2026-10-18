@@ -1,7 +1,7 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
 **Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) hamda PUB1.2a–b, PUB1.2d,
-PUB1.3a kodda (2026-10-16/18, lokal)**; PUB1.2c B3.5 writer’i bilan birga ochiq, PUB1.3b va
+PUB1.3a–b kodda (2026-10-16/18, lokal)**; PUB1.2c B3.5 writer’i bilan birga ochiq, PUB1.3c va
 keyingi kesimlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
 **Kod tayanchi:** `main`dagi `72e82e0`
@@ -1756,6 +1756,28 @@ stable pages; SQL/query budget; no-JS; canonical/noindex; back URL preservation.
 state recovery; query explosion indexga kirmaydi.
 
 #### PUB1.3b — canonical `PublicOfferProjection`
+
+**Holat — 2026-10-18: kodda, lokal tekshirilgan** (branch
+`claude/pub13b-offer-projection`). `courses/public_offer.py` — yangi model
+emas, o‘qish proyeksiyasi: sotuvdagi tariflar `purchase_plans()`dan, xaridor
+qo‘shiladigan guruh yangi `cohorts.checkout_service.choose_checkout_cohort`dan
+(checkout’dagi `pick_checkout_cohort` ham endi shu funksiyani chaqiradi — bitta
+qoida), to‘lov davri `checkout_period`dan, narx faqat `Plan.price`dan (Kursning
+eski `price` maydoni ishlatilmaydi). Har tarif: kod, nom, narx, davr (30 kun),
+kiritilgan/kiritilmagan imkoniyatlar, guruh o‘lchami da’vosi, sabab
+(`available`/`not_open`/`full`/`no_plans`), tanlanadigan guruh va uning sanasi;
+kurs: faol guruhlar soni, umumiy sabab, keyingi boshlanish, kirish faktlarining
+`source_revision` barmoq izi. Mehmon tarifi — arxivlangan tarif ko‘rinmaydi.
+CTA enum (`study`/`checkout`/`catalog`): qabul yopiq bo‘lsa kurs sahifasi
+checkout’ga olib borib qaytarmaydi — sababni aytadi va katalogni beradi;
+kursda a’zoligi bor (muddati o‘tgan, kutilayotgan) odam qabul yopiq bo‘lsa ham
+checkout’da davom etadi (checkout shunga ruxsat beradi). Katalog kartasi qabul
+holatini ko‘rsatadi. Legacy sidebar’dagi “umrbod kirish” (checkout’dagi 30 kunlik
+davrga zid) olib tashlandi. So‘rov: `build_offers` 0/1/8/100 kursda 3 so‘rov;
+detal va katalog guruh/tarif soniga bog‘liq emas; GET yozmaydi. Test fixture:
+6 holat × 2 tarif × 2 checkout renderer’da taklif = checkout (guruh, narx, davr,
+imkoniyatlar; yopiqda rad). **Ochiq (PUB1.3c):** first-fold narx/tarif tanlovi,
+legacy sidebar’dagi qolgan dalilsiz bandlar (“Cheksiz AI repetitor” va h.k.).
 
 **Ish:** Course + active Cohort + purchase Plans read-only projection, availability
 reason taxonomy va source revision. Pricing pack/A4 semantics reuse; new price
