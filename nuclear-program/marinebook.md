@@ -16,6 +16,35 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-18 [Claude]: PUBLIC-01 / owner ko‘rigi — yig‘iladigan footer, bir qatorli sarlavha, tekis filtr
+
+Owner jonli serverda ko‘rdi: telefonda footer “dabdala” (ikki ustun, bo‘shliqlar
+katta), oyna biroz toraytirilganda V1 navbar ikki qatorga tushardi, katalog
+filtrlari notekis (daraja checkbox’lari tik turib, qidiruv pastga surilardi).
+British Council saytidagi yig‘iladigan footer namuna sifatida ko‘rsatildi.
+
+- Branch: `claude/public-shell-responsive`; kod commit **`1d63948`**. Migration yo‘q.
+- Qarorlar: footer guruhlari telefonda (V1 < 640px, legacy ≤ 760px) native
+  `<details>` (+/−), server ochiq chizadi — JS bo‘lmasa hech narsa yashirinmaydi;
+  kengroq ekranda ustunlar doim ochiq. V1 sarlavha < 1200px da mobil menyu
+  (6 element + tugmalar ~1090px talab qiladi), yorliq va tugmalar bo‘linmaydi.
+  V1 filtri: 1-qator qidiruv, 2-qator daraja chiplari + tartib + tugma (DOM
+  tartibi bilan bir xil). Legacy footer’da 5 ustun 4 ustunli gridga sig‘mas edi —
+  endi moslashuvchan, “Aloqa” faqat sozlangan bo‘lsa; legacy JS menyu chegarasi
+  CSS bilan qayta mos (1040 → 1180).
+- Test: safe env’da `manage.py test frontend.test_public_responsive` — **6 test, OK**
+  (CSS/JS chegaralari mosligi, ochiq chiziladigan fold’lar, “Aloqa” sharti, filtr
+  tartibi); to‘liq `manage.py test` — **3026 test, OK (skipped=69)**. Nazorat
+  yugurishi: 7 ta buzilish — hammasi FAIL, tiklangach PASS. CI’dagi Node to‘plami
+  (`node --test tests/frontend_v1/*.test.mjs`) lokal yugurilmagan edi: `public-header.js`
+  stub `document`ida `querySelectorAll` yo‘q — 3 test yiqildi. Tuzatish **`c15ca76`**: harness
+  kengaytirildi, fold’lar uchun 3 Node test qo‘shildi — 179/179 PASS.
+- Brauzer (DB nusxasi, V1 :8050 va legacy :8051): sarlavha 1024/1199/1200/1440px’da
+  64px bir qator; filtr 1440px’da chiplar, tartib va tugma bir chiziqda, 900 va
+  375px’da tartibli ustun, gorizontal siljish yo‘q; 375px’da footer yig‘ilgan,
+  “Platforma” bosilsa ochiladi/yopiladi (−/+), desktop’da uch ustun ochiq.
+- Davom etilishi kerak: keyingi kesim PUB1.3c.
+
 ## 2026-10-18 [Claude]: PUBLIC-01 / PUB1.3b — kurs taklifi checkout bilan bir manbadan
 
 Kurs sahifasi qabul holatini bilmasdi: tizimga kirgan har odamga “Kursga

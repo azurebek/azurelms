@@ -1,7 +1,7 @@
 /* Frozen Eleventh Trial public pattern, real content; shared tokens/theme only. */
 .s-public-header { position: relative; z-index: var(--az-layer-sticky); background: var(--az-surface); border-bottom: 1px solid var(--az-border); }
 .s-public-header__inner, .s-public-main, .s-public-footer { width: min(calc(100% - 2 * var(--az-space-6)), var(--az-content)); margin-inline: auto; }
-.s-public-header__inner { min-height: var(--az-header); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--az-space-3) var(--az-space-6); padding-block: var(--az-space-2); }
+.s-public-header__inner { min-height: var(--az-header); display: flex; align-items: center; justify-content: space-between; flex-wrap: nowrap; gap: var(--az-space-3) var(--az-space-6); padding-block: var(--az-space-2); }
 .s-public-header .s-brand { padding-inline: 0; min-width: 0; }
 .s-public-nav, .s-public-header__actions, .s-public-auth { display: flex; align-items: center; flex-wrap: wrap; gap: var(--az-space-2); min-width: 0; }
 .s-public-menu { display: none; }
@@ -10,15 +10,24 @@
 .s-public-menu summary span { display: flex; }
 .s-public-menu summary .s-public-menu__close, .s-public-menu[open] .s-public-menu__open { display: none; }
 .s-public-menu[open] .s-public-menu__close { display: flex; }
-.s-public-nav a { display: inline-flex; align-items: center; min-height: var(--az-control); padding: var(--az-space-2) var(--az-space-3); border-radius: var(--az-radius-sm); color: var(--az-muted); font-size: var(--az-text-sm); font-weight: var(--az-weight-medium); }
+.s-public-nav a { display: inline-flex; align-items: center; min-height: var(--az-control); padding: var(--az-space-2) var(--az-space-3); border-radius: var(--az-radius-sm); color: var(--az-muted); font-size: var(--az-text-sm); font-weight: var(--az-weight-medium); white-space: nowrap; }
+/* Menyu owner ro'yxatidan (PUB1.2d): uzun matnda butun element keyingi qatorga o'tadi, tugmalar joyida qoladi. */
+.s-public-nav--desktop { flex: 0 1 auto; justify-content: center; row-gap: var(--az-space-1); }
+.s-public-header__actions { flex-shrink: 0; flex-wrap: nowrap; }
+.s-public-auth .c-button { white-space: nowrap; }
 .s-public-nav a:hover, .s-public-nav a[aria-current="page"] { background: var(--az-action-soft); color: var(--az-action); }
 .s-public-main { min-height: calc(100dvh - 2 * var(--az-header)); padding-block: var(--az-space-8) var(--az-space-16); }
 .s-public-footer { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: var(--az-space-8); padding-block: var(--az-space-8); border-top: 1px solid var(--az-border); color: var(--az-muted); font-size: var(--az-text-sm); }
 .s-public-footer strong { color: var(--az-text); }
 .s-public-footer p { margin-block: var(--az-space-2); }
-.s-public-footer nav { display: flex; flex-wrap: wrap; gap: var(--az-space-4); }
-.s-public-footer__groups { display: flex; flex-wrap: wrap; gap: var(--az-space-8); }
-.s-public-footer .s-public-footer__group { flex-direction: column; gap: 0; }
+.s-public-footer__brand { min-width: 0; max-width: 24rem; }
+.s-public-footer__groups { display: flex; flex-wrap: wrap; gap: var(--az-space-8) var(--az-space-12); }
+.s-public-footer__group { min-width: 9rem; }
+.s-public-footer__fold > summary { list-style: none; }
+.s-public-footer__fold > summary::-webkit-details-marker { display: none; }
+.s-public-footer__title { display: flex; align-items: center; justify-content: space-between; gap: var(--az-space-3); margin-bottom: var(--az-space-1); cursor: default; }
+.s-public-footer__sign { display: none; }
+.s-public-footer__links { display: flex; flex-direction: column; }
 .s-public-footer a { min-height: var(--az-control); display: inline-flex; align-items: center; }
 .s-public-footer a:hover { color: var(--az-action); text-decoration: underline; }
 .p-public-heading { max-width: var(--az-reading); margin-bottom: var(--az-space-8); }
@@ -41,10 +50,17 @@
 .p-public-cta .c-muted { margin-top: var(--az-space-3); }
 .p-public-info-card .c-text-link, .p-public-price-card .c-button { margin-top: auto; align-self: flex-start; }
 .p-public-price-card h2 { font-size: var(--az-text-2xl); }
-.p-public-filters { display: grid; grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr)) auto; gap: var(--az-space-4); align-items: end; padding: var(--az-space-5); }
+.p-public-filters { display: grid; grid-template-columns: minmax(0, 1fr) minmax(11rem, 15rem) auto; grid-template-areas: "q q q" "levels sort submit"; gap: var(--az-space-4) var(--az-space-5); align-items: end; padding: var(--az-space-5); }
 .p-public-filters > div, .p-public-filters fieldset { min-width: 0; }
 .p-public-filters fieldset { border: 0; padding: 0; margin: 0; }
+.p-public-filters__q { grid-area: q; }
+.p-public-filters__levels { grid-area: levels; }
+.p-public-filters__sort { grid-area: sort; }
+.p-public-filters__submit { grid-area: submit; }
+.p-public-filters__chips { display: flex; flex-wrap: wrap; gap: var(--az-space-2); }
 .p-public-check { min-height: var(--az-control); display: flex; align-items: center; gap: var(--az-space-2); }
+.p-public-filters .p-public-check { padding-inline: var(--az-space-3); border: 1px solid var(--az-border); border-radius: var(--az-radius-sm); background: var(--az-surface); cursor: pointer; white-space: nowrap; }
+.p-public-filters .p-public-check:has(input:checked) { border-color: var(--az-action); background: var(--az-action-soft); color: var(--az-action); }
 .p-public-applied { margin-top: var(--az-space-3); }
 .p-public-empty { display: grid; justify-items: start; gap: var(--az-space-3); padding: var(--az-space-8); }
 .p-public-back { display: inline-flex; min-height: var(--az-control); margin-bottom: var(--az-space-6); }
@@ -74,7 +90,7 @@
 .p-public-rich figure { margin-inline: 0; max-width: 100%; }
 .s-public-main summary { cursor: pointer; min-height: var(--az-control); }
 .s-public-main textarea { resize: vertical; }
-@media (width < 1024px) {
+@media (width < 1200px) {
   .s-public-header__inner { flex-wrap: nowrap; gap: var(--az-space-2); }
   .s-public-header .s-brand { flex: 1; overflow: hidden; }
   .s-public-header .s-brand__mark { flex-shrink: 0; }
@@ -86,11 +102,26 @@
   .s-public-menu .s-public-nav { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--az-space-1); }
   .s-public-menu .s-public-auth { display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); border-top: 1px solid var(--az-border); margin-top: var(--az-space-3); padding-top: var(--az-space-4); }
   .s-public-menu .c-button { overflow-wrap: normal; }
-  .p-public-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (width < 1024px) {
+  .p-public-filters { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "q q" "levels levels" "sort submit"; }
 }
 @media (width < 640px) {
   .s-public-header__inner, .s-public-main, .s-public-footer { width: min(calc(100% - 2 * var(--az-space-4)), var(--az-content)); }
   .p-public-hero, .p-public-card-grid, .p-public-detail, .p-public-filters { grid-template-columns: minmax(0, 1fr); }
   .p-public-hero__panel, .p-public-cta, .p-public-empty, .p-public-course-card, .p-public-info-card, .p-public-price-card, .p-public-detail__next, .p-public-legal { padding: var(--az-space-5); }
+  .p-public-filters { grid-template-areas: "q" "levels" "sort" "submit"; }
   .p-public-filters .c-button { width: 100%; }
+  /* Footer: guruhlar tepada, har biri yig'iladi (+/−); brend va mualliflik pastda. */
+  .s-public-footer { flex-direction: column; align-items: stretch; gap: var(--az-space-6); }
+  .s-public-footer__groups { order: -1; display: block; }
+  .s-public-footer__group { border-bottom: 1px solid var(--az-border); }
+  .s-public-footer__group:first-child { border-top: 1px solid var(--az-border); }
+  .s-public-footer__title { min-height: var(--az-control); margin-bottom: 0; padding-block: var(--az-space-2); cursor: pointer; }
+  .s-public-footer__sign { display: block; position: relative; flex: 0 0 auto; width: 1rem; height: 1rem; color: var(--az-muted); }
+  .s-public-footer__sign::before, .s-public-footer__sign::after { content: ""; position: absolute; inset: 50% 0 auto; height: 2px; margin-top: -1px; border-radius: 1px; background: currentColor; }
+  .s-public-footer__sign::after { transform: rotate(90deg); transition: transform .2s ease; }
+  .s-public-footer__fold[open] .s-public-footer__sign::after { transform: rotate(0deg); }
+  .s-public-footer__links { padding-bottom: var(--az-space-3); }
+  .s-public-footer__links a { min-height: 2.5rem; }
 }

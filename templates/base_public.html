@@ -68,19 +68,26 @@
           <p>{{ site_settings.company_description|default:"O'zbek tilida turk tilini A1 dan C1 gacha tartibli o'rgatadigan platforma." }}</p>
         </div>
         {# Footer guruhlari owner sozlamasidan (V1 bilan ayni manba), qotirilgan ro'yxat emas (PUB1.2d). #}
+        {# Telefonda har guruh yig'iladi (+/−); kengroq ekranda ustunlar doim ochiq. JS bo'lmasa hammasi ochiq. #}
         {% for group_title, links in footer_groups %}{% if links %}
-        <nav aria-label="Footer: {{ group_title }}">
-          <div class="pub-foot-title">{{ group_title }}</div>
-          <div class="pub-foot-links">{% for link in links %}<a href="{{ link.url }}"{% if link.open_in_new_tab %} target="_blank" rel="noopener noreferrer"{% endif %}>{{ link.label }}</a>{% endfor %}</div>
+        <nav class="pub-foot-group" aria-label="Footer: {{ group_title }}">
+          <details class="pub-foot-fold" data-footer-fold open>
+            <summary class="pub-foot-title">{{ group_title }}<span class="pub-foot-sign" aria-hidden="true"></span></summary>
+            <div class="pub-foot-links">{% for link in links %}<a href="{{ link.url }}"{% if link.open_in_new_tab %} target="_blank" rel="noopener noreferrer"{% endif %}>{{ link.label }}</a>{% endfor %}</div>
+          </details>
         </nav>
         {% endif %}{% endfor %}
-        <div>
-          <div class="pub-foot-title">Aloqa</div>
-          <div class="pub-foot-links">
-            {% if site_settings.public_contact_phone %}<a href="tel:{{ site_settings.public_contact_phone|cut:" " }}">{{ site_settings.public_contact_phone }}</a>{% endif %}
-            {% if site_settings.public_contact_email %}<a href="mailto:{{ site_settings.public_contact_email }}">{{ site_settings.public_contact_email }}</a>{% endif %}
-          </div>
+        {% if site_settings.public_contact_phone or site_settings.public_contact_email %}
+        <div class="pub-foot-group">
+          <details class="pub-foot-fold" data-footer-fold open>
+            <summary class="pub-foot-title">Aloqa<span class="pub-foot-sign" aria-hidden="true"></span></summary>
+            <div class="pub-foot-links">
+              {% if site_settings.public_contact_phone %}<a href="tel:{{ site_settings.public_contact_phone|cut:" " }}">{{ site_settings.public_contact_phone }}</a>{% endif %}
+              {% if site_settings.public_contact_email %}<a href="mailto:{{ site_settings.public_contact_email }}">{{ site_settings.public_contact_email }}</a>{% endif %}
+            </div>
+          </details>
         </div>
+        {% endif %}
       </div>
       <div class="pub-foot-bottom">
         <span>© 2026 {{ site_settings.brand_name|default:"AzureLMS"|upper }} — BARCHA HUQUQLAR HIMOYALANGAN</span>
