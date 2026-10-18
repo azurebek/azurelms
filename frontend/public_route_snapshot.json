@@ -1612,6 +1612,15 @@
   "post": "302>login"
  },
  {
+  "name": "public_intent_continue",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>courses",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
   "name": "readyz",
   "class": "ops",
   "anonymous": "200",

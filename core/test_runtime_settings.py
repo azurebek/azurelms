@@ -395,12 +395,13 @@ class RuntimeSettingsSurfaceTests(TestCase):
             self.assertContains(
                 response, f'name="{name}"', msg_prefix=f"{name} maydoni chizilmadi"
             )
-        # Sakkiz forma, sakkizta sabab/tasdiq juftligi va sakkiz `form_name`.
+        # To'qqiz forma, to'qqizta sabab/tasdiq juftligi va to'qqiz `form_name`.
         self.assertContains(response, 'name="checkout_quote_minutes"')
         self.assertContains(response, 'name="exam_receipt_limit"')
-        self.assertContains(response, 'name="form_name"', count=8)
-        self.assertContains(response, 'name="change_reason"', count=8)
-        self.assertContains(response, 'name="confirm_change"', count=8)
+        # 9-panel: kursga qaytish havolasi muddati (PUB1.3d).
+        self.assertContains(response, 'name="form_name"', count=9)
+        self.assertContains(response, 'name="change_reason"', count=9)
+        self.assertContains(response, 'name="confirm_change"', count=9)
 
     def test_exam_receipt_limit_is_live_audited_and_noop_preserves_other_settings(self):
         self.client.force_login(self.owner)

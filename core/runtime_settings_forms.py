@@ -271,6 +271,22 @@ class CheckoutSettingsForm(_AuditedSettingsForm):
             field.widget.attrs['id'] = f'id_checkout_{name}'
 
 
+class PublicIntentSettingsForm(_AuditedSettingsForm):
+    """Kurs sahifasidan boshlangan xarid niyati havolasi muddati (PUB1.3d)."""
+
+    UNITS = {"public_intent_minutes": "daqiqa"}
+
+    class Meta:
+        model = OperationalSettings
+        fields = ("public_intent_minutes",)
+        labels = {"public_intent_minutes": "Kursga qaytish havolasi muddati"}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            field.widget.attrs['id'] = f'id_public_intent_{name}'
+
+
 class AuthThrottleSettingsForm(_AuditedSettingsForm):
     """Login, ro'yxat, parol tiklash va Telegram kirishi urinishlari (PUB1.0c).
 

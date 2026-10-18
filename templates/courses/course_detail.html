@@ -123,11 +123,12 @@
       {% if offer_cta.destination != "study" and offer.available_plans %}
       <div style="font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);margin-bottom:10px;">Tariflar</div>
       <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">
-        {% for plan in offer.available_plans %}
+        {% for plan, link in offer_plan_links %}
         <div style="border:1px solid var(--line);border-radius:12px;padding:14px;">
           <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;"><span style="font-size:14.5px;font-weight:600;color:var(--ink);overflow-wrap:anywhere;">{{ plan.name }}</span><span style="font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:var(--ink);white-space:nowrap;">{{ plan.price|public_som }} so'm<span style="font-weight:400;color:var(--ink-3);font-size:12px;"> / {{ plan.period_days }} kun</span></span></div>
           {% if plan.group_size_claim %}<div style="font-size:12px;color:var(--ink-3);margin-top:4px;">{{ plan.group_size_claim }}</div>{% endif %}
           {% if plan.included or plan.excluded %}<ul style="list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--ink-2);">{% for name in plan.included %}<li><span aria-hidden="true" style="color:var(--green);">✓</span> {{ name }}</li>{% endfor %}{% for name in plan.excluded %}<li style="color:var(--ink-3);"><span aria-hidden="true">—</span> {{ name }} (kiritilmagan)</li>{% endfor %}</ul>{% endif %}
+          <a href="{{ link }}" style="display:inline-flex;align-items:center;gap:6px;min-height:36px;margin-top:6px;font-size:13px;font-weight:600;color:var(--azure);">{{ plan.name }} bilan davom etish <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
         </div>
         {% endfor %}
       </div>
@@ -142,8 +143,8 @@
       {% elif offer_cta.destination == "checkout" %}
       <div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:4px;">Boshlashga tayyormisiz?</div>
       <div style="font-size:12.5px;color:var(--ink-3);margin-bottom:16px;">Yozilish uchun hisobingizga kiring.{% if offer.starts_later %} Keyingi guruh: {{ offer.next_start|date:"d.m.Y" }}.{% endif %}</div>
-      <a href="{% url 'login' %}?next={% url 'course_detail' pk=course.id %}" style="display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:11px;background:var(--azure);color:var(--on-azure);font-size:15px;font-weight:600;">Kirish <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
-      {% if public_registration_open %}<a href="{% url 'register' %}" style="display:flex;align-items:center;justify-content:center;gap:8px;height:46px;border-radius:11px;border:1px solid var(--line);color:var(--ink);font-size:14px;font-weight:600;margin-top:10px;">Ro'yxatdan o'tish</a>{% endif %}
+      <a href="{% url 'login' %}?next={{ intent_next|urlencode }}" style="display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:11px;background:var(--azure);color:var(--on-azure);font-size:15px;font-weight:600;">Kirish <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
+      {% if public_registration_open %}<a href="{% url 'register' %}?next={{ intent_next|urlencode }}" style="display:flex;align-items:center;justify-content:center;gap:8px;height:46px;border-radius:11px;border:1px solid var(--line);color:var(--ink);font-size:14px;font-weight:600;margin-top:10px;">Ro'yxatdan o'tish</a>{% endif %}
       {% else %}
       {# Qabul yo'q: checkout'ga olib borib qaytarish o'rniga sababni shu yerda aytamiz (PUB1.3b). #}
       <div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:4px;">{{ offer.reason_label }}</div>

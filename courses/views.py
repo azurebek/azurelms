@@ -15,11 +15,13 @@ from core.frontend_v1 import FrontendV1Mixin
 from core.flags import flag_enabled
 from frontend.public_v1 import PublicFrontendV1Mixin
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_safe
 
 from .access_service import build_lesson_access_bundle, check_lesson_access
 from .catalog import MAX_QUERY_CHARS, CatalogQuery, catalog_queryset, page_links
-from .public_offer import build_course_facts, build_offer, build_offers, offer_cta
+from .public_offer import (
+    CHECKOUT, STUDY, build_course_facts, build_offer, build_offers, offer_cta, plan_links,
+)
 
 from .models import (
     Assignment,
@@ -243,6 +245,16 @@ class CourseDetailView(PublicFrontendV1Mixin, DetailView):
         context['facts'] = build_course_facts(self.object, modules, learners=context['course_students_count'])
         context['offer'] = offer
         context['offer_cta'] = offer_cta(offer, user=self.request.user, is_enrolled=context['is_enrolled'])
+        # Mehmon kirish/ro'yxatdan keyin aynan shu kurs checkout'iga qaytadi (PUB1.3d):
+        # raw `next` emas, imzoli niyat — kurs, tarif va qabul qaytishda qayta tekshiriladi.
+        if not self.request.user.is_authenticated and context['offer_cta'].destination == CHECKOUT:
+            from frontend import public_intent
+
+            context['intent_next'] = public_intent.continue_url(public_intent.COURSE_CHECKOUT, course_id=self.object.pk)
+        context['offer_plan_links'] = (
+            plan_links(offer, course_id=self.object.pk, user=self.request.user)
+            if context['offer_cta'].destination != STUDY else []
+        )
         context['active_cohort_count'] = offer.active_cohort_count
         context['active_nav'] = 'courses'
         return context
@@ -1239,3 +1251,28 @@ class CertificateAppendixView(CertificateV1Mixin, DetailView):
             attempt.published_result = learner_result(attempt)
         context['auto_print'] = self.request.GET.get('download') == '1'
         return context
+
+
+@login_required
+@require_safe
+def public_intent_continue(request):
+    """Auth tugagach imzoli niyat bo'yicha kursga yoki uning checkout'iga qaytaradi (PUB1.3d).
+
+    Hech narsa yozmaydi (ikki marta bosish ham xavfsiz). Yaroqsiz yoki eskirgan
+    havola — katalog va tushunarli xabar; ochiq redirect yoki 500 yo'q.
+    """
+    from frontend import public_intent
+
+    from .public_offer import resolve_purchase_intent
+
+    try:
+        intent = public_intent.read(request.GET.get(public_intent.PARAM, ""))
+    except public_intent.InvalidIntent as exc:
+        public_intent.record(outcome=f"invalid_{exc.reason}")
+        messages.info(request, public_intent.INVALID_MESSAGES.get(exc.reason, public_intent.DEFAULT_INVALID_MESSAGE))
+        return redirect("courses")
+    resolution = resolve_purchase_intent(intent, user=request.user)
+    public_intent.record(outcome=resolution.outcome, intent=intent)
+    if resolution.message:
+        messages.info(request, resolution.message)
+    return redirect(resolution.url)

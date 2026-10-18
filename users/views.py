@@ -80,7 +80,8 @@ class RegisterView(AuthV1Mixin, CreateView):
                 self.frontend_v1_title = 'Ro‘yxatdan o‘tish yopiq'
                 self.auth_intro = 'Hozircha yangi hisob ochilmaydi. Mavjud hisob bilan kirish mumkin.'
                 return self.render_to_response(self.get_context_data(form=None))
-            return render(request, 'registration/register_closed.html', status=200)
+            # Kirish havolasi kursga qaytish niyatini (`next`) yo'qotmaydi (PUB1.3d).
+            return render(request, 'registration/register_closed.html', {"next": _safe_next(request, "")}, status=200)
         return super().dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
