@@ -1,7 +1,7 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
-**Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) hamda PUB1.2a–b, PUB1.2d
-kodda (2026-10-16/18, lokal)**; PUB1.2c B3.5 writer’i bilan birga ochiq, PUB1.3a va
+**Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) hamda PUB1.2a–b, PUB1.2d,
+PUB1.3a kodda (2026-10-16/18, lokal)**; PUB1.2c B3.5 writer’i bilan birga ochiq, PUB1.3b va
 keyingi kesimlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
 **Kod tayanchi:** `main`dagi `72e82e0`
@@ -1721,6 +1721,27 @@ claim 0; mobile/desktop semantik nav parity.
 ### PUB1.3 — catalog, course offer va intent continuity
 
 #### PUB1.3a — bounded catalog query contracti
+
+**Holat — 2026-10-18: kodda, lokal tekshirilgan** (branch
+`claude/pub13a-catalog-query`). Qidiruv endi boy HTML tavsifda `icontains`
+emas: `Course.search_text` — nom va tavsifning oddiy, normallashgan matni
+(`courses/catalog.py::search_document`; NFKC, kichik harf, tutuq belgisining barcha shakli (`‘ ’ ʻ ʼ`)
+bitta belgiga, `İ` → `i`, boshqaruv belgilari olib tashlangan). Teg/atribut
+nomi topilmaydi; SQLite’dagi ASCII-only `icontains` muammosi yo‘q.
+Proyeksiya `save()` (shu jumladan `update_fields`), `bulk_create`, `update` va
+`bulk_update` orqali yangilanadi; migratsiya `courses/0026` mavjud kurslarni
+to‘ldiradi; `manage.py rebuild_course_search [--apply]` — chetlab yuklangan
+ma’lumot yoki qoida o‘zgarishi uchun. `CatalogQuery`: `q` 80 belgi va 6 so‘z
+bilan cheklangan, har so‘z AND; noma’lum daraja/tartib/parametr tashlanadi,
+daraja kanonik tartibda; tartib to‘liq (`-created_at, -id` va h.k.). Sahifa,
+daraja va “Katalogga qaytish” havolalari faqat normallashgan parametrlardan
+(URL-kodlangan; legacy’dagi kodlanmagan `q` tuzatildi); raqamli sahifalar
+`aria-current`, `rel=prev/next`; mavjud bo‘lmagan sahifa 404. Bo‘sh holat
+filtrli/filtrsiz ajratiladi. So‘rov budjeti: legacy va V1 — 9 (bo‘sh katalogda 8),
+kurslar sonidan qat’i nazar. SEO PUB1.1b’dan: qidiruv/filtr `noindex, follow`,
+canonical toza `/courses/`. Per-IP qidiruv budjeti qo‘shilmadi (ixtiyoriy):
+kirish chegaralangan va jadval kichik. **Ochiq:** Blog `q` hali boy HTML’da
+`icontains` (BLOG-01 scope’i).
 
 **Ish:** plain searchable projection yoki sanitized text, q length/normalization,
 allowed level/sort, stable tie-breaker, filter validation, pagination/accessibility,

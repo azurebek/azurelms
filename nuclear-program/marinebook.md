@@ -16,6 +16,42 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-18 [Claude]: PUBLIC-01 / PUB1.3a — katalog qidiruvi chegaralangan va oddiy matnda
+
+Katalog `q`ni uzunliksiz `icontains` bilan kurs tavsifining boy HTML’ida
+qidirardi: `strong`, `class` kabi teg/atribut nomlari “topilardi”, SQLite’da
+o‘zbek/turk harflari katta-kichikda mos kelmasdi, `o‘qish` va `o'qish` boshqa
+so‘z edi. Noma’lum daraja katalogni bo‘shatardi, teng sanada tartib tasodifiy,
+legacy sahifa/daraja havolalari `q`ni URL-kodlamasdan qo‘yardi (`&`, `#` qidiruvni
+bo‘lib yuborardi).
+
+- Branch: `claude/pub13a-catalog-query`; kod commit **`019b7d0`**. Migration
+  `courses/0026_course_search_text` (qo‘shimcha ustun + backfill; reverse ustunni olib tashlaydi).
+- Qarorlar: `courses/catalog.py` — `search_document` (NFKC, casefold, yagona
+  tutuq belgisi, `İ` → `i`), `CatalogQuery` (q 80 belgi/6 so‘z AND, ma’lum
+  daraja/tartib, kanonik tartib), `catalog_queryset` (`search_text__contains`,
+  to‘liq tartib `id` bilan), `page_links`. Proyeksiya `save`/`update_fields`,
+  `bulk_create`, `update`, `bulk_update` orqali yangilanadi; chetlab yozilgani
+  uchun `manage.py rebuild_course_search [--apply]`. Havolalar faqat
+  normallashgan parametrlardan; V1 “Katalogga qaytish” ayni filtrga qaytaradi.
+  Per-IP qidiruv budjeti qo‘shilmadi (rejada ixtiyoriy; kirish chegaralangan).
+- Test: safe env’da `manage.py test courses.test_public_catalog` — **18 test, OK**;
+  to‘liq `manage.py test` — **3005 test, OK (skipped=69)**; `manage.py check`,
+  `makemigrations --check` toza; `git diff --check` PASS. Nazorat yugurishi:
+  11 ta buzilish (boy HTML’da qidirish, tutuq belgisi, uzunlik chegarasi,
+  daraja validatsiyasi, `id` tiebreak, `save` va `update` hook’lari, legacy
+  kodlanmagan havola, V1 qaytish havolasi, `aria-current`) — hammasi FAIL,
+  tiklangach PASS.
+- Brauzer (DB nusxasida, 0026 qo‘llangan): ikki kurs backfill qilindi;
+  `O‘ZBEKCHA`, `oʻqituvchi`, `lug’atsiz` haqiqiy matnni topadi, `strong` va
+  `<script>` hech narsa topmaydi va escape qilinib ko‘rsatiladi; begona
+  parametr tashlanadi, 300 belgili q 80 ga qisqaradi; filtrli sahifa
+  `noindex, follow`, canonical toza; V1 detal “Katalogga qaytish” → ayni
+  filtr; legacy daraja havolalari `q=turk+%26+%23x` bilan; 375/1280px’da
+  gorizontal siljish yo‘q.
+- Davom etilishi kerak: keyingi kesim PUB1.3b (`PublicOfferProjection`).
+  Blog `q` hali boy HTML’da `icontains` (BLOG-01).
+
 ## 2026-10-18 [Claude]: PUBLIC-01 / PUB1.2d — bitta owner menyusi, rost aloqa, yopiq ro‘yxatda o‘lik yo‘l yo‘q
 
 Legacy sarlavha menyuni shablonga qotirib chizardi (SIT va `#ai` bilan), V1 esa
