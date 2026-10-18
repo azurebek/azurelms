@@ -70,6 +70,19 @@
 .p-public-facts { display: flex; flex-wrap: wrap; gap: var(--az-space-3); margin-block: var(--az-space-6); }
 .p-public-detail__next { align-self: start; min-width: 0; padding: var(--az-space-6); display: grid; gap: var(--az-space-4); }
 .p-public-detail__next .c-button { justify-self: start; }
+/* PUB1.3c: kurs sahifasidagi tarif bloklari (checkout bilan bir manbadan), video va uzun nomlar. */
+.p-public-title, .p-public-course-card h2, .p-public-plan__head strong { overflow-wrap: anywhere; }
+.p-public-plans { display: grid; gap: var(--az-space-3); }
+.p-public-plan { display: grid; gap: var(--az-space-2); padding: var(--az-space-4); border: 1px solid var(--az-border); border-radius: var(--az-radius-sm); }
+.p-public-plan__head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: var(--az-space-2); }
+.p-public-plan__price { font-weight: var(--az-weight-bold); white-space: nowrap; }
+.p-public-plan__price small { color: var(--az-muted); font-weight: var(--az-weight-medium); }
+.p-public-plan__features { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--az-space-1); font-size: var(--az-text-sm); }
+.p-public-plan__features .is-excluded { color: var(--az-muted); }
+.p-public-course-card__price { font-size: var(--az-text-sm); }
+.p-public-video { display: block; width: 100%; max-height: 28rem; border-radius: var(--az-radius-sm); background: #000; }
+.p-public-offer-summary { display: none; }
+.p-public-detail__next { scroll-margin-top: var(--az-space-4); }
 .p-public-legal-nav { display: flex; flex-wrap: wrap; gap: var(--az-space-2); margin-bottom: var(--az-space-6); }
 .p-public-legal-nav a { display: inline-flex; align-items: center; min-height: var(--az-control); padding-inline: var(--az-space-4); border-radius: var(--az-radius-sm); color: var(--az-muted); font-weight: var(--az-weight-medium); }
 .p-public-legal-nav a:hover, .p-public-legal-nav a[aria-current="page"] { color: var(--az-action); background: var(--az-action-soft); }
@@ -111,6 +124,8 @@
   .p-public-hero, .p-public-card-grid, .p-public-detail, .p-public-filters { grid-template-columns: minmax(0, 1fr); }
   .p-public-hero__panel, .p-public-cta, .p-public-empty, .p-public-course-card, .p-public-info-card, .p-public-price-card, .p-public-detail__next, .p-public-legal { padding: var(--az-space-5); }
   .p-public-filters { grid-template-areas: "q" "levels" "sort" "submit"; }
+  .p-public-offer-summary { display: grid; gap: var(--az-space-2); padding: var(--az-space-4); margin-block: var(--az-space-4); }
+  .p-public-offer-summary .c-button { width: 100%; }
   .p-public-filters .c-button { width: 100%; }
   /* Footer: guruhlar tepada, har biri yig'iladi (+/−); brend va mualliflik pastda. */
   .s-public-footer { flex-direction: column; align-items: stretch; gap: var(--az-space-6); }

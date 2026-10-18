@@ -5,7 +5,8 @@
   Proto: azurelms-proto/public/course-detail.html.
   Kontekst: course, modules (lessons), course_lessons_count, course_students_count,
   active_cohort_count, instructor_course_count, course_exam_count, is_enrolled,
-  offer / offer_cta (PUB1.3b: qabul va keyingi qadam checkout bilan bir manbadan).
+  offer / offer_cta (PUB1.3b: qabul va keyingi qadam checkout bilan bir manbadan),
+  facts (PUB1.3c: faqat bazada bor faktlar; 0 yoki bo'sh fakt ko'rsatilmaydi).
 {% endcomment %}
 
 {% block title %}{{ course.title }} — {{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}
@@ -19,7 +20,7 @@
     <span style="color:var(--ink);">{{ course.title }}</span>
   </div>
 
-  <div style="display:grid;grid-template-columns:1.6fr 0.95fr;gap:32px;align-items:start;">
+  <div class="pub-course-layout">
 
     <!-- Chap ustun -->
     <div>
@@ -36,17 +37,34 @@
       </div>
 
       <!-- Statistika -->
-      <div style="display:flex;border:1px solid var(--line);border-radius:13px;overflow:hidden;margin-bottom:30px;">
-        <div style="flex:1;padding:16px;text-align:center;border-right:1px solid var(--line);"><div style="display:flex;align-items:center;justify-content:center;gap:7px;font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--ink);"><i class="bi bi-collection-play" style="font-size:14px;color:var(--azure);"></i>{{ course_lessons_count }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">dars</div></div>
-        <div style="flex:1;padding:16px;text-align:center;border-right:1px solid var(--line);"><div style="display:flex;align-items:center;justify-content:center;gap:7px;font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--ink);"><i class="bi bi-layers" style="font-size:14px;color:var(--azure);"></i>{{ modules|length }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">modul</div></div>
-        <div style="flex:1;padding:16px;text-align:center;border-right:1px solid var(--line);"><div style="display:flex;align-items:center;justify-content:center;gap:7px;font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--ink);"><i class="bi bi-clipboard-check" style="font-size:14px;color:var(--azure);"></i>{{ course_exam_count }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">imtihon</div></div>
-        <div style="flex:1;padding:16px;text-align:center;"><div style="display:flex;align-items:center;justify-content:center;gap:7px;font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--ink);"><i class="bi bi-people" style="font-size:14px;color:var(--azure);"></i>{{ course_students_count }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">o'quvchi</div></div>
+      {% if facts.lessons or facts.modules or facts.exams or facts.learners %}
+      <div class="pub-course-stats">
+        {% if facts.lessons %}<div><div style="display:flex;align-items:center;justify-content:center;gap:7px;font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--ink);"><i class="bi bi-collection-play" style="font-size:14px;color:var(--azure);" aria-hidden="true"></i>{{ facts.lessons }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">dars</div></div>{% endif %}
+        {% if facts.modules %}<div><div style="display:flex;align-items:center;justify-content:center;gap:7px;font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--ink);"><i class="bi bi-layers" style="font-size:14px;color:var(--azure);" aria-hidden="true"></i>{{ facts.modules }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">modul</div></div>{% endif %}
+        {% if facts.exams %}<div><div style="display:flex;align-items:center;justify-content:center;gap:7px;font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--ink);"><i class="bi bi-clipboard-check" style="font-size:14px;color:var(--azure);" aria-hidden="true"></i>{{ facts.exams }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">imtihon</div></div>{% endif %}
+        {% if facts.learners %}<div><div style="display:flex;align-items:center;justify-content:center;gap:7px;font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--ink);"><i class="bi bi-people" style="font-size:14px;color:var(--azure);" aria-hidden="true"></i>{{ facts.learners }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">o'quvchi</div></div>{% endif %}
       </div>
+      {% endif %}
+
+      {# Tor ekranda aside pastga tushadi — birinchi ekranda qisqa taklif va unga havola (PUB1.3c). #}
+      {% if offer_cta.destination != "study" %}
+      <div class="pub-course-summary">
+        {% if offer.lowest_price is not None %}<div style="font-size:15px;color:var(--ink-2);"><strong style="color:var(--ink);">{{ offer.lowest_price|public_som }} so'mdan</strong> / {{ offer.period_days }} kun</div>{% endif %}
+        <div style="font-size:12.5px;color:var(--ink-3);">{{ offer.reason_label }}{% if offer.starts_later %} · keyingi guruh {{ offer.next_start|date:"d.m.Y" }}{% endif %}</div>
+        <a href="#kurs-taklifi" style="display:flex;align-items:center;justify-content:center;height:44px;border-radius:11px;background:var(--azure);color:var(--on-azure);font-size:14px;font-weight:600;">{% if offer.available %}Tariflar va yozilish{% else %}Batafsil{% endif %}</a>
+      </div>
+      {% endif %}
 
       <!-- Kurs haqida -->
       {% if course.description %}
       <h2 style="font-size:20px;font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:0 0 12px;">Kurs haqida</h2>
       <div style="font-size:15px;line-height:1.7;color:var(--ink-2);margin:0 0 32px;">{{ course.description|public_rich }}</div>
+      {% endif %}
+
+      <!-- Tanishtiruv videosi -->
+      {% if facts.preview_video_url %}
+      <h2 style="font-size:20px;font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:0 0 12px;">Tanishtiruv videosi</h2>
+      <video class="pub-course-video" controls preload="none" src="{{ facts.preview_video_url }}">Brauzeringiz videoni ko'rsata olmaydi.</video>
       {% endif %}
 
       <!-- Dastur -->
@@ -57,7 +75,7 @@
         <div style="border:1px solid var(--line);border-radius:12px;background:var(--panel);overflow:hidden;">
           <div style="display:flex;align-items:center;gap:13px;padding:15px 16px;">
             <span style="width:34px;height:34px;border-radius:9px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;flex:0 0 auto;">{{ forloop.counter|stringformat:"02d" }}</span>
-            <span style="flex:1;min-width:0;"><span style="display:block;font-size:14.5px;font-weight:600;color:var(--ink);">{{ module.title }}</span><span style="display:block;font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);margin-top:2px;">{{ module.lessons.all|length }} dars</span></span>
+            <span style="flex:1;min-width:0;"><span style="display:block;font-size:14.5px;font-weight:600;color:var(--ink);">{{ module.title }}</span>{% with count=module.lessons.all|length %}{% if count %}<span style="display:block;font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);margin-top:2px;">{{ count }} dars</span>{% endif %}{% endwith %}</span>
           </div>
           {% if module.lessons.all %}
           <div style="padding:0 16px 12px 63px;display:flex;flex-direction:column;gap:2px;">
@@ -71,18 +89,49 @@
       </div>
       {% endif %}
 
+      <!-- Baholash va sertifikat: faqat kursda oraliq va yakuniy imtihon bo'lsa va'da qilinadi -->
+      {% if facts.certificate %}
+      <h2 style="font-size:20px;font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:0 0 12px;">Baholash va sertifikat</h2>
+      <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:20px;margin-bottom:36px;font-size:14px;line-height:1.6;color:var(--ink-2);"><p style="margin:0;">Oraliq va yakuniy imtihondan o'tganingizdan so'ng sertifikat beriladi.</p>{% if facts.certificate_conditions %}<p style="margin:10px 0 4px;">Qo'shimcha shartlar:</p><ul style="margin:0;padding-left:18px;">{% for condition in facts.certificate_conditions %}<li>{{ condition }}</li>{% endfor %}</ul>{% endif %}</div>
+      {% elif facts.exams %}
+      <h2 style="font-size:20px;font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:0 0 12px;">Baholash</h2>
+      <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:20px;margin-bottom:36px;font-size:14px;line-height:1.6;color:var(--ink-2);">Kursda {{ facts.exams }} ta imtihon bor.</div>
+      {% endif %}
+
       <!-- O'qituvchi -->
       {% if course.instructor %}
       <h2 style="font-size:20px;font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:0 0 16px;">O'qituvchi</h2>
       <div style="display:flex;align-items:center;gap:16px;border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:20px;">
-        {% if course.instructor.avatar %}<img src="{{ course.instructor.avatar.url }}" alt="{{ course.instructor.get_full_name }}" style="width:60px;height:60px;border-radius:16px;object-fit:cover;flex:0 0 auto;">{% else %}<span style="width:60px;height:60px;border-radius:16px;background:var(--violet);display:grid;place-items:center;color:#fff;font-weight:700;font-size:22px;flex:0 0 auto;">{{ course.instructor.first_name.0|default:course.instructor.username.0|upper }}{{ course.instructor.last_name.0|upper }}</span>{% endif %}
+        {% if course.instructor.avatar %}<img src="{{ course.instructor.avatar.url }}" alt="{{ course.instructor.get_full_name|default:course.instructor.username }}" style="width:60px;height:60px;border-radius:16px;object-fit:cover;flex:0 0 auto;">{% else %}<span style="width:60px;height:60px;border-radius:16px;background:var(--violet);display:grid;place-items:center;color:#fff;font-weight:700;font-size:22px;flex:0 0 auto;">{{ course.instructor.first_name.0|default:course.instructor.username.0|upper }}{{ course.instructor.last_name.0|upper }}</span>{% endif %}
         <div style="flex:1;min-width:0;"><div style="font-size:16px;font-weight:600;color:var(--ink);">{{ course.instructor.get_full_name|default:course.instructor.username }}</div><div style="font-size:13px;color:var(--ink-3);margin-top:2px;">O'qituvchi · {{ instructor_course_count }} ta kurs</div>{% if course.instructor.bio %}<p style="font-size:13px;color:var(--ink-2);line-height:1.55;margin:8px 0 0;">{{ course.instructor.bio|truncatewords:24 }}</p>{% endif %}</div>
+      </div>
+      {% endif %}
+
+      <!-- Savol: faqat sozlangan aloqa (PUB-D7) -->
+      {% if site_settings.public_contact_phone or site_settings.public_contact_email %}
+      <h2 style="font-size:20px;font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:32px 0 12px;">Savolingiz bormi?</h2>
+      <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:20px;display:flex;flex-wrap:wrap;gap:8px 20px;font-size:14px;">
+        {% if site_settings.public_contact_phone %}<a href="tel:{{ site_settings.public_contact_phone|cut:" " }}" style="color:var(--azure);">{{ site_settings.public_contact_phone }}</a>{% endif %}
+        {% if site_settings.public_contact_email %}<a href="mailto:{{ site_settings.public_contact_email }}" style="color:var(--azure);">{{ site_settings.public_contact_email }}</a>{% endif %}
       </div>
       {% endif %}
     </div>
 
     <!-- O'ng aside -->
-    <aside style="position:sticky;top:88px;border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:22px;box-shadow:0 1px 2px rgba(11,14,21,.04),0 18px 50px rgba(11,14,21,.08);">
+    <aside id="kurs-taklifi" style="position:sticky;top:88px;border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:22px;box-shadow:0 1px 2px rgba(11,14,21,.04),0 18px 50px rgba(11,14,21,.08);">
+      {# Tariflar checkout bilan bir manbadan (PUB1.3b/c); qabul yopiq bo'lsa ko'rsatilmaydi. #}
+      {% if offer_cta.destination != "study" and offer.available_plans %}
+      <div style="font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);margin-bottom:10px;">Tariflar</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">
+        {% for plan in offer.available_plans %}
+        <div style="border:1px solid var(--line);border-radius:12px;padding:14px;">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;"><span style="font-size:14.5px;font-weight:600;color:var(--ink);overflow-wrap:anywhere;">{{ plan.name }}</span><span style="font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:var(--ink);white-space:nowrap;">{{ plan.price|public_som }} so'm<span style="font-weight:400;color:var(--ink-3);font-size:12px;"> / {{ plan.period_days }} kun</span></span></div>
+          {% if plan.group_size_claim %}<div style="font-size:12px;color:var(--ink-3);margin-top:4px;">{{ plan.group_size_claim }}</div>{% endif %}
+          {% if plan.included or plan.excluded %}<ul style="list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--ink-2);">{% for name in plan.included %}<li><span aria-hidden="true" style="color:var(--green);">✓</span> {{ name }}</li>{% endfor %}{% for name in plan.excluded %}<li style="color:var(--ink-3);"><span aria-hidden="true">—</span> {{ name }} (kiritilmagan)</li>{% endfor %}</ul>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
       {% if offer_cta.destination == "study" %}
       <div style="display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--green);background:var(--green-soft);padding:6px 12px;border-radius:999px;margin-bottom:16px;"><i class="bi bi-check-circle-fill"></i> Siz yozilgansiz</div>
       <a href="{% url 'course_study' course_id=course.id %}" style="display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:11px;background:var(--azure);color:var(--on-azure);font-size:15px;font-weight:600;">Darsni davom ettirish <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
@@ -103,13 +152,14 @@
       {% endif %}
 
       <div style="height:1px;background:var(--line);margin:20px 0;"></div>
+      {% if facts.lessons or facts.modules or facts.exams %}
       <div style="display:flex;flex-direction:column;gap:12px;">
-        <div style="display:flex;align-items:center;gap:11px;"><i class="bi bi-collection-play" style="font-size:15px;color:var(--azure);flex:0 0 auto;width:18px;text-align:center;"></i><span style="font-size:13.5px;color:var(--ink-2);">{{ course_lessons_count }} dars</span></div>
-        <div style="display:flex;align-items:center;gap:11px;"><i class="bi bi-stars" style="font-size:15px;color:var(--azure);flex:0 0 auto;width:18px;text-align:center;"></i><span style="font-size:13.5px;color:var(--ink-2);">Cheksiz AI repetitor</span></div>
-        <div style="display:flex;align-items:center;gap:11px;"><i class="bi bi-people" style="font-size:15px;color:var(--azure);flex:0 0 auto;width:18px;text-align:center;"></i><span style="font-size:13.5px;color:var(--ink-2);">Jonli guruh darslari</span></div>
-        <div style="display:flex;align-items:center;gap:11px;"><i class="bi bi-clipboard-check" style="font-size:15px;color:var(--azure);flex:0 0 auto;width:18px;text-align:center;"></i><span style="font-size:13.5px;color:var(--ink-2);">To'liq imtihon muhiti</span></div>
-        <div style="display:flex;align-items:center;gap:11px;"><i class="bi bi-patch-check" style="font-size:15px;color:var(--azure);flex:0 0 auto;width:18px;text-align:center;"></i><span style="font-size:13.5px;color:var(--ink-2);">Tasdiqlangan sertifikat</span></div>
+        {% if facts.lessons %}<div style="display:flex;align-items:center;gap:11px;"><i class="bi bi-collection-play" style="font-size:15px;color:var(--azure);flex:0 0 auto;width:18px;text-align:center;" aria-hidden="true"></i><span style="font-size:13.5px;color:var(--ink-2);">{{ facts.lessons }} dars</span></div>{% endif %}
+        {% if facts.modules %}<div style="display:flex;align-items:center;gap:11px;"><i class="bi bi-layers" style="font-size:15px;color:var(--azure);flex:0 0 auto;width:18px;text-align:center;" aria-hidden="true"></i><span style="font-size:13.5px;color:var(--ink-2);">{{ facts.modules }} modul</span></div>{% endif %}
+        {% if facts.exams %}<div style="display:flex;align-items:center;gap:11px;"><i class="bi bi-clipboard-check" style="font-size:15px;color:var(--azure);flex:0 0 auto;width:18px;text-align:center;" aria-hidden="true"></i><span style="font-size:13.5px;color:var(--ink-2);">{{ facts.exams }} ta imtihon</span></div>{% endif %}
+        {% if facts.certificate %}<div style="display:flex;align-items:center;gap:11px;"><i class="bi bi-patch-check" style="font-size:15px;color:var(--azure);flex:0 0 auto;width:18px;text-align:center;" aria-hidden="true"></i><span style="font-size:13.5px;color:var(--ink-2);">Imtihonlardan o'tgach sertifikat</span></div>{% endif %}
       </div>
+      {% endif %}
     </aside>
 
   </div>

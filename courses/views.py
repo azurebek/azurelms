@@ -19,7 +19,7 @@ from django.views.decorators.http import require_POST
 
 from .access_service import build_lesson_access_bundle, check_lesson_access
 from .catalog import MAX_QUERY_CHARS, CatalogQuery, catalog_queryset, page_links
-from .public_offer import build_offer, build_offers, offer_cta
+from .public_offer import build_course_facts, build_offer, build_offers, offer_cta
 
 from .models import (
     Assignment,
@@ -239,6 +239,8 @@ class CourseDetailView(PublicFrontendV1Mixin, DetailView):
         # Qabul, tarif va keyingi qadam checkout bilan bir manbadan (PUB1.3b):
         # sahifa “yoziling” desa, checkout ham qabul qiladi.
         offer = build_offer(self.object)
+        # Sahifadagi faktlar bitta joydan: 0 yoki bo'sh fakt chiqmaydi (PUB1.3c).
+        context['facts'] = build_course_facts(self.object, modules, learners=context['course_students_count'])
         context['offer'] = offer
         context['offer_cta'] = offer_cta(offer, user=self.request.user, is_enrolled=context['is_enrolled'])
         context['active_cohort_count'] = offer.active_cohort_count

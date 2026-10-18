@@ -99,6 +99,20 @@ class CourseOffer:
     def plan(self, plan_id):
         return next((plan for plan in self.plans if plan.plan_id == plan_id), None)
 
+    @property
+    def available_plans(self):
+        return tuple(plan for plan in self.plans if plan.available)
+
+    @property
+    def lowest_price(self):
+        """Hozir sotib olish mumkin bo'lgan eng arzon tarif narxi (yo'q bo'lsa `None`)."""
+        prices = [plan.price for plan in self.available_plans]
+        return min(prices) if prices else None
+
+    @property
+    def period_days(self):
+        return self.plans[0].period_days if self.plans else None
+
 
 @dataclass(frozen=True)
 class OfferCta:
@@ -213,6 +227,46 @@ def build_offers(courses, *, today=None):
 
 def build_offer(course, *, today=None):
     return build_offers([course], today=today)[course.pk]
+
+
+@dataclass(frozen=True)
+class CourseFacts:
+    """Kurs sahifasidagi faktlar — faqat bazada borini; 0 yoki bo'sh fakt ko'rsatilmaydi (PUB1.3c)."""
+
+    lessons: int
+    modules: int
+    exams: int
+    learners: int
+    certificate: bool
+    certificate_conditions: tuple
+    preview_video_url: str
+
+
+def build_course_facts(course, modules, *, learners):
+    """`modules` — `lessons` bilan prefetch qilingan; `course.exams` ham prefetch qilingan.
+
+    Sertifikat faqat kursda oraliq (visa) va yakuniy imtihon ikkalasi bo'lsa
+    va'da qilinadi: `courses.completion_service` aynan shu ikkisidan o'tishni
+    talab qiladi. Qo'shimcha shartlar kurs sozlamasidan (`policy_service`).
+    """
+    exam_types = {exam.exam_type for exam in course.exams.all()}
+    conditions = []
+    if course.certificate_min_lesson_completion_percent:
+        conditions.append(f"darslarning kamida {course.certificate_min_lesson_completion_percent}% bajarilgan bo‘lishi")
+    if course.certificate_min_attendance_percent:
+        conditions.append(f"davomat kamida {course.certificate_min_attendance_percent}% bo‘lishi")
+    if course.certificate_requires_all_assignments_approved:
+        conditions.append("barcha topshiriqlar tasdiqlangan bo‘lishi")
+    video = getattr(course, "preview_video", None)
+    return CourseFacts(
+        lessons=sum(len(module.lessons.all()) for module in modules),
+        modules=len(modules),
+        exams=len(course.exams.all()),
+        learners=learners,
+        certificate={"visa", "final"} <= exam_types,
+        certificate_conditions=tuple(conditions),
+        preview_video_url=video.url if video else "",
+    )
 
 
 def offer_cta(offer, *, user, is_enrolled):
