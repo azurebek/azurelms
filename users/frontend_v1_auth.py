@@ -98,8 +98,10 @@ class PasswordResetConfirmView(AuthV1Mixin, auth_views.PasswordResetConfirmView)
 
     def dispatch(self, *args, **kwargs):
         # Tokenli havoladan boshqa saytga Referer sifatida token ketmasin (PUB1.0f).
+        # `same-origin` — `no-referrer` yangi parol formasini `Origin: null` bilan
+        # yuborib, CSRF tekshiruvida 403 qilardi.
         response = super().dispatch(*args, **kwargs)
-        response['Referrer-Policy'] = 'no-referrer'
+        response['Referrer-Policy'] = 'same-origin'
         return response
 
     def form_valid(self, form):

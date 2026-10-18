@@ -1563,6 +1563,14 @@ truth, canonical equality, query exclusion, 404 object removal, cache/purge.
 
 #### PUB1.1d — response/cache/security header matrix
 
+**Tuzatish — 2026-10-19:** sensitive sahifalar `Referrer-Policy: no-referrer` olgan edi; brauzer
+bunday sahifadagi formani `Origin: null` bilan yuboradi (Fetch standarti) va Django CSRF login,
+ro‘yxat va yangi parol formalarini 403 bilan rad etardi — haqiqiy brauzerda kirib bo‘lmasdi
+(Django test client `Origin` yubormagani uchun testlar ko‘rmagan). Endi `same-origin`: URL
+(tiklash tokeni) boshqa saytga ketmaydi, bir xil saytdagi forma esa haqiqiy `Origin` bilan
+boradi. `frontend/test_form_origin.py` brauzer qoidasini takrorlaydi. Production’ga ta’sir
+qilmagan: oxirgi AWS relizi (2026-09-26) bu ishlardan oldin.
+
 **Holat — 2026-10-17: kodda, lokal tekshirilgan** (branch
 `claude/pub11d-header-matrix`). `frontend/public_response.py` — CSRF’dan oldingi
 middleware registrdan qo‘llaydi: registryda yo‘q method `405` + `Allow`

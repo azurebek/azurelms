@@ -1443,6 +1443,7 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 
 - Har `<head>` egasi `{% load public_meta %}{% public_meta_tags %}` ni chaqiradi (xato sahifasi `force_noindex=True`). Description/robots/canonical/OG/Twitter/JSON-LD **shablonlarga qo'lda yozilmaydi** — `frontend/public_meta.py` adapterlari kontekstdagi obyektdan (course, post, university, article, legal_page, page) quradi.
 - Absolute URL faqat `settings.PUBLIC_CANONICAL_ORIGIN` (`frontend.public_meta.absolute_url`); `request.build_absolute_uri` public sahifada ishlatilmaydi.
+- **Formasi bor sahifaga `Referrer-Policy: no-referrer` (sarlavha yoki `<meta>`) qo'ymang**: brauzer formani `Origin: null` bilan yuboradi va Django CSRF 403 beradi; maxfiylik uchun `same-origin` yetarli. `frontend/test_form_origin.py` brauzer qoidasini tekshiradi (Django test client `Origin` yubormaydi).
 - Public route sarlavhalari (Cache-Control, Pragma, X-Robots-Tag, Referrer-Policy, Permissions-Policy) va method'i `frontend/public_response.py` middleware'ida registrdan (PUB1.1d) — **view'da `patch_cache_control` bilan alohida yozilmaydi**. Theme CSS `?v=<kontent xeshi>` bilan immutable.
 - `/robots.txt` va `/sitemap.xml` (`frontend/crawler_views.py`, PUB1.1c).
 

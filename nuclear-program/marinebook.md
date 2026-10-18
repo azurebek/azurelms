@@ -16,6 +16,28 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-19 [Claude]: Tuzatish — haqiqiy brauzerda login/ro‘yxat/parol formasi CSRF 403 berardi
+
+PUB1.3d’ni brauzerda sinayotganda ro‘yxatdan o‘tish formasi “CSRF verification failed —
+Origin checking failed: null” bilan 403 qaytardi. Sabab mening ikki o‘zgarishim edi:
+PUB1.1d sensitive sahifalarga (login, ro‘yxat, parol) va PUB1.0f yangi parol sahifasiga
+`Referrer-Policy: no-referrer` qo‘ygan. Fetch standarti bo‘yicha brauzer bunday sahifadagi
+formani `Origin: null` bilan yuboradi, Django CSRF esa uni rad etadi. Django test client
+`Origin` yubormagani uchun hamma testlar yashil edi.
+
+- Branch: `claude/fix-auth-form-origin`; kod commit **`a01605e`**. Migration yo‘q.
+- Tuzatish: ikki joyda `same-origin` (`frontend/public_response.py`,
+  `users/frontend_v1_auth.py`) — token/URL boshqa saytga Referer bo‘lib ketmaydi, bir xil
+  saytdagi forma haqiqiy `Origin` bilan boradi. Yangi `frontend/test_form_origin.py`
+  sahifaning referrer siyosatidan brauzer yuboradigan `Origin`ni hisoblab, login, ro‘yxat,
+  parol so‘rovi va yangi parol formalarini CSRF yoqilgan holda yuboradi (ikki renderer).
+- Test: `manage.py test frontend.test_form_origin frontend.test_public_response
+  users.test_password_reset_delivery` — **23 test, OK**; nazorat: ikkala joyni `no-referrer`ga
+  qaytarish — origin testlari FAIL (403), tiklangach PASS. Brauzer: DB nusxasida ro‘yxat
+  formasi endi onboarding’ga o‘tdi (avval 403).
+- Ta’sir: production’ga yetmagan (oxirgi AWS relizi 2026-09-26). Lokal `main`da 2026-10-17
+  (PR #207/#212) dan beri brauzerda login/ro‘yxat/parol formasi ishlamagan.
+
 ## 2026-10-19 [Claude]: PUBLIC-01 / PUB1.3c — kurs sahifasi va kartasi faqat bor faktlar bilan
 
 Kurs sahifasi “0 imtihon”, “0 o‘quvchi” kabi bo‘sh faktlarni ko‘rsatardi, legacy

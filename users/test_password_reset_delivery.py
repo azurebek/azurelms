@@ -189,9 +189,9 @@ class OneUseLinkTests(ResetMixin, TestCase):
 
         opened = self.client.get(path)
         self.assertEqual(opened.status_code, 302)
-        self.assertEqual(opened["Referrer-Policy"], "no-referrer")
+        self.assertEqual(opened["Referrer-Policy"], "same-origin")
         form_page = self.client.get(opened["Location"])
-        self.assertEqual(form_page["Referrer-Policy"], "no-referrer")
+        self.assertEqual(form_page["Referrer-Policy"], "same-origin")
         done = self.client.post(opened["Location"], {"new_password1": "Yangi-parol-2026!", "new_password2": "Yangi-parol-2026!"})
         self.assertEqual(done.status_code, 302)
         self.user.refresh_from_db()
