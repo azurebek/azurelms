@@ -130,7 +130,11 @@
       <h2 style="font-size:clamp(20px,2.4vw,28px);font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:0 0 6px;">Biz bilan turk tilini boshlang.</h2>
       <p style="font-size:14px;color:var(--ink-2);margin:0;">A1 dan C1 gacha — tartibli, aniq va qo'llab-quvvatlanadigan yo'l.</p>
     </div>
-    <a href="{% url 'register' %}" style="display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:15px;font-weight:600;flex:0 0 auto;">Bepul boshlash <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
+    {% if public_registration_open %}
+      <a href="{% url 'register' %}" style="display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:15px;font-weight:600;flex:0 0 auto;">Bepul boshlash <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
+    {% else %}
+      <a href="{% url 'courses' %}" style="display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:15px;font-weight:600;flex:0 0 auto;">Kurslarni ko‘rish <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
+    {% endif %}
   </div>
 
 </div>

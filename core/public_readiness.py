@@ -48,6 +48,8 @@ class PublicReadiness:
     claims: tuple = ()
     testimonials_public: int = 0
     testimonials_hidden: int = 0
+    # PUB1.2d: public sahifada ko'rinadigan (namuna emas) aloqa kanallari.
+    public_contact: tuple = ()
 
     def claim_count(self, status):
         return dict(self.claims).get(status, 0)
@@ -100,6 +102,15 @@ def claim_readiness():
     return tuple(sorted(counts.items())), public, hidden
 
 
+def contact_readiness():
+    """Owner sozlagan aloqa kanallari; model namunasi hisoblanmaydi (PUB-D7)."""
+    from frontend.models import SiteSettings
+
+    settings = SiteSettings.current()
+    channels = (("telefon", settings.public_contact_phone), ("email", settings.public_contact_email))
+    return tuple(name for name, value in channels if value)
+
+
 def public_readiness():
     from blog.tracking_cleanup import legacy_tracking
 
@@ -111,4 +122,5 @@ def public_readiness():
         claims=claims,
         testimonials_public=testimonials_public,
         testimonials_hidden=testimonials_hidden,
+        public_contact=contact_readiness(),
     )

@@ -1,4 +1,7 @@
 from django.db.utils import OperationalError, ProgrammingError
+from django.urls import reverse
+
+from core.flags import flag_enabled
 
 from .models import AuthPageSettings, LandingNavItem, LandingPage, SiteSettings
 from .public_url_policy import public_nav_url
@@ -97,13 +100,32 @@ def site_settings_context(request):
 
     grouped = _nav_items_by_placement()
     placement = LandingNavItem.Placement
-    return {
+    registration_open = flag_enabled("public_registration")  # DB xatosida e'lon qilingan default
+    # Ro'yxat yopiq bo'lsa ro'yxatga olib boruvchi menyu qatori (kalit yoki
+    # custom URL orqali) ko'rinmaydi: u yopiq eshikka olib boradi (PUB1.2d, PUB-D2).
+    closed_paths = set() if registration_open else {reverse("register")}
+
+    def nav(place):
+        rows = _serialize_landing_nav_items(request, place, grouped)
+        return [row for row in rows if row["url"].split("?")[0] not in closed_paths]
+
+    context = {
+        # Ro'yxat yopiq bo'lsa "Ro'yxatdan o'tish" CTA'si o'lik yo'lga olib
+        # boradi — o'rniga kurslar katalogi (PUB1.2d, PUB-D1/PUB-D2).
+        "public_registration_open": registration_open,
         "site_settings": site_settings,
         "auth_page_settings": auth_page_settings,
         "public_page_settings": public_page_settings,
-        "landing_nav_items": _serialize_landing_nav_items(request, placement.MAIN, grouped),
-        "utility_nav_items": _serialize_landing_nav_items(request, placement.UTILITY, grouped),
-        "footer_platform_links": _serialize_landing_nav_items(request, placement.FOOTER_PLATFORM, grouped),
-        "footer_company_links": _serialize_landing_nav_items(request, placement.FOOTER_COMPANY, grouped),
-        "footer_legal_links": _serialize_landing_nav_items(request, placement.FOOTER_LEGAL, grouped),
+        "landing_nav_items": nav(placement.MAIN),
+        "utility_nav_items": nav(placement.UTILITY),
+        "footer_platform_links": nav(placement.FOOTER_PLATFORM),
+        "footer_company_links": nav(placement.FOOTER_COMPANY),
+        "footer_legal_links": nav(placement.FOOTER_LEGAL),
     }
+    # Footer guruhlari bitta joyda: legacy va V1 ayni sarlavha va tartibni chizadi.
+    context["footer_groups"] = (
+        ("Platforma", context["footer_platform_links"]),
+        ("Kompaniya", context["footer_company_links"]),
+        ("Huquqiy", context["footer_legal_links"]),
+    )
+    return context
