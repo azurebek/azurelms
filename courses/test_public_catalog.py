@@ -130,6 +130,20 @@ class ProjectionFreshnessTests(CatalogWorld):
         Course.objects.bulk_update(rows, ["title"])
         self.assertEqual(self.find("bulk"), ["Bulk yangilandi"])
 
+    def test_refresh_reads_and_writes_in_bounded_batches(self):
+        """PR #216 review: katta katalogda ham hamma tavsif birdan xotiraga olinmaydi."""
+        from courses.catalog import refresh_search_text
+
+        for index in range(5):
+            self.course(f"Partiya {index}")
+        Course.objects.update(search_text="")
+        with CaptureQueriesContext(connection) as queries:
+            self.assertEqual(refresh_search_text(Course.objects.all(), batch_size=2), 5)
+        selects = [q["sql"] for q in queries.captured_queries if q["sql"].lstrip().upper().startswith("SELECT")]
+        self.assertEqual(len(selects), 4)  # 2 + 2 + 1, so'ng bo'sh sahifa
+        self.assertTrue(all("LIMIT 2" in sql for sql in selects), selects)
+        self.assertFalse(Course.objects.filter(search_text="").exists())
+
     def test_migration_backfill_and_rebuild_command(self):
         course = self.course("To‘ldiriladi")
         Course.objects.filter(pk=course.pk).update(search_text="")

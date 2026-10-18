@@ -30,6 +30,7 @@ SORT_ORDERING = {
     "popular": ("-annotated_students_count", "-created_at", "-id"),
 }
 SEARCH_SOURCE_FIELDS = frozenset({"title", "description"})
+SEARCH_BATCH_SIZE = 200
 
 # O'zbek lotin yozuvidagi tutuq belgisining hamma ko'rinishi bitta belgiga.
 _APOSTROPHES = str.maketrans({char: "'" for char in "‘’ʻʼ`´′"})
@@ -136,16 +137,28 @@ def page_links(page_obj, query, *, window=1):
     return links
 
 
-def refresh_search_text(queryset, *, apply=True):
-    """Eskirgan qidiruv proyeksiyalari soni; `apply` bo'lsa faqat ular yoziladi."""
-    from courses.models import Course
+def refresh_search_text(queryset, *, apply=True, batch_size=SEARCH_BATCH_SIZE):
+    """Eskirgan qidiruv proyeksiyalari soni; `apply` bo'lsa faqat ular yoziladi.
 
-    stale = []
-    for course in queryset.only("pk", "title", "description", "search_text"):
-        document = search_document(course.title, course.description)
-        if course.search_text != document:
-            course.search_text = document
-            stale.append(course)
-    if apply:
-        Course.objects.bulk_update(stale, ["search_text"], batch_size=200)
-    return len(stale)
+    Kurslar `pk` bo'yicha keyset sahifalarda o'qiladi va yoziladi: xotirada
+    bir vaqtda `batch_size` tadan ortiq tavsif turmaydi (PR #216 review). Tarixiy
+    model (migratsiya) bilan ham ishlaydi — yozish `queryset.model` orqali.
+    """
+    manager = queryset.model._default_manager
+    ordered = queryset.order_by("pk").only("pk", "title", "description", "search_text")
+    stale_count, last_pk = 0, None
+    while True:
+        page = ordered if last_pk is None else ordered.filter(pk__gt=last_pk)
+        rows = list(page[:batch_size])
+        if not rows:
+            return stale_count
+        stale = []
+        for course in rows:
+            document = search_document(course.title, course.description)
+            if course.search_text != document:
+                course.search_text = document
+                stale.append(course)
+        if apply and stale:
+            manager.bulk_update(stale, ["search_text"])
+        stale_count += len(stale)
+        last_pk = rows[-1].pk

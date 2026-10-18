@@ -4,16 +4,13 @@ from django.db import migrations, models
 
 
 def backfill_search_text(apps, schema_editor):
-    # Normallashtirish kodi bitta joyda (`courses/catalog.py`); bu yerda faqat
-    # mavjud kurslar uchun bir marta to'ldiriladi. Qo'shimcha maydon — reverse
-    # ustunni olib tashlaydi, boshqa ma'lumotga tegmaydi.
-    from courses.catalog import search_document
+    # Normallashtirish va to'ldirish kodi bitta joyda (`courses/catalog.py`).
+    # Kurslar chegaralangan keyset sahifalarda o'qilib yoziladi — katta
+    # katalogda ham hammasi birdan xotiraga olinmaydi. Qo'shimcha maydon:
+    # reverse ustunni olib tashlaydi, boshqa ma'lumotga tegmaydi.
+    from courses.catalog import refresh_search_text
 
-    Course = apps.get_model("courses", "Course")
-    rows = list(Course.objects.only("pk", "title", "description"))
-    for course in rows:
-        course.search_text = search_document(course.title, course.description)
-    Course.objects.bulk_update(rows, ["search_text"], batch_size=200)
+    refresh_search_text(apps.get_model("courses", "Course").objects.all())
 
 
 class Migration(migrations.Migration):
