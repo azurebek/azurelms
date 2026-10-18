@@ -17,6 +17,7 @@ from django.utils import timezone
 from core.private_storage import private_media_storage
 from PIL import Image, ImageOps
 
+from .catalog import SEARCH_SOURCE_FIELDS, refresh_search_text, search_document
 from .cover_art import GRADIENT_PRESET_CHOICES, build_cover_data_uri
 
 
@@ -37,6 +38,26 @@ def normalize_reading_value(value, *, case_sensitive=False, punctuation_sensitiv
     if not case_sensitive:
         text = text.casefold()
     return text
+
+
+class CourseQuerySet(models.QuerySet):
+    """Ommaviy yozuvlar ham qidiruv proyeksiyasini eskirtirmaydi (PUB1.3a)."""
+
+    def bulk_create(self, objs, *args, **kwargs):
+        objs = list(objs)
+        for obj in objs:
+            obj.search_text = search_document(obj.title, obj.description)
+        return super().bulk_create(objs, *args, **kwargs)
+
+    def update(self, **kwargs):
+        if "search_text" in kwargs or not SEARCH_SOURCE_FIELDS & kwargs.keys():
+            return super().update(**kwargs)
+        pks = list(self.values_list("pk", flat=True))
+        count = super().update(**kwargs)
+        refresh_search_text(self.model.objects.filter(pk__in=pks))
+        return count
+
+    update.alters_data = True
 
 
 class Course(models.Model):
@@ -102,7 +123,12 @@ class Course(models.Model):
     
     is_active = models.BooleanField(default=True, verbose_name="Faolmi?")
     created_at = models.DateTimeField(auto_now_add=True)
+    # Katalog qidiruvi uchun nom + tavsifning oddiy, normallashgan matni
+    # (`courses/catalog.py`). Boy HTML'da qidirilmaydi; qo'lda tahrirlanmaydi.
+    search_text = models.TextField(blank=True, default="", editable=False)
     STANDARD_COVER_SIZE = (1200, 1100)
+
+    objects = CourseQuerySet.as_manager()
 
     @property
     def lessons_count(self):
@@ -215,6 +241,10 @@ class Course(models.Model):
                 self.thumbnail = normalized_thumbnail
 
         self.__dict__.pop("cover_media_url", None)
+        self.search_text = search_document(self.title, self.description)
+        update_fields = kwargs.get("update_fields")
+        if update_fields is not None and SEARCH_SOURCE_FIELDS & set(update_fields):
+            kwargs["update_fields"] = {*update_fields, "search_text"}
         super().save(*args, **kwargs)
 
     def __str__(self):

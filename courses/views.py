@@ -18,6 +18,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 
 from .access_service import build_lesson_access_bundle, check_lesson_access
+from .catalog import MAX_QUERY_CHARS, CatalogQuery, catalog_queryset, page_links
 
 from .models import (
     Assignment,
@@ -147,59 +148,39 @@ def lesson_completion_view(request, course_id, lesson_id):
 
 
 class CourseListView(PublicFrontendV1Mixin, ListView):
+    """Ochiq katalog: chegaralangan qidiruv, ma'lum filtrlar, barqaror tartib (PUB1.3a)."""
+
     model = Course
     template_name = 'courses/course_list.html'
     context_object_name = 'courses'
     paginate_by = 8
-    
+
     def get_queryset(self):
-        from django.db.models import Count, Q as Q_obj
-        
-        queryset = (
-            Course.objects.filter(is_active=True)
-            .select_related("instructor")
-            .annotate(
-                annotated_lessons_count=Count('modules__lessons', distinct=True),
-                annotated_students_count=Count(
-                    'cohorts__members',
-                    filter=enrollment_active_access_q(prefix='cohorts__members__'),
-                    distinct=True,
-                )
-            )
-        )
-        
-        # Qidiruv filtering
-        q = self.request.GET.get('q')
-        if q:
-            queryset = queryset.filter(
-                Q(title__icontains=q) | 
-                Q(description__icontains=q)
-            )
-            
-        # Daraja (Level) filtering
-        levels = self.request.GET.getlist('level')
-        if levels:
-            queryset = queryset.filter(level__in=levels)
-            
-        # Saralash (Sorting)
-        sort_by = self.request.GET.get('sort', 'newest')
-        if sort_by == 'oldest':
-            queryset = queryset.order_by('created_at')
-        elif sort_by == 'popular':
-            queryset = queryset.order_by('-annotated_students_count', '-created_at')
-        else:
-            # Default = newest
-            queryset = queryset.order_by('-created_at')
-            
-        return queryset
+        self.catalog = CatalogQuery.from_params(self.request.GET)
+        return catalog_queryset(self.catalog)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['search_query'] = self.request.GET.get('q', '')
-        context['selected_levels'] = self.request.GET.getlist('level')
-        context['level_choices'] = Course.LEVEL_CHOICES
-        context['current_sort'] = self.request.GET.get('sort', 'newest')
-        context['active_nav'] = 'courses'
+        catalog, page_obj = self.catalog, context['page_obj']
+        context.update(
+            catalog=catalog,
+            search_query=catalog.q,
+            max_query_chars=MAX_QUERY_CHARS,
+            selected_levels=list(catalog.levels),
+            level_choices=Course.LEVEL_CHOICES,
+            level_links=[
+                {'value': value, 'label': label, 'url': catalog.url(levels=(value,)), 'selected': catalog.levels == (value,)}
+                for value, label in Course.LEVEL_CHOICES
+            ],
+            all_levels_url=catalog.url(levels=()),
+            current_sort=catalog.sort,
+            # Kurs sahifasidagi "Katalogga qaytish" ayni filtr va sahifaga qaytaradi.
+            catalog_return_to=catalog.url(page=page_obj.number),
+            page_links=page_links(page_obj, catalog) if context['is_paginated'] else [],
+            previous_page_url=catalog.url(page=page_obj.number - 1) if page_obj.has_previous() else '',
+            next_page_url=catalog.url(page=page_obj.number + 1) if page_obj.has_next() else '',
+            active_nav='courses',
+        )
         return context
 
 
