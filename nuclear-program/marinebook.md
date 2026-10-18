@@ -16,6 +16,42 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-18 [Claude]: PUBLIC-01 / PUB1.2d — bitta owner menyusi, rost aloqa, yopiq ro‘yxatda o‘lik yo‘l yo‘q
+
+Legacy sarlavha menyuni shablonga qotirib chizardi (SIT va `#ai` bilan), V1 esa
+owner qatorlaridan — ikki renderer turli menyu ko‘rsatardi. Seed footer’da
+“Sertifikatlar” /about/ga, “Qabul yo‘li” ro‘yxatga olib borardi; ro‘yxat yopiq
+bo‘lsa ham “Boshlash” CTA’lari yopiq eshikka yetaklardi; aloqa bloki model
+namunasini (`+998 90 123 45 67`, `info@azurelms.uz`, `legal@azurelms.uz`) va
+“3 ish kunida javob beramiz” va’dasini chiqarardi.
+
+- Branch: `claude/pub12d-public-shell`; kod commit **`74f0abe`**. Migration
+  `frontend/0022_nav_sit_key` (choices + RunPython: faqat o‘zgarmagan ikki seed
+  qatorini o‘chiradi, qatori bor menyuga SIT’ni bir marta qo‘shadi; reverse — noop).
+- Qarorlar (owner IA qarori yo‘q — rejadagi xavfsiz default’lar PUB-D1/D2/D7/D16):
+  legacy ham `landing_nav_items`/`footer_groups`dan; `sit` kaliti; ro‘yxat yopiq
+  bo‘lsa ro‘yxatga olib boruvchi har havola (CTA, menyu qatori kalit yoki custom
+  URL bo‘yicha) yo‘q, o‘rniga “Kurslarni ko‘rish”; namuna sertifikat CTA’si olib
+  tashlandi; `SiteSettings.public_contact_phone/email` model namunasini
+  “sozlanmagan” deb biladi, holati `audit_public_readiness` va Control Center
+  `public_content` tafsilotida; legacy menyu 1181px dan bir qatorda, yorliq
+  bo‘linmaydi; legacy bosh sahifa landmark’lari nomlandi.
+- Test: safe env’da `manage.py test frontend.test_public_shell` — **17 test, OK**;
+  to‘liq `manage.py test` — **2986 test, OK (skipped=69)**; `manage.py check`,
+  `makemigrations --check` toza; `git diff --check` PASS. Nazorat yugurishi:
+  10 ta buzilish (menyu filtri, seed o‘chirish, SIT qo‘shish, legacy va V1 CTA
+  gate, SLA qaytishi, default SIT, ijtimoiy `#`, aloqa namunasi, rels landmark’i)
+  — hammasi FAIL, tiklangach PASS.
+- Brauzer (DB nusxasida, 0022 qo‘llangan): seed qatorlar o‘chdi, SIT asosiy va
+  footer menyuda bir martadan; ikki renderer’da ham `#` havola 0, ro‘yxat yopiqda
+  `/users/register/` havolasi 0. Legacy 1041px’da 6 element so‘z o‘rtasida
+  bo‘linib ikki qatorga tushardi — CSS tuzatildi: 1181/1440px bir qator, 1180px
+  dan mobil menyu, 320px’da gorizontal siljish yo‘q, 44px+ nishon; uzun owner
+  yorlig‘ida butun element keyingi qatorga o‘tadi. V1 1024/375px toza.
+- Davom etilishi kerak: PUB1.2c (B3.5 writer bilan birga); keyingi kesim PUB1.3a.
+  Footer’da “Yordam markazi” va “FAQ” ikkalasi `/faq/`ga (owner qatori);
+  `SiteSettings` to‘lov kartasi namunasi COMMERCE-01 scope’ida.
+
 ## 2026-10-18 [Claude]: PUBLIC-01 / PUB1.2b — bosh sahifa va About deterministik proyeksiyasi
 
 Bosh sahifa view’i hech qayerda chizilmaydigan narsalarni ham o‘qirdi: oxirgi 4
