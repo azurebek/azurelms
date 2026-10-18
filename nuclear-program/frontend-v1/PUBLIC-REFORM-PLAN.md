@@ -1705,7 +1705,15 @@ namunasi COMMERCE-01 scope’ida. Review tuzatishi (PR #215): migratsiya seed qa
 faqat to‘liq seed holatida (ko‘rinish, tartib, yangi tab ham) o‘chiradi; menyu
 filtri URL yo‘lini parse qiladi (`#fragment` ham); ro‘yxat yopiq bo‘lsa narx
 sahifasi tarif tugmasi mehmonni kirishga (narxga qaytib), kurs detali va kirish
-sahifasi ro‘yxat havolasisiz — ikki renderer’da.
+sahifasi ro‘yxat havolasisiz — ikki renderer’da. Owner ko‘rigi (2026-10-18, branch
+`claude/public-shell-responsive`): telefonda (V1 < 640px, legacy ≤ 760px) footer
+guruhlari yig‘iladi (`<details>`, +/−; server ochiq chizadi — JS bo‘lmasa hammasi
+ochiq); V1 sarlavha 1200px dan torroqda mobil menyu (6 element + tugmalar ~1090px
+talab qiladi; 1024–1199px’da ikki qatorga tushardi), yorliq va tugmalar bo‘linmaydi;
+V1 katalog filtri: 1-qator qidiruv, 2-qator daraja chiplari + tartib + tugma (DOM
+tartibi bilan bir xil); legacy footer’da 5 ustun 4 ustunli gridga sig‘mas edi —
+ustunlar endi guruhlar soniga moslashadi, “Aloqa” faqat sozlangan bo‘lsa. CSS va JS
+chegaralari `frontend/test_public_responsive.py`da bir-biriga bog‘langan.
 
 **Ish:** owner qaroridagi IA; grouped header/footer; hardcoded/duplicate SIT va
 misrouted certificate linklarni tuzatish; configured contact/help. Landing first
