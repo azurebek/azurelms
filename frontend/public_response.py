@@ -7,7 +7,7 @@ alohida yozmaydi, legacy va V1 renderer bir xil javob oladi.
 Matritsa (`§5.3`):
 
 * `SENSITIVE_NO_STORE` — `private, no-store`, `Pragma: no-cache`,
-  `X-Robots-Tag: noindex…`, `Referrer-Policy: no-referrer`, ETag yo'q;
+  `X-Robots-Tag: noindex…`, `Referrer-Policy: same-origin`, ETag yo'q;
 * `STATUS_NO_STORE` va har 4xx/5xx — `no-store`, `X-Robots-Tag: noindex`;
 * `PUBLIC_CONTENT` / `PUBLIC_QUERY` — mehmonga va cookie qo'ymaydigan javobda
   `private, no-cache`: brauzer qayta tekshiradi (ETag → 304), umumiy (shared)
@@ -29,7 +29,10 @@ SENSITIVE_HEADERS = {
     "Cache-Control": "private, no-store, max-age=0",
     "Pragma": "no-cache",
     "X-Robots-Tag": "noindex, nofollow, noarchive",
-    "Referrer-Policy": "no-referrer",
+    # `same-origin`: URL (masalan, parol tiklash tokeni) boshqa saytga Referer bo'lib
+    # ketmaydi. `no-referrer` EMAS: unda brauzer formani `Origin: null` bilan yuboradi
+    # (Fetch standarti) va Django CSRF login/ro'yxat/parol formalarini 403 bilan rad etadi.
+    "Referrer-Policy": "same-origin",
 }
 NO_STORE_HEADERS = {
     "Cache-Control": "no-store, max-age=0",

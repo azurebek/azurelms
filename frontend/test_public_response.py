@@ -63,7 +63,7 @@ class HeaderMatrixTests(TestCase):
                         if policy.cache_class == CacheClass.SENSITIVE_NO_STORE:
                             self.assert_no_store(response)
                             self.assertEqual(response["Pragma"], "no-cache")
-                            self.assertEqual(response["Referrer-Policy"], "no-referrer")
+                            self.assertEqual(response["Referrer-Policy"], "same-origin")
                             self.assertIn("noindex", response["X-Robots-Tag"])
                         elif policy.cache_class == CacheClass.STATUS_NO_STORE or response.status_code >= 400:
                             self.assert_no_store(response)
@@ -91,7 +91,7 @@ class HeaderMatrixTests(TestCase):
 
         token = self.client.get(reverse("password_reset_confirm", args=["MQ", "yaroqsiz-token"]))
         self.assert_no_store(token)
-        self.assertEqual(token["Referrer-Policy"], "no-referrer")
+        self.assertEqual(token["Referrer-Policy"], "same-origin")
 
         status = self.client.get(reverse("telegram_auth_status", args=["yoq-token"]))
         self.assert_no_store(status)
