@@ -732,6 +732,23 @@ class SiteSettings(SingletonModel):
     youtube_url = models.URLField(blank=True, verbose_name="YouTube URL")
     facebook_url = models.URLField(blank=True, verbose_name="Facebook URL")
 
+    # Model default'lari namuna qiymat, owner kiritgan aloqa emas: public sahifa
+    # faqat sozlangan aloqani ko'rsatadi, namunani haqiqiy kanal qilib chiqarmaydi
+    # (PUB1.2d, PUB-D7). Holati `audit_public_readiness` va Control Center'da.
+    PLACEHOLDER_CONTACT = {"contact_phone": "+998 90 123 45 67", "contact_email": "info@azurelms.uz"}
+
+    def _configured_contact(self, field):
+        value = (getattr(self, field) or "").strip()
+        return "" if value == self.PLACEHOLDER_CONTACT[field] else value
+
+    @property
+    def public_contact_phone(self):
+        return self._configured_contact("contact_phone")
+
+    @property
+    def public_contact_email(self):
+        return self._configured_contact("contact_email")
+
     @property
     def contact_phone_href(self):
         phone = self.contact_phone or "+998 90 123 45 67"
@@ -763,6 +780,7 @@ class LandingNavItem(models.Model):
         PRICING = "pricing", "Narxlar"
         ABOUT = "about", "Biz haqimizda"
         BLOG = "blog", "Blog"
+        SIT = "sit", "Turkiyada o'qish"
         FAQ = "faq", "Yordam / FAQ"
         LOGIN = "login", "Kirish"
         REGISTER = "register", "Ro'yxatdan o'tish"
@@ -774,6 +792,7 @@ class LandingNavItem(models.Model):
         LinkKey.PRICING: "subscriptions:pricing",
         LinkKey.ABOUT: "about",
         LinkKey.BLOG: "blog:list",
+        LinkKey.SIT: "sit:home",
         LinkKey.FAQ: "faq_page",
         LinkKey.LOGIN: "login",
         LinkKey.REGISTER: "register",
@@ -815,6 +834,9 @@ class LandingNavItem(models.Model):
             {"key": cls.LinkKey.PRICING, "label": "Narxlar", "is_visible": True, "order": 3},
             {"key": cls.LinkKey.ABOUT, "label": "Biz haqimizda", "is_visible": True, "order": 4},
             {"key": cls.LinkKey.BLOG, "label": "Blog", "is_visible": True, "order": 5},
+            # SIT bitta sozlanadigan element (PUB1.2d, PUB-D16): shablonga qotirilmaydi.
+            # Tartib 0022 migratsiyasi seed menyuga qo'shgan joy bilan bir xil.
+            {"key": cls.LinkKey.SIT, "label": "Turkiyada o‘qish", "is_visible": True, "order": 6},
         ]
 
     @classmethod
@@ -830,11 +852,12 @@ class LandingNavItem(models.Model):
     @classmethod
     def default_footer_items(cls, placement):
         defaults = {
+            # "Sertifikatlar" /about/ ga, "Qabul yo'li" ro'yxatga olib borardi —
+            # nomi va manzili mos emas edi (PUB1.2d).
             cls.Placement.FOOTER_PLATFORM: [
                 {"key": cls.LinkKey.COURSES, "label": "Kurslar", "is_visible": True, "order": 1},
                 {"key": cls.LinkKey.PRICING, "label": "Narxlar", "is_visible": True, "order": 2},
-                {"key": cls.LinkKey.ABOUT, "label": "Sertifikatlar", "is_visible": True, "order": 3},
-                {"key": cls.LinkKey.REGISTER, "label": "Qabul yo'li", "is_visible": True, "order": 4},
+                {"key": cls.LinkKey.SIT, "label": "Turkiyada o‘qish", "is_visible": True, "order": 3},
             ],
             cls.Placement.FOOTER_COMPANY: [
                 {"key": cls.LinkKey.ABOUT, "label": "Biz haqimizda", "is_visible": True, "order": 1},
@@ -888,6 +911,8 @@ class LandingNavItem(models.Model):
             return view_name == "about"
         if key == cls.LinkKey.BLOG:
             return namespace == "blog"
+        if key == cls.LinkKey.SIT:
+            return namespace == "sit"
         return False
 
     def get_url(self):

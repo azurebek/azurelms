@@ -96,7 +96,8 @@ class TheGuestHasADoorTooNowTests(TestCase):
 
         shell = (Path(settings.BASE_DIR) / "templates/base_public.html").read_text(encoding="utf-8")
 
-        self.assertEqual(shell.count('components/public_nav_links.html'), 2)
+        # PUB1.2d: ikkalasi ham owner sozlaydigan `landing_nav_items`dan (V1 bilan bitta manba).
+        self.assertEqual(shell.count('components/public_nav_items.html'), 2)
 
     def test_the_menu_works_without_javascript(self):
         """`<details>` brauzerning o'zida ochiladi — JS faqat qulaylik."""

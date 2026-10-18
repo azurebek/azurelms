@@ -7,7 +7,7 @@
 {% block auth_form %}
 <div class="auth-tabs">
   <a class="auth-tab active" href="{% url 'login' %}">Kirish</a>
-  <a class="auth-tab" href="{% url 'register' %}{% if next %}?next={{ next|urlencode:"" }}{% endif %}">Ro'yxatdan o'tish</a>
+  {% if public_registration_open %}<a class="auth-tab" href="{% url 'register' %}{% if next %}?next={{ next|urlencode:"" }}{% endif %}">Ro'yxatdan o'tish</a>{% endif %}
 </div>
 
 <h1 class="auth-h1">Xush kelibsiz</h1>
@@ -38,7 +38,7 @@
 <div class="auth-divider"><span class="ln"></span><span class="tx">yoki</span><span class="ln"></span></div>
 <a href="#" id="telegram-auth-btn" class="auth-alt" role="button" data-init-url="{% url 'telegram_auth_init' %}" data-status-url="{% url 'telegram_auth_status' token='TOKEN' %}" data-consume-url="{% url 'telegram_auth_consume' token='TOKEN' %}" data-login-url="{% url 'login' %}{% if next %}?next={{ next|urlencode:'' }}{% endif %}" data-next="{{ next }}" data-csrf-token="{{ csrf_token }}"><i class="bi bi-telegram" style="color:#229ed9;font-size:16px;"></i> Telegram orqali davom etish</a>
 
-<p class="auth-foot-link">Hisobingiz yo'qmi? <a href="{% url 'register' %}{% if next %}?next={{ next|urlencode:"" }}{% endif %}">Ro'yxatdan o'ting</a></p>
+{% if public_registration_open %}<p class="auth-foot-link">Hisobingiz yo'qmi? <a href="{% url 'register' %}{% if next %}?next={{ next|urlencode:"" }}{% endif %}">Ro'yxatdan o'ting</a></p>{% endif %}
 
 <script src="{% static 'js/telegram-login.js' %}" defer></script>
 

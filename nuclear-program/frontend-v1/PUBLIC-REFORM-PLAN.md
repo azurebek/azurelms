@@ -1,7 +1,8 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
-**Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) hamda PUB1.2a–b kodda
-(2026-10-16/18, lokal)**, PUB1.2c va keyingi kesimlar boshlanmagan
+**Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) hamda PUB1.2a–b, PUB1.2d
+kodda (2026-10-16/18, lokal)**; PUB1.2c B3.5 writer’i bilan birga ochiq, PUB1.3a va
+keyingi kesimlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
 **Kod tayanchi:** `main`dagi `72e82e0`
 **Birinchi implementatsiya kesimi:** `PUB1.0a`
@@ -1675,6 +1676,36 @@ confirmation/audit/CAS; publish/rollback; unsafe claim/media denied; legacy/V1.
 other section/shared media o‘zgarmaydi. B3.5 ownership takrorlanmagan.
 
 #### PUB1.2d — public shell va landing task-first UX
+
+**Holat — 2026-10-18: kodda, lokal tekshirilgan** (branch
+`claude/pub12d-public-shell`). Owner IA qarori yo‘q edi — rejadagi xavfsiz
+default’lar ishlatildi (PUB-D1 avval kurs, PUB-D2 ro‘yxat yopiq bo‘lsa lead yo‘q,
+PUB-D7 faqat sozlangan aloqa va SLA’siz, PUB-D16 SIT bir marta, qotirilmagan).
+Legacy sarlavha endi V1 kabi owner sozlaydigan `landing_nav_items`dan chiziladi
+(qotirilgan `components/public_nav_links.html` va undagi SIT, `#ai` havolalari
+olib tashlandi); desktop va mobil menyu bitta include. `LandingNavItem`ga `sit`
+kaliti qo‘shildi; `0022_nav_sit_key` migratsiyasi 0016 seed’idagi nomiga mos
+bo‘lmagan ikki footer qatorini (“Sertifikatlar” → /about/, “Qabul yo‘li” →
+ro‘yxat; owner o‘zgartirmagan bo‘lsagina) o‘chiradi va qatori bor asosiy/footer
+menyuga SIT’ni bir marta qo‘shadi. Footer ikki renderer’da ham uchta nomlangan
+`<nav>` guruhi (`footer_groups`). Ro‘yxat yopiq bo‘lsa ro‘yxatga olib boruvchi
+har havola (sarlavha CTA, landing va About CTA, menyu qatori — kalit yoki custom
+URL) yo‘q; o‘rniga “Kurslarni ko‘rish”. Namuna sertifikat CTA’si (ro‘yxatga olib
+borardi) olib tashlandi. Ijtimoiy tarmoq va aloqa faqat sozlangan bo‘lsa —
+`SiteSettings` model namunasi (`+998 90 123 45 67`, `info@azurelms.uz`) va
+`legal@azurelms.uz` zaxirasi chiqmaydi; holati `audit_public_readiness` va Control
+Center `public_content` tafsilotida (`public_contact`). “3 ish kunida / 3 soatda
+javob beramiz” va’dalari olib tashlandi. Legacy sarlavha 6 elementni bir qatorda
+1181px dan sig‘diradi (undan torroqda mobil menyu); yorliq so‘z o‘rtasida
+bo‘linmaydi, uzun owner matnida butun element keyingi qatorga o‘tadi. Legacy bosh
+sahifa bo‘lim relsi va footer ustunlari nomlangan landmark. SIT bo‘limi o‘z
+qobig‘ida qoladi (SIT-01 scope’i). **Ochiq:** footer’da “Yordam markazi” va “FAQ”
+ikkalasi `/faq/`ga (owner qatori — tegilmadi); `SiteSettings` to‘lov kartasi
+namunasi COMMERCE-01 scope’ida. Review tuzatishi (PR #215): migratsiya seed qatorini
+faqat to‘liq seed holatida (ko‘rinish, tartib, yangi tab ham) o‘chiradi; menyu
+filtri URL yo‘lini parse qiladi (`#fragment` ham); ro‘yxat yopiq bo‘lsa narx
+sahifasi tarif tugmasi mehmonni kirishga (narxga qaytib), kurs detali va kirish
+sahifasi ro‘yxat havolasisiz — ikki renderer’da.
 
 **Ish:** owner qaroridagi IA; grouped header/footer; hardcoded/duplicate SIT va
 misrouted certificate linklarni tuzatish; configured contact/help. Landing first

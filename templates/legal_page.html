@@ -49,9 +49,12 @@
   <article class="legal-content" data-legal-unavailable><p>Bu sahifa hali e’lon qilinmagan. Matn tayyor bo‘lgach shu yerda chiqadi.</p></article>
   {% endif %}
 
+  {# Faqat sozlangan aloqa; o'ylab topilgan manzil yoki javob muddati va'dasi yo'q (PUB1.2d, PUB-D7). #}
+  {% if site_settings.public_contact_email %}
   <div class="legal-contact">
     <span style="width:38px;height:38px;border-radius:10px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:16px;flex:0 0 auto;"><i class="bi bi-envelope"></i></span>
-    <div style="flex:1;"><div style="font-size:13.5px;font-weight:600;color:var(--ink);">Savollaringiz bormi?</div><div style="font-size:12.5px;color:var(--ink-3);">{{ site_settings.contact_email|default:"legal@azurelms.uz" }} — 3 ish kunida javob beramiz.</div></div>
+    <div style="flex:1;"><div style="font-size:13.5px;font-weight:600;color:var(--ink);">Savollaringiz bormi?</div><div style="font-size:12.5px;color:var(--ink-3);"><a href="mailto:{{ site_settings.public_contact_email }}">{{ site_settings.public_contact_email }}</a> manziliga yozing.</div></div>
   </div>
+  {% endif %}
 </div>
 {% endblock %}

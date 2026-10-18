@@ -17,6 +17,8 @@
 .s-public-footer strong { color: var(--az-text); }
 .s-public-footer p { margin-block: var(--az-space-2); }
 .s-public-footer nav { display: flex; flex-wrap: wrap; gap: var(--az-space-4); }
+.s-public-footer__groups { display: flex; flex-wrap: wrap; gap: var(--az-space-8); }
+.s-public-footer .s-public-footer__group { flex-direction: column; gap: 0; }
 .s-public-footer a { min-height: var(--az-control); display: inline-flex; align-items: center; }
 .s-public-footer a:hover { color: var(--az-action); text-decoration: underline; }
 .p-public-heading { max-width: var(--az-reading); margin-bottom: var(--az-space-8); }

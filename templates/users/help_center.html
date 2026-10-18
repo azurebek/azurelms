@@ -44,7 +44,7 @@
   <!-- Qo'llab-quvvatlash -->
   <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
     <span style="width:48px;height:48px;border-radius:12px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:22px;flex:0 0 auto;"><i class="bi bi-headset"></i></span>
-    <div style="flex:1;min-width:180px;"><div style="font-size:15px;font-weight:600;color:var(--ink);">Javob topa olmadingizmi?</div><div style="font-size:13px;color:var(--ink-3);margin-top:2px;">Qo'llab-quvvatlash jamoasi bilan bog'laning — odatda 3 soatda javob beramiz.</div></div>
+    <div style="flex:1;min-width:180px;"><div style="font-size:15px;font-weight:600;color:var(--ink);">Javob topa olmadingizmi?</div><div style="font-size:13px;color:var(--ink-3);margin-top:2px;">Qo'llab-quvvatlash jamoasi bilan bog'laning.</div></div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
       <a href="{% url 'messenger:ai' %}" style="display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 18px;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:13.5px;font-weight:600;"><i class="bi bi-chat-dots"></i> Chat ochish</a>
       {% with telegram_href=site_settings.telegram_url|public_nav %}{% if telegram_href %}<a href="{{ telegram_href }}" style="display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 16px;border-radius:10px;border:1px solid var(--line);color:var(--ink);font-size:13.5px;font-weight:600;"><i class="bi bi-telegram"></i> Telegram</a>{% endif %}{% endwith %}

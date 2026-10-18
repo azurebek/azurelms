@@ -94,7 +94,7 @@
       <div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:4px;">Boshlashga tayyormisiz?</div>
       <div style="font-size:12.5px;color:var(--ink-3);margin-bottom:16px;">Yozilish uchun hisobingizga kiring.</div>
       <a href="{% url 'login' %}?next={% url 'course_detail' pk=course.id %}" style="display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:11px;background:var(--azure);color:var(--on-azure);font-size:15px;font-weight:600;">Kirish <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
-      <a href="{% url 'register' %}" style="display:flex;align-items:center;justify-content:center;gap:8px;height:46px;border-radius:11px;border:1px solid var(--line);color:var(--ink);font-size:14px;font-weight:600;margin-top:10px;">Ro'yxatdan o'tish</a>
+      {% if public_registration_open %}<a href="{% url 'register' %}" style="display:flex;align-items:center;justify-content:center;gap:8px;height:46px;border-radius:11px;border:1px solid var(--line);color:var(--ink);font-size:14px;font-weight:600;margin-top:10px;">Ro'yxatdan o'tish</a>{% endif %}
       {% endif %}
 
       <div style="height:1px;background:var(--line);margin:20px 0;"></div>

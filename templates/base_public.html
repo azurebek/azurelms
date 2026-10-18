@@ -29,7 +29,7 @@
         {% include "components/brand_logo.html" with use_wordmark=True mark_class="pub-brand-mark" name_class="pub-brand-name" %}
       </a>
       <nav class="pub-nav" data-pubnav aria-label="Asosiy navigatsiya">
-        {% include "components/public_nav_links.html" %}
+        {% include "components/public_nav_items.html" %}
       </nav>
       <div class="pub-actions">
         <button type="button" class="pub-theme" aria-label="Mavzu"><i class="bi bi-moon"></i></button>
@@ -41,12 +41,12 @@
           <a class="pub-cta" href="{% url 'dashboard' %}">Kabinet <i class="bi bi-arrow-right"></i></a>
         {% else %}
           <a class="pub-login" href="{% url 'login' %}">Kirish</a>
-          <a class="pub-cta" href="{% url 'register' %}">Boshlash <i class="bi bi-arrow-right"></i></a>
+          {% if public_registration_open %}<a class="pub-cta" href="{% url 'register' %}">Boshlash <i class="bi bi-arrow-right"></i></a>{% else %}<a class="pub-cta" href="{% url 'courses' %}">Kurslarni ko‘rish <i class="bi bi-arrow-right"></i></a>{% endif %}
         {% endif %}
         <details class="pub-mobile-menu" data-public-menu>
           <summary aria-label="Menyu"><i class="bi bi-list" aria-hidden="true"></i></summary>
           <nav class="pub-mobile-nav" aria-label="Mobil navigatsiya">
-            {% include "components/public_nav_links.html" %}
+            {% include "components/public_nav_items.html" %}
             {% if request.user.is_authenticated %}
             <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit">Chiqish</button></form>
             {% else %}<a href="{% url 'login' %}">Kirish</a>{% endif %}
@@ -67,33 +67,24 @@
           <a href="{% url 'home' %}">{% include "components/brand_logo.html" with use_wordmark=True mark_class="pub-brand-mark" name_class="pub-brand-name" image_class="brand-logo-image--small" %}</a>
           <p>{{ site_settings.company_description|default:"O'zbek tilida turk tilini A1 dan C1 gacha tartibli o'rgatadigan platforma." }}</p>
         </div>
-        <div>
-          <div class="pub-foot-title">Platforma</div>
-          <div class="pub-foot-links"><a href="{% url 'courses' %}">Kurslar</a><a href="{% url 'subscriptions:pricing' %}">Narxlar</a><a href="{% url 'home' %}#ai">AI repetitor</a></div>
-        </div>
-        <div>
-          <div class="pub-foot-title">Kompaniya</div>
-          <div class="pub-foot-links"><a href="{% url 'about' %}">Biz haqimizda</a><a href="{% url 'blog:list' %}">Blog</a><a href="{% url 'faq_page' %}">Yordam</a></div>
-        </div>
-        <div>
-          <div class="pub-foot-title">Huquqiy</div>
-          <div class="pub-foot-links"><a href="{% url 'privacy_policy' %}">Maxfiylik</a><a href="{% url 'terms_of_service' %}">Foydalanish shartlari</a><a href="{% url 'faq_page' %}">FAQ</a></div>
-        </div>
+        {# Footer guruhlari owner sozlamasidan (V1 bilan ayni manba), qotirilgan ro'yxat emas (PUB1.2d). #}
+        {% for group_title, links in footer_groups %}{% if links %}
+        <nav aria-label="Footer: {{ group_title }}">
+          <div class="pub-foot-title">{{ group_title }}</div>
+          <div class="pub-foot-links">{% for link in links %}<a href="{{ link.url }}"{% if link.open_in_new_tab %} target="_blank" rel="noopener noreferrer"{% endif %}>{{ link.label }}</a>{% endfor %}</div>
+        </nav>
+        {% endif %}{% endfor %}
         <div>
           <div class="pub-foot-title">Aloqa</div>
           <div class="pub-foot-links">
-            {% if site_settings.contact_phone %}<a href="tel:{{ site_settings.contact_phone|cut:" " }}">{{ site_settings.contact_phone }}</a>{% endif %}
-            {% if site_settings.contact_email %}<a href="mailto:{{ site_settings.contact_email }}">{{ site_settings.contact_email }}</a>{% endif %}
+            {% if site_settings.public_contact_phone %}<a href="tel:{{ site_settings.public_contact_phone|cut:" " }}">{{ site_settings.public_contact_phone }}</a>{% endif %}
+            {% if site_settings.public_contact_email %}<a href="mailto:{{ site_settings.public_contact_email }}">{{ site_settings.public_contact_email }}</a>{% endif %}
           </div>
         </div>
       </div>
       <div class="pub-foot-bottom">
         <span>© 2026 {{ site_settings.brand_name|default:"AzureLMS"|upper }} — BARCHA HUQUQLAR HIMOYALANGAN</span>
-        <div class="pub-foot-social">
-          <a href="{{ site_settings.telegram_url|public_nav|default:'#' }}">TELEGRAM</a>
-          <a href="{{ site_settings.instagram_url|public_nav|default:'#' }}">INSTAGRAM</a>
-          <a href="{{ site_settings.youtube_url|public_nav|default:'#' }}">YOUTUBE</a>
-        </div>
+        <div class="pub-foot-social">{% include "components/public_social_links.html" %}</div>
       </div>
     </div>
   </footer>

@@ -8,7 +8,7 @@ ko'rsatilmaydi — dalil faqat owner amali bilan paydo bo'ladi.
 
 from django.core.management.base import BaseCommand
 
-from core.public_readiness import legal_readiness
+from core.public_readiness import contact_readiness, legal_readiness
 from frontend.models import Testimonial
 from frontend.public_claims import all_claims
 
@@ -29,3 +29,5 @@ class Command(BaseCommand):
         self.stdout.write("\nHuquqiy sahifalar:")
         for page in legal_readiness():
             self.stdout.write(f"  [{page.state}] {page.page_type}")
+        contact = ", ".join(contact_readiness())
+        self.stdout.write(f"\nPublic aloqa: {contact or 'sozlanmagan (namuna qiymatlar ko‘rsatilmaydi)'}")

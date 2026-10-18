@@ -207,4 +207,5 @@ class PublicV1Tests(TestCase):
         for name in ['courses', 'blog:list', 'sit:university_list', 'subscriptions:pricing']:
             response = self.client.get(reverse(name))
             self.assertEqual(response.status_code, 200)
-            self.assertContains(response, 'Footer navigatsiyasi')
+            # Footer guruhlangan (PUB1.2d): har guruh o'z nomli navigatsiyasi.
+            self.assertContains(response, 'aria-label="Footer: Platforma"')

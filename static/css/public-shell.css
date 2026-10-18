@@ -28,8 +28,10 @@
 .pub-brand-name{ font-size:17px; font-weight:600; letter-spacing:-.02em; color:var(--ink); }
 .pub-brand-name b{ color:var(--ink-3); font-weight:500; }
 
-.pub-nav{ display:flex; align-items:center; gap:28px; }
-.pub-nav a{ font-size:14.5px; font-weight:500; color:var(--ink-2); transition:color .2s; }
+/* Menyu owner sozlaydigan ro'yxatdan (PUB1.2d): yorliq hech qachon so'z
+   o'rtasida bo'linmaydi; uzun matnda butun element keyingi qatorga o'tadi. */
+.pub-nav{ display:flex; align-items:center; flex-wrap:wrap; justify-content:center; column-gap:clamp(16px,2vw,28px); row-gap:4px; min-width:0; }
+.pub-nav a{ font-size:14.5px; font-weight:500; color:var(--ink-2); transition:color .2s; white-space:nowrap; }
 .pub-nav a:hover,.pub-nav a.active{ color:var(--ink); }
 
 .pub-actions{ display:flex; align-items:center; gap:12px; }
@@ -43,7 +45,7 @@
    boshqa boshqaruvlari esa 36px. Matnning o'z balandligi 19px edi. */
 .pub-login{ display:inline-flex; align-items:center; min-height:36px; font-size:14px; font-weight:600; color:var(--ink); }
 .pub-cta{
-  display:inline-flex; align-items:center; gap:7px; padding:10px 17px; border-radius:10px;
+  display:inline-flex; align-items:center; gap:7px; padding:10px 17px; border-radius:10px; white-space:nowrap;
   background:var(--azure); color:var(--on-azure); font-weight:600; font-size:14px;
   transition:transform .2s cubic-bezier(.16,1,.3,1);
 }
@@ -89,7 +91,8 @@
 .pub-mobile-nav a,.pub-mobile-nav button{display:flex;align-items:center;min-height:44px;width:100%;padding:10px 14px;border:0;border-radius:8px;background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
 .pub-mobile-nav a:hover,.pub-mobile-nav a.active,.pub-mobile-nav button:hover{background:var(--azure-soft);color:var(--azure)}
 .pub-mobile-nav form{margin:0;border-top:1px solid var(--line)}
-@media (max-width:1040px){
+/* Oltita standart element ~1050px talab qiladi: undan torroqda mobil menyu. */
+@media (max-width:1180px){
   .pub-nav{ display:none; }
   .pub-mobile-menu{display:block}
   .pub-actions>.pub-login,.pub-actions>form{display:none}

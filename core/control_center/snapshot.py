@@ -1035,6 +1035,7 @@ def _public_content_probe(definition: CapabilityDefinition) -> CapabilityResult:
         claims_stale_or_expired=readiness.claim_count("stale") + readiness.claim_count("expired"),
         testimonials_public=readiness.testimonials_public,
         testimonials_without_consent=readiness.testimonials_hidden,
+        public_contact=", ".join(readiness.public_contact) or "-",
     )
     if readiness.missing_legal:
         return _result(
