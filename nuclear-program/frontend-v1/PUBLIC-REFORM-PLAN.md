@@ -1,7 +1,7 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
 **Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) hamda PUB1.2a–b, PUB1.2d,
-PUB1.3a–b kodda (2026-10-16/18, lokal)**; PUB1.2c B3.5 writer’i bilan birga ochiq, PUB1.3c va
+PUB1.3a–c kodda (2026-10-16/19, lokal)**; PUB1.2c B3.5 writer’i bilan birga ochiq, PUB1.3d va
 keyingi kesimlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
 **Kod tayanchi:** `main`dagi `72e82e0`
@@ -1798,6 +1798,24 @@ price/period/included equality with checkout; permissions; query count; timezone
 offer render GET write 0.
 
 #### PUB1.3c — course detail va card islohoti
+
+**Holat — 2026-10-19: kodda, lokal tekshirilgan** (branch `claude/pub13c-course-page`).
+`courses/public_offer.py::build_course_facts` — dars/modul/imtihon soni, faol
+o‘quvchilar, tanishtiruv videosi va sertifikat yo‘li; 0 yoki bo‘sh fakt chiqmaydi.
+Sertifikat faqat kursda oraliq (visa) va yakuniy imtihon ikkalasi bo‘lsa va’da
+qilinadi (`completion_service` aynan shuni talab qiladi), kurs sozlamasidagi
+qo‘shimcha shartlar (dars bajarilishi %, davomat %, topshiriqlar) ro‘yxat bo‘lib
+chiqadi. Sidebar’da hozir sotib olinadigan tariflar (PUB1.3b taklifidan): nom, narx
+(`public_som` — `250 000`), 30 kunlik davr, kiritilgan/kiritilmagan imkoniyatlar;
+qabul yopiq bo‘lsa narx ko‘rsatilmaydi. Legacy sidebar’dagi dalilsiz bandlar
+(“Cheksiz AI repetitor”, “Jonli guruh darslari”, “To‘liq imtihon muhiti”,
+“Tasdiqlangan sertifikat”) olib tashlandi; sozlangan aloqa bo‘lsa “Savolingiz bormi?”.
+Tor ekranda birinchi ekranda qisqa taklif (eng arzon narx, qabul holati, tariflarga
+havola); legacy maket telefonda bitta ustun. Katalog kartasi: eng arzon mavjud narx,
+0 son yo‘q, V1 havolasining nomi takrorlanmaydi. JSON-LD faqat sahifadagi nom va
+tavsif (narx yo‘q). **Ochiq:** natija/oldingi talab/haftalik yuklama uchun maydon yo‘q —
+taxmin qilinmadi (owner kontent maydoni kerak: B3.5); `Course.duration` default 20
+bo‘lgani uchun ko‘rsatilmadi; “Ommabop” tarif belgisi PUB1.4a dalil gate’iga qoldi.
 
 **Ish:** first-fold offer, outcome/prerequisite/workload, curriculum/sample,
 instructor, assessment/certificate, included/excluded, real support; responsive
