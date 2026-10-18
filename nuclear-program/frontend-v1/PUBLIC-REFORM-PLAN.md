@@ -1,8 +1,8 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
 **Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) hamda PUB1.2a–b, PUB1.2d,
-PUB1.3a–c kodda (2026-10-16/19, lokal)**; PUB1.2c B3.5 writer’i bilan birga ochiq, PUB1.3d va
-keyingi kesimlar boshlanmagan
+PUB1.3 bosqichi (a–d) kodda (2026-10-16/19, lokal)**; PUB1.2c B3.5 writer’i bilan birga ochiq,
+PUB1.4a va keyingi kesimlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
 **Kod tayanchi:** `main`dagi `72e82e0`
 **Birinchi implementatsiya kesimi:** `PUB1.0a`
@@ -1836,6 +1836,24 @@ rich-content attacks; unique link names; metadata/JSON-LD visible equality.
 ko‘radi; unsupported claim yoki blank badge 0.
 
 #### PUB1.3d — signed intent va exact auth return
+
+**Holat — 2026-10-19: kodda, lokal tekshirilgan** (branch `claude/pub13d-public-intent`).
+`frontend/public_intent.py` — Django `signing` bilan imzolangan turlangan konvert
+`{versiya, manzil turi (course_checkout/course_detail/catalog), kurs id, tarif kodi, nonce}`;
+URL, narx, joy yoki shaxsiy ma’lumot yo‘q. Muddat — owner sozlamasi
+`OperationalSettings.public_intent_minutes` (5–1440, default 120; auditlangan “Vaqt va
+limitlar” paneli, migratsiya `core/0009`). Token mavjud auth oqimida xavfsiz ichki `next`
+sifatida yuradi (`/courses/continue/?intent=…`) — login, ro‘yxat, onboarding va Telegram uni
+o‘zgarishsiz olib o‘tadi; `_safe_next` saqlanadi. `public_intent_continue` (login talab,
+faqat GET, hech narsa yozmaydi) kurs faolligi, a’zolik, qabul va tarifni PUB1.3b taklifi
+orqali qayta tekshiradi: checkout (tarif hali sotuvda bo‘lsa `plan_id` bilan), kurs sahifasi
+sabab xabari bilan, yoki yo‘q kurs/yaroqsiz/eskirgan havolada katalog va xabar. Har hal qilish
+nonce bo‘yicha bir marta jurnalga yoziladi (takrori `replay`), foydalanuvchi/token/URL’siz.
+Kurs sahifasida mehmon “Kirish”/“Ro‘yxatdan o‘tish” va har tarif uchun “… bilan davom etish”
+havolasi niyatni olib yuradi; legacy “ro‘yxat yopiq” sahifasi `next`ni yo‘qotmaydi.
+Brauzerda tekshiruv paytida PUB1.1d/1.0f’dagi `Referrer-Policy: no-referrer` tufayli formalar
+`Origin: null` bilan 403 olayotgani topildi va alohida PR #220 bilan tuzatildi.
+**Ochiq:** telemetriya hozircha jurnal yozuvi (analytics allowlist hali yo‘q).
 
 **Ish:** typed signed `PublicIntent`; course detail login va direct register,
 onboarding, registration closed va checkout resolver. Existing generic safe-next

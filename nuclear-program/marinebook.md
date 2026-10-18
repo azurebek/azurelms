@@ -16,6 +16,29 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-19 [Claude]: PUBLIC-01 / PUB1.3d — kurs sahifasidan kirgan mehmon aynan o‘sha checkout’ga qaytadi
+
+Kurs sahifasida mehmon “Kirish”ni bossa, kirgach yana o‘sha kurs sahifasiga tushardi va
+“Kursga yozilish”ni qayta bosishi kerak edi; “Ro‘yxatdan o‘tish” havolasi esa umuman qaytish
+manzilini olib yurmasdi. Tanlangan tarif ham yo‘qolardi.
+
+- Branch: `claude/pub13d-public-intent`; kod commit **`0d336ee`**. Migration `core/0009`
+  (`OperationalSettings.public_intent_minutes`, qo‘shimcha maydon).
+- Qarorlar: `frontend/public_intent.py` — imzoli turlangan konvert (manzil turi, kurs, tarif
+  kodi, nonce; URL/narx/PII yo‘q); token xavfsiz ichki `next` bo‘lib mavjud auth oqimida yuradi;
+  `public_intent_continue` (login, GET, yozuvsiz) kurs/a’zolik/qabul/tarifni PUB1.3b taklifi
+  orqali qayta tekshiradi va checkout (`plan_id` bilan), kurs sahifasi (sabab) yoki katalogga
+  yuboradi; nonce bo‘yicha bir martalik jurnal. Muddat owner panelida (5–1440 daqiqa, default
+  120). Kurs sahifasida har tarifga “… bilan davom etish” havolasi.
+- Test: `manage.py test courses.test_public_intent` — **15 test, OK**; to‘liq `manage.py test` (main bilan merge’dan keyin) — **3055 test, OK (skipped=69)**; `node --test` 179/179;
+  nazorat yugurishi: 10 ta buzilish (V1 raw next, legacy ro‘yxat havolasi, yopiq qabul, tarifga
+  ishonish, a’zolik, versiya, qotirilgan muddat, nonce takrori, yopiq ro‘yxat `next`, panel
+  konteksti) — hammasi FAIL, tiklangach PASS.
+- Brauzer (DB nusxasi): mehmon → “Pro bilan davom etish” → kirish → `/checkout/course/7/?plan_id=2`,
+  Pro (199 000 so‘m) tanlangan. Shu tekshiruvda formalar `Origin: null` bilan 403 olayotgani
+  topildi — PR #220 bilan alohida tuzatildi va bu branch’ga merge qilindi.
+- Davom etilishi kerak: PUB1.4a (pricing) — A4 offer/legal-copy schema stop gate’i bor.
+
 ## 2026-10-19 [Claude]: Tuzatish — haqiqiy brauzerda login/ro‘yxat/parol formasi CSRF 403 berardi
 
 PUB1.3d’ni brauzerda sinayotganda ro‘yxatdan o‘tish formasi “CSRF verification failed —
