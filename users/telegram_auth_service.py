@@ -13,6 +13,12 @@ Oqim:
 
 Muvaffaqiyatsiz holatlar (token yo'q, boshqa brauzer, kalit yo'q) bir xil
 ``not_found`` javob beradi: token mavjudligini tashqaridan aniqlab bo'lmaydi.
+
+PUB1.4e: bot havolani ochgan zahoti tasdiqlamaydi — avval kim, nima uchun va
+qaysi kod bilan so'ralayotganini ko'rsatib, «Kirishni tasdiqlash» / «Bu men
+emas» tugmasini kutadi. Aks holda begona odam o'z brauzerida boshlagan
+havolani yuborib, uni bosgan odamning hisobiga kirib olardi. Rad etilgan oqim
+``declined`` bo'ladi va brauzer buni darhol ko'radi.
 """
 
 from dataclasses import dataclass
@@ -23,7 +29,7 @@ from django.conf import settings
 from django.db import transaction
 from django.shortcuts import resolve_url
 from django.utils import timezone
-from django.utils.crypto import constant_time_compare
+from django.utils.crypto import constant_time_compare, salted_hmac
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from users.models import TelegramAuthSession
@@ -59,7 +65,11 @@ class FlowResult:
 
 def effective_status(row):
     """Qatorning haqiqiy holati — bazaga yozmasdan hisoblanadi."""
-    if row.status in (TelegramAuthSession.STATUS_USED, TelegramAuthSession.STATUS_EXPIRED):
+    if row.status in (
+        TelegramAuthSession.STATUS_USED,
+        TelegramAuthSession.STATUS_EXPIRED,
+        TelegramAuthSession.STATUS_DECLINED,
+    ):
         return row.status
     if row.consumed_at is not None:
         return TelegramAuthSession.STATUS_USED
@@ -80,6 +90,16 @@ def safe_intent(request, candidate):
     ):
         return candidate
     return ''
+
+
+def confirmation_code(token):
+    """Brauzer va botda bir xil ko'rinadigan 3 xonali kod (bazada saqlanmaydi).
+
+    Maxfiy emas — foydalanuvchi bot so'rayotgan kirish aynan o'z ekranidagi
+    oqim ekanini solishtirishi uchun.
+    """
+    digest = salted_hmac('azurelms.telegram_auth.code', token, algorithm='sha256').hexdigest()
+    return f"{int(digest[:8], 16) % 1000:03d}"
 
 
 def bot_link(token):
@@ -193,6 +213,15 @@ def lock_for_confirmation(token):
     if row is None:
         return None, STATUS_NOT_FOUND
     return row, effective_status(row)
+
+
+def mark_declined(row):
+    """Botda rad etildi. Qator bloklangan bo'lishi shart; ishlatilgani tegilmaydi."""
+    if effective_status(row) not in (TelegramAuthSession.STATUS_PENDING, TelegramAuthSession.STATUS_AUTHENTICATED):
+        return False
+    row.status = TelegramAuthSession.STATUS_DECLINED
+    row.save(update_fields=['status'])
+    return True
 
 
 def mark_authenticated(row, user):

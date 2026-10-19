@@ -17,18 +17,19 @@ function harness({registration = false} = {}) {
       click() { if (!this.disabled) return this.handlers.click?.(); },
     };
   }
-  for (const name of ['password-toggle', 'telegram-start', 'telegram-link', 'telegram-status', 'telegram-check', 'telegram-cancel']) element(name);
+  for (const name of ['password-toggle', 'telegram-start', 'telegram-waiting', 'telegram-code', 'telegram-countdown',
+    'telegram-link', 'telegram-status', 'telegram-check', 'telegram-cancel']) element(name);
   elements['password-toggle'].attrs['aria-controls'] = 'password';
-  elements['telegram-link'].hidden = elements['telegram-check'].hidden = elements['telegram-cancel'].hidden = true;
+  elements['telegram-waiting'].hidden = true;
   const password = {type: 'password', value: 'synthetic-test-password'};
-  const queue = [], requests = [], navigation = [], timers = new Map(), events = {};
+  const queue = [], requests = [], navigation = [], timers = new Map(), events = {}, documentEvents = {};
   let sequence = 0;
   const select = selector => elements[selector.slice(6, -1)];
   const panel = {
     dataset: {initUrl: '/users/telegram-auth/init/', statusUrl: '/users/telegram-auth/status/TOKEN/',
       consumeUrl: '/users/telegram-auth/consume/TOKEN/', cancelUrl: '/users/telegram-auth/cancel/',
       csrfToken: 'synthetic-csrf', loginUrl: '/users/login/?next=%2Fusers%2Fmy-courses%2F'},
-    querySelector: select,
+    querySelector: select, hidden: true,
   };
   const email = {value: 'typed@example.test', defaultValue: ''};
   const form = {hasAttribute: () => false, querySelectorAll: () => [email],
@@ -38,6 +39,8 @@ function harness({registration = false} = {}) {
       querySelector: selector => selector === '[data-telegram-auth]' ? panel : select(selector),
       getElementById: () => password,
       querySelectorAll: selector => registration && selector === '[data-auth-form]' ? [form] : [],
+      addEventListener: (name, fn) => { documentEvents[name] = fn; },
+      visibilityState: 'visible',
     },
     window: {
       location: {assign: url => {
@@ -77,7 +80,7 @@ function harness({registration = false} = {}) {
     queue.push({ok: true, token: 'temporary-token', bot_link: 'https://t.me/test_bot?start=auth_temporary-token', ...extra});
     await elements['telegram-start'].click();
   };
-  return {elements, password, queue, requests, navigation, timers, events, tick, init, panel};
+  return {elements, password, queue, requests, navigation, timers, events, documentEvents, tick, init, panel, context};
 }
 
 test('loading the page sends no authentication request', () => {
@@ -105,7 +108,7 @@ test('explicit Telegram start uses a same-origin CSRF POST and does not repeat w
   assert.equal(h.requests[0].options.credentials, 'same-origin');
   assert.equal(h.requests[0].options.method, 'POST');
   assert.equal(h.requests[0].options.headers['X-CSRFToken'], 'synthetic-csrf');
-  assert.equal(h.elements['telegram-link'].hidden, false);
+  assert.equal(h.elements['telegram-waiting'].hidden, false);
   h.queue.push({ok: true, status: 'pending'});
   await h.tick();
   assert.equal(h.requests[1].url, '/users/telegram-auth/status/temporary-token/');
@@ -166,7 +169,7 @@ test('throttled init shows the server copy and restores explicit start', async (
   await h.elements['telegram-start'].click();
   assert.equal(h.elements['telegram-status'].textContent, 'Synthetic throttle copy');
   assert.equal(h.elements['telegram-start'].disabled, false);
-  assert.equal(h.elements['telegram-link'].hidden, true);
+  assert.equal(h.elements['telegram-waiting'].hidden, true);
   assert.equal(h.timers.size, 0);
 });
 
@@ -189,7 +192,7 @@ test('expired and unknown results restore explicit start without false success',
     h.queue.push(result);
     await h.tick();
     assert.equal(h.elements['telegram-start'].disabled, false);
-    assert.equal(h.elements['telegram-link'].hidden, true);
+    assert.equal(h.elements['telegram-waiting'].hidden, true);
     assert.equal(h.navigation.length, 0);
     assert.equal(h.timers.size, 0);
   }
@@ -216,7 +219,7 @@ test('cancelled init ignores its late response', async () => {
   await h.elements['telegram-cancel'].click();
   resolve({ok: true, token: 'late', bot_link: 'https://t.me/test_bot'});
   await pending;
-  assert.equal(h.elements['telegram-link'].hidden, true);
+  assert.equal(h.elements['telegram-waiting'].hidden, true);
   assert.equal(h.elements['telegram-start'].disabled, false);
   assert.equal(h.timers.size, 0);
 });
@@ -225,7 +228,7 @@ test('unexpected external deep-link is never offered', async () => {
   const h = harness();
   h.queue.push({ok: true, token: 'token', bot_link: 'https://untrusted.example'});
   await h.elements['telegram-start'].click();
-  assert.equal(h.elements['telegram-link'].hidden, true);
+  assert.equal(h.elements['telegram-waiting'].hidden, true);
   assert.equal(h.navigation.length, 0);
   assert.equal(h.elements['telegram-start'].disabled, false);
 });
@@ -255,4 +258,80 @@ test('pending, failed and cancelled Telegram attempts retain the registration di
     h.events.beforeunload(leave);
     assert.equal(leave.blocked, true); assert.equal(h.navigation.length, 0);
   }
+});
+
+test('the panel stays hidden without JavaScript and appears when the script runs', () => {
+  const h = harness();
+  assert.equal(h.panel.hidden, false);
+  assert.equal(h.elements['telegram-waiting'].hidden, true);
+});
+
+test('waiting shows the server code, hides the start button, and cancel brings it back', async () => {
+  const h = harness();
+  await h.init({code: '471'});
+  assert.equal(h.elements['telegram-code'].textContent, '471');
+  assert.equal(h.elements['telegram-start'].hidden, true);
+  assert.equal(h.elements['telegram-link'].href, 'https://t.me/test_bot?start=auth_temporary-token');
+  await h.elements['telegram-cancel'].click();
+  assert.equal(h.elements['telegram-start'].hidden, false);
+  assert.equal(h.elements['telegram-code'].textContent, '');
+  assert.match(h.elements['telegram-status'].textContent, /To‘xtatildi/);
+});
+
+test('a malformed code is never shown', async () => {
+  for (const code of ['<b>1</b>', '12345', 47, null]) {
+    const h = harness();
+    await h.init({code});
+    assert.equal(h.elements['telegram-code'].textContent, '');
+  }
+});
+
+test('a declined flow stops at once with its own copy and restores start', async () => {
+  const h = harness();
+  await h.init();
+  h.queue.push({ok: true, status: 'declined'});
+  await h.tick();
+  assert.match(h.elements['telegram-status'].textContent, /tasdiqlanmadi/);
+  assert.equal(h.elements['telegram-waiting'].hidden, true);
+  assert.equal(h.elements['telegram-start'].disabled, false);
+  assert.equal(h.elements['telegram-start'].hidden, false);
+  assert.equal(h.timers.size, 0);
+  assert.equal(h.navigation.length, 0);
+});
+
+test('the countdown speaks in minutes and announces the last minute once', async () => {
+  const h = harness();
+  await h.init({poll_ms: 1000, expires_in: 61});
+  assert.match(h.elements['telegram-countdown'].textContent, /taxminan 1 daqiqa/);
+  assert.match(h.elements['telegram-status'].textContent, /Telegramda tasdiqlang/);
+  h.queue.push({ok: true, status: 'pending'});
+  await h.tick();
+  assert.match(h.elements['telegram-countdown'].textContent, /1 daqiqadan kam/);
+  assert.match(h.elements['telegram-status'].textContent, /1 daqiqadan kam qoldi/);
+  h.queue.push({ok: true, status: 'pending'});
+  await h.tick();
+  // Keyingi so'rov jonli hududni qayta "tasdiqlang" bilan bosib ketmaydi.
+  assert.match(h.elements['telegram-status'].textContent, /1 daqiqadan kam qoldi/);
+});
+
+test('returning to the page checks at once instead of waiting for the timer', async () => {
+  const h = harness();
+  await h.init({poll_ms: 2000});
+  assert.equal(h.requests.length, 1);
+  h.queue.push({ok: true, status: 'authenticated'});
+  h.queue.push({ok: true, status: 'authenticated'});
+  await h.documentEvents.visibilitychange();
+  assert.equal(h.requests[1].url, '/users/telegram-auth/status/temporary-token/');
+  assert.deepEqual(h.navigation, [h.panel.dataset.loginUrl]);
+  assert.equal(h.timers.size, 0);
+});
+
+test('the manual check polls the same token now and keeps one schedule', async () => {
+  const h = harness();
+  await h.init();
+  h.queue.push({ok: true, status: 'pending'});
+  await h.elements['telegram-check'].click();
+  assert.equal(h.requests[1].url, '/users/telegram-auth/status/temporary-token/');
+  const polls = [...h.timers.values()].filter(timer => timer.delay !== 15000);
+  assert.equal(polls.length, 1);
 });

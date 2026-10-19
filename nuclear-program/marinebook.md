@@ -16,6 +16,41 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-19 [Claude]: PUBLIC-01 / PUB1.4e — Telegram orqali kirish: tugma bilan tasdiq va tushunarli holatlar
+
+Bot `/start auth_…` olgan zahoti kirishni tasdiqlardi: begona odam o'z brauzerida boshlagan
+havolani yuborib, uni bosganning hisobiga kirib olishi mumkin edi. Rad etilgan oqim (ro'yxat yopiq,
+hisob faol emas) brauzerda 5 daqiqa jim "kutilmoqda" turardi. Legacy sahifa havolani `window.open`
+bilan asinxron ochardi (popup bloklanardi), bekor qilish yo'q edi, JS'siz o'lik `href="#"` tugma
+qolardi.
+
+- Branch: `claude/pub14e-telegram-auth-ux`; kod commit **`4e8f41d`**. Migration users0024
+  (faqat `declined` choice, sxema o'zgarmaydi).
+- Qarorlar: bot avval nima so'ralayotganini, yangi profil nima yozishini va saytdagi 3 xonali kodni
+  (`confirmation_code`, saqlanmaydi) ko'rsatib «Kirishni tasdiqlash» / «Bu men emas» tugmasini
+  kutadi; umidsiz so'rov (faol emas; ro'yxat yopiq va ulanmagan) darhol `declined`; tasdiqlagan
+  odam brauzer olishidan oldin qaytarib olishi mumkin, begona Telegram yo'q. Ikki renderer bitta
+  panel (`components/telegram_auth_panel.html`) va `frontend_v1/js/login.js`; `static/js/telegram-login.js`
+  o'chirildi. Muddat daqiqalarda (alohida taymer yo'q), jonli hudud faqat holat o'zgarganda,
+  `visibilitychange`da darhol tekshiruv. QR kod qilinmadi — yangi kutubxona owner ruxsati bilan.
+- Test: `manage.py test users.test_telegram_auth_ux users.test_registration_policy` — 41 test, OK;
+  `node --test` **191/191**; to'liq `manage.py test` — **3097 test, OK (skipped=69)**. Ro'yxat yopiq holati testi
+  `pending` o'rniga `declined` va brauzer `status` javobini kutadigan qilib yangilandi.
+  Nazorat yugurishi: 13 ta buzilish (avto-tasdiq, erta rad etish, declined terminal emas, begona
+  qaytarib olish, kodsiz init, ko'rinadigan panel, eski legacy skript, bir xil kirish matni, ro'yxat
+  yopiqda pending, JS declined, JS panel ochilmaydi, JS visibilitychange, JS kod tekshiruvi) —
+  hammasi FAIL, tiklangach bayt-bayt bir xil.
+- Brauzer (DB nusxalari): V1 — kod 755 brauzer va bot xabarida bir xil, tasdiqdan keyin
+  `/courses/`ga (next) kirdi; legacy — «Bu men emas»dan keyin darhol “tasdiqlanmadi”, kirish yo'q;
+  bekor qilish POST 200; 320px'da gorizontal siljish yo'q. Sinov hisoblari va hisoblagichlar
+  o'chirildi.
+- CI PostgreSQL ishi birinchi urinishda testlardan keyin yiqildi: bot handler testlaridagi
+  `sync_to_async` oqimi DB ulanishini ochiq qoldirib, test bazasini o'chirishga to'sqinlik qildi
+  ("being accessed by other users"). Test endi handlerni `connections.close_all` bilan yopadi
+  (`bot/test_metrics.py` naqshi); production kodi o'zgarmadi.
+- Davom etilishi kerak: real Telegram bilan owner qabul tekshiruvi (bot tugmalari prod tokenida);
+  QR uchun kutubxona qarori; PUB1.4d (SMTP) yoki PUB1.5a.
+
 ## 2026-10-19 [Claude]: PUBLIC-01 / PUB1.4c — auth javoblari hisob borligini bildirmaydi
 
 Login noma'lum email uchun bitta parol xeshiga kam ishlardi (javob vaqti hisob borligini

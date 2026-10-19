@@ -1411,7 +1411,8 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 
 - `users/telegram_auth_service.py` yagona holat mashinasi; view'lar (`users/views.py`) faqat adapter. `POST /users/telegram-auth/init/` (CSRF, PUB1.0c cheklovi, bir brauzerda bitta faol oqim, xavfsiz `next` sessiyada) → bot `/start auth_<token>` qatorni lock qilib `pending → authenticated` → `GET .../status/<token>/` (hech narsa yozmaydi) → `POST .../consume/<token>/` (CSRF, brauzer kaliti, row lock, bir martalik `used`, keyin `login()`). `POST .../cancel/` faqat shu brauzer oqimini yopadi.
 - Begona brauzer, kalitsiz so'rov va mavjud bo'lmagan token bir xil `not_found` javob oladi. Eski qatorlar init'da bounded va `manage.py prune_telegram_auth` bilan tozalanadi.
-- Klientlar: V1 `static/frontend_v1/js/login.js`, legacy login/register `static/js/telegram-login.js`. Polling oralig'i va umri init javobidan (`poll_ms`, `expires_in`).
+- Klient: ikkala renderer `components/telegram_auth_panel.html` + `static/frontend_v1/js/login.js` (PUB1.4e; eski `static/js/telegram-login.js` o'chirildi). Polling oralig'i va umri init javobidan (`poll_ms`, `expires_in`, `code`).
+- Bot tasdig'i ikki qadam (PUB1.4e): `describe_telegram_auth_request` xabar + kod + «Kirishni tasdiqlash» / «Bu men emas» (`tgauth:ok:`/`tgauth:no:` callback); faqat tugma `handle_telegram_auth_token`ni chaqiradi. Rad etish `declined` holat — brauzer darhol ko'radi. Havolani ochishning o'zi hech kimni kiritmasligini `users/test_telegram_auth_ux.py` qulflaydi.
 
 ### Public GET yozmaydi (PUB1.0e, 2026-10-17)
 

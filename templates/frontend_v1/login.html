@@ -18,7 +18,6 @@
     </form>
     <div class="p-auth-links"><a class="c-text-link" href="{% url 'password_reset' %}">Parolni unutdingizmi?</a>{% if public_registration_open %}<a class="c-text-link" href="{% url 'register' %}{% if next %}?next={{ next|urlencode:'' }}{% endif %}">Yangi hisob ochish</a>{% endif %}</div>
     {% include "frontend_v1/telegram_auth.html" %}
-    <noscript><p class="c-caption">Email va parol bilan kirish ishlaydi. Telegram orqali kirish uchun JavaScript kerak.</p></noscript>
   </section>
   <footer class="s-auth-footer">{{ site_settings.brand_name|default:"AzureLMS" }} · <a href="{% url 'privacy_policy' %}">Maxfiylik</a> · <a href="{% url 'terms_of_service' %}">Foydalanish shartlari</a></footer>
 </main>

@@ -7,5 +7,5 @@
   {% include "frontend_v1/auth_fields.html" with submit_label="Hisob yaratish" %}
 </form>
 <div class="p-auth-links"><a class="c-text-link" href="{% url 'login' %}{% if next %}?next={{ next|urlencode:'' }}{% endif %}">Hisobingiz bormi? Kirish</a></div>
-{% include "frontend_v1/telegram_auth.html" %}
+{% include "frontend_v1/telegram_auth.html" with start_label="Telegram orqali davom etish" %}
 {% endblock %}

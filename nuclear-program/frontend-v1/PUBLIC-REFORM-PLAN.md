@@ -1,9 +1,9 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
 **Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) hamda PUB1.2a–b, PUB1.2d,
-PUB1.3 bosqichi (a–d), PUB1.4b–c kodda (2026-10-16/19, lokal)**; PUB1.2c B3.5 writer’i bilan
-birga ochiq; PUB1.4a owner qarori bilan keyinga qoldirilgan (2026-10-19); PUB1.4d va keyingi
-kesimlar boshlanmagan
+PUB1.3 bosqichi (a–d), PUB1.4b–c, PUB1.4e kodda (2026-10-16/19, lokal)**; PUB1.2c B3.5
+writer’i bilan birga ochiq; PUB1.4a owner qarori bilan keyinga qoldirilgan (2026-10-19); PUB1.4d
+(production SMTP owner qo‘lida) va keyingi kesimlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
 **Kod tayanchi:** `main`dagi `72e82e0`
 **Birinchi implementatsiya kesimi:** `PUB1.0a`
@@ -1967,6 +1967,26 @@ worker/provider outage; no-referrer; existing sessions PUB-D14 policy bo‘yicha
 bor; console/log leak 0.
 
 #### PUB1.4e — Telegram auth inclusive UX
+
+**Holat — 2026-10-19: kodda, lokal tekshirilgan** (branch `claude/pub14e-telegram-auth-ux`,
+migration users0024 — faqat `declined` choice). **Xavfsizlik:** bot `/start auth_…` olgan
+zahoti kirishni tasdiqlardi; endi tasdiqlamaydi — avval nima so‘ralayotganini, yangi
+profil nima yozishini (Telegram ismi va username; telefon so‘ralmaydi) va saytdagi 3 xonali kodni
+ko‘rsatib, «Kirishni tasdiqlash» / «Bu men emas» tugmasini kutadi. Ilgari begona odam o‘z
+brauzerida boshlagan havolani yuborib, uni bosganning hisobiga kirib olishi mumkin edi. «Bu men
+emas», ro‘yxat yopiq yoki faol bo‘lmagan hisob oqimni `declined` qiladi va brauzer muddat
+tugashini kutmasdan “tasdiqlanmadi” deydi (ilgari 5 daqiqa jim kutardi); tasdiqlagan odam brauzer
+olishidan oldin qaytarib olishi mumkin, begona Telegram hisobi esa yo‘q. **UX:** V1 va legacy
+bitta belgilash (`components/telegram_auth_panel.html`) va bitta skript
+(`frontend_v1/js/login.js`); legacy’dagi `window.open` popup (brauzer bloklardi), cancel’siz
+oqim va `static/js/telegram-login.js` olib tashlandi. Panel JS’siz yashirin (o‘lik tugma yo‘q,
+`noscript` izoh), holatlar: tayyorlanmoqda, kutish (kod, uch qadam, havola, daqiqali muddat,
+«Tasdiqladim — tekshirish», «Bekor qilish»), tasdiqlandi, rad etildi, eskirdi, aniqlanmadi,
+to‘xtatildi, cheklandi; jonli hudud faqat holat o‘zgarganda gapiradi, oxirgi daqiqa bir marta
+e’lon qilinadi; sahifaga qaytilganda (`visibilitychange`) natija darhol tekshiriladi. Kirish matni
+ro‘yxat holatiga mos (`public_registration_open`). Niyat login URL’dagi `next` orqali.
+**Qilinmagan:** QR kod — yangi kutubxona (masalan, `segno`) owner ruxsati bilan qo‘shiladi; native
+AT/klaviatura va real telefon qabul tekshiruvi owner’da.
 
 **Ish:** method-split backend uchun explicit privacy/context copy, QR/deep-link,
 countdown, pending/authenticated/expired/uncertain/cancel, manual check, intended
