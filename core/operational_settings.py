@@ -31,6 +31,8 @@ DEFAULTS = {
     "auth_login_ip_limit": 20,
     "auth_login_window_minutes": 15,
     "auth_register_ip_limit": 5,
+    # Xato bilan qaytgan ro'yxat urinishlari — band emailni sinab chiqish (PUB1.4c).
+    "auth_register_attempt_ip_limit": 20,
     "auth_register_window_minutes": 60,
     "auth_reset_account_limit": 3,
     "auth_reset_ip_limit": 10,
@@ -60,6 +62,7 @@ BOUNDS = {
     "auth_login_ip_limit": (1, 5000),
     "auth_login_window_minutes": (1, 1440),
     "auth_register_ip_limit": (1, 5000),
+    "auth_register_attempt_ip_limit": (1, 5000),
     "auth_register_window_minutes": (1, 1440),
     "auth_reset_account_limit": (1, 1000),
     "auth_reset_ip_limit": (1, 5000),
@@ -141,6 +144,7 @@ class Thresholds:
     auth_login_ip_limit: int
     auth_login_window_minutes: int
     auth_register_ip_limit: int
+    auth_register_attempt_ip_limit: int
     auth_register_window_minutes: int
     auth_reset_account_limit: int
     auth_reset_ip_limit: int

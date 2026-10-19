@@ -1,8 +1,8 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
 **Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) hamda PUB1.2a–b, PUB1.2d,
-PUB1.3 bosqichi (a–d), PUB1.4b kodda (2026-10-16/19, lokal)**; PUB1.2c B3.5 writer’i bilan
-birga ochiq; PUB1.4a owner qarori bilan keyinga qoldirilgan (2026-10-19); PUB1.4c va keyingi
+PUB1.3 bosqichi (a–d), PUB1.4b–c kodda (2026-10-16/19, lokal)**; PUB1.2c B3.5 writer’i bilan
+birga ochiq; PUB1.4a owner qarori bilan keyinga qoldirilgan (2026-10-19); PUB1.4d va keyingi
 kesimlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
 **Kod tayanchi:** `main`dagi `72e82e0`
@@ -1920,6 +1920,26 @@ screen reader DOM; keyboard/mobile zoom; safe intent banner; long Uzbek text.
 password/secret render yoki logda 0. UX-04 runtime bandi evidence bilan yangilanadi.
 
 #### PUB1.4c — login/register/reset full throttle va enumeration
+
+**Holat — 2026-10-19: kodda, lokal tekshirilgan** (branch `claude/pub14c-auth-enumeration`,
+migration core0010). Javob vaqti: `users.backends.EmailOrUsernameBackend` noma'lum va
+noaniq identifikator uchun ham parolni xeshlaydi — har login xato yo‘lida xesh soni bir xil
+(ilgari noma'lum email bitta xeshga kam ishlardi); username boshqa hisob emailiga teng bo‘lsa
+endi 500 emas. Parol tiklashda hisob qidirish, xat chizish va yuborish javob mijozga
+yetgandan keyin (`AfterResponseRedirect.close()`, ASGI/WSGI) — mavjud va noma'lum email
+javobgacha bir xil ish qiladi. Ro‘yxat: xato bilan qaytgan urinish ham sanaladi (yangi
+owner sozlamasi `auth_register_attempt_ip_limit`, default 20/IP/oyna) va limit sahifasi
+formani tekshirmaydi (ilgari 429 sahifasi ham band-email xatosini chizardi); band email
+matni “Bu email bilan yangi hisob ochib bo‘lmaydi…” va parolni tiklashni faqat xat yetib
+boradigan muhitda taklif qiladi. Qolgan eshiklar: `/admin/` login (`ENABLE_LEGACY_ADMIN`)
+asosiy login hisoblagichini bo‘lishadi; sozlamalarda joriy parolni taxmin qilish login
+limiti bilan cheklangan. Qonuniy egasi: email orqali parol tiklansa hisobning login
+hisoblagichi tozalanadi — begona odam yopib qo‘ygan hisobga darhol kiradi.
+**Ataylab qilinmagan:** serverda `sleep` (worker band bo‘lib, hujumchiga DoS beradi —
+kechikish `Retry-After` oynasi); CAPTCHA (uchinchi tomon provayderi, kalit va cookie roziligi
+— owner/PUB1.5b qarori); sessiya qatlami (cookie’siz hujumchi uni chetlab o‘tadi). **Qoldiq
+risk:** majburiy email tasdig‘isiz (PUB-D14) ro‘yxat band emailni baribir bildiradi — faqat
+IP bo‘yicha cheklangan; ko‘p IP’li hujumni to‘liq yopish email tasdig‘ini talab qiladi.
 
 **Ish:** PUB1.0cda yoqilgan asosiy throttle ustiga account/IP/session
 layering, generic response va bounded delay; PUB1.0c qamramagan qolgan auth

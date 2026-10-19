@@ -187,6 +187,12 @@ class OperationalSettings(models.Model):
         verbose_name="Ro'yxatdan o'tish: bitta IP'dan yangi hisob",
         help_text="Bir manzildan oynada shuncha yangi hisob ochilgach yangisi vaqtincha ochilmaydi.",
     )
+    auth_register_attempt_ip_limit = models.PositiveIntegerField(
+        default=20,
+        validators=[MinValueValidator(1), MaxValueValidator(5000)],
+        verbose_name="Ro'yxatdan o'tish: bitta IP'dan xato urinish",
+        help_text="Xato bilan qaytgan ro'yxat formasi (masalan, band email) oynada shuncha marta yuborilgach forma vaqtincha qabul qilinmaydi. Begona emaillarni birma-bir sinab chiqishni to'xtatadi.",
+    )
     auth_register_window_minutes = models.PositiveIntegerField(
         default=60,
         validators=[MinValueValidator(1), MaxValueValidator(1440)],

@@ -288,7 +288,7 @@ class OwnerPanelTests(TestCase):
     def post(self, **overrides):
         payload = {name: getattr(OperationalSettings.load(), name) for name in (
             "auth_login_account_limit", "auth_login_ip_limit", "auth_login_window_minutes",
-            "auth_register_ip_limit", "auth_register_window_minutes",
+            "auth_register_ip_limit", "auth_register_attempt_ip_limit", "auth_register_window_minutes",
             "auth_reset_account_limit", "auth_reset_ip_limit", "auth_reset_window_minutes",
             "auth_telegram_init_ip_limit", "auth_telegram_init_window_minutes", "auth_throttle_rows_amber",
         )}

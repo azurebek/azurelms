@@ -1,5 +1,7 @@
 from django.contrib import admin
+from django.contrib.admin.forms import AdminAuthenticationForm
 from django.contrib.auth.admin import UserAdmin
+from django.core.exceptions import ValidationError
 from .models import (
     CustomUser,
     Notification,
@@ -26,6 +28,35 @@ class CustomUserAdmin(UserAdmin):
 
 
 admin.site.register(CustomUser, CustomUserAdmin)
+
+
+class ThrottledAdminAuthenticationForm(AdminAuthenticationForm):
+    """`/admin/` kirishi ham asosiy login bilan bir xil cheklovda (PUB1.4c).
+
+    `ENABLE_LEGACY_ADMIN` yoqilsa admin login parol taxmini uchun ikkinchi eshik
+    edi: `FrontendLoginView` hisoblagichini chetlab o'tardi. Hisoblagich umumiy —
+    bir eshikdagi xatolar ikkinchisida ham sanaladi.
+    """
+
+    def clean(self):
+        from users import auth_abuse
+
+        if self.request is None:
+            return super().clean()
+        identifier = self.data.get("username", "")
+        decision = auth_abuse.login_blocked(self.request, identifier)
+        if not decision.allowed:
+            raise ValidationError(decision.message, code="throttled")
+        try:
+            cleaned = super().clean()
+        except ValidationError:
+            auth_abuse.record_login_failure(self.request, identifier)
+            raise
+        auth_abuse.record_login_success(self.request, identifier)
+        return cleaned
+
+
+admin.site.login_form = ThrottledAdminAuthenticationForm
 
 
 @admin.register(UserOnboarding)

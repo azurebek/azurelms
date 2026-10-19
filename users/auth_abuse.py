@@ -24,6 +24,15 @@ Asosiy qarorlar va nega aynan shunday:
 * **Yoqish/o'chirish flagda.** `auth_throttle_enforcement` OFF bo'lsa
   hisoblash davom etadi, lekin hech kim rad etilmaydi (favqulodda holat).
   Limit va oynalar `OperationalSettings`da — owner auditli paneldan o'zgartiradi.
+* **Javob vaqti ham sir saqlaydi (PUB1.4c).** Login noma'lum identifikator
+  uchun ham parolni xeshlaydi (`users.backends`), tiklash xati javob
+  yuborilgandan keyin tayyorlanadi, ro'yxatdagi band-email xatosi esa xato
+  urinishlar limiti bilan cheklanadi. Serverda ataylab kutish (`sleep`) yo'q:
+  u worker'larni band qilib, hujumchining o'ziga DoS vositasi bo'lardi —
+  kechikish `Retry-After` oynasining o'zi.
+* **Qonuniy egasi qaytadi.** Parol email orqali tiklansa hisobning login
+  hisoblagichi tozalanadi: begona odam xato parollar bilan hisobni oyna
+  oxirigacha yopib qo'ygan bo'lsa ham, egasi darhol kira oladi.
 """
 
 import ipaddress
@@ -44,18 +53,23 @@ logger = logging.getLogger(__name__)
 SCOPE_LOGIN_ACCOUNT = "login_account"
 SCOPE_LOGIN_IP = "login_ip"
 SCOPE_REGISTER_IP = "register_ip"
+SCOPE_REGISTER_ATTEMPT_IP = "register_attempt_ip"
 SCOPE_RESET_ACCOUNT = "reset_account"
 SCOPE_RESET_IP = "reset_ip"
 SCOPE_TELEGRAM_INIT_IP = "telegram_init_ip"
+SCOPE_PASSWORD_CHANGE_ACCOUNT = "password_change_account"
 
 #: scope → (limit sozlamasi, oyna sozlamasi) — `core.operational_settings`dagi nomlar.
 SCOPE_SETTINGS = {
     SCOPE_LOGIN_ACCOUNT: ("auth_login_account_limit", "auth_login_window_minutes"),
     SCOPE_LOGIN_IP: ("auth_login_ip_limit", "auth_login_window_minutes"),
     SCOPE_REGISTER_IP: ("auth_register_ip_limit", "auth_register_window_minutes"),
+    SCOPE_REGISTER_ATTEMPT_IP: ("auth_register_attempt_ip_limit", "auth_register_window_minutes"),
     SCOPE_RESET_ACCOUNT: ("auth_reset_account_limit", "auth_reset_window_minutes"),
     SCOPE_RESET_IP: ("auth_reset_ip_limit", "auth_reset_window_minutes"),
     SCOPE_TELEGRAM_INIT_IP: ("auth_telegram_init_ip_limit", "auth_telegram_init_window_minutes"),
+    # Joriy parolni taxmin qilish — login taxmini bilan bir xil xavf, bir xil limit.
+    SCOPE_PASSWORD_CHANGE_ACCOUNT: ("auth_login_account_limit", "auth_login_window_minutes"),
 }
 
 THROTTLED_MESSAGE = (
@@ -262,12 +276,40 @@ def record_login_success(request, identifier):
     clear(SCOPE_LOGIN_ACCOUNT, normalize_identifier(identifier))
 
 
+def record_password_recovered(user):
+    """Parol email orqali tiklandi: hisobning login hisoblagichi tozalanadi."""
+    for identifier in {normalize_identifier(user.email), normalize_identifier(user.get_username())}:
+        clear(SCOPE_LOGIN_ACCOUNT, identifier)
+
+
 def registration_blocked(request):
-    return peek(SCOPE_REGISTER_IP, client_ip(request))
+    ip = client_ip(request)
+    return _first_denied(peek(SCOPE_REGISTER_IP, ip), peek(SCOPE_REGISTER_ATTEMPT_IP, ip))
 
 
 def record_registration(request):
     record(SCOPE_REGISTER_IP, client_ip(request))
+
+
+def record_registration_failure(request):
+    """Xato bilan qaytgan ro'yxat formasi (band email sinovi ham shu)."""
+    record(SCOPE_REGISTER_ATTEMPT_IP, client_ip(request))
+
+
+def _password_change_key(user):
+    return f"user:{user.pk}"
+
+
+def password_change_blocked(user):
+    return peek(SCOPE_PASSWORD_CHANGE_ACCOUNT, _password_change_key(user))
+
+
+def record_password_change_failure(user):
+    record(SCOPE_PASSWORD_CHANGE_ACCOUNT, _password_change_key(user))
+
+
+def record_password_change_success(user):
+    clear(SCOPE_PASSWORD_CHANGE_ACCOUNT, _password_change_key(user))
 
 
 def consume_password_reset(request, email):
