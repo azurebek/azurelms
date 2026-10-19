@@ -94,7 +94,10 @@ class CustomUserCreationForm(UserCreationForm):
     def clean_email(self):
         email = (self.cleaned_data.get("email") or "").strip().lower()
         if CustomUser.objects.filter(email__iexact=email).exists():
-            raise forms.ValidationError("Bu email allaqachon ro'yxatdan o'tgan.")
+            # Majburiy email tasdig'isiz (PUB-D14) band emailni yashirib bo'lmaydi;
+            # xato urinishlar IP bo'yicha cheklanadi (PUB1.4c). Matn egasiga
+            # keyingi qadamni aytadi.
+            raise forms.ValidationError(duplicate_email_message(), code="email_taken")
         return email
 
     def save(self, commit=True):
@@ -106,6 +109,15 @@ class CustomUserCreationForm(UserCreationForm):
         if commit:
             user.save()
         return user
+
+
+def duplicate_email_message():
+    """Band email: parolni tiklash faqat xat haqiqatan yetib boradigan muhitda taklif qilinadi."""
+    from core.email_delivery import reset_delivery_available
+
+    if reset_delivery_available():
+        return "Bu email bilan yangi hisob ochib bo‘lmaydi. Hisobingiz bo‘lsa, kiring yoki parolni tiklang."
+    return "Bu email bilan yangi hisob ochib bo‘lmaydi. Hisobingiz bo‘lsa, kirish sahifasidan kiring."
 
 
 class UzbekPasswordResetForm(PasswordResetForm):

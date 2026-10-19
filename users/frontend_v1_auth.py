@@ -1,10 +1,37 @@
 """Frozen auth presentation; Django retains form/token/session semantics."""
+import logging
+
 from django.conf import settings
 from django.contrib.auth import views as auth_views
+from django.http import HttpResponseRedirect
 
 from core.email_delivery import RESET_UNAVAILABLE_MESSAGE, reset_delivery_available
 from core.frontend_v1 import FrontendV1Mixin
 from .forms import UzbekPasswordResetForm, UzbekSetPasswordForm
+
+logger = logging.getLogger(__name__)
+
+
+class AfterResponseRedirect(HttpResponseRedirect):
+    """Yo'naltirish; `after` javob mijozga to'liq yuborilgandan keyin ishlaydi.
+
+    ASGI va WSGI server javob tanasini yuborib bo'lgach `close()`ni chaqiradi —
+    ish shu yerda bajariladi, ya'ni uning davomiyligi javob vaqtiga qo'shilmaydi.
+    Xato javobni buzmaydi (u allaqachon ketgan), faqat logga yoziladi.
+    """
+
+    def __init__(self, url, after):
+        super().__init__(url)
+        self._after = after
+
+    def close(self):
+        after, self._after = self._after, None
+        if after is not None:
+            try:
+                after()
+            except Exception:  # noqa: BLE001 — javob allaqachon yuborilgan
+                logger.exception("Javobdan keyingi ish bajarilmadi")
+        super().close()
 
 
 class AuthV1Mixin(FrontendV1Mixin):
@@ -81,7 +108,20 @@ class PasswordResetView(AuthV1Mixin, auth_views.PasswordResetView):
             'brand_name': SiteSettings.current().brand_name or 'AzureLMS',
             'reset_valid_hours': max(1, settings.PASSWORD_RESET_TIMEOUT // 3600),
         }
-        return super().form_valid(form)
+        opts = {
+            'use_https': self.request.is_secure(),
+            'token_generator': self.token_generator,
+            'from_email': self.from_email,
+            'email_template_name': self.email_template_name,
+            'subject_template_name': self.subject_template_name,
+            'request': self.request,
+            'html_email_template_name': self.html_email_template_name,
+            'extra_email_context': self.extra_email_context,
+        }
+        # Hisobni qidirish, xatni chizish va yuborish — javob mijozga yetgandan
+        # keyin (PUB1.4c). Aks holda mavjud email uchun javob SMTP vaqtiga
+        # cho'zilib, qaysi email ro'yxatdan o'tgani javob vaqtidan bilinardi.
+        return AfterResponseRedirect(self.get_success_url(), lambda: form.save(**opts))
 
 
 class PasswordResetDoneView(AuthV1Mixin, auth_views.PasswordResetDoneView):
@@ -108,6 +148,11 @@ class PasswordResetConfirmView(AuthV1Mixin, auth_views.PasswordResetConfirmView)
         response = super().form_valid(form)
         # Presentation-only, one-use success notice; never a reset credential.
         self.request.session['frontend_v1_reset_completed'] = True
+        # Begona odam xato parollar bilan hisobni yopib qo'ygan bo'lsa ham, emailga
+        # ega egasi yangi parol bilan darhol kira oladi (PUB1.4c).
+        from users import auth_abuse
+
+        auth_abuse.record_password_recovered(form.user)
         return response
 
     def get_context_data(self, **kwargs):

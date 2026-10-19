@@ -390,6 +390,8 @@ class RuntimeSettingsSurfaceTests(TestCase):
             "auth_reset_account_limit", "auth_reset_ip_limit", "auth_reset_window_minutes",
             "auth_telegram_init_ip_limit", "auth_telegram_init_window_minutes",
             "auth_throttle_rows_amber",
+            # PUB1.4c — xato ro'yxat urinishlari (band emailni sinab chiqish).
+            "auth_register_attempt_ip_limit",
         ]
         for name in expected:
             self.assertContains(

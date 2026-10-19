@@ -85,17 +85,42 @@ class RegisterView(AuthV1Mixin, CreateView):
         return super().dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        # Bir IP'dan oynada cheklangan son yangi hisob (PUB1.0c): baza va email
-        # toshqinini to'xtatadi. Ro'yxat yopiq bo'lsa dispatch allaqachon rad etgan.
+        # Bir IP'dan oynada cheklangan son yangi hisob (PUB1.0c) va xato urinish
+        # (PUB1.4c): baza/email toshqini va band emailni sinab chiqish to'xtaydi.
+        # Ro'yxat yopiq bo'lsa dispatch allaqachon rad etgan.
         from users import auth_abuse
 
         decision = auth_abuse.registration_blocked(request)
         if not decision.allowed:
             self.object = None
+            # Bog'lanmagan forma: bog'langani xatoni chizish uchun to'liq
+            # tekshirilardi — band-email tekshiruvi ham — va limitdan keyin ham
+            # emailni sinab chiqish mumkin bo'lardi (PUB1.4c).
+            self._auth_throttled = True
             form = self.get_form()
+            form.cleaned_data = {}
             form.add_error(None, decision.message)
             return auth_abuse.apply_throttle_headers(self.form_invalid(form), decision)
-        return super().post(request, *args, **kwargs)
+        self.object = None
+        form = self.get_form()
+        if form.is_valid():
+            return self.form_valid(form)
+        # Xato bilan qaytgan urinish ham sanaladi: aks holda band-email xatosi
+        # orqali begona emaillarni cheksiz sinab chiqish mumkin edi.
+        auth_abuse.record_registration_failure(request)
+        return self.form_invalid(form)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        if getattr(self, "_auth_throttled", False):
+            kwargs.pop("data", None)
+            kwargs.pop("files", None)
+            # Kiritilgan ism va email saqlanadi (qayta yozish shart emas), parol yo'q.
+            kwargs["initial"] = {
+                **kwargs.get("initial", {}),
+                **{name: self.request.POST.get(name, "")[:254] for name in ("first_name", "last_name", "email")},
+            }
+        return kwargs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -623,14 +648,24 @@ class PasswordUpdateView(LoginRequiredMixin, View):
         from django.contrib.auth.password_validation import validate_password
         from django.core.exceptions import ValidationError
 
+        from users import auth_abuse
+
         user = request.user
         old_pass = request.POST.get('old_password')
         new_pass1 = request.POST.get('new_password1')
         new_pass2 = request.POST.get('new_password2')
 
+        # Joriy parolni taxmin qilish ham login taxmini (PUB1.4c): ochiq qolgan
+        # sessiyadan parolni cheksiz sinab bo'lmaydi.
+        decision = auth_abuse.password_change_blocked(user)
+        if not decision.allowed:
+            messages.error(request, decision.message)
+            return redirect('settings_account')
         if not user.check_password(old_pass):
+            auth_abuse.record_password_change_failure(user)
             messages.error(request, "Joriy parol noto'g'ri.")
             return redirect('settings_account')
+        auth_abuse.record_password_change_success(user)
         if new_pass1 != new_pass2:
             messages.error(request, "Yangi parollar mos kelmadi.")
             return redirect('settings_account')
