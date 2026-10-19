@@ -166,6 +166,8 @@ class ExamReviewFlowTests(TestCase):
         visa_attempt.finalize_review(reviewed_by=self.instructor)
         certificate, _ = final_attempt.finalize_review(reviewed_by=self.instructor)
 
+        # Ilova faqat egasi va xodimlarga (PUB1.5d).
+        self.client.force_login(self.student)
         response = self.client.get(
             reverse('certificate_appendix', kwargs={'certificate_id': certificate.certificate_id})
         )

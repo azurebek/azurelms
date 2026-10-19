@@ -1,7 +1,7 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
 **Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) hamda PUB1.2a–b, PUB1.2d,
-PUB1.3 bosqichi (a–d), PUB1.4b–c, PUB1.4e, PUB1.5a–c kodda (2026-10-16/20, lokal)**; PUB1.2c
+PUB1.3 bosqichi (a–d), PUB1.4b–c, PUB1.4e, PUB1.5 bosqichi (a–d) kodda (2026-10-16/20, lokal)**; PUB1.2c
 B3.5 writer’i bilan birga ochiq; PUB1.4a owner qarori bilan keyinga qoldirilgan (2026-10-19);
 PUB1.4d (production SMTP owner qo‘lida) va keyingi kesimlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
@@ -2107,6 +2107,24 @@ print/accessibility.
 ortiq PII/academic detail 0; revoke truthful.
 
 #### PUB1.5d — appendix authorization va legacy certificate migration
+
+**Holat — 2026-10-20: kodda, lokal tekshirilgan** (branch `claude/pub15d-certificate-legacy`,
+migration yo‘q). **Ilova** (`certificate_appendix`) endi private: `LoginRequiredMixin` + faqat
+sertifikat egasi yoki faol xodim (`certificate_verifier.can_view_document`); mehmon — login,
+boshqa foydalanuvchi — 404 (borligi bilinmaydi); route registry’da private. **Eski havola**
+(`certificate_detail`, `AZ-…`): egasi va xodim to‘liq hujjatni (chop etish bilan) ko‘radi; boshqalar
+o‘tish davrida yangi tekshiruvdagi minimal ko‘rinishni (holat, qisqa ism, kurs, sana + “Bu eski havola”
+izohi) — ball, daraja, o‘qituvchi, ilova havolasi yo‘q; owner flag `certificate_legacy_public_view`
+(default ON) ni o‘chirsa — “topilmadi”. Yo‘q/yashirin ID — ayni 404; noto‘g‘ri ID yangi tekshiruv bilan
+bir hisoblagichda cheklanadi. **Telemetriya:** boshqalarning eski havola ochishlari kesh
+hisoblagichida kunlik (40 kun; ID/IP/kod yozilmaydi, public GET bazaga yozmaydi) — Control Center
+`public_content` → `certificate_legacy_views_30d`. **Backfill:** `manage.py backfill_certificate_tokens
+[--apply] [--limit N]` — faqat kodsizlar, pk tartibida, davom ettiriladi, qayta yugurish no-op,
+to‘qnashuv qayta urinadi, `digest` (pk izi), kod chiqarilmaydi. **O‘quvchi havolasi:** flag
+`certificate_public_verifier` yoqilgan va kod bo‘lsa — sertifikatlar ro‘yxatida va chop etiladigan
+hujjat/ilova footer’ida yangi tekshiruv havolasi; flag o‘chsa eski havola qaytadi, kod saqlanadi.
+Hech narsa o‘chirilmadi. **Owner qarori kerak:** yangi tekshiruvni yoqish (PUB-D4) va eski havola
+o‘tish davrini qachon yopish (PUB-D15) — deploy’dan keyin avval `backfill_certificate_tokens --apply`.
 
 **Ish:** appendix own learner/authorized staff; scoped share token faqat admitted.
 Resumable backfill, legacy alias telemetry/grace/expiry, learner certificate link

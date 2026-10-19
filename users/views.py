@@ -1401,7 +1401,13 @@ class CertificateListView(LoginRequiredMixin, RecordsV1Mixin, TemplateView):
         context['earned_badges'] = EarnedBadge.objects.filter(student=user).select_related('badge').order_by('-earned_at', '-id')
 
         # Course Completion Certificates
-        context['course_certificates'] = CourseCertificate.objects.filter(student=user).select_related('course').order_by('-issued_at', '-id')
+        certificates = list(CourseCertificate.objects.filter(student=user).select_related('course').order_by('-issued_at', '-id'))
+        # Yangi tekshiruv havolasi (PUB1.5d) — faqat flag yoqilgan va kod bo'lsa; GET hech narsa yozmaydi.
+        from courses.certificate_verifier import verify_url
+
+        for certificate in certificates:
+            certificate.verify_url = verify_url(certificate)
+        context['course_certificates'] = certificates
 
         return context
 

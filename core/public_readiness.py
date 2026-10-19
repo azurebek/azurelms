@@ -50,6 +50,8 @@ class PublicReadiness:
     testimonials_hidden: int = 0
     # PUB1.2d: public sahifada ko'rinadigan (namuna emas) aloqa kanallari.
     public_contact: tuple = ()
+    # PUB1.5d: eski `AZ-…` sertifikat havolasini boshqa odam ochgani (30 kun, kesh hisoblagichi).
+    certificate_legacy_views: int = 0
 
     def claim_count(self, status):
         return dict(self.claims).get(status, 0)
@@ -135,4 +137,14 @@ def public_readiness():
         testimonials_public=testimonials_public,
         testimonials_hidden=testimonials_hidden,
         public_contact=contact_readiness(),
+        certificate_legacy_views=_certificate_legacy_views(),
     )
+
+
+def _certificate_legacy_views():
+    from courses.certificate_verifier import legacy_public_views
+
+    try:
+        return legacy_public_views(30)
+    except Exception:  # noqa: BLE001 — kesh yo'qligi tayyorlikni sindirmasin
+        return 0

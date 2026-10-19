@@ -343,7 +343,8 @@ class ExamV1Tests(TestCase):
         certificate = Certificate.objects.create(student=self.student, course=self.course, final_score=Decimal('72.50'), certificate_id='I8-QA-CERT')
         review.awarded_score = Decimal('1.11')
         review.save()
-        response = Client().get(reverse('certificate_appendix', args=[certificate.certificate_id]))
+        # Ilova endi faqat egasiga (PUB1.5d): o'quvchining o'zi ochadi.
+        response = self.client.get(reverse('certificate_appendix', args=[certificate.certificate_id]))
         self.assertContains(response, '7.25 / 10')
         self.assertNotContains(response, '1.11 / 10')
         self.assertNotContains(response, 'SECRET')

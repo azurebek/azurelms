@@ -771,13 +771,12 @@
  },
  {
   "name": "certificate_appendix",
-  "class": "public",
-  "anonymous": "200",
+  "class": "private",
+  "anonymous": "302>login",
   "authenticated": "200",
-  "deactivated": "200",
-  "head": "200",
-  "post": "405",
-  "differences": []
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
  },
  {
   "name": "certificate_detail",

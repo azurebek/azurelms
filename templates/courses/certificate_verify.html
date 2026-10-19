@@ -45,6 +45,7 @@
       <dt>Berilgan sana</dt><dd>{{ result.issued_on|date:"d.m.Y" }}</dd>
       {% if result.is_revoked and result.revoked_on %}<dt>Bekor qilingan sana</dt><dd>{{ result.revoked_on|date:"d.m.Y" }}</dd>{% endif %}
     </dl>
+    {% if legacy_link %}<p class="note" data-legacy-link>Bu eski havola: to‘liq hujjatni faqat sertifikat egasi ko‘radi. Egasidan yangi tekshirish havolasini so‘rashingiz mumkin.</p>{% endif %}
     {% if result.is_revoked %}
     <p class="note">Bu sertifikat bekor qilingan va endi haqiqiy hisoblanmaydi.</p>
     {% else %}

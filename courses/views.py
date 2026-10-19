@@ -1201,39 +1201,94 @@ class SubmitQuizView(LoginRequiredMixin, View):
 from .frontend_v1_certificates import CertificateV1Mixin
 
 
-class CertificateDetailView(CertificateV1Mixin, DetailView):
+def _legacy_certificate_response(request, certificate):
+    """Eski `AZ-…` havolani egasi yoki xodim bo'lmagan odam ochdi (PUB1.5d).
+
+    ID'da o'quvchi va kurs raqami bor, qolgani taxmin qilinadi — shuning uchun bu
+    yerda to'liq hujjat (ball, daraja, o'qituvchi) emas, yangi tekshiruvdagi ayni
+    minimal ko'rinish. O'tish davri owner flagida (`certificate_legacy_public_view`);
+    yopilgach va yo'q/yashirin ID uchun — bir xil "topilmadi". Noto'g'ri ID
+    yangi tekshiruv bilan bir hisoblagichda cheklanadi.
     """
-    Renders the professional certificate for printing/downloading.
-    Publicly accessible to verify the certificate if one has the exact ID.
+    from core.flags import flag_enabled
+    from users import auth_abuse
+
+    from . import certificate_verifier as verifier
+
+    template = "courses/certificate_verify.html"
+    decision = auth_abuse.certificate_verify_blocked(request)
+    if not decision.allowed:
+        response = render(request, template, {"blocked_message": decision.message}, status=429)
+        return auth_abuse.apply_throttle_headers(response, decision)
+    if certificate is None:
+        auth_abuse.record_certificate_verify_miss(request)
+        return render(request, template, {"result": None}, status=404)
+    result = verifier.project(certificate) if flag_enabled("certificate_legacy_public_view") else None
+    if result is None:
+        return render(request, template, {"result": None}, status=404)
+    verifier.record_legacy_public_view()
+    return render(request, template, {"result": result, "legacy_link": True})
+
+
+class CertificateDetailView(CertificateV1Mixin, DetailView):
+    """To'liq sertifikat hujjati (chop etish) — egasi va xodimlarga.
+
+    Boshqalar eski havola bilan faqat minimal tasdiqni ko'radi (PUB1.5d,
+    `_legacy_certificate_response`); yangi ochiq tekshiruv — `certificate_verify`.
     """
     model = Certificate
     template_name = 'courses/certificate.html'
     certificate_v1_template = 'frontend_v1/certificates/detail.html'
     context_object_name = 'certificate'
-    
-    def get_object(self, queryset=None):
-        certificate_id = self.kwargs.get('certificate_id')
-        return get_object_or_404(Certificate, certificate_id=certificate_id)
+
+    def get(self, request, *args, **kwargs):
+        from . import certificate_verifier as verifier
+
+        certificate = (
+            Certificate.objects.select_related('student', 'course', 'course__instructor')
+            .filter(certificate_id=kwargs.get('certificate_id')).first()
+        )
+        if certificate is None or not verifier.can_view_document(request.user, certificate):
+            return _legacy_certificate_response(request, certificate)
+        self.object = certificate
+        return self.render_to_response(self.get_context_data(object=certificate))
 
     def get_context_data(self, **kwargs):
+        from . import certificate_verifier as verifier
+
         context = super().get_context_data(**kwargs)
         context['auto_print'] = self.request.GET.get('download') == '1'
+        # Chop etilgan hujjatdagi tekshiruv havolasi — yangi tasodifiy kod (flag yoqilgan bo'lsa).
+        context['certificate_verify_url'] = verifier.verify_url(self.object)
         return context
 
 
-class CertificateAppendixView(CertificateV1Mixin, DetailView):
+class CertificateAppendixView(LoginRequiredMixin, CertificateV1Mixin, DetailView):
+    """Ballar ilovasi (imtihon natijalari) — faqat sertifikat egasi va xodimlarga (PUB1.5d).
+
+    Ilgari aniq ID bilan har kimga ochiq edi. Mehmon kirish sahifasiga, boshqa
+    foydalanuvchi "topilmadi"ga tushadi (sertifikat borligi ham bilinmaydi).
+    """
     model = Certificate
     template_name = 'courses/certificate_appendix.html'
     certificate_v1_template = 'frontend_v1/certificates/appendix.html'
     context_object_name = 'certificate'
 
     def get_object(self, queryset=None):
+        from . import certificate_verifier as verifier
+
         certificate_id = self.kwargs.get('certificate_id')
-        return get_object_or_404(Certificate, certificate_id=certificate_id)
+        certificate = get_object_or_404(Certificate, certificate_id=certificate_id)
+        if not verifier.can_view_document(self.request.user, certificate):
+            raise Http404
+        return certificate
 
     def get_context_data(self, **kwargs):
+        from . import certificate_verifier as verifier
+
         context = super().get_context_data(**kwargs)
         certificate = self.object
+        context['certificate_verify_url'] = verifier.verify_url(certificate)
         from .models import ExamAttempt
 
         reviewed_attempts = (

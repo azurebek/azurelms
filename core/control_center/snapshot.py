@@ -1036,6 +1036,7 @@ def _public_content_probe(definition: CapabilityDefinition) -> CapabilityResult:
         testimonials_public=readiness.testimonials_public,
         testimonials_without_consent=readiness.testimonials_hidden,
         public_contact=", ".join(readiness.public_contact) or "-",
+        certificate_legacy_views_30d=readiness.certificate_legacy_views,
     )
     if readiness.missing_legal:
         return _result(
