@@ -109,6 +109,8 @@ PUBLIC_SURFACES = (
     # Sertifikat aniq ID bilan ochiladi — token kabi: noindex, saqlanmaydi.
     _sensitive("certificate_detail", READ),
     _sensitive("certificate_appendix", READ),
+    # Ochiq sertifikat tekshiruvi (PUB1.5c): tasodifiy kod — token kabi.
+    _sensitive("certificate_verify", READ),
     # Telegram Mini App kirish qobig'i va initData tekshiruvi.
     _sensitive("bot:miniapp_entry", READ),
     _sensitive("bot:miniapp_auth", POST_ONLY),

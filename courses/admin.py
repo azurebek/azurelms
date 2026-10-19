@@ -541,9 +541,13 @@ class ExamAttemptAdmin(admin.ModelAdmin):
 
 @admin.register(Certificate)
 class CertificateAdmin(admin.ModelAdmin):
-    list_display = ('student', 'course', 'final_score', 'certificate_id', 'issued_at')
-    list_filter = ('course', 'issued_at')
+    list_display = ('student', 'course', 'final_score', 'certificate_id', 'public_status', 'issued_at')
+    list_filter = ('course', 'issued_at', 'public_status')
     search_fields = ('student__username', 'student__email', 'course__title', 'certificate_id')
+    # Ochiq holat faqat `certificate_verifier.set_public_status` orqali (CAS + audit,
+    # PUB1.5c); kod qidiruvga qo'yilmaydi.
+    readonly_fields = ('public_token', 'public_status', 'public_name_mode', 'revoked_at',
+                       'revocation_reason', 'verification_revision')
 
 # --- Quizlar va Savollar ---
 

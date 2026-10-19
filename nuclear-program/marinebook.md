@@ -16,6 +16,23 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-19 [Claude]: PUBLIC-01 / PUB1.5c — WIP (limit tufayli to'xtatildi, PR ochilmagan)
+
+Branch `claude/pub15c-certificate-token` — **yarim ish, `main`ga birlashtirilmagan**.
+
+- **Tayyor (kodda):** `Certificate` ga additive maydonlar (`public_token` 192-bit, `public_status`
+  hidden/verifiable/revoked, `public_name_mode` default abbreviated, `revoked_at`, xususiy
+  `revocation_reason`, `verification_revision`) — migration courses0027; `courses/certificate_verifier.py`
+  (kod berish + to'qnashuvda qayta urinish, minimal `lookup`, CAS+audit `set_public_status`);
+  issuance'da `ensure_public_token`; view `certificate_verify` + URL `/certificates/verify/<token>/`
+  (flag `certificate_public_verifier`, default OFF — PUB-D4); `templates/courses/certificate_verify.html`;
+  noto'g'ri kod IP throttle (`auth_abuse` scope, OperationalSettings maydonlari — migration core0011,
+  runtime paneli); route `_sensitive`; admin read-only; `manage.py certificate_public_status`.
+- **Qolgan:** testlar yozilmagan (`courses/test_certificate_verifier.py`); `users/test_auth_throttle.py`
+  OwnerPanelTests payload va `core/test_runtime_settings.py` ro'yxatiga 2 yangi maydon; route snapshot
+  (`UPDATE_PUBLIC_ROUTE_SNAPSHOT=1`); to'liq suite yugurilmagan; nazorat yugurishi, brauzer, docs (reja,
+  README, project-context), PR/CI. Caddy access log'da kodni yashirish — ops eslatmasi (hali yozilmagan).
+
 ## 2026-10-19 [Claude]: PUBLIC-01 / PUB1.5b — brauzerda nima saqlanadi: dalil bilan ro'yxat
 
 Sayt qaysi cookie va brauzer xotirasini nima uchun yozishi hech qayerda yozilmagan edi; CSP esa

@@ -229,6 +229,18 @@ class OperationalSettings(models.Model):
         verbose_name="Telegram orqali kirish oynasi (daqiqa)",
         help_text="Boshlashlar shu oyna ichida sanaladi.",
     )
+    certificate_verify_ip_limit = models.PositiveIntegerField(
+        default=30,
+        validators=[MinValueValidator(1), MaxValueValidator(5000)],
+        verbose_name="Sertifikat tekshiruvi: bitta IP'dan noto'g'ri kod",
+        help_text="Topilmagan yoki noto'g'ri kod bilan shuncha so'rovdan keyin tekshiruv shu manzil uchun oyna oxirigacha to'xtaydi. To'g'ri kod sanalmaydi.",
+    )
+    certificate_verify_window_minutes = models.PositiveIntegerField(
+        default=15,
+        validators=[MinValueValidator(1), MaxValueValidator(1440)],
+        verbose_name="Sertifikat tekshiruvi oynasi (daqiqa)",
+        help_text="Noto'g'ri kodlar shu oyna ichida sanaladi.",
+    )
     auth_throttle_rows_amber = models.PositiveIntegerField(
         default=50000,
         validators=[MinValueValidator(100), MaxValueValidator(10000000)],

@@ -1416,6 +1416,42 @@ class Certificate(models.Model):
     certificate_id = models.CharField(max_length=50, unique=True, verbose_name="Sertifikat ID")
     final_score = models.PositiveIntegerField(verbose_name="Yakuniy ball")
 
+    # Ochiq tekshiruv (PUB1.5c): eski `certificate_id` o'quvchi va kurs ID'sini o'z
+    # ichiga oladi va 24 bitli qo'shimchasi taxmin qilinadi. Yangi tekshiruv faqat
+    # tasodifiy `public_token` orqali va eng kam ma'lumot bilan. Qaror va holat
+    # o'zgarishi `courses/certificate_verifier.py`da.
+    PUBLIC_HIDDEN = "hidden"
+    PUBLIC_VERIFIABLE = "verifiable"
+    PUBLIC_REVOKED = "revoked"
+    PUBLIC_STATUS_CHOICES = [
+        (PUBLIC_HIDDEN, "Yashirin — tekshiruvda topilmaydi"),
+        (PUBLIC_VERIFIABLE, "Tekshirish mumkin"),
+        (PUBLIC_REVOKED, "Bekor qilingan"),
+    ]
+    NAME_FULL = "full"
+    NAME_ABBREVIATED = "abbreviated"
+    NAME_OMITTED = "omitted"
+    NAME_MODE_CHOICES = [
+        (NAME_FULL, "To'liq ism"),
+        (NAME_ABBREVIATED, "Qisqartirilgan (Ali V.)"),
+        (NAME_OMITTED, "Ism ko'rsatilmaydi"),
+    ]
+    public_token = models.CharField(
+        max_length=64, unique=True, null=True, blank=True, editable=False,
+        verbose_name="Ochiq tekshiruv kodi",
+    )
+    public_status = models.CharField(
+        max_length=20, choices=PUBLIC_STATUS_CHOICES, default=PUBLIC_VERIFIABLE, verbose_name="Ochiq holat",
+    )
+    public_name_mode = models.CharField(
+        max_length=20, choices=NAME_MODE_CHOICES, default=NAME_ABBREVIATED, verbose_name="Ismni ko'rsatish",
+    )
+    revoked_at = models.DateTimeField(null=True, blank=True, verbose_name="Bekor qilingan vaqt")
+    revocation_reason = models.CharField(
+        max_length=240, blank=True, default="", verbose_name="Bekor qilish sababi (ochiq ko'rsatilmaydi)",
+    )
+    verification_revision = models.PositiveIntegerField(default=0, verbose_name="Tekshiruv revizioni")
+
     def __str__(self):
         return f"{self.student.username} - {self.course.title} Sertifikati"
 

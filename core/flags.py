@@ -140,6 +140,16 @@ FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
         runbook="OFF legacy detail/appendix; sertifikat va baho o‘zgarmaydi. V1 chop etish faqat tugma orqali. AWS/device qabuli alohida.",
     ),
     FlagDefinition(
+        slug="certificate_public_verifier",
+        label="Sertifikatni ochiq tekshirish (yangi havola)",
+        description=(
+            "`/certificates/verify/<kod>/` — tasodifiy kod bilan sertifikat haqiqiyligi va eng kam "
+            "ma'lumot (holat, ism ko'rinishi, kurs, sana). Eski ID'li sahifa o'zgarmaydi (PUB1.5d)."
+        ),
+        default=False, category="Frontend",
+        runbook="OFF: yangi havola 404. Qaysi ma'lumot ochiq ko'rinishi — owner qarori (PUB-D4/PUB-D15).",
+    ),
+    FlagDefinition(
         slug="frontend_v1_records",
         label="Frontend V1 — yozuvlar va yordam",
         description="Sertifikatlar, davomat, obunalar, reyting, bildirishnomalar va yordam rendererlariga V1.",
