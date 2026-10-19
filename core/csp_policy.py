@@ -30,8 +30,8 @@ def build_csp_policy(app_domain=""):
             "script-src": [
                 "'self'",
                 "https://cdn.jsdelivr.net",
-                "https://www.googletagmanager.com",
-                "https://www.google-analytics.com",
+                # Analitika skripti yo'q va PUB-D6 qaroriga qadar o'chiq (PUB1.5b): kuzatuv
+                # domenlari ataylab ruxsat etilmaydi — tasodifan qo'shilgan teg ham ishlamaydi.
                 # Mini App `telegram-web-app.js` ni shu domendan yuklaydi.
                 TELEGRAM_SCRIPT_SRC,
                 "'unsafe-inline'",
@@ -47,14 +47,13 @@ def build_csp_policy(app_domain=""):
                 "'self'",
                 "data:",
                 "https://*.digitaloceanspaces.com",
-                "https://www.google-analytics.com",
             ],
             "media-src": ["'self'"],
             "frame-src": ["'self'", "https://www.youtube.com", "https://player.vimeo.com"],
             # Default: sahifa hech qayerga embed qilinmaydi. Mini App sessiyasi
             # buni per-response `_csp_replace` bilan kengaytiradi.
             "frame-ancestors": ["'self'"],
-            "connect-src": ["'self'", "https://www.google-analytics.com", websocket_origin],
+            "connect-src": ["'self'", websocket_origin],
             "base-uri": ["'self'"],
             "form-action": ["'self'"],
             "object-src": ["'none'"],

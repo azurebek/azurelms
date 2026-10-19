@@ -16,6 +16,27 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-19 [Claude]: PUBLIC-01 / PUB1.5b — brauzerda nima saqlanadi: dalil bilan ro'yxat
+
+Sayt qaysi cookie va brauzer xotirasini nima uchun yozishi hech qayerda yozilmagan edi; CSP esa
+ishlatilmayotgan Google Analytics/Tag Manager'ga ruxsat berib turardi; formalar nima yig'ilishini
+aytmasdi.
+
+- Branch: `claude/pub15b-cookie-inventory`; kod commit **`c5b751d`**. Migration yo'q.
+- Qarorlar: `frontend/privacy_inventory.py` registry (3 faol cookie + 1 olib tashlangan, 4 mavzu
+  kaliti, 5 sessionStorage prefiksi, 4 tashqi manba) → `PUBLIC-COOKIE-INVENTORY.md`
+  (`manage.py privacy_inventory --write`); qamrov koddan (fayl skaneri) va javobdan (public route'lar
+  ×2 renderer × mehmon/a'zo, login/logout); CSP'dan analitika domenlari olib tashlandi; ixtiyoriy
+  maqsad yo'q (PUB-D6) — rozilik banneri qurilmadi; `frontend/activity_notices.py` +
+  `{% activity_notice %}` — ro'yxat, tiklash, Telegram, blog izohi, to'lov cheki (V1 va legacy).
+- Test: `frontend.test_privacy_inventory` — 13 test, OK; to'liq `manage.py test` — **3136 test, OK (skipped=70)**.
+  Nazorat yugurishi: 10 ta buzilish (ro'yxatsiz storage fayli, o'chirilgan yozuv, qo'lda tahrirlangan
+  hujjat, CSP'da tracker, sahifada gtag, KVKK da'vosi, eslatmasiz ro'yxat, yopiq ro'yxatda Telegram
+  eslatmasi, legacy chekda eslatmasiz, ro'yxatsiz cookie) — hammasi FAIL, tiklangach bayt-bayt bir xil.
+- Brauzer: ro'yxat sahifasida eslatma va Telegram eslatmasi maxfiylik havolasi bilan; tugmadan
+  ajralishi va havola tagchizig'i uchun kichik V1 CSS qoidasi qo'shildi; 320px'da siljish yo'q.
+- Davom etilishi kerak: Google Fonts/jsDelivr'ni o'z serverdan berish (PUB1.7b); ixtiyoriy analitika
+  faqat PUB-D6 qaroridan keyin (avval ro'yxat, keyin rozilik). Keyingi kesim PUB1.5c.
 ## 2026-10-19 [Claude]: Xavfsizlik — aiohttp 3.14.3 → 3.14.5 (3 yangi advisory)
 
 PUB1.5b PR'ida "Sir va bog'liqlik zaifligi skani" yiqildi: `aiohttp==3.14.3` uchun yangi

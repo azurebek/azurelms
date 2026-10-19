@@ -1,5 +1,5 @@
 {% extends "base_public.html" %}
-{% load public_content %}
+{% load public_content activity_notice %}
 {% comment %}
   Blog maqola (BlogDetailView).
   Proto: azurelms-proto/public/blog-post.html.
@@ -78,6 +78,7 @@
     <div style="font-size:18px;font-weight:600;color:var(--ink);margin-bottom:18px;">Izohlar{% if comments_total %} <span style="color:var(--ink-3);font-weight:400;">({{ comments_total }})</span>{% endif %}</div>
 
     {% if user.is_authenticated %}
+    <div style="font-size:12.5px;line-height:1.55;color:var(--ink-3);margin:0 0 10px;">{% activity_notice "blog_comment" %}</div>
     <form method="post" action="{% url 'blog:comment_create' slug=post.slug %}" style="margin-bottom:24px;">{% csrf_token %}
       <textarea name="content" rows="3" placeholder="Fikringizni yozing…" required style="width:100%;padding:13px 15px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:14px;line-height:1.6;outline:none;resize:vertical;font-family:inherit;"></textarea>
       <div style="display:flex;justify-content:flex-end;margin-top:10px;"><button type="submit" style="display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 18px;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:13.5px;font-weight:600;cursor:pointer;"><i class="bi bi-send"></i> Yuborish</button></div>

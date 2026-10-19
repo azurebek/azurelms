@@ -1,5 +1,6 @@
 {% extends "frontend_v1/auth_base.html" %}
+{% load activity_notice %}
 {% block auth_content %}
-{% if reset_delivery_available %}<form method="post" action="{% url 'password_reset' %}" data-auth-form data-auth-validate{% if form.is_bound %} data-auth-unsaved{% endif %}>{% csrf_token %}{% include "frontend_v1/auth_fields.html" with submit_label="Tiklash havolasini so‘rash" %}</form>{% else %}<div class="c-card c-empty" role="status" data-reset-unavailable><p>{{ reset_unavailable_message }}</p></div>{% endif %}
+{% if reset_delivery_available %}<form method="post" action="{% url 'password_reset' %}" data-auth-form data-auth-validate{% if form.is_bound %} data-auth-unsaved{% endif %}>{% csrf_token %}{% include "frontend_v1/auth_fields.html" with submit_label="Tiklash havolasini so‘rash" %}</form>{% activity_notice "password_reset" "c-caption" %}{% else %}<div class="c-card c-empty" role="status" data-reset-unavailable><p>{{ reset_unavailable_message }}</p></div>{% endif %}
 <div class="p-auth-links"><a class="c-text-link" href="{% url 'login' %}">Kirishga qaytish</a></div>
 {% endblock %}

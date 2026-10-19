@@ -1414,6 +1414,11 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 - Klient: ikkala renderer `components/telegram_auth_panel.html` + `static/frontend_v1/js/login.js` (PUB1.4e; eski `static/js/telegram-login.js` o'chirildi). Polling oralig'i va umri init javobidan (`poll_ms`, `expires_in`, `code`, `qr` — `segno` SVG data URI, telefonda yashirin).
 - Bot tasdig'i ikki qadam (PUB1.4e): `describe_telegram_auth_request` xabar + kod + «Kirishni tasdiqlash» / «Bu men emas» (`tgauth:ok:`/`tgauth:no:` callback); faqat tugma `handle_telegram_auth_token`ni chaqiradi. Rad etish `declined` holat — brauzer darhol ko'radi. Havolani ochishning o'zi hech kimni kiritmasligini `users/test_telegram_auth_ux.py` qulflaydi.
 
+### Brauzer xotirasi va tashqi manbalar (PUB1.5b, 2026-10-19)
+
+- Cookie, localStorage yoki sessionStorage'ga tegadigan har yangi kod `frontend/privacy_inventory.py` `ITEMS`ga yoziladi, keyin `manage.py privacy_inventory --write` — aks holda `frontend/test_privacy_inventory.py` yiqiladi. Yangi tashqi manba (script/link/img/iframe) `THIRD_PARTY`ga; kuzatuv domenlari (`TRACKER_HOSTS`) na sahifada, na CSP'da bo'lmaydi.
+- Ma'lumot yig'adigan yangi forma `frontend/activity_notices.py`ga eslatma qo'shadi va `{% load activity_notice %}{% activity_notice "kalit" "klass" %}` bilan chizadi. Matn kodga mos bo'lishi shart; saqlash muddati maxfiylik siyosatida (PUB1.5a), eslatmada emas.
+
 ### Public GET yozmaydi (PUB1.0e, 2026-10-17)
 
 - Singleton sozlamalar (`SiteSettings`, `AuthPageSettings`, `LandingPage`, `AboutPage`, `BlogHomeSettings`): o'qish uchun `Model.current()` — qator yoki saqlanmagan default nusxa, hech qachon yaratmaydi. `Model.load()` faqat tahrir (backoffice/admin) yo'llari uchun: qatorni yaratadi.

@@ -1,5 +1,5 @@
 {% extends "registration/base_auth.html" %}
-{% load auth_forms %}
+{% load auth_forms activity_notice %}
 {% load static %}
 {% comment %} Ro'yxatdan o'tish (RegisterView, CustomUserCreationForm) — proto: public/auth.html (Ro'yxat tab). {% endcomment %}
 
@@ -56,6 +56,7 @@
 
   <button type="submit" class="auth-btn">Ro'yxatdan o'tish <i class="bi bi-arrow-right" style="font-size:13px;"></i></button>
 </form>
+<div style="font-size:12.5px;line-height:1.55;color:var(--ink-3);margin:10px 0 0;">{% activity_notice "register" %}</div>
 
 <div class="auth-divider"><span class="ln"></span><span class="tx">yoki</span><span class="ln"></span></div>
 {% include "components/telegram_auth_panel.html" with panel_class="auth-tg" text_class="auth-tg-text" start_class="auth-alt" start_icon="bi bi-telegram" start_label="Telegram orqali davom etish" waiting_class="auth-tg-wait" code_class="auth-tg-code" qr_class="auth-tg-qr" steps_class="auth-tg-steps" link_class="auth-alt auth-alt--primary" actions_class="auth-tg-actions" secondary_class="auth-alt" quiet_class="auth-tg-quiet" %}

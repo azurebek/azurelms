@@ -1,11 +1,12 @@
 {% extends "frontend_v1/auth_base.html" %}
-{% load static %}
+{% load static activity_notice %}
 {% block extra_head %}{{ block.super }}<script defer src="{% static 'frontend_v1/js/login.js' %}"></script>{% endblock %}
 {% block auth_content %}
 <form method="post" action="{% url 'register' %}" data-auth-form data-auth-validate{% if form.is_bound %} data-auth-unsaved{% endif %}>
   {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
   {% include "frontend_v1/auth_fields.html" with submit_label="Hisob yaratish" %}
 </form>
+{% activity_notice "register" "c-caption" %}
 <div class="p-auth-links"><a class="c-text-link" href="{% url 'login' %}{% if next %}?next={{ next|urlencode:'' }}{% endif %}">Hisobingiz bormi? Kirish</a></div>
 {% include "frontend_v1/telegram_auth.html" with start_label="Telegram orqali davom etish" %}
 {% endblock %}
