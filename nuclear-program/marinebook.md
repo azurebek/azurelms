@@ -16,6 +16,37 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-19 [Claude]: PUBLIC-01 / PUB1.4c — auth javoblari hisob borligini bildirmaydi
+
+Login noma'lum email uchun bitta parol xeshiga kam ishlardi (javob vaqti hisob borligini
+bildirardi); parol tiklash xati so'rov ichida yuborilib, mavjud email uchun javob SMTP vaqtiga
+cho'zilardi; ro'yxatda faqat muvaffaqiyatli hisob sanalardi — band-email xatosi orqali
+emaillarni cheksiz sinab chiqish mumkin edi, limitdan keyingi 429 sahifasi ham band-email
+xatosini chizardi; `/admin/` login va sozlamalardagi joriy parol tekshiruvi cheklanmagan edi;
+username boshqa hisob emailiga teng bo'lsa login 500 berardi.
+
+- Branch: `claude/pub14c-auth-enumeration`; kod commit **`d36ff89`**. Migration core0010
+  (`auth_register_attempt_ip_limit`, additive, default 20).
+- Qarorlar: backend noma'lum/noaniq identifikatorda ham xeshlaydi, username ustun, yagona email;
+  `AfterResponseRedirect` — tiklash ishi `close()`da (Daphne logida 302 qatori xatdan oldin);
+  ro'yxat xato urinishi sanaladi va limit sahifasi bog'lanmagan forma; band-email matni
+  tiklashni faqat xat yetadigan muhitda taklif qiladi; admin login va parol o'zgartirish
+  `auth_abuse`ga ulandi (login limitini bo'lishadi); parol tiklansa login hisoblagichi
+  tozalanadi. Serverda `sleep`, CAPTCHA va sessiya qatlami ataylab qo'shilmadi (reja
+  bo'limida sabablari); ro'yxat enumeration qoldig'i PUB-D14 (email tasdig'i)ga bog'liq.
+- Test: `manage.py test users.test_auth_enumeration users.test_auth_throttle
+  users.test_auth_clarity` — **58 test, OK (skipped=1, PostgreSQL)**; to'liq `manage.py test`
+  — **3083 test, OK (skipped=69)**. Vaqt shartnomasi soat bilan emas: har yo'lda xesh soni bir xil, javobdan oldin
+  `users_customuser`ga so'rov 0. Nazorat yugurishi: 12 ta buzilish (dummy xesh, eski lookup,
+  xato urinish yozuvi, bog'langan limit formasi, urinish peek'i, sinxron tiklash, ikki marta
+  close, close xatosi, tiklashdan keyin tozalash, parol o'zgartirish bloki, admin forma, tiklash
+  matni) — hammasi FAIL, tiklangach bayt-bayt bir xil.
+- Brauzer (DB nusxasi, ASGI): band email — yangi matn, fokus emailda, parol bo'sh; 20 xato
+  urinishdan keyin 429, umumiy xabar, band-email matni yo'q, email saqlangan; parol tiklashda
+  302 javob logi xatdan oldin. Vaqtinchalik sinov hisobi va hisoblagichlar o'chirildi.
+- Davom etilishi kerak: PUB1.4d (tiklash xatini production'da yetkazish dalili — SMTP owner
+  qo'lida). Ro'yxat enumeration'ini to'liq yopish uchun PUB-D14 (email tasdig'i) owner qarori.
+
 ## 2026-10-19 [Claude]: PUBLIC-01 / PUB1.4b — auth formalarida xato bir marta, aniq va o‘zbekcha
 
 Owner qarori (2026-10-19): PUB1.4a (pricing) keyinga qoldirildi — refund/renewal siyosati

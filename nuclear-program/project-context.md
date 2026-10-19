@@ -1405,6 +1405,7 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 - `users/auth_abuse.py` yagona qaror: login (hisob + IP, blok `authenticate`dan oldin), ro'yxat (IP), parol tiklash (email + IP) va Telegram init (IP). Limitdan keyin generik `429` + `Retry-After`; hisoblagich hisob mavjudligidan qat'i nazar yuradi.
 - `users.AuthThrottleBucket` faqat HMAC digest saqlaydi; fixed window, doimiy blok yo'q; saqlash xatosida fail-open. Limit/oynalar `OperationalSettings` (owner `Vaqt va limitlar` paneli, audit bilan), yoqish/o'chirish `auth_throttle_enforcement` flagida.
 - Control Center `auth_throttle` probe'i: enforcement OFF, production'da `TRUSTED_PROXY_HOPS=0` yoki jadval chegaradan katta bo'lsa AMBER.
+- Enumeration (PUB1.4c): login backend noma'lum identifikator uchun ham parolni xeshlaydi; parol tiklash xati `users.frontend_v1_auth.AfterResponseRedirect` bilan javobdan keyin yuboriladi; ro'yxatda xato urinish ham sanaladi (`auth_register_attempt_ip_limit`) va limit sahifasi formani tekshirmaydi. Yangi auth eshigi (admin, parol o'zgartirish kabi) `auth_abuse` yordamchisini chaqiradi — o'z hisoblagichini yozmaydi. `users/test_auth_enumeration.py` qulflaydi.
 
 ### Telegram orqali kirish (PUB1.0d, 2026-10-16)
 
