@@ -790,6 +790,16 @@
   "differences": []
  },
  {
+  "name": "certificate_verify",
+  "class": "public",
+  "anonymous": "404",
+  "authenticated": "404",
+  "deactivated": "404",
+  "head": "404",
+  "post": "405",
+  "differences": []
+ },
+ {
   "name": "certificates",
   "class": "private",
   "anonymous": "302>login",

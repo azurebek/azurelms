@@ -307,6 +307,8 @@ class AuthThrottleSettingsForm(_AuditedSettingsForm):
         "auth_reset_window_minutes": "daqiqa",
         "auth_telegram_init_ip_limit": "urinish",
         "auth_telegram_init_window_minutes": "daqiqa",
+        "certificate_verify_ip_limit": "so‘rov",
+        "certificate_verify_window_minutes": "daqiqa",
         "auth_throttle_rows_amber": "qator",
     }
 
@@ -324,6 +326,8 @@ class AuthThrottleSettingsForm(_AuditedSettingsForm):
             "auth_reset_window_minutes",
             "auth_telegram_init_ip_limit",
             "auth_telegram_init_window_minutes",
+            "certificate_verify_ip_limit",
+            "certificate_verify_window_minutes",
             "auth_throttle_rows_amber",
         )
         labels = {
@@ -338,6 +342,8 @@ class AuthThrottleSettingsForm(_AuditedSettingsForm):
             "auth_reset_window_minutes": "Parol tiklash oynasi",
             "auth_telegram_init_ip_limit": "Telegram kirishi: bitta manzildan",
             "auth_telegram_init_window_minutes": "Telegram kirishi oynasi",
+            "certificate_verify_ip_limit": "Sertifikat tekshiruvi: noto‘g‘ri kod",
+            "certificate_verify_window_minutes": "Sertifikat tekshiruvi oynasi",
             "auth_throttle_rows_amber": "Hisoblagich jadvali ogohlantirishi",
         }
 

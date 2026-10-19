@@ -39,6 +39,9 @@ DEFAULTS = {
     "auth_reset_window_minutes": 60,
     "auth_telegram_init_ip_limit": 10,
     "auth_telegram_init_window_minutes": 10,
+    # Sertifikat ochiq tekshiruvida noto'g'ri kod (PUB1.5c).
+    "certificate_verify_ip_limit": 30,
+    "certificate_verify_window_minutes": 15,
     "auth_throttle_rows_amber": 50000,
     # Kurs sahifasidan kirish/ro'yxatga o'tgan mehmonni o'sha kursga qaytaruvchi
     # imzoli havola muddati (PUB1.3d). Narx va qabul qaytishda qayta tekshiriladi.
@@ -69,6 +72,8 @@ BOUNDS = {
     "auth_reset_window_minutes": (1, 1440),
     "auth_telegram_init_ip_limit": (1, 5000),
     "auth_telegram_init_window_minutes": (1, 1440),
+    "certificate_verify_ip_limit": (1, 5000),
+    "certificate_verify_window_minutes": (1, 1440),
     "auth_throttle_rows_amber": (100, 10000000),
     "public_intent_minutes": (5, 1440),
 }
@@ -151,6 +156,8 @@ class Thresholds:
     auth_reset_window_minutes: int
     auth_telegram_init_ip_limit: int
     auth_telegram_init_window_minutes: int
+    certificate_verify_ip_limit: int
+    certificate_verify_window_minutes: int
     auth_throttle_rows_amber: int
     public_intent_minutes: int
 

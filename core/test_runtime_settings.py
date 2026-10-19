@@ -392,6 +392,8 @@ class RuntimeSettingsSurfaceTests(TestCase):
             "auth_throttle_rows_amber",
             # PUB1.4c — xato ro'yxat urinishlari (band emailni sinab chiqish).
             "auth_register_attempt_ip_limit",
+            # PUB1.5c — sertifikat tekshiruvida noto'g'ri kod.
+            "certificate_verify_ip_limit", "certificate_verify_window_minutes",
         ]
         for name in expected:
             self.assertContains(

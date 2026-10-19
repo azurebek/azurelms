@@ -4,7 +4,7 @@ from urllib.parse import urlencode
 from django.core.exceptions import ValidationError
 from django.views.generic import ListView, DetailView, View
 from django.db.models import F, Max, Q
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.urls import reverse
@@ -1251,6 +1251,32 @@ class CertificateAppendixView(CertificateV1Mixin, DetailView):
             attempt.published_result = learner_result(attempt)
         context['auto_print'] = self.request.GET.get('download') == '1'
         return context
+
+
+@require_safe
+def certificate_verify(request, token):
+    """Sertifikatni tasodifiy kod bilan ochiq tekshirish (PUB1.5c).
+
+    Owner qarorigacha o'chiq (`certificate_public_verifier`) — ayni "topilmadi" 404
+    (imkoniyat borligi ham bilinmaydi). Yo'q, yashirin va noto'g'ri kod bir xil 404;
+    ular IP bo'yicha sanaladi, kod esa hech qayerga yozilmaydi. Sarlavhalar (noindex/noarchive, no-store,
+    same-origin referrer) route siyosatidan — `frontend/public_response.py`.
+    """
+    from core.flags import flag_enabled
+    from users import auth_abuse
+
+    from . import certificate_verifier as verifier
+
+    if not flag_enabled("certificate_public_verifier"):
+        return render(request, "courses/certificate_verify.html", {"result": None}, status=404)
+    decision = auth_abuse.certificate_verify_blocked(request)
+    if not decision.allowed:
+        response = render(request, "courses/certificate_verify.html", {"blocked_message": decision.message}, status=429)
+        return auth_abuse.apply_throttle_headers(response, decision)
+    result = verifier.lookup(token)
+    if result is None:
+        auth_abuse.record_certificate_verify_miss(request)
+    return render(request, "courses/certificate_verify.html", {"result": result}, status=200 if result else 404)
 
 
 @login_required

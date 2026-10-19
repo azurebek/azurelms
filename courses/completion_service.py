@@ -109,6 +109,10 @@ def evaluate_course_completion(*, student, course):
             "certificate_id": certificate_id,
         },
     )
+    # Ochiq tekshiruv uchun tasodifiy kod (PUB1.5c); eski sertifikat ham shu yerda oladi.
+    from courses.certificate_verifier import ensure_public_token
+
+    ensure_public_token(certificate)
     if created:
         create_notification(
             recipient=student,

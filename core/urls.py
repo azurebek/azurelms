@@ -5,6 +5,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from frontend.views import home_view, about_view, legal_page_view
+from courses.views import certificate_verify
 from frontend.crawler_views import robots_txt, sitemap_xml
 from core import health_views
 from core import views as core_views
@@ -29,6 +30,8 @@ urlpatterns = [
     path('about/', about_view, name='about'),
     path('privacy-policy/', legal_page_view, {"page_type": "privacy"}, name='privacy_policy'),
     path('terms-of-service/', legal_page_view, {"page_type": "terms"}, name='terms_of_service'),
+    # Sertifikatni tasodifiy kod bilan ochiq tekshirish (PUB1.5c; owner flagi bilan).
+    path('certificates/verify/<str:token>/', certificate_verify, name='certificate_verify'),
     path('faq/', legal_page_view, {"page_type": "faq"}, name='faq_page'),
     # Crawler uchun: sitemap ko'rsatkichi va faqat e'lon qilingan canonical URL'lar (PUB1.1c).
     path('robots.txt', robots_txt, name='robots_txt'),

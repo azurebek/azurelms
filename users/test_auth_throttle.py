@@ -291,6 +291,7 @@ class OwnerPanelTests(TestCase):
             "auth_register_ip_limit", "auth_register_attempt_ip_limit", "auth_register_window_minutes",
             "auth_reset_account_limit", "auth_reset_ip_limit", "auth_reset_window_minutes",
             "auth_telegram_init_ip_limit", "auth_telegram_init_window_minutes", "auth_throttle_rows_amber",
+            "certificate_verify_ip_limit", "certificate_verify_window_minutes",
         )}
         payload.update(form_name="auth_throttle", change_reason="Jonli darsda o'quvchilar bloklandi", confirm_change="on")
         payload.update(overrides)

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <title>Sertifikat tekshiruvi · {{ site_settings.brand_name|default:"AzureLMS" }}</title>
+  {% include "components/brand_favicon.html" %}
+  {% comment %}
+    PUB1.5c: tasodifiy kod bilan ochiq tekshiruv. Faqat holat, ism ko'rinishi, kurs va
+    sana — ball, imtihonlar, email yoki ichki raqam yo'q. Tashqi shrift/skript yo'q:
+    kodli manzil hech qayerga Referer bo'lib ketmaydi. Chop etishga mos.
+  {% endcomment %}
+  <style>
+    :root { color-scheme: light dark; --ok: #15803d; --bad: #b42318; }
+    /* Qorong'i fonda kichik matn ham o'qilsin (kontrast >= 4.5:1). */
+    @media (prefers-color-scheme: dark) { :root { --ok: #4ade80; --bad: #f87171; } }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; box-sizing: border-box;
+           font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: Canvas; color: CanvasText; line-height: 1.6; }
+    main { width: 100%; max-width: 34rem; }
+    .brand { font-weight: 700; margin: 0 0 8px; }
+    h1 { font-size: 1.5rem; margin: 0 0 16px; }
+    .status { display: inline-block; padding: 4px 12px; border-radius: 999px; font-weight: 700; border: 2px solid currentColor; margin: 0 0 16px; }
+    .status--ok { color: var(--ok); }
+    .status--bad { color: var(--bad); }
+    dl { display: grid; grid-template-columns: max-content 1fr; gap: 8px 16px; margin: 0 0 16px; }
+    dt { color: GrayText; }
+    dd { margin: 0; overflow-wrap: anywhere; }
+    .note { color: GrayText; font-size: 0.9rem; margin: 0; }
+    @media (max-width: 420px) { dl { grid-template-columns: 1fr; gap: 2px; } dd { margin-bottom: 8px; } }
+    @media print { body { display: block; } .status { border-width: 1px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="brand">{{ site_settings.brand_name|default:"AzureLMS" }}</p>
+    <h1>Sertifikat tekshiruvi</h1>
+    {% if blocked_message %}
+    <p role="status" data-verify-state="blocked">{{ blocked_message }}</p>
+    {% elif result %}
+    <p class="status {% if result.is_revoked %}status--bad{% else %}status--ok{% endif %}" role="status" data-verify-state="{{ result.status }}">{{ result.status_label }}</p>
+    <dl>
+      <dt>Sertifikat egasi</dt><dd>{% if result.holder %}{{ result.holder }}{% else %}Ism ko‘rsatilmaydi{% endif %}</dd>
+      <dt>Kurs</dt><dd>{{ result.course_title }}</dd>
+      <dt>Berilgan sana</dt><dd>{{ result.issued_on|date:"d.m.Y" }}</dd>
+      {% if result.is_revoked and result.revoked_on %}<dt>Bekor qilingan sana</dt><dd>{{ result.revoked_on|date:"d.m.Y" }}</dd>{% endif %}
+    </dl>
+    {% if result.is_revoked %}
+    <p class="note">Bu sertifikat bekor qilingan va endi haqiqiy hisoblanmaydi.</p>
+    {% else %}
+    <p class="note">Bu sertifikat {{ site_settings.brand_name|default:"AzureLMS" }} tomonidan berilgan va amalda. Bu sahifa faqat shu ma’lumotlarni ko‘rsatadi.</p>
+    {% endif %}
+    {% else %}
+    <p role="status" data-verify-state="not_found">Sertifikat topilmadi. Havola to‘liq nusxalanganini tekshiring yoki sertifikat egasidan yangi havola so‘rang.</p>
+    {% endif %}
+  </main>
+</body>
+</html>

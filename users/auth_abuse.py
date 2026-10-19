@@ -58,6 +58,7 @@ SCOPE_RESET_ACCOUNT = "reset_account"
 SCOPE_RESET_IP = "reset_ip"
 SCOPE_TELEGRAM_INIT_IP = "telegram_init_ip"
 SCOPE_PASSWORD_CHANGE_ACCOUNT = "password_change_account"
+SCOPE_CERTIFICATE_VERIFY_IP = "certificate_verify_ip"
 
 #: scope → (limit sozlamasi, oyna sozlamasi) — `core.operational_settings`dagi nomlar.
 SCOPE_SETTINGS = {
@@ -70,6 +71,7 @@ SCOPE_SETTINGS = {
     SCOPE_TELEGRAM_INIT_IP: ("auth_telegram_init_ip_limit", "auth_telegram_init_window_minutes"),
     # Joriy parolni taxmin qilish — login taxmini bilan bir xil xavf, bir xil limit.
     SCOPE_PASSWORD_CHANGE_ACCOUNT: ("auth_login_account_limit", "auth_login_window_minutes"),
+    SCOPE_CERTIFICATE_VERIFY_IP: ("certificate_verify_ip_limit", "certificate_verify_window_minutes"),
 }
 
 THROTTLED_MESSAGE = (
@@ -310,6 +312,16 @@ def record_password_change_failure(user):
 
 def record_password_change_success(user):
     clear(SCOPE_PASSWORD_CHANGE_ACCOUNT, _password_change_key(user))
+
+
+def certificate_verify_blocked(request):
+    """Sertifikat tekshiruvi: shu manzildan noto'g'ri kodlar limitga yetganmi (PUB1.5c)."""
+    return peek(SCOPE_CERTIFICATE_VERIFY_IP, client_ip(request))
+
+
+def record_certificate_verify_miss(request):
+    """Topilmagan yoki noto'g'ri kod. Kodning o'zi hech qayerga yozilmaydi — faqat IP xeshi."""
+    record(SCOPE_CERTIFICATE_VERIFY_IP, client_ip(request))
 
 
 def consume_password_reset(request, email):
