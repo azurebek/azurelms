@@ -85,6 +85,10 @@
 .v1-error ul { list-style: none; }
 .v1-messages { display: grid; gap: var(--az-space-3); margin-bottom: var(--az-space-5); }
 .v1-telegram { display: grid; gap: var(--az-space-3); padding-top: var(--az-space-5); margin-top: var(--az-space-5); border-top: 1px solid var(--az-border); }
+.v1-telegram__wait { display: grid; gap: var(--az-space-3); padding: var(--az-space-4); border: 1px solid var(--az-border); border-radius: var(--az-radius, 12px); }
+.v1-telegram__code { font-family: var(--az-font-mono, ui-monospace, monospace); font-size: var(--az-text-lg, 1.125rem); letter-spacing: .18em; }
+.v1-telegram__steps { margin: 0; padding-inline-start: var(--az-space-5); display: grid; gap: var(--az-space-1); }
+.v1-telegram__actions { display: flex; flex-wrap: wrap; gap: var(--az-space-2); }
 .v1-card-note { margin-top: var(--az-space-4); }
 .v1-list-count { margin-bottom: var(--az-space-5); }
 .v1-noscript-nav { padding: var(--az-space-5); background: var(--az-surface); }

@@ -398,11 +398,15 @@ class TelegramAuthSession(models.Model):
     STATUS_AUTHENTICATED = 'authenticated'
     STATUS_EXPIRED = 'expired'
     STATUS_USED = 'used'
+    # Botda rad etildi: "Bu men emas", ro'yxat yopiq yoki hisob faol emas (PUB1.4e).
+    # Brauzer muddat tugashini kutmasdan natijani biladi.
+    STATUS_DECLINED = 'declined'
     STATUS_CHOICES = [
         (STATUS_PENDING, 'Kutilmoqda'),
         (STATUS_AUTHENTICATED, 'Tizimga kirdi'),
         (STATUS_EXPIRED, 'Muddati o\'tgan'),
         (STATUS_USED, 'Ishlatilgan'),
+        (STATUS_DECLINED, 'Rad etilgan'),
     ]
 
     TOKEN_TTL = timezone.timedelta(minutes=5)

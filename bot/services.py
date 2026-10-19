@@ -160,6 +160,103 @@ def get_linked_user(telegram_user_id):
     return CustomUser.objects.filter(telegram_id=telegram_user_id).first()
 
 
+TELEGRAM_AUTH_GONE_MESSAGE = "Kirish havolasi eskirgan yoki yopilgan. Saytda qaytadan boshlang."
+
+
+def describe_telegram_auth_request(token, telegram_user_id):
+    """`/start auth_…`: tasdiqlashdan OLDIN nima so'ralayotganini aytadi (PUB1.4e).
+
+    Bot havolani ochgan zahoti kirishni tasdiqlamaydi: begona odam o'z
+    brauzerida boshlagan havolani yuborib, uni bosganning hisobiga kirib olardi.
+    `ok=True` bo'lsa xabar «Kirishni tasdiqlash» / «Bu men emas» tugmalari bilan
+    yuboriladi. Baribir davom eta olmaydigan hisob (faol emas; ro'yxat yopiq va
+    ulanmagan) uchun oqim shu yerda yopiladi — tasdiq tugmasi befoyda bo'lardi.
+    """
+    if not token or not token.startswith("auth_"):
+        return ActionResult(ok=False, code="invalid_format", message="Noto'g'ri token formati.")
+    from django.db import transaction
+
+    from users import telegram_auth_service as telegram_auth
+    from users.models import CustomUser, TelegramAuthSession
+    from users.registration_policy import (
+        CHANNEL_TELEGRAM_DEEPLINK,
+        IDENTITY_INACTIVE_MESSAGE,
+        can_create_account,
+        existing_identity_may_continue,
+    )
+
+    auth_token = token[5:]
+    with transaction.atomic():
+        session, state = telegram_auth.lock_for_confirmation(auth_token)
+        if session is None or state != TelegramAuthSession.STATUS_PENDING:
+            return ActionResult(ok=False, code="expired", message=TELEGRAM_AUTH_GONE_MESSAGE)
+        user = CustomUser.objects.filter(telegram_id=telegram_user_id).first()
+        if user is not None and not existing_identity_may_continue(user):
+            telegram_auth.mark_declined(session)
+            return ActionResult(ok=False, code="identity_inactive", message=IDENTITY_INACTIVE_MESSAGE)
+        if user is None:
+            decision = can_create_account(CHANNEL_TELEGRAM_DEEPLINK)
+            if not decision.allowed:
+                telegram_auth.mark_declined(session)
+                return ActionResult(ok=False, code=decision.code, message=decision.message)
+
+    code = telegram_auth.confirmation_code(auth_token)
+    if user is not None:
+        what = "AzureLMS saytida hisobingizga kirish so'raldi."
+    else:
+        what = (
+            "AzureLMS saytida Telegram orqali kirish so'raldi. Bu Telegram hisobiga profil "
+            "ulanmagan — tasdiqlasangiz, yangi profil ochiladi va unga Telegram ismingiz "
+            "hamda username'ingiz yoziladi. Telefon raqamingiz so'ralmaydi."
+        )
+    return ActionResult(
+        ok=True,
+        code="confirm",
+        message=(
+            f"🔐 {what}\n\n"
+            f"Saytdagi tasdiqlash kodi: {code}\n\n"
+            "Bu so'rovni hozir o'zingiz boshlagan bo'lsangiz va saytda ham shu kod ko'rinsa, "
+            "«Kirishni tasdiqlash»ni bosing.\n"
+            "Havolani sizga boshqa odam yuborgan bo'lsa, «Bu men emas»ni bosing — "
+            "u hisobingizga kira olmaydi."
+        ),
+    )
+
+
+def decline_telegram_auth_token(token, telegram_user_id):
+    """«Bu men emas»: oqim yopiladi, hech kim shu havola bilan kira olmaydi (PUB1.4e).
+
+    Kutilayotgan oqimni chatdagi tugmani bosgan har kim yopa oladi (xabar uning
+    shaxsiy chatida). Tasdiqlangan, lekin brauzer hali olmagan oqimni faqat uni
+    tasdiqlagan Telegram hisobi qaytarib oladi.
+    """
+    if not token or not token.startswith("auth_"):
+        return ActionResult(ok=False, code="invalid_format", message="Noto'g'ri token formati.")
+    from django.db import transaction
+
+    from users import telegram_auth_service as telegram_auth
+    from users.models import TelegramAuthSession
+
+    with transaction.atomic():
+        session, state = telegram_auth.lock_for_confirmation(token[5:])
+        if session is None:
+            return ActionResult(ok=False, code="expired", message=TELEGRAM_AUTH_GONE_MESSAGE)
+        owner_matches = session.user is not None and session.user.telegram_id == telegram_user_id
+        if state == TelegramAuthSession.STATUS_PENDING or (
+            state == TelegramAuthSession.STATUS_AUTHENTICATED and owner_matches
+        ):
+            telegram_auth.mark_declined(session)
+            return ActionResult(
+                ok=True,
+                code="declined",
+                message=(
+                    "Rad etildi. Bu havola bilan hech kim hisobingizga kira olmaydi.\n"
+                    "Havolani sizga boshqa odam yuborgan bo'lsa, unga ishonmang."
+                ),
+            )
+    return ActionResult(ok=False, code="expired", message=TELEGRAM_AUTH_GONE_MESSAGE)
+
+
 def handle_telegram_auth_token(token, telegram_user_id, first_name="", last_name="", telegram_username=""):
     """Telegram orqali login/register qilish (Deep-link auth tokenini tasdiqlash)."""
     if not token or not token.startswith("auth_"):
@@ -179,8 +276,10 @@ def handle_telegram_auth_token(token, telegram_user_id, first_name="", last_name
 
     def login_existing(user):
         # Faolsizlantirilgan hisob deep-link orqali webga qaytmaydi: keyingi
-        # `django_login` `is_active`ni tekshirmaydi (PUB1.0b).
+        # `django_login` `is_active`ni tekshirmaydi (PUB1.0b). Oqim yopiladi —
+        # brauzer muddat tugashini kutmasdan natijani ko'radi (PUB1.4e).
         if not existing_identity_may_continue(user):
+            telegram_auth.mark_declined(session)
             return ActionResult(ok=False, code="identity_inactive", message=IDENTITY_INACTIVE_MESSAGE)
         telegram_auth.mark_authenticated(session, user)
         return ActionResult(
@@ -206,10 +305,12 @@ def handle_telegram_auth_token(token, telegram_user_id, first_name="", last_name
                 return login_existing(user)
             else:
                 # Register: yangi akkaunt faqat yagona siyosat ruxsat bersa.
-                # Rad etilganda sessiya pending qoladi — brauzerdagi niyat
-                # yo'qolmaydi, bot esa generik matn ko'rsatadi.
+                # Rad etilganda oqim `declined` — brauzer darhol "tasdiqlanmadi"
+                # deydi (PUB1.4e; ilgari muddat tugaguncha jim kutardi). Niyat
+                # brauzerdagi sahifa manzilida qoladi, yangi oqim bir bosishda.
                 decision = can_create_account(CHANNEL_TELEGRAM_DEEPLINK)
                 if not decision.allowed:
+                    telegram_auth.mark_declined(session)
                     return ActionResult(ok=False, code=decision.code, message=decision.message)
 
                 email = f"tg_{telegram_user_id}@telegram.local"

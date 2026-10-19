@@ -1437,6 +1437,8 @@ def telegram_auth_init(request):
         'ok': True,
         'token': token,
         'bot_link': telegram_auth.bot_link(token),
+        # Botdagi tasdiq xabarida ham shu kod ko'rinadi (PUB1.4e).
+        'code': telegram_auth.confirmation_code(token),
         # Klient so'rov oralig'i va to'xtash vaqtini serverdan oladi.
         'poll_ms': telegram_auth.POLL_INTERVAL_MS,
         'expires_in': int(TelegramAuthSession.TOKEN_TTL.total_seconds()),

@@ -25,6 +25,8 @@ from django.conf import settings
 from bot.keyboards import BTN_HELP, BTN_HIDE, hide_keyboard, workspace_keyboard
 from bot.services import (
     GUEST_DEMO_QUESTION_LIMIT,
+    decline_telegram_auth_token,
+    describe_telegram_auth_request,
     guest_demo_answer,
     link_user_from_start_token,
     list_plans,
@@ -48,6 +50,21 @@ ROLE_LABELS = {
 
 
 # ---------------------------------------------------------------- keyboards
+
+# Saytga kirishni tasdiqlash (PUB1.4e). `callback_data` ≤ 64 bayt: prefiks + 43
+# belgili token sig'adi.
+TG_AUTH_CONFIRM = "tgauth:ok:"
+TG_AUTH_DECLINE = "tgauth:no:"
+
+
+def telegram_auth_markup(auth_token):
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="✅ Kirishni tasdiqlash", callback_data=TG_AUTH_CONFIRM + auth_token)],
+            [InlineKeyboardButton(text="✋ Bu men emas", callback_data=TG_AUTH_DECLINE + auth_token)],
+        ]
+    )
+
 
 def guest_menu_markup():
     return InlineKeyboardMarkup(
@@ -238,24 +255,13 @@ async def cmd_start_handler(
 
     if token:
         if token.startswith("auth_"):
-            from bot.services import handle_telegram_auth_token
-            result = await sync_to_async(handle_telegram_auth_token)(
-                token,
-                message.from_user.id,
-                message.from_user.first_name or "",
-                message.from_user.last_name or "",
-                message.from_user.username or "",
-            )
-            await message.answer(result.message)
-            if result.ok:
-                # Bu yo'l ham hisob yaratishi/bog'lashi mumkin — rol endi
-                # ma'lum, ya'ni klaviatura shu zahoti qo'yilishi kerak.
-                from bot.middleware import resolve_identity
-
-                _, auth_role = await sync_to_async(resolve_identity)(
-                    message.from_user.id
-                )
-                await send_workspace_keyboard(message, auth_role)
+            # Havola ochilgan zahoti kirish tasdiqlanmaydi (PUB1.4e): avval nima
+            # so'ralayotgani va kod ko'rsatiladi, odam tugma bilan qaror qiladi.
+            result = await sync_to_async(describe_telegram_auth_request)(token, message.from_user.id)
+            if not result.ok:
+                await message.answer(result.message)
+                return
+            await message.answer(result.message, reply_markup=telegram_auth_markup(token[len("auth_"):]))
             return
 
         result = await sync_to_async(link_user_from_start_token)(
@@ -314,6 +320,38 @@ async def help_handler(message: types.Message, lms_user, lms_role):
 
 
 # ---------------------------------------------------------------- callbacks
+
+@router.callback_query(F.data.startswith(TG_AUTH_CONFIRM))
+async def cb_telegram_auth_confirm(callback: types.CallbackQuery):
+    from bot.middleware import resolve_identity
+    from bot.services import handle_telegram_auth_token
+
+    person = callback.from_user
+    result = await sync_to_async(handle_telegram_auth_token)(
+        "auth_" + callback.data[len(TG_AUTH_CONFIRM):],
+        person.id,
+        person.first_name or "",
+        person.last_name or "",
+        person.username or "",
+    )
+    await callback.answer()
+    # Tugmalar olib tashlanadi: bitta xabar bir marta qaror qiladi.
+    await callback.message.edit_text(result.message)
+    if result.ok:
+        # Bu yo'l ham hisob yaratishi/bog'lashi mumkin — rol endi ma'lum, ya'ni
+        # klaviatura shu zahoti qo'yiladi.
+        _, auth_role = await sync_to_async(resolve_identity)(person.id)
+        await send_workspace_keyboard(callback.message, auth_role)
+
+
+@router.callback_query(F.data.startswith(TG_AUTH_DECLINE))
+async def cb_telegram_auth_decline(callback: types.CallbackQuery):
+    result = await sync_to_async(decline_telegram_auth_token)(
+        "auth_" + callback.data[len(TG_AUTH_DECLINE):], callback.from_user.id
+    )
+    await callback.answer()
+    await callback.message.edit_text(result.message)
+
 
 @router.callback_query(F.data == "onb:menu")
 async def cb_menu(callback: types.CallbackQuery):

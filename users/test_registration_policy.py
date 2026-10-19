@@ -133,7 +133,7 @@ class TelegramDeepLinkTests(TestCase):
     def counts(self):
         return User.objects.count(), Notification.objects.count()
 
-    def test_closed_registration_rejects_unknown_identity_and_keeps_intent(self):
+    def test_closed_registration_rejects_unknown_identity_and_tells_the_browser(self):
         set_registration(False)
         token = self.start_session()
         before = self.counts()
@@ -141,9 +141,15 @@ class TelegramDeepLinkTests(TestCase):
         self.assertFalse(result.ok)
         self.assertEqual(result.code, "registration_closed")
         self.assertEqual(self.counts(), before)
+        # PUB1.4e: oqim yopiladi — brauzer muddat tugashini jim kutmaydi. Niyat
+        # sahifa manzilida qoladi, yangi oqim bir bosishda boshlanadi.
         session = TelegramAuthSession.objects.get(token=token)
-        self.assertEqual(session.status, TelegramAuthSession.STATUS_PENDING)
+        self.assertEqual(session.status, TelegramAuthSession.STATUS_DECLINED)
         self.assertIsNone(session.user)
+        status = self.client.get(reverse("telegram_auth_status", args=[token])).json()
+        self.assertEqual(status, {"ok": True, "status": "declined"})
+        self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertNotEqual(self.start_session(), token)
 
     def test_open_registration_creates_exactly_one_account(self):
         set_registration(True)
