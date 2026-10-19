@@ -1985,8 +1985,12 @@ oqim va `static/js/telegram-login.js` olib tashlandi. Panel JS’siz yashirin (o
 to‘xtatildi, cheklandi; jonli hudud faqat holat o‘zgarganda gapiradi, oxirgi daqiqa bir marta
 e’lon qilinadi; sahifaga qaytilganda (`visibilitychange`) natija darhol tekshiriladi. Kirish matni
 ro‘yxat holatiga mos (`public_registration_open`). Niyat login URL’dagi `next` orqali.
-**Qilinmagan:** QR kod — yangi kutubxona (masalan, `segno`) owner ruxsati bilan qo‘shiladi; native
-AT/klaviatura va real telefon qabul tekshiruvi owner’da.
+**QR (2026-10-19, owner ruxsati bilan):** `segno==1.6.6` (sof Python, bog‘liqliksiz) — init javobi
+bot havolasining SVG `data:` QR’ini beradi (`qr_data_uri`, CSP `img-src data:`), JS faqat
+`data:image/svg+xml`ni ko‘rsatadi; telefonda (<640px) yashirin — o‘z ekranini skanerlab bo‘lmaydi.
+QR `zxing-cpp` bilan dekodlanib aynan bot havolasi ekani tekshirildi. Docker image qayta
+qurilishi kerak (yangi paket). **Ochiq:** native AT/klaviatura va real Telegram qabul tekshiruvi
+owner’da.
 
 **Ish:** method-split backend uchun explicit privacy/context copy, QR/deep-link,
 countdown, pending/authenticated/expired/uncertain/cancel, manual check, intended

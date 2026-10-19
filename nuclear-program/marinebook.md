@@ -16,6 +16,23 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-19 [Claude]: PUBLIC-01 / PUB1.4e — Telegram kirishiga QR kod
+
+Owner ruxsati bilan (2026-10-19) PUB1.4e'da qoldirilgan QR qo'shildi: kompyuterda boshlagan odam
+telefon kamerasi bilan skanerlaydi va tasdiqni telefondagi Telegramda qiladi.
+
+- Branch: `claude/pub14e-telegram-qr`; kod commit **`feadc61`**. Yangi bog'liqlik: `segno==1.6.6`
+  (sof Python, o'z bog'liqligi yo'q) — **Docker image qayta qurilishi kerak**. Migration yo'q.
+- Qarorlar: init javobida `qr` — bot havolasining SVG `data:` URI'si (oq fon, CSP `img-src data:`
+  allaqachon ruxsat beradi); JS faqat `data:image/svg+xml`ni yuklaydi; telefonda (<640px) QR
+  yashirin, havola tugmasi qoladi; `figcaption` va `alt` bilan.
+- Test: `users.test_telegram_auth_ux` — 15 test, OK; `node --test` **193/193**; to'liq
+  `manage.py test` — **3098 test, OK (skipped=69)**. QR `zxing-cpp` (vaqtinchalik papkada, venv'ga emas) bilan
+  dekodlandi — natija aynan bot havolasi (version 5). Nazorat: SVG bo'lmagan QR yuklanadi,
+  init'da QR yo'q, ko'rinadigan QR qutisi — 3/3 FAIL, tiklangach bayt-bayt bir xil.
+- Brauzer: kompyuterda 164px QR, 375px'da yashirin va siljish yo'q. Jonli server ilova
+  tomonidan to'xtatilgan ekan — qayta ishga tushirildi (telefon manzili yana ishlaydi).
+
 ## 2026-10-19 [Claude]: PUBLIC-01 / PUB1.4e — Telegram orqali kirish: tugma bilan tasdiq va tushunarli holatlar
 
 Bot `/start auth_…` olgan zahoti kirishni tasdiqlardi: begona odam o'z brauzerida boshlagan
