@@ -21,7 +21,8 @@ from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sessions.backends.db import SessionStore
 from django.core import mail
-from django.db import connection
+from django.core.signals import request_finished
+from django.db import close_old_connections, connection
 from django.test import RequestFactory, TestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
@@ -56,6 +57,20 @@ def enforce(enabled=True):
 
 def bucket_count(scope):
     return AuthThrottleBucket.objects.filter(scope=scope).count()
+
+
+def close_like_the_test_client(response):
+    """`close()` — test client kabi: `request_finished` DB ulanishini yopmaydi.
+
+    Haqiqiy serverda `close_old_connections` shu signalda eski ulanishni yopadi;
+    test tranzaksiyasi ichida esa (PostgreSQL) bu ulanishni o'ldirib, keyingi
+    testlarni sindirardi.
+    """
+    request_finished.disconnect(close_old_connections)
+    try:
+        response.close()
+    finally:
+        request_finished.connect(close_old_connections)
 
 
 @override_settings(PASSWORD_HASHERS=["django.contrib.auth.hashers.MD5PasswordHasher"])
@@ -183,7 +198,7 @@ class PasswordResetDeferredWorkTests(TestCase):
     def test_the_response_is_ready_before_any_account_lookup_or_mail(self):
         # Birinchi so'rov IP hisoblagich qatorini yaratadi (+INSERT) — ikkala holat
         # bir xil boshlanishi uchun oldindan isitiladi.
-        self.run_view("isitish@example.test")[0].close()
+        close_like_the_test_client(self.run_view("isitish@example.test")[0])
         before_response, mails = {}, {}
         for email in ("ali@example.test", "yoq@example.test"):
             mail.outbox.clear()
@@ -194,8 +209,8 @@ class PasswordResetDeferredWorkTests(TestCase):
                 self.assertEqual(mail.outbox, [])
                 self.assertFalse([sql for sql in queries if "users_customuser" in sql], queries)
             before_response[email] = len(queries)
-            response.close()
-            response.close()  # ikkinchi chaqiruv xatni qayta yubormaydi
+            close_like_the_test_client(response)
+            close_like_the_test_client(response)  # ikkinchi chaqiruv xatni qayta yubormaydi
             mails[email] = len(mail.outbox)
         self.assertEqual(before_response["ali@example.test"], before_response["yoq@example.test"])
         self.assertEqual(mails, {"ali@example.test": 1, "yoq@example.test": 0})
@@ -210,7 +225,7 @@ class PasswordResetDeferredWorkTests(TestCase):
         response, _ = self.run_view("ali@example.test")
         with mock.patch.object(UzbekPasswordResetForm, "save", side_effect=RuntimeError("shablon")):
             with self.assertLogs("users.frontend_v1_auth", level="ERROR"):
-                response.close()
+                close_like_the_test_client(response)
         self.assertEqual(mail.outbox, [])
 
 
