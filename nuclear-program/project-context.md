@@ -1418,6 +1418,7 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 
 - Ochiq tekshiruv faqat `courses/certificate_verifier.py` orqali: `lookup(token)` minimal proyeksiya (bog'liq jadvalga so'rov yo'q), holat o'zgarishi `set_public_status` (sabab + `verification_revision` CAS + audit). Kodni (`public_token`) logga, auditga, xabarga yoki qidiruvga chiqarmang; yangi sertifikat `ensure_public_token` bilan kod oladi.
 - `/certificates/verify/<token>/` flag `certificate_public_verifier` (default OFF) ostida; o'chiq, yo'q, yashirin va noto'g'ri kod bir xil 404. `courses/test_certificate_verifier.py` qulflaydi.
+- To'liq sertifikat hujjati va ballar ilovasi faqat `can_view_document` (egasi yoki faol xodim) bilan; eski `AZ-…` havola boshqalarga minimal ko'rinish (flag `certificate_legacy_public_view`). Sertifikatga yangi ochiq maydon qo'shsangiz — minimal proyeksiyaga emas, egasining hujjatiga. `courses/test_certificate_legacy.py` qulflaydi.
 
 ### Brauzer xotirasi va tashqi manbalar (PUB1.5b, 2026-10-19)
 

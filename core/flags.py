@@ -150,6 +150,16 @@ FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
         runbook="OFF: yangi havola 404. Qaysi ma'lumot ochiq ko'rinishi — owner qarori (PUB-D4/PUB-D15).",
     ),
     FlagDefinition(
+        slug="certificate_legacy_public_view",
+        label="Eski sertifikat havolasi — o'tish davri",
+        description=(
+            "Eski `AZ-…` havolani egasi yoki xodim bo'lmagan odam ochsa minimal tasdiq (holat, qisqa ism, "
+            "kurs, sana) ko'radi. O'chirilsa — “topilmadi”. Egasi va xodimlar to'liq hujjatni har doim ko'radi."
+        ),
+        default=True, category="Frontend",
+        runbook="Owner o'tish davrini tugatganda o'chiradi (Control Center'dagi eski havola ochilishlari soniga qarab).",
+    ),
+    FlagDefinition(
         slug="frontend_v1_records",
         label="Frontend V1 — yozuvlar va yordam",
         description="Sertifikatlar, davomat, obunalar, reyting, bildirishnomalar va yordam rendererlariga V1.",

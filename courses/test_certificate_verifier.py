@@ -244,7 +244,9 @@ class StatusChangeTests(VerifierWorld):
         self.assertEqual(self.certificate.public_status, Certificate.PUBLIC_REVOKED)
         self.assertNotIn(self.token, out.getvalue())
 
-    def test_legacy_routes_are_unchanged_for_now(self):
-        # Eski havolani ko'chirish va ilovani yopish — PUB1.5d.
+    def test_legacy_link_shows_strangers_only_the_minimal_projection(self):
+        # PUB1.5d: eski havola boshqa odamga to'liq hujjat (ball) bermaydi.
         response = self.client.get(reverse("certificate_detail", args=[self.certificate.certificate_id]))
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Ali V.")
+        self.assertNotContains(response, "91")

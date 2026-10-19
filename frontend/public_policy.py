@@ -108,7 +108,6 @@ PUBLIC_SURFACES = (
     _sensitive("telegram_auth_cancel", POST_ONLY),
     # Sertifikat aniq ID bilan ochiladi — token kabi: noindex, saqlanmaydi.
     _sensitive("certificate_detail", READ),
-    _sensitive("certificate_appendix", READ),
     # Ochiq sertifikat tekshiruvi (PUB1.5c): tasodifiy kod — token kabi.
     _sensitive("certificate_verify", READ),
     # Telegram Mini App kirish qobig'i va initData tekshiruvi.
@@ -172,6 +171,8 @@ PRIVATE_ROUTES = frozenset({
     "backoffice_workspace_quiz_new", "backoffice_workspace_quiz_edit", "backoffice_users", "backoffice_chats",
     "backoffice_courses", "backoffice_course_create", "backoffice_course_edit", "backoffice_lessons",
     "backoffice_lesson_edit", "backoffice_exams", "backoffice_exam_edit", "backoffice_ai_control",
+    # Ballar ilovasi — faqat egasi va xodimlar (PUB1.5d).
+    "certificate_appendix",
     "backoffice_claim_evidence", "backoffice_legal_documents", "backoffice_legal_new", "backoffice_legal_edit",
     "backoffice_legal_preview",
     # O'qituvchi paneli.

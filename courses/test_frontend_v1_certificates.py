@@ -19,6 +19,8 @@ class CertificateDocumentV1Tests(TestCase):
         set_flag('frontend_v1_certificates', enabled=True, reason='Certificate port')
         self.detail = reverse('certificate_detail', args=[self.certificate.certificate_id])
         self.appendix = reverse('certificate_appendix', args=[self.certificate.certificate_id])
+        # To'liq hujjat va ballar ilovasi faqat egasi va xodimlarga (PUB1.5d).
+        self.client.force_login(self.student)
 
     def test_existing_public_exact_id_policy_and_no_get_mutations(self):
         for url, template in [(self.detail, 'detail'), (self.appendix, 'appendix')]:
@@ -76,6 +78,7 @@ class CertificateDocumentV1Tests(TestCase):
         self.assertContains(response, 'Bo‘sh qiymat nol emas')
 
     def test_authenticated_back_link_and_records_hint(self):
+        self.client.logout()
         self.assertNotContains(self.client.get(self.detail), 'Sertifikatlarim')
         self.client.force_login(self.student)
         self.assertContains(self.client.get(self.detail), 'Sertifikatlarim')

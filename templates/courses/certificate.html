@@ -75,7 +75,7 @@
     <div class="cert-foot">
       <div class="cert-verify">
         TEKSHIRISH: ushbu sertifikat haqiqiyligini<br>
-        {{ request.scheme }}://{{ request.get_host }}{% url 'certificate_detail' certificate.certificate_id %}<br>
+        {% if certificate_verify_url %}{{ certificate_verify_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% url 'certificate_detail' certificate.certificate_id %}{% endif %}<br>
         havolasi orqali tasdiqlash mumkin.
       </div>
       <div class="cert-sign">
