@@ -102,6 +102,17 @@ def confirmation_code(token):
     return f"{int(digest[:8], 16) % 1000:03d}"
 
 
+def qr_data_uri(link):
+    """Bot havolasining QR kodi — SVG `data:` URI (CSP `img-src data:` ruxsat beradi).
+
+    Kompyuterda boshlagan odam telefon kamerasi bilan skanerlaydi va tasdiqni
+    telefondagi Telegramda qiladi. Oq fon ataylab: qorong'i mavzuda ham o'qiladi.
+    """
+    import segno
+
+    return segno.make(link, error='m', micro=False).svg_data_uri(scale=4, border=2, dark='#111827', light='#ffffff')
+
+
 def bot_link(token):
     bot_username = (getattr(settings, 'BOT_USERNAME', '') or 'azureLMSbot').strip('@')
     return f"https://t.me/{bot_username}?start=auth_{token}"

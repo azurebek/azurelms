@@ -45,6 +45,9 @@
   .auth-tg-actions{ display:flex; flex-wrap:wrap; gap:8px; }
   .auth-tg-actions .auth-alt{ flex:1 1 auto; padding:0 14px; }
   .auth-alt--primary{ border-color:var(--azure); color:var(--azure); font-weight:600; }
+  .auth-tg-qr{ display:grid; justify-items:start; gap:6px; margin:0; }
+  .auth-tg-qr img{ width:164px; height:164px; padding:4px; background:#fff; border:1px solid var(--line); border-radius:8px; }
+  @media (max-width:639px){ .auth-tg-qr{ display:none; } }
   .auth-tg-quiet{ min-height:44px; padding:0 12px; border:0; background:none; color:var(--ink-3); font:inherit; font-size:13px; text-decoration:underline; cursor:pointer; }
   .auth-intent{ background:var(--azure-soft); color:var(--ink-2); border:1px solid var(--azure); border-radius:9px; padding:11px 13px; font-size:12.5px; line-height:1.5; margin:0 0 18px; }
   .auth-legal{ text-align:center; font-size:12px; color:var(--ink-4); }

@@ -89,6 +89,10 @@
 .v1-telegram__code { font-family: var(--az-font-mono, ui-monospace, monospace); font-size: var(--az-text-lg, 1.125rem); letter-spacing: .18em; }
 .v1-telegram__steps { margin: 0; padding-inline-start: var(--az-space-5); display: grid; gap: var(--az-space-1); }
 .v1-telegram__actions { display: flex; flex-wrap: wrap; gap: var(--az-space-2); }
+.v1-telegram__qr { display: grid; justify-items: start; gap: var(--az-space-2); margin: 0; }
+.v1-telegram__qr img { width: 164px; height: 164px; padding: 4px; background: #fff; border: 1px solid var(--az-border); border-radius: 8px; }
+/* Telefonda o'z ekranini skanerlab bo'lmaydi — havola tugmasi yetarli. */
+@media (width < 640px) { .v1-telegram__qr { display: none; } }
 .v1-card-note { margin-top: var(--az-space-4); }
 .v1-list-count { margin-bottom: var(--az-space-5); }
 .v1-noscript-nav { padding: var(--az-space-5); background: var(--az-surface); }

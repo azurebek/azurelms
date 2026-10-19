@@ -91,6 +91,14 @@ class ConfirmationStepTests(FlowMixin, TestCase):
         self.assertIn(f"Saytdagi tasdiqlash kodi: {flow['code']}", prompt.message)
         self.assertIn("Bu men emas", prompt.message)
 
+    def test_init_returns_an_svg_qr_of_exactly_this_bot_link(self):
+        flow = self.start()
+        self.assertTrue(flow["qr"].startswith("data:image/svg+xml"))
+        self.assertEqual(flow["qr"], telegram_auth.qr_data_uri(flow["bot_link"]))
+        other = self.start()
+        self.assertNotEqual(other["qr"], flow["qr"])
+        self.assertNotIn(flow["token"], flow["qr"])  # QR tasvir, token matn sifatida chiqmaydi
+
     def test_reading_the_request_authenticates_nobody(self):
         User.objects.create_user("tg-ali", email="ali@example.test", telegram_id=TG_ID)
         flow = self.start()
@@ -231,6 +239,7 @@ class PanelMarkupTests(TestCase):
                     self.assertNotIn("js/telegram-login.js", html)
                     self.assertNotIn('href="#"', html)
                     self.assertIn("data-telegram-code", html)
+                    self.assertRegex(html, r"<figure[^>]*data-telegram-qr-box hidden")
                     self.assertIn("Telegram orqali kirish uchun JavaScript kerak", html)
                     self.assertIn("Telefon raqamingiz so‘ralmaydi", html)
                     self.assertIn("?next=%2Fcourses%2F", html)
