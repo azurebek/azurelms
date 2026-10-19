@@ -58,7 +58,7 @@
 </form>
 
 <div class="auth-divider"><span class="ln"></span><span class="tx">yoki</span><span class="ln"></span></div>
-{% include "components/telegram_auth_panel.html" with panel_class="auth-tg" text_class="auth-tg-text" start_class="auth-alt" start_icon="bi bi-telegram" start_label="Telegram orqali davom etish" waiting_class="auth-tg-wait" code_class="auth-tg-code" steps_class="auth-tg-steps" link_class="auth-alt auth-alt--primary" actions_class="auth-tg-actions" secondary_class="auth-alt" quiet_class="auth-tg-quiet" %}
+{% include "components/telegram_auth_panel.html" with panel_class="auth-tg" text_class="auth-tg-text" start_class="auth-alt" start_icon="bi bi-telegram" start_label="Telegram orqali davom etish" waiting_class="auth-tg-wait" code_class="auth-tg-code" qr_class="auth-tg-qr" steps_class="auth-tg-steps" link_class="auth-alt auth-alt--primary" actions_class="auth-tg-actions" secondary_class="auth-alt" quiet_class="auth-tg-quiet" %}
 
 <p class="auth-foot-link">Hisobingiz bormi? <a href="{% url 'login' %}{% if next %}?next={{ next|urlencode:"" }}{% endif %}">Kirish</a></p>
 

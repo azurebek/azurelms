@@ -1433,10 +1433,13 @@ def telegram_auth_init(request):
         response = JsonResponse({'ok': False, 'status': 'throttled', 'message': decision.message}, status=429)
         return auth_abuse.apply_throttle_headers(response, decision)
     token = telegram_auth.start_flow(request, request.POST.get('next', ''))
+    link = telegram_auth.bot_link(token)
     return JsonResponse({
         'ok': True,
         'token': token,
-        'bot_link': telegram_auth.bot_link(token),
+        'bot_link': link,
+        # Kompyuterda: telefon kamerasi bilan skanerlash uchun (PUB1.4e).
+        'qr': telegram_auth.qr_data_uri(link),
         # Botdagi tasdiq xabarida ham shu kod ko'rinadi (PUB1.4e).
         'code': telegram_auth.confirmation_code(token),
         # Klient so'rov oralig'i va to'xtash vaqtini serverdan oladi.

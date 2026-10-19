@@ -18,9 +18,9 @@ function harness({registration = false} = {}) {
     };
   }
   for (const name of ['password-toggle', 'telegram-start', 'telegram-waiting', 'telegram-code', 'telegram-countdown',
-    'telegram-link', 'telegram-status', 'telegram-check', 'telegram-cancel']) element(name);
+    'telegram-link', 'telegram-qr-box', 'telegram-qr', 'telegram-status', 'telegram-check', 'telegram-cancel']) element(name);
   elements['password-toggle'].attrs['aria-controls'] = 'password';
-  elements['telegram-waiting'].hidden = true;
+  elements['telegram-waiting'].hidden = elements['telegram-qr-box'].hidden = true;
   const password = {type: 'password', value: 'synthetic-test-password'};
   const queue = [], requests = [], navigation = [], timers = new Map(), events = {}, documentEvents = {};
   let sequence = 0;
@@ -334,4 +334,23 @@ test('the manual check polls the same token now and keeps one schedule', async (
   assert.equal(h.requests[1].url, '/users/telegram-auth/status/temporary-token/');
   const polls = [...h.timers.values()].filter(timer => timer.delay !== 15000);
   assert.equal(polls.length, 1);
+});
+
+test('a server SVG QR is shown while waiting and cleared on stop', async () => {
+  const h = harness();
+  await h.init({qr: 'data:image/svg+xml;charset=utf-8,%3Csvg%3E%3C/svg%3E'});
+  assert.equal(h.elements['telegram-qr-box'].hidden, false);
+  assert.match(h.elements['telegram-qr'].src, /^data:image\/svg\+xml/);
+  await h.elements['telegram-cancel'].click();
+  assert.equal(h.elements['telegram-qr-box'].hidden, true);
+  assert.equal(h.elements['telegram-qr'].attrs.src, undefined);
+});
+
+test('anything but an SVG data image is never loaded as the QR', async () => {
+  for (const qr of ['https://untrusted.example/qr.svg', 'javascript:alert(1)', 'data:text/html,<b>x</b>', 42, null]) {
+    const h = harness();
+    await h.init({qr});
+    assert.equal(h.elements['telegram-qr-box'].hidden, true);
+    assert.equal(h.elements['telegram-qr'].src, undefined);
+  }
 });

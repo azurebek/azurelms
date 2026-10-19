@@ -17,6 +17,7 @@
   const part = name => panel.querySelector(`[data-telegram-${name}]`);
   const start = part("start"), waiting = part("waiting"), link = part("link"), code = part("code");
   const countdown = part("countdown"), status = part("status"), check = part("check"), cancel = part("cancel");
+  const qrBox = part("qr-box"), qr = part("qr");
   // JS'siz panel yashirin turadi (o'lik tugma qolmasin); skript ishlasa ko'rinadi.
   panel.hidden = false;
   let timer = null, token, request, generation = 0, pollMs = 0, budget = 0, polls = 0, warned = false;
@@ -59,6 +60,8 @@
     waiting.hidden = true;
     link.removeAttribute("href");
     code.textContent = countdown.textContent = "";
+    if (qrBox) qrBox.hidden = true;
+    qr?.removeAttribute("src");
   }
   function finish(text) {
     stop();
@@ -154,6 +157,12 @@
       link.href = botUrl.href;
       // Kod faqat server bergan 3 raqam bo'lsa ko'rsatiladi.
       code.textContent = /^\d{3}$/.test(String(result.code ?? "")) ? result.code : "";
+      // QR faqat server bergan SVG `data:` rasm bo'lsa — tashqi manzil yuklanmaydi.
+      const qrSrc = String(result.qr ?? "");
+      if (qr && qrBox && qrSrc.startsWith("data:image/svg+xml")) {
+        qr.src = qrSrc;
+        qrBox.hidden = false;
+      }
       start.hidden = true;
       start.removeAttribute("aria-busy");
       waiting.hidden = false;

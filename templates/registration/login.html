@@ -36,7 +36,7 @@
 </form>
 
 <div class="auth-divider"><span class="ln"></span><span class="tx">yoki</span><span class="ln"></span></div>
-{% include "components/telegram_auth_panel.html" with panel_class="auth-tg" text_class="auth-tg-text" start_class="auth-alt" start_icon="bi bi-telegram" start_label="Telegram orqali kirish" waiting_class="auth-tg-wait" code_class="auth-tg-code" steps_class="auth-tg-steps" link_class="auth-alt auth-alt--primary" actions_class="auth-tg-actions" secondary_class="auth-alt" quiet_class="auth-tg-quiet" %}
+{% include "components/telegram_auth_panel.html" with panel_class="auth-tg" text_class="auth-tg-text" start_class="auth-alt" start_icon="bi bi-telegram" start_label="Telegram orqali kirish" waiting_class="auth-tg-wait" code_class="auth-tg-code" qr_class="auth-tg-qr" steps_class="auth-tg-steps" link_class="auth-alt auth-alt--primary" actions_class="auth-tg-actions" secondary_class="auth-alt" quiet_class="auth-tg-quiet" %}
 
 {% if public_registration_open %}<p class="auth-foot-link">Hisobingiz yo'qmi? <a href="{% url 'register' %}{% if next %}?next={{ next|urlencode:"" }}{% endif %}">Ro'yxatdan o'ting</a></p>{% endif %}
 
