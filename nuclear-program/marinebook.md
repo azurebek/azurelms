@@ -44,6 +44,10 @@ username boshqa hisob emailiga teng bo'lsa login 500 berardi.
 - Brauzer (DB nusxasi, ASGI): band email — yangi matn, fokus emailda, parol bo'sh; 20 xato
   urinishdan keyin 429, umumiy xabar, band-email matni yo'q, email saqlangan; parol tiklashda
   302 javob logi xatdan oldin. Vaqtinchalik sinov hisobi va hisoblagichlar o'chirildi.
+- CI PostgreSQL ishi birinchi urinishda 2 ERROR berdi: testdagi to'g'ridan-to'g'ri
+  `response.close()` `request_finished` → `close_old_connections` orqali test tranzaksiyasi
+  ulanishini yopardi (SQLite'da ko'rinmaydi). Test endi test client kabi yopadi (`1bf2e7c`);
+  production kodi o'zgarmadi — xat ishi `super().close()`dan oldin.
 - Davom etilishi kerak: PUB1.4d (tiklash xatini production'da yetkazish dalili — SMTP owner
   qo'lida). Ro'yxat enumeration'ini to'liq yopish uchun PUB-D14 (email tasdig'i) owner qarori.
 
