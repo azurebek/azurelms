@@ -1417,7 +1417,7 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 ### Public GET yozmaydi (PUB1.0e, 2026-10-17)
 
 - Singleton sozlamalar (`SiteSettings`, `AuthPageSettings`, `LandingPage`, `AboutPage`, `BlogHomeSettings`): o'qish uchun `Model.current()` — qator yoki saqlanmagan default nusxa, hech qachon yaratmaydi. `Model.load()` faqat tahrir (backoffice/admin) yo'llari uchun: qatorni yaratadi.
-- Huquqiy sahifa: `LegalPage.published(page_type)` yoki `None`. Yo'q bo'lsa legacy/V1 "hali e'lon qilinmagan", `503` + `noindex`. Owner Admin → Huquqiy sahifalarda yozadi.
+- Huquqiy sahifa: maxfiylik/shartlar — `frontend.legal_revisions.effective_revision(kind)` (PUB1.5a: o'zgarmas versiyalar, owner `/backoffice/legal/`da yozadi/tasdiqlaydi/nashr qiladi); FAQ — `LegalPage.published("faq")`. Yo'q bo'lsa legacy/V1 "hali e'lon qilinmagan", `503` + `noindex`. Holat o'zgarishi faqat servis orqali (CAS + audit); testda `frontend/testing_legal.publish_legal`.
 - `core/public_readiness.py` + Control Center `public_content`: yo'q huquqiy sahifa qizil, eski avtomatik namuna matn sariq, sozlama qatori yo'q sariq.
 - Yagona ruxsat etilgan public GET yozuvi — blog maqola o'qish hisoblagichi (PUB1.0g'da qayta ko'riladi). `frontend/test_public_get_write_free.py` buni qulflaydi.
 

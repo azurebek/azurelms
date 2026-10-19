@@ -16,6 +16,35 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-19 [Claude]: PUBLIC-01 / PUB1.5a — maxfiylik va shartlar: o'zgarmas versiyalar
+
+Maxfiylik siyosati va foydalanish shartlari bitta o'zgaruvchan `LegalPage` qatori edi: kim, qachon
+qaysi matnni tasdiqlagani, qachondan amal qilishi va oldingi matn saqlanmasdi; owner uni faqat
+production'da o'chiq turgan Django admin orqali tahrirlay olardi.
+
+- Branch: `claude/pub15a-legal-revisions`; kod commit **`cee672a`**. Migration frontend0023
+  (expand-only: `LegalDocument`, `LegalRevision`).
+- Qarorlar: `frontend/legal_revisions.py` yagona hayot sikli (qoralama → tasdiq → nashr → arxiv;
+  tasdiqlangan matn o'zgarmaydi; saqlashda tozalash + SHA-256; CAS + row lock; har o'tish auditda);
+  amaldagi versiya hisoblanadi (rejalashtirilgan versiya cron'siz kuchga kiradi, public GET
+  yozmaydi); amaldagisi arxivlansa oldingisi qaytadi; umumiy namuna matn tasdiqlanmaydi (PUB-D5);
+  eski qatordan faqat tasdiqlanmagan qoralama (`backfill_legal_revisions`, owner tugmasi).
+  Owner sahifasi `/backoffice/legal/` (yangi, tahrir, yopiq ko'rib chiqish) — 4 private route
+  registry va snapshot'ga qo'shildi. FAQ `LegalPage`da qoldi.
+- **Deploy oqibati:** owner versiyani nashr qilmaguncha production'da maxfiylik va shartlar
+  "hali e'lon qilinmagan" (503, Control Center qizil). Owner yo'li: `/backoffice/legal/` → matn
+  (yoki "Eski matndan qoralama", agar haqiqiy matn bo'lsa) → tasdiqlash → nashr.
+- Test: yangi `frontend/test_legal_revisions.py` — 25 test (1 PostgreSQL parallel nashr, CI'da);
+  9 ta mavjud test fayli fixture'i amaldagi versiyaga moslandi (`frontend/testing_legal.py`);
+  to'liq `manage.py test` — **3123 test, OK (skipped=70)**. Nazorat yugurishi: 12 ta buzilish (jadvalni e'tiborsiz
+  qoldirish, har holat amalda, tasdiqlanganni tahrirlash, namunani tasdiqlash, CAS'siz, arxivsiz,
+  tozalanmagan matn, eski qatorga fallback, keshlanadigan ko'rib chiqish, ikki marta backfill, ochiq
+  owner sahifasi, readiness eski qatordan) — hammasi FAIL, tiklangach bayt-bayt bir xil.
+- Brauzer (DB nusxasi): CKEditor bilan qoralama → tasdiq → nashr → `/terms-of-service/` "Versiya 1.0 ·
+  19.10.2026 dan amal qiladi" va matn; maxfiylik 503 qoldi. Sinov owner'i va yozuvlar o'chirildi.
+- Davom etilishi kerak: owner/yurist haqiqiy matnni beradi va nashr qiladi; `LegalAcceptance` faqat
+  yurist talab qilsa; keyingi kesim PUB1.5b.
+
 ## 2026-10-19 [Claude]: PUBLIC-01 / PUB1.4e — Telegram kirishiga QR kod
 
 Owner ruxsati bilan (2026-10-19) PUB1.4e'da qoldirilgan QR qo'shildi: kompyuterda boshlagan odam

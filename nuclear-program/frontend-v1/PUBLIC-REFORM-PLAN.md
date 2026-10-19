@@ -1,9 +1,9 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
 **Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) hamda PUB1.2a–b, PUB1.2d,
-PUB1.3 bosqichi (a–d), PUB1.4b–c, PUB1.4e kodda (2026-10-16/19, lokal)**; PUB1.2c B3.5
-writer’i bilan birga ochiq; PUB1.4a owner qarori bilan keyinga qoldirilgan (2026-10-19); PUB1.4d
-(production SMTP owner qo‘lida) va keyingi kesimlar boshlanmagan
+PUB1.3 bosqichi (a–d), PUB1.4b–c, PUB1.4e, PUB1.5a kodda (2026-10-16/19, lokal)**; PUB1.2c
+B3.5 writer’i bilan birga ochiq; PUB1.4a owner qarori bilan keyinga qoldirilgan (2026-10-19);
+PUB1.4d (production SMTP owner qo‘lida) va keyingi kesimlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
 **Kod tayanchi:** `main`dagi `72e82e0`
 **Birinchi implementatsiya kesimi:** `PUB1.0a`
@@ -2006,6 +2006,29 @@ saqlanadi; Telegram yagona accessible auth yo‘li emas.
 ### PUB1.5 — legal, cookie va certificate privacy
 
 #### PUB1.5a — immutable legal revision foundation
+
+**Holat — 2026-10-19: kodda, lokal tekshirilgan** (branch `claude/pub15a-legal-revisions`,
+migration frontend0023 — expand-only). `LegalDocument` (kind: privacy/terms, CAS `revision`) +
+`LegalRevision` (versiya, sarlavha, saqlashda `PUBLIC_EDITORIAL_V1` bilan tozalangan matn,
+SHA-256, holat `draft → approved → published → archived`, manba, yaratgan/tasdiqlagan, vaqtlar).
+Hayot sikli `frontend/legal_revisions.py`: qoralama tahrirlanadi, tasdiqlangan matn o‘zgarmaydi;
+nashr hozir yoki kelajak `effective_at` bilan (o‘tmish rad); amaldagi versiya **hisoblanadi** —
+`published` va `effective_at <= hozir`ning eng kechi, ya’ni rejalashtirilgan versiya cron’siz va
+yozuvsiz kuchga kiradi (rejadagi `current_revision_id` ko‘rsatkichi o‘rniga — sabab shu);
+amaldagisi arxivlansa oldingi nashr qaytadi (`legal.rollback`); nashr/arxiv hujjat revizioniga
+qarshi CAS + row lock; har o‘tish `SystemAuditEvent`da; qator o‘chirilmaydi. Umumiy namuna matn
+(PUB1.0e’gacha avtomatik) qoralama bo‘lishi mumkin, tasdiqlanmaydi (PUB-D5). Eski `LegalPage`
+qatori tegilmaydi; `manage.py backfill_legal_revisions [--apply]` (yoki owner sahifasidagi tugma)
+undan **tasdiqlanmagan** qoralama yaratadi, qayta yugurish xavfsiz. Public: maxfiylik/shartlar
+faqat amaldagi versiyadan (versiya va kuchga kirish sanasi bilan), aks holda 503 + noindex +
+no-store; sitemap `lastmod` = `effective_at`; meta `modified_at` ham; readiness/Control Center
+amaldagi versiyaga qaraydi. Owner sahifasi `/backoffice/legal/` (superuser): qoralama (CKEditor),
+yopiq ko‘rib chiqish (noindex, no-store, CTA’siz, yozmaydi), tasdiqlash, nashr, bekor qilish —
+sabab + tasdiq + CAS. FAQ huquqiy hujjat emas — `LegalPage`da qoldi (Django admin’dagi
+maxfiylik/shartlar qatorlari endi saytga ta’sir qilmaydi). **Deploy oqibati:** owner versiyani
+nashr qilmaguncha production’da maxfiylik va shartlar sahifasi “hali e’lon qilinmagan” (503) —
+hozirgi umumiy namuna matn tasdiqlangan hujjat sifatida ko‘rsatilmaydi. **Ochiq:**
+`LegalAcceptance` (faqat yurist talab qilsa), matnning o‘zi — owner/yurist.
 
 **Ish:** expand-only LegalDocument/Revision yoki equivalent, backfill current
 rowsni draft/unapproved sifatida, lifecycle service, effective selector, preview,
