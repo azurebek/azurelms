@@ -67,6 +67,9 @@ class CollapsibleFooterTests(TestCase):
     def setUp(self):
         for page_type in ("privacy", "terms", "faq"):
             LegalPage.objects.create(page_type=page_type, title=page_type, content="<p>Matn</p>")
+        from frontend.testing_legal import publish_all_legal
+
+        publish_all_legal()
 
     def footer(self):
         html = self.client.get(reverse("about")).content.decode()

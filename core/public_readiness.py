@@ -64,11 +64,23 @@ class PublicReadiness:
 
 
 def legal_readiness():
+    """Maxfiylik va shartlar — amaldagi tasdiqlangan versiya bormi (PUB1.5a); FAQ — `LegalPage`."""
+    from frontend import legal_revisions
     from frontend.models import LegalPage
 
     rows = {page.page_type: page for page in LegalPage.objects.all()}
     states = []
     for page_type, _label in LegalPage.PAGE_CHOICES:
+        if page_type in legal_revisions.KINDS:
+            revision = legal_revisions.effective_revision(page_type)
+            if revision is None:
+                state = STATE_MISSING
+            elif legal_revisions.is_generated_sample(revision):
+                state = STATE_GENERATED
+            else:
+                state = STATE_READY
+            states.append(LegalPageState(page_type, state))
+            continue
         page = rows.get(page_type)
         if page is None:
             state = STATE_MISSING

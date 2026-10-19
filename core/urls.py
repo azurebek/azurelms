@@ -16,6 +16,7 @@ from core import backoffice_search as search
 from core import student_support_views as student_support
 from core import design_views
 from core import backoffice_claims
+from core import backoffice_legal
 from subscriptions import backoffice_views as catalog_views
 
 handler404 = "core.views.page_not_found"
@@ -85,6 +86,11 @@ urlpatterns = [
     path('design/theme.css', design_views.theme_css, name='design_theme_css'),
     path('backoffice/landing/', core_views.backoffice_landing, name='backoffice_landing'),
     path('backoffice/claims/', backoffice_claims.claim_evidence, name='backoffice_claim_evidence'),
+    # Huquqiy hujjat versiyalari (PUB1.5a).
+    path('backoffice/legal/', backoffice_legal.legal_documents, name='backoffice_legal_documents'),
+    path('backoffice/legal/new/<str:kind>/', backoffice_legal.legal_edit, name='backoffice_legal_new'),
+    path('backoffice/legal/<int:pk>/edit/', backoffice_legal.legal_edit, name='backoffice_legal_edit'),
+    path('backoffice/legal/<int:pk>/preview/', backoffice_legal.legal_preview, name='backoffice_legal_preview'),
     path('backoffice/receipts/', core_views.backoffice_receipts, name='backoffice_receipts'),
     path('backoffice/catalog/', catalog_views.catalog, name='backoffice_catalog'),
     path('backoffice/catalog/plans/<int:plan_id>/', catalog_views.plan_editor, name='backoffice_plan_edit'),

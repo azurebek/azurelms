@@ -1,0 +1,29 @@
+{% load public_content %}<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Ko‘rib chiqish · {{ revision.title }}</title>
+  {% include "components/brand_favicon.html" %}
+  <style>
+    :root { color-scheme: light dark; }
+    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: Canvas; color: CanvasText; line-height: 1.65; }
+    .preview-banner { position: sticky; top: 0; padding: 10px 16px; background: #fef3c7; color: #78350f; font-size: 14px; border-bottom: 1px solid #f59e0b; }
+    main { max-width: 46rem; margin: 0 auto; padding: 24px 16px 48px; }
+    h1 { font-size: 1.75rem; margin: 0 0 6px; }
+    .meta { color: GrayText; font-size: 14px; margin: 0 0 24px; }
+    article :is(h2, h3) { margin-top: 1.6em; }
+    article { overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  {# CTA'siz, yopiq ko'rinish: saytga chiqmagan versiya ham shu yerda o'qiladi (PUB1.5a). #}
+  <div class="preview-banner" role="note" data-legal-preview>Ko‘rib chiqish — «{{ revision.version_label }}» · {{ revision.get_status_display }}. Bu sahifa saytda emas va qidiruvga tushmaydi.</div>
+  <main>
+    <h1>{{ revision.title }}</h1>
+    <p class="meta">Versiya {{ revision.version_label }}{% if revision.effective_at %} · {{ revision.effective_at|date:"d.m.Y" }} dan amal qiladi{% endif %}</p>
+    <article>{{ revision.content|public_rich }}</article>
+  </main>
+</body>
+</html>

@@ -1,0 +1,101 @@
+{% extends "backoffice/base.html" %}
+{% load static %}
+{% comment %}Owner: maxfiylik va shartlar versiyalari (core/backoffice_legal.py, PUB1.5a).{% endcomment %}
+
+{% block bo_title %}Huquqiy hujjatlar{% endblock %}
+{% block bo_icon %}bi-file-earmark-text{% endblock %}
+{% block bo_topbar %}Huquqiy hujjatlar{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/landing-control.css' %}">{% endblock %}
+
+{% block bo_content %}
+<div class="bo-editor">
+<section class="lc-hero">
+  <div>
+    <span class="lc-kicker">MAXFIYLIK VA SHARTLAR</span>
+    <h1>Huquqiy hujjatlar</h1>
+    <p>Matnni siz yoki yurist yozasiz. Saytda faqat tasdiqlangan va nashr qilingan versiya ko‘rinadi; tasdiqlangan matn o‘zgarmaydi — yangi versiya yaratiladi. Nashr hozir yoki belgilangan vaqtda kuchga kiradi; amaldagi versiyani bekor qilsangiz, oldingisi qaytadi.</p>
+  </div>
+  <a class="lc-back" href="{% url 'privacy_policy' %}" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i> Saytda ko‘rish</a>
+</section>
+
+{% if errors %}<div class="lc-errors" role="alert" data-legal-errors>{% for error in errors %}<p>{{ error }}</p>{% endfor %}</div>{% endif %}
+
+{% for doc in documents %}
+<section class="lc-panel" aria-labelledby="legal-{{ doc.kind }}" data-legal-document="{{ doc.kind }}" style="margin-bottom:16px;">
+  <div class="lc-panel-head">
+    <div class="lc-panel-title">
+      <h2 id="legal-{{ doc.kind }}">{{ doc.label }}</h2>
+      {% if doc.effective %}
+      <p data-legal-effective>Amalda: <strong>«{{ doc.effective.version_label }}»</strong> · {{ doc.effective.effective_at|date:"d.m.Y H:i" }} dan{% if doc.effective.approved_by %} · tasdiqlagan: {{ doc.effective.approved_by.get_full_name|default:doc.effective.approved_by.username }}{% endif %}</p>
+      {% else %}
+      <p data-legal-effective>Saytda e’lon qilinmagan — sahifa “hali e’lon qilinmagan” deb javob beradi (503).</p>
+      {% endif %}
+      {% for item in doc.scheduled %}<p data-legal-scheduled>Rejalashtirilgan: «{{ item.version_label }}» · {{ item.effective_at|date:"d.m.Y H:i" }} da kuchga kiradi</p>{% endfor %}
+    </div>
+    <a class="lc-save" href="{% url 'backoffice_legal_new' doc.kind %}">Yangi qoralama</a>
+  </div>
+
+  {% if doc.legacy_page and not doc.revisions %}
+  <form method="post" class="lc-form" data-legal-backfill>{% csrf_token %}
+    <input type="hidden" name="action" value="backfill"><input type="hidden" name="kind" value="{{ doc.kind }}">
+    <p class="lc-empty">Eski sahifada matn bor («{{ doc.legacy_page.title }}»). Undan qoralama yaratish mumkin — u tasdiqlanmagan bo‘ladi; umumiy namuna matn esa tasdiqlanmaydi.</p>
+    <label class="lc-confirm"><input type="checkbox" name="confirm" required> Eski matndan qoralama yaratilsin</label>
+    <button class="lc-save" type="submit">Eski matndan qoralama</button>
+  </form>
+  {% endif %}
+
+  {% for rev in doc.revisions %}
+  <article class="lc-panel lc-approval" data-legal-revision="{{ rev.pk }}" data-legal-status="{{ rev.status }}" style="margin-top:12px;">
+    <p><strong>«{{ rev.version_label }}» — {{ rev.title }}</strong> · {{ rev.get_status_display }}{% if doc.effective and doc.effective.pk == rev.pk %} · <span>amalda</span>{% elif rev in doc.scheduled %} · <span>rejalashtirilgan</span>{% endif %}{% if rev.source == "legacy_backfill" %} · eski sahifadan{% endif %}</p>
+    <p class="lc-empty">Yaratilgan: {{ rev.created_at|date:"d.m.Y H:i" }}{% if rev.created_by %} ({{ rev.created_by.username }}){% endif %}{% if rev.approved_at %} · tasdiqlangan: {{ rev.approved_at|date:"d.m.Y H:i" }}{% if rev.approved_by %} ({{ rev.approved_by.username }}){% endif %}{% endif %}{% if rev.published_at %} · nashr: {{ rev.published_at|date:"d.m.Y H:i" }}, kuchga kirish: {{ rev.effective_at|date:"d.m.Y H:i" }}{% endif %}{% if rev.archived_at %} · bekor qilingan: {{ rev.archived_at|date:"d.m.Y H:i" }}{% endif %}</p>
+    <p><a href="{% url 'backoffice_legal_preview' rev.pk %}" target="_blank" rel="noopener">Ko‘rib chiqish</a>{% if rev.status == "draft" %} · <a href="{% url 'backoffice_legal_edit' rev.pk %}">Tahrirlash</a>{% endif %}</p>
+
+    {% if rev.status == "draft" %}
+    <details>
+      <summary>Tasdiqlash</summary>
+      <form method="post" class="lc-form">{% csrf_token %}
+        <input type="hidden" name="action" value="approve"><input type="hidden" name="revision_id" value="{{ rev.pk }}">
+        <p class="lc-empty">Tasdiqlangach matn o‘zgarmaydi. Saytga chiqishi uchun keyin nashr qilasiz.</p>
+        <label class="lc-field">Sabab (masalan, kim tekshirdi) <textarea class="lc-input" name="reason" rows="2" maxlength="240" required></textarea></label>
+        <label class="lc-confirm"><input type="checkbox" name="confirm" required> Matnni o‘qib chiqdim va tasdiqlayman</label>
+        <button class="lc-save" type="submit">Tasdiqlash</button>
+      </form>
+    </details>
+    {% endif %}
+
+    {% if rev.status == "approved" %}
+    <details>
+      <summary>Nashr qilish</summary>
+      <form method="post" class="lc-form">{% csrf_token %}
+        <input type="hidden" name="action" value="publish"><input type="hidden" name="revision_id" value="{{ rev.pk }}"><input type="hidden" name="document_revision" value="{{ doc.expected_revision }}">
+        <label class="lc-field">Kuchga kirish vaqti (hozir yoki keyinroq) <input class="lc-input" type="datetime-local" name="effective_at" value="{{ now_local }}" required></label>
+        <label class="lc-field">Sabab <textarea class="lc-input" name="reason" rows="2" maxlength="240" required></textarea></label>
+        <label class="lc-confirm"><input type="checkbox" name="confirm" required> Saytdagi huquqiy matnga ta’sirini tushunaman</label>
+        <button class="lc-save" type="submit">Nashr qilish</button>
+      </form>
+    </details>
+    {% endif %}
+
+    {% if rev.status != "archived" %}
+    <details>
+      <summary>{% if doc.effective and doc.effective.pk == rev.pk %}Bekor qilish (oldingi versiyaga qaytish){% else %}Bekor qilish{% endif %}</summary>
+      <form method="post" class="lc-form">{% csrf_token %}
+        <input type="hidden" name="action" value="archive"><input type="hidden" name="revision_id" value="{{ rev.pk }}"><input type="hidden" name="document_revision" value="{{ doc.expected_revision }}">
+        {% if doc.effective and doc.effective.pk == rev.pk %}<p class="lc-empty">Bu versiya saytda amalda. Bekor qilinsa oldingi nashr qilingan versiya qaytadi; u bo‘lmasa sahifa “hali e’lon qilinmagan” bo‘ladi.</p>{% endif %}
+        <label class="lc-field">Sabab <textarea class="lc-input" name="reason" rows="2" maxlength="240" required></textarea></label>
+        <label class="lc-confirm"><input type="checkbox" name="confirm" required> Saytdagi huquqiy matnga ta’sirini tushunaman</label>
+        <button class="lc-save" type="submit">Bekor qilish</button>
+      </form>
+    </details>
+    {% endif %}
+  </article>
+  {% empty %}{% if not doc.legacy_page %}<p class="lc-empty">Hali versiya yo‘q.</p>{% endif %}{% endfor %}
+</section>
+{% endfor %}
+
+<section class="lc-panel lc-audit" aria-labelledby="legal-audit" style="margin-top:16px;">
+  <h2 id="legal-audit">Oxirgi o‘zgarishlar</h2>
+  {% for event in recent_changes %}<article><strong>{{ event.target_label }}</strong><time>{{ event.created_at|date:"d.m.Y H:i" }}</time><p>{{ event.actor_label|default:"—" }} · {{ event.action }}{% if event.reason %}: {{ event.reason }}{% endif %}</p></article>{% empty %}<p class="lc-empty">Hali o‘zgarish yo‘q.</p>{% endfor %}
+</section>
+</div>
+{% endblock %}

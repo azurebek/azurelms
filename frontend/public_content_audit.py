@@ -30,6 +30,7 @@ RICH_TEXT_FIELDS = (
     ("frontend.AboutPage", "vision_text"),
     ("frontend.TeamMember", "bio"),
     ("frontend.LegalPage", "content"),
+    ("frontend.LegalRevision", "content"),
     ("courses.Course", "description"),
     ("subscriptions.Plan", "description"),
     ("blog.BlogPost", "body"),

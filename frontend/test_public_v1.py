@@ -51,6 +51,9 @@ class PublicV1Tests(TestCase):
         # Huquqiy sahifalar owner yozgan holatda; yo'q sahifa 503 (PUB1.0e testlarida).
         for kind in ('privacy', 'terms', 'faq'):
             LegalPage.objects.create(page_type=kind, title=f'Owner {kind}', content='<p>Owner matni</p>')
+        from frontend.testing_legal import publish_all_legal
+
+        publish_all_legal()
         for enabled in (True, False):
             self.flag.enabled = enabled; self.flag.save()
             for name, args, template in self.routes():
@@ -157,6 +160,9 @@ class PublicV1Tests(TestCase):
         LandingNavItem.objects.create(key='custom', label='Owner link', custom_url='/faq/', order=1)
         LandingNavItem.objects.create(key='custom', label='BAD LINK', custom_url='javascript:alert(1)', order=2)
         LegalPage.objects.create(page_type='terms', title='Owner shartlari', content='<p>Real matn</p><script>alert(1)</script>')
+        from frontend.testing_legal import publish_legal
+
+        publish_legal('terms', title='Owner shartlari', content='<p>Real matn</p><script>alert(1)</script>')
         response = self.client.get(reverse('terms_of_service'))
         for value in ['Til markazi', 'Owner link', 'Owner shartlari', 'Real matn']:
             self.assertContains(response, value)

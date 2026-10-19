@@ -1071,14 +1071,12 @@ class HelpCenterView(LoginRequiredMixin, RecordsV1Mixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context["active_nav"] = "help_center"
         # Faqat o'qiladi: yo'q sahifa yaratilmaydi, shablon bo'sh holatni ko'rsatadi (PUB1.0e).
-        pages = {
-            page.page_type: page
-            for page in LegalPage.objects.filter(
-                page_type__in=[LegalPage.PAGE_PRIVACY, LegalPage.PAGE_TERMS, LegalPage.PAGE_FAQ]
-            )
-        }
-        for page_type in [LegalPage.PAGE_PRIVACY, LegalPage.PAGE_TERMS, LegalPage.PAGE_FAQ]:
-            context[f"page_{page_type}"] = pages.get(page_type)
+        # Maxfiylik va shartlar — amaldagi tasdiqlangan versiya (PUB1.5a).
+        from frontend import legal_revisions
+
+        context["page_faq"] = LegalPage.published(LegalPage.PAGE_FAQ)
+        for page_type in legal_revisions.KINDS:
+            context[f"page_{page_type}"] = legal_revisions.effective_revision(page_type)
         return context
 
 

@@ -1,0 +1,30 @@
+{% extends "backoffice/base.html" %}
+{% load static %}
+{% comment %}Owner: huquqiy hujjat qoralamasi (core/backoffice_legal.py, PUB1.5a). Faqat qoralama tahrirlanadi.{% endcomment %}
+
+{% block bo_title %}{{ kind_label }} — qoralama{% endblock %}
+{% block bo_icon %}bi-file-earmark-text{% endblock %}
+{% block bo_topbar %}{{ kind_label }}{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/landing-control.css' %}">{{ form.media }}{% endblock %}
+
+{% block bo_content %}
+<div class="bo-editor">
+<section class="lc-hero">
+  <div>
+    <span class="lc-kicker">{% if revision %}QORALAMANI TAHRIRLASH{% else %}YANGI QORALAMA{% endif %}</span>
+    <h1>{{ kind_label }}</h1>
+    <p>Qoralama saytda ko‘rinmaydi. Saqlagach uni ko‘rib chiqing, tasdiqlang va nashr qiling. Tasdiqlangan matn o‘zgarmaydi.</p>
+  </div>
+  <a class="lc-back" href="{% url 'backoffice_legal_documents' %}"><i class="bi bi-arrow-left"></i> Hujjatlarga qaytish</a>
+</section>
+
+{% if errors %}<div class="lc-errors" role="alert" data-legal-errors>{% for error in errors %}<p>{{ error }}</p>{% endfor %}</div>{% endif %}
+
+<form method="post" class="lc-panel lc-form" data-legal-draft>{% csrf_token %}
+  {% for field in form %}
+  <label class="lc-field">{{ field.label }} {{ field }}{% for error in field.errors %}<em>{{ error }}</em>{% endfor %}</label>
+  {% endfor %}
+  <button class="lc-save" type="submit">Qoralamani saqlash</button>
+</form>
+</div>
+{% endblock %}

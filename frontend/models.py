@@ -1071,6 +1071,98 @@ class LegalPage(models.Model):
         return cls.objects.filter(page_type=page_type).first()
 
 
+
+class LegalDocument(models.Model):
+    """Huquqiy hujjat (maxfiylik, shartlar) — matni `LegalRevision`larda (PUB1.5a).
+
+    `revision` — nashr/qaytarish uchun CAS hisoblagichi: ikki oynadan bir vaqtda
+    nashr qilib bo'lmaydi. Amaldagi versiya ko'rsatkich emas, hisoblanadi
+    (`frontend.legal_revisions.effective_revision`): rejalashtirilgan versiya
+    vaqti kelganda cron yoki yozuvsiz o'zi kuchga kiradi.
+    """
+
+    KIND_PRIVACY = "privacy"
+    KIND_TERMS = "terms"
+    KIND_CHOICES = [
+        (KIND_PRIVACY, "Maxfiylik siyosati"),
+        (KIND_TERMS, "Foydalanish shartlari"),
+    ]
+
+    kind = models.CharField(max_length=20, choices=KIND_CHOICES, unique=True, verbose_name="Hujjat turi")
+    revision = models.PositiveIntegerField(default=0, verbose_name="Nashr revizioni")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Huquqiy hujjat"
+        verbose_name_plural = "Huquqiy hujjatlar"
+        ordering = ["kind"]
+
+    def __str__(self):
+        return self.get_kind_display()
+
+
+class LegalRevision(models.Model):
+    """Huquqiy hujjatning bitta versiyasi. Tasdiqlangach matn o'zgarmaydi (PUB1.5a).
+
+    `draft → approved → published → archived`. Bir hujjatga bir vaqtda bitta
+    amaldagi versiya: `published` va `effective_at <= hozir` bo'lganlarning eng
+    kechi. Kelajak `effective_at` — rejalashtirilgan. `archived` — bekor
+    qilingan; amaldagisi arxivlansa oldingi nashr qaytadi (rollback). Har o'tish
+    `SystemAuditEvent`ga yoziladi; qator o'chirilmaydi.
+    """
+
+    STATUS_DRAFT = "draft"
+    STATUS_APPROVED = "approved"
+    STATUS_PUBLISHED = "published"
+    STATUS_ARCHIVED = "archived"
+    STATUS_CHOICES = [
+        (STATUS_DRAFT, "Qoralama"),
+        (STATUS_APPROVED, "Tasdiqlangan"),
+        (STATUS_PUBLISHED, "Nashr qilingan"),
+        (STATUS_ARCHIVED, "Arxivlangan"),
+    ]
+    SOURCE_OWNER = "owner"
+    SOURCE_LEGACY = "legacy_backfill"
+    SOURCE_CHOICES = [
+        (SOURCE_OWNER, "Owner yozgan"),
+        (SOURCE_LEGACY, "Eski sahifadan ko'chirilgan"),
+    ]
+
+    document = models.ForeignKey(LegalDocument, on_delete=models.PROTECT, related_name="revisions")
+    version_label = models.CharField(max_length=40, verbose_name="Versiya")
+    title = models.CharField(max_length=150, verbose_name="Sarlavha")
+    content = models.TextField(verbose_name="Matn (tozalangan HTML)")
+    content_digest = models.CharField(max_length=64, verbose_name="Matn xeshi (SHA-256)")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_DRAFT, verbose_name="Holat")
+    source = models.CharField(max_length=20, choices=SOURCE_CHOICES, default=SOURCE_OWNER, verbose_name="Manba")
+    reason = models.CharField(max_length=240, blank=True, verbose_name="Yaratish sababi")
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="legal_revisions_created", verbose_name="Yaratgan",
+    )
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="legal_revisions_approved", verbose_name="Tasdiqlagan",
+    )
+    approved_at = models.DateTimeField(null=True, blank=True, verbose_name="Tasdiqlangan vaqt")
+    effective_at = models.DateTimeField(null=True, blank=True, verbose_name="Kuchga kirish vaqti")
+    published_at = models.DateTimeField(null=True, blank=True, verbose_name="Nashr qilingan vaqt")
+    archived_at = models.DateTimeField(null=True, blank=True, verbose_name="Arxivlangan vaqt")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Huquqiy hujjat versiyasi"
+        verbose_name_plural = "Huquqiy hujjat versiyalari"
+        ordering = ["-created_at", "-pk"]
+        constraints = [
+            models.UniqueConstraint(fields=["document", "version_label"], name="legal_revision_unique_label"),
+        ]
+        indexes = [models.Index(fields=["document", "status", "effective_at"], name="legal_revision_effective")]
+
+    def __str__(self):
+        return f"{self.document} · {self.version_label}"
+
+
 class PublicClaimEvidence(models.Model):
     """Public sahifadagi da'vo uchun owner tasdiqlagan dalil (PUB1.2a).
 
