@@ -13,6 +13,8 @@
   {% endcomment %}
   <style>
     :root { color-scheme: light dark; --ok: #15803d; --bad: #b42318; }
+    /* Qorong'i fonda kichik matn ham o'qilsin (kontrast >= 4.5:1). */
+    @media (prefers-color-scheme: dark) { :root { --ok: #4ade80; --bad: #f87171; } }
     body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; box-sizing: border-box;
            font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: Canvas; color: CanvasText; line-height: 1.6; }
     main { width: 100%; max-width: 34rem; }

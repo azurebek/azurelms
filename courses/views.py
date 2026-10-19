@@ -1257,9 +1257,9 @@ class CertificateAppendixView(CertificateV1Mixin, DetailView):
 def certificate_verify(request, token):
     """Sertifikatni tasodifiy kod bilan ochiq tekshirish (PUB1.5c).
 
-    Owner qarorigacha o'chiq (`certificate_public_verifier`) — 404. Yo'q, yashirin
-    va noto'g'ri kod bir xil 404 "topilmadi"; ular IP bo'yicha sanaladi, kod esa
-    hech qayerga yozilmaydi. Sarlavhalar (noindex/noarchive, no-store,
+    Owner qarorigacha o'chiq (`certificate_public_verifier`) — ayni "topilmadi" 404
+    (imkoniyat borligi ham bilinmaydi). Yo'q, yashirin va noto'g'ri kod bir xil 404;
+    ular IP bo'yicha sanaladi, kod esa hech qayerga yozilmaydi. Sarlavhalar (noindex/noarchive, no-store,
     same-origin referrer) route siyosatidan — `frontend/public_response.py`.
     """
     from core.flags import flag_enabled
@@ -1268,7 +1268,7 @@ def certificate_verify(request, token):
     from . import certificate_verifier as verifier
 
     if not flag_enabled("certificate_public_verifier"):
-        raise Http404
+        return render(request, "courses/certificate_verify.html", {"result": None}, status=404)
     decision = auth_abuse.certificate_verify_blocked(request)
     if not decision.allowed:
         response = render(request, "courses/certificate_verify.html", {"blocked_message": decision.message}, status=429)
