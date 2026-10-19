@@ -16,6 +16,19 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-19 [Claude]: Xavfsizlik — aiohttp 3.14.3 → 3.14.5 (3 yangi advisory)
+
+PUB1.5b PR'ida "Sir va bog'liqlik zaifligi skani" yiqildi: `aiohttp==3.14.3` uchun yangi
+advisory'lar — CVE-2026-111063 (umumiy cookie'da Secure atributi), CVE-2026-111064 (server
+so'rov/sarlavha timeout'i yo'q), GHSA-2g87-pp6c-29x5 (cheksiz xotira/CPU). Uchalasi 3.14.4'da
+tuzatilgan (OSV); 3.14.5'da advisory yo'q. aiohttp 3.14.5 `yarl>=1.25.1` talab qiladi →
+`yarl` 1.23.0 → 1.25.1 (advisory yo'q). aiogram 3.30.0 `aiohttp<3.15` bilan mos; `pip check` toza.
+
+- Branch: `claude/deps-aiohttp-3-14-5`; faqat `requirements.txt`. Istisno reyestriga yozilmadi —
+  tuzatilgan versiya bor.
+- Test: to'liq `manage.py test` (yangi versiyalar bilan) — **3123 test, OK (skipped=70)**.
+- Deploy: Docker image qayta qurilishi kerak (yangi paket versiyalari).
+
 ## 2026-10-19 [Claude]: PUBLIC-01 / PUB1.5a — maxfiylik va shartlar: o'zgarmas versiyalar
 
 Maxfiylik siyosati va foydalanish shartlari bitta o'zgaruvchan `LegalPage` qatori edi: kim, qachon
