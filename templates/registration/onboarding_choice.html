@@ -5,6 +5,7 @@
 {% block auth_form %}
 <h1 class="auth-h1" style="font-size:28px; margin-bottom:12px;">Xush kelibsiz! 🎉</h1>
 <p class="auth-lead" style="margin-bottom:32px;">Maqsadingiz va darajangizni bir necha daqiqada aytib bering — yoki keyinroq qilasiz.</p>
+{% include "components/auth_intent_note.html" with note_class="auth-intent" %}
 
 {% comment %}
   Ilgari bu yerda ikkita teng karta turardi va birinchisi «Tezkor anketa»

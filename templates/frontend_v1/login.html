@@ -1,14 +1,14 @@
 {% extends "frontend_v1/base.html" %}
-{% load static %}
-{% block extra_head %}<script defer src="{% static 'frontend_v1/js/login.js' %}"></script>{% endblock %}
+{% load static auth_forms %}
+{% block extra_head %}<script defer src="{% static 'frontend_v1/js/auth-validation.js' %}"></script><script defer src="{% static 'frontend_v1/js/login.js' %}"></script>{% endblock %}
 {% block body %}
 <header class="s-auth-header"><a class="s-brand" href="{% url 'home' %}">{% include "components/brand_logo.html" with mark_class="s-brand__mark" %}</a>{% include "frontend_v1/theme_button.html" %}</header>
 <main id="main" class="s-auth-main" tabindex="-1">
   {% include "frontend_v1/messages.html" %}
   <section class="c-card p-auth-card" aria-labelledby="auth-title">
     <div class="p-auth-heading"><p class="c-eyebrow">O‘ZBEKCHA O‘RGANING · TURKCHA GAPIRING</p><h1 id="auth-title">Hisobga kirish</h1><p class="c-muted">O‘qishni qolgan joyingizdan davom ettiring.</p></div>
-    {% if form.errors %}<div class="c-alert v1-error" role="alert" tabindex="-1" data-form-errors><div>{% if form.non_field_errors %}{{ form.non_field_errors }}{% else %}Belgilangan maydonlarni tekshiring.{% endif %}</div></div>{% endif %}
-    <form method="post" action="{% url 'login' %}" class="v1-login-form">
+    {% include "components/auth_intent_note.html" with note_class="c-alert c-alert--info p-auth-notice" %}<div class="c-alert v1-error p-auth-notice" role="alert" tabindex="-1" data-form-errors{% if not form.errors %} hidden{% endif %}>{% if form.non_field_errors %}{{ form.non_field_errors }}{% endif %}{% with count=form|field_error_count %}<p data-error-count{% if not count %} hidden{% endif %}>{{ count }} ta maydonni tekshiring.</p>{% endwith %}</div>
+    <form method="post" action="{% url 'login' %}" class="v1-login-form" data-auth-validate>
       {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
       <div class="p-auth-fields">
         <div><label class="c-field__label" for="{{ form.username.id_for_label }}">Email yoki username</label>{{ form.username }}{{ form.username.errors }}</div>

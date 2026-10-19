@@ -2,7 +2,7 @@
 {% load static %}
 {% block extra_head %}{{ block.super }}<script defer src="{% static 'frontend_v1/js/login.js' %}"></script>{% endblock %}
 {% block auth_content %}
-<form method="post" action="{% url 'register' %}" data-auth-form{% if form.is_bound %} data-auth-unsaved{% endif %}>
+<form method="post" action="{% url 'register' %}" data-auth-form data-auth-validate{% if form.is_bound %} data-auth-unsaved{% endif %}>
   {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
   {% include "frontend_v1/auth_fields.html" with submit_label="Hisob yaratish" %}
 </form>

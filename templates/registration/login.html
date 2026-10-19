@@ -1,4 +1,5 @@
 {% extends "registration/base_auth.html" %}
+{% load auth_forms %}
 {% load static %}
 {% comment %} Kirish (LoginView) — proto: public/auth.html (Kirish tab). {% endcomment %}
 
@@ -13,22 +14,21 @@
 <h1 class="auth-h1">Xush kelibsiz</h1>
 <p class="auth-lead">Hisobingizga kirib, o'qishni davom ettiring.</p>
 
-<form method="post" action="{% url 'login' %}" class="auth-form">
+<form method="post" action="{% url 'login' %}" class="auth-form" data-auth-validate data-error-class="auth-fielderr">
   {% csrf_token %}
-  {% if form.non_field_errors %}
-  <div class="auth-errors">{{ form.non_field_errors }}</div>
-  {% endif %}
+  {% include "components/auth_intent_note.html" with note_class="auth-intent" %}
+  <div class="auth-errors" role="alert" tabindex="-1" data-form-errors{% if not form.errors %} hidden{% endif %}>{% if form.non_field_errors %}{{ form.non_field_errors }}{% endif %}{% with count=form|field_error_count %}<p data-error-count style="margin:0;"{% if not count %} hidden{% endif %}>{{ count }} ta maydonni tekshiring.</p>{% endwith %}</div>
 
   <label class="auth-field">
     <span class="auth-label">Email yoki username</span>
     {{ form.username }}
-    {% include "includes/field_errors.html" with errors=form.username.errors css="auth-fielderr" %}
+    {% include "includes/field_errors.html" with errors=form.username.errors css="auth-fielderr" error_id=form.username.auto_id %}
   </label>
 
   <label class="auth-field">
     <span class="auth-label" style="display:flex;align-items:center;justify-content:space-between;">Parol <a href="{% url 'password_reset' %}" style="color:var(--azure);text-transform:none;letter-spacing:0;font-family:'Space Grotesk',sans-serif;font-size:12px;">Unutdingizmi?</a></span>
     {{ form.password }}
-    {% include "includes/field_errors.html" with errors=form.password.errors css="auth-fielderr" %}
+    {% include "includes/field_errors.html" with errors=form.password.errors css="auth-fielderr" error_id=form.password.auto_id %}
   </label>
 
   <input type="hidden" name="next" value="{{ next }}">

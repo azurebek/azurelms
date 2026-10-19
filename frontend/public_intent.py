@@ -21,7 +21,7 @@ Muddat owner sozlamasi — `OperationalSettings.public_intent_minutes`.
 import logging
 import secrets
 from dataclasses import dataclass
-from urllib.parse import urlencode
+from urllib.parse import parse_qs, urlencode, urlsplit
 
 from django.core import signing
 from django.core.cache import cache
@@ -115,3 +115,33 @@ def record(*, outcome, intent=None):
         },
     )
     return replay
+
+
+def describe(next_url):
+    """Auth sahifasidagi eslatma: `next` imzoli kurs niyati bo'lsa — kurs va tarif nomi.
+
+    Faqat imzosi va muddati to'g'ri niyatdan; xom URL'dan hech narsa olinmaydi.
+    """
+    if not next_url:
+        return None
+    parts = urlsplit(next_url)
+    if parts.scheme or parts.netloc or parts.path != reverse("public_intent_continue"):
+        return None
+    try:
+        intent = read((parse_qs(parts.query).get(PARAM) or [""])[0])
+    except InvalidIntent:
+        return None
+    if intent.course_id is None:
+        return None
+    from courses.models import Course
+
+    course = Course.objects.filter(pk=intent.course_id, is_active=True).only("title").first()
+    if course is None:
+        return None
+    plan_name = ""
+    if intent.plan_code:
+        from subscriptions.models import Plan
+
+        plan = Plan.objects.filter(code=intent.plan_code).only("name").first()
+        plan_name = plan.name if plan else ""
+    return {"course": course.title, "plan": plan_name, "checkout": intent.destination == COURSE_CHECKOUT}

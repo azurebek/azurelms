@@ -91,17 +91,30 @@ class FrontendLoginView(FrontendV1Mixin, LoginView):
     def frontend_v1_enabled(self):
         return flag_enabled('frontend_v1_learning') or flag_enabled('frontend_v1_auth')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        form = context.get("form")
+        if form is not None and form.is_bound and form.errors:
+            # Xato bilan qaytgan sahifada fokus birinchi xatoga o'tadi (PUB1.4b), nomga emas.
+            form.fields["username"].widget.attrs.pop("autofocus", None)
+        from frontend import public_intent
+
+        context["auth_intent"] = public_intent.describe(context.get("next", ""))
+        return context
+
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
-        if self.frontend_v1_enabled:
-            form.error_messages = {
-                **form.error_messages,
-                "invalid_login": "Email yoki username va parol mos kelmadi. Qayta tekshiring.",
-                "inactive": "Bu hisob faol emas. Yordam xizmatiga murojaat qiling.",
-            }
-            for field in form.fields.values():
+        # O'zbekcha xatolar ikkala renderer'da (PUB1.4b): legacy ilgari Django'ning
+        # inglizcha «Please enter a correct username and password…» matnini ko'rsatardi.
+        form.error_messages = {
+            **form.error_messages,
+            "invalid_login": "Email yoki username va parol mos kelmadi. Qayta tekshiring.",
+            "inactive": "Bu hisob faol emas. Yordam xizmatiga murojaat qiling.",
+        }
+        for field in form.fields.values():
+            field.error_messages["required"] = "Bu maydonni to‘ldiring."
+            if self.frontend_v1_enabled:
                 field.widget.attrs["class"] = "c-field"
-                field.error_messages["required"] = "Bu maydonni to‘ldiring."
         return form
 
     # --- urinishlar cheklovi (PUB1.0c) ------------------------------------- #

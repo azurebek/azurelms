@@ -1,4 +1,5 @@
 {% extends "registration/base_auth.html" %}
+{% load auth_forms %}
 {% load static %}
 {% comment %} Ro'yxatdan o'tish (RegisterView, CustomUserCreationForm) — proto: public/auth.html (Ro'yxat tab). {% endcomment %}
 
@@ -13,44 +14,44 @@
 <h1 class="auth-h1">Hisob yarating</h1>
 <p class="auth-lead">Bir necha daqiqada ro'yxatdan o'ting va birinchi darsni boshlang.</p>
 
-<form method="post" action="{% url 'register' %}" class="auth-form">
+<form method="post" action="{% url 'register' %}" class="auth-form" data-auth-validate data-error-class="auth-fielderr">
   {% csrf_token %}
   {% comment %}Odam qayerga bormoqchi edi — ro'yxatdan o'tish uni unutmasin.{% endcomment %}
   {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
-  {% if form.non_field_errors %}
-  <div class="auth-errors">{{ form.non_field_errors }}</div>
-  {% endif %}
+  {% include "components/auth_intent_note.html" with note_class="auth-intent" %}
+  <div class="auth-errors" role="alert" tabindex="-1" data-form-errors{% if not form.errors %} hidden{% endif %}>{% if form.non_field_errors %}{{ form.non_field_errors }}{% endif %}{% with count=form|field_error_count %}<p data-error-count style="margin:0;"{% if not count %} hidden{% endif %}>{{ count }} ta maydonni tekshiring.</p>{% endwith %}</div>
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
     <label class="auth-field" style="margin-bottom:0;">
       <span class="auth-label">Ism</span>
       {{ form.first_name }}
-      {% include "includes/field_errors.html" with errors=form.first_name.errors css="auth-fielderr" %}
+      {% include "includes/field_errors.html" with errors=form.first_name.errors css="auth-fielderr" error_id=form.first_name.auto_id %}
     </label>
     <label class="auth-field" style="margin-bottom:0;">
       <span class="auth-label">Familiya</span>
       {{ form.last_name }}
-      {% include "includes/field_errors.html" with errors=form.last_name.errors css="auth-fielderr" %}
+      {% include "includes/field_errors.html" with errors=form.last_name.errors css="auth-fielderr" error_id=form.last_name.auto_id %}
     </label>
   </div>
 
   <label class="auth-field" style="margin-top:16px;">
     <span class="auth-label">Email</span>
     {{ form.email }}
-    {% include "includes/field_errors.html" with errors=form.email.errors css="auth-fielderr" %}
+    {% include "includes/field_errors.html" with errors=form.email.errors css="auth-fielderr" error_id=form.email.auto_id %}
   </label>
 
   <label class="auth-field">
     <span class="auth-label">Parol</span>
     {{ form.password1 }}
-    {% include "includes/field_errors.html" with errors=form.password1.errors css="auth-fielderr" %}
-    {% if form.password1.help_text %}<div class="auth-help">{{ form.password1.help_text|safe }}</div>{% endif %}
+    {% include "includes/field_errors.html" with errors=form.password1.errors css="auth-fielderr" error_id=form.password1.auto_id %}
+    {% if form.password1.help_text %}<div class="auth-help" id="{{ form.password1.auto_id }}_helptext">{{ form.password1.help_text|safe }}</div>{% endif %}
   </label>
 
   <label class="auth-field">
     <span class="auth-label">Parolni tasdiqlang</span>
     {{ form.password2 }}
-    {% include "includes/field_errors.html" with errors=form.password2.errors css="auth-fielderr" %}
+    {% include "includes/field_errors.html" with errors=form.password2.errors css="auth-fielderr" error_id=form.password2.auto_id %}
+    {% if form.password2.help_text %}<div class="auth-help" id="{{ form.password2.auto_id }}_helptext">{{ form.password2.help_text }}</div>{% endif %}
   </label>
 
   <button type="submit" class="auth-btn">Ro'yxatdan o'tish <i class="bi bi-arrow-right" style="font-size:13px;"></i></button>
