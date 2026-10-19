@@ -1545,3 +1545,12 @@ def backoffice_ai_control(request):
         "recent_events": AIUsageResetEvent.objects.select_related("cohort", "plan", "created_by")[:8],
     }
     return render(request, "backoffice/ai_control.html", context)
+
+
+def csrf_failure(request, reason=""):
+    """CSRF rad etilganda o'zbekcha, texnik tafsilotsiz sahifa (PUB1.4b).
+
+    Django'ning inglizcha DEBUG sahifasi o'rniga: nima bo'lganini va qanday
+    davom etishni aytadi. Sabab (`reason`) foydalanuvchiga ko'rsatilmaydi.
+    """
+    return render(request, "csrf_failure.html", {"retry_url": request.get_full_path()}, status=403)

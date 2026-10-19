@@ -7,6 +7,8 @@
   maydoni aynan shu holat — Django uchta qoidani birdan aytishi mumkin.
 
   Chaqirilishi:
-    {% include "includes/field_errors.html" with errors=form.password1.errors css="auth-fielderr" %}
+    {% include "includes/field_errors.html" with errors=form.password1.errors css="auth-fielderr" error_id=form.password1.auto_id %}
+  `error_id` berilsa xato bloki `<id>_error` oladi — Django maydonga qo'yadigan
+  `aria-describedby` shu blokni topadi (aks holda bog'lanish uzilib qoladi, PUB1.4b).
 {% endcomment %}
-{% if errors %}<div class="{{ css|default:'auth-fielderr' }}">{% for error in errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
+{% if errors %}<div class="{{ css|default:'auth-fielderr' }}"{% if error_id %} id="{{ error_id }}_error"{% endif %}>{% for error in errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}

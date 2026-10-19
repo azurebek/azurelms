@@ -58,6 +58,15 @@ class CustomUserCreationForm(UserCreationForm):
         self.fields["password1"].help_text = (
             "Kamida 8 ta belgi; faqat raqam bo'lmasin va ism/emailga o'xshamasin."
         )
+        # Ikkala renderer uchun bir xil (PUB1.4b): legacy ilgari inglizcha
+        # «This field is required.» va autocomplete'siz edi.
+        autocomplete = {"first_name": "given-name", "last_name": "family-name", "email": "email"}
+        for name, field in self.fields.items():
+            field.error_messages["required"] = "Bu maydonni to‘ldiring."
+            if name in autocomplete:
+                field.widget.attrs["autocomplete"] = autocomplete[name]
+        self.fields["email"].error_messages["invalid"] = "To‘g‘ri email manzilini kiriting."
+        self.fields["password2"].help_text = "Tekshirish uchun yuqoridagi parolni qayta kiriting."
 
     def _post_clean(self):
         super()._post_clean()
@@ -144,6 +153,8 @@ class UzbekSetPasswordForm(SetPasswordForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["new_password1"].label = "Yangi parol"
+        # Django'ning inglizcha tasdiq yordam matni o'rniga (legacy ham chizadi, PUB1.4b).
+        self.fields["new_password2"].help_text = "Tekshirish uchun yuqoridagi parolni qayta kiriting."
         self.fields["new_password2"].label = "Yangi parolni tasdiqlang"
         self.fields["new_password1"].help_text = (
             "Kamida 8 ta belgi; faqat raqam bo'lmasin va ism/emailga o'xshamasin."

@@ -8,6 +8,7 @@
 
 {% block title %}{% block auth_title %}{{ site_settings.brand_name|default:"AzureLMS" }} — Kirish{% endblock %}{% endblock %}
 
+{% block extra_js %}<script defer src="{% static 'frontend_v1/js/auth-validation.js' %}"></script>{% endblock %}
 {% block extra_css %}
 <style>
   @media (max-width:840px){ [data-authgrid]{grid-template-columns:1fr!important;} [data-brandpanel]{display:none!important;} }
@@ -34,6 +35,12 @@
   .auth-divider span.tx{ font-family:'Space Mono',monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-4); }
   .auth-foot-link{ text-align:center; font-size:13px; color:var(--ink-3); margin:24px 0 0; }
   .auth-foot-link a{ color:var(--azure); font-weight:600; }
+  .auth-intent{ background:var(--azure-soft); color:var(--ink-2); border:1px solid var(--azure); border-radius:9px; padding:11px 13px; font-size:12.5px; line-height:1.5; margin:0 0 18px; }
+  .auth-legal{ text-align:center; font-size:12px; color:var(--ink-4); }
+  .auth-legal a{ display:inline-flex; align-items:center; min-height:44px; padding:0 4px; color:var(--ink-3); }
+  .auth-tab, .auth-foot-link a{ min-height:44px; }
+  .auth-tab{ height:auto; }
+  .auth-foot-link a{ display:inline-flex; align-items:center; }
 </style>
 {% endblock %}
 
@@ -71,7 +78,7 @@
   <!-- Forma paneli -->
   <main style="position:relative;display:flex;flex-direction:column;padding:26px clamp(24px,5vw,56px);">
     <div style="display:flex;align-items:center;justify-content:flex-end;gap:14px;">
-      <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.06em;"><span style="color:var(--ink);">UZ</span> <span style="color:var(--ink-4);">EN</span></div>
+      {# “UZ / EN” belgisi olib tashlandi: inglizcha versiya yo'q (PUB1.4b). #}
       <button type="button" aria-label="Mavzu" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--line);color:var(--ink-2);display:grid;place-items:center;font-size:13px;transition:border-color .2s,color .2s;"><i class="bi bi-moon"></i></button>
     </div>
 
@@ -81,7 +88,8 @@
       </div>
     </div>
 
-    <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;color:var(--ink-4);text-align:center;">© 2026 AZURELMS · TOSHKENT, UZ</div>
+    {# Huquqiy havolalar (44px nishon) — V1 auth footer bilan bir xil (PUB1.4b). #}
+    <div class="auth-legal">{{ site_settings.brand_name|default:"AzureLMS" }} · <a href="{% url 'privacy_policy' %}">Maxfiylik</a> · <a href="{% url 'terms_of_service' %}">Foydalanish shartlari</a></div>
   </main>
 
 </div>

@@ -18,6 +18,9 @@
 .p-auth-onboarding { display: grid; gap: var(--az-space-5); }
 .p-auth-heading + .p-auth-notice { margin-top: var(--az-space-5); }
 .s-auth-footer { text-align: center; color: var(--az-muted); font-size: var(--az-text-xs); padding-block: var(--az-space-4); }
+/* Huquqiy havolalar ham barmoq bilan bosiladigan nishon (44px, PUB1.4b). */
+.s-auth-footer a { display: inline-flex; align-items: center; min-height: var(--az-control); padding-inline: var(--az-space-1); }
+.p-auth-card .errorlist { list-style: none; padding: 0; margin: var(--az-space-2) 0 0; color: var(--az-danger, #b42318); font-size: var(--az-text-sm); }
 @media (width < 640px) {
   .s-auth-header { padding-inline: var(--az-space-4); }
   .s-auth-main { padding-top: var(--az-space-4); }

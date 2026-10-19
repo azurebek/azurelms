@@ -204,6 +204,8 @@ SESSION_COOKIE_SECURE = env_bool("SESSION_COOKIE_SECURE", SECURITY_STRICT)
 CSRF_COOKIE_SECURE = env_bool("CSRF_COOKIE_SECURE", SECURITY_STRICT)
 SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
 CSRF_COOKIE_SAMESITE = os.getenv("CSRF_COOKIE_SAMESITE", "Lax")
+# CSRF rad etilganda inglizcha texnik sahifa emas, o'zbekcha tushuntirish (PUB1.4b).
+CSRF_FAILURE_VIEW = "core.views.csrf_failure"
 # Production Security Headers
 if SECURITY_STRICT:
     SECURE_BROWSER_XSS_FILTER = True

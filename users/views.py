@@ -101,6 +101,10 @@ class RegisterView(AuthV1Mixin, CreateView):
         context = super().get_context_data(**kwargs)
         # Shablon buni yashirin maydonga va «Kirish» havolasiga qo'yadi.
         context["next"] = _safe_next(self.request, "")
+        # Kurs sahifasidan kelgan bo'lsa — qayerga qaytishi aytiladi (PUB1.4b).
+        from frontend import public_intent
+
+        context["auth_intent"] = public_intent.describe(context["next"])
         return context
 
     def get_success_url(self):
@@ -119,10 +123,8 @@ class RegisterView(AuthV1Mixin, CreateView):
         messages.success(self.request, "Xush kelibsiz! Hisobingiz tayyor.")
         return redirect(self.get_success_url())
 
-    def form_invalid(self, form):
-        if not form.non_field_errors():
-            messages.error(self.request, "Ma'lumotlarda xatolik bor. Iltimos qaytadan tekshiring.")
-        return super().form_invalid(form)
+    # Xato xulosasi formaning o'zida (bir marta, maydonlar soni bilan) — flash xabar
+    # uni takrorlardi (PUB1.4b).
 
 class OnboardingChoiceView(LoginRequiredMixin, AuthV1Mixin, TemplateView):
     template_name = 'registration/onboarding_choice.html'
@@ -137,6 +139,9 @@ class OnboardingChoiceView(LoginRequiredMixin, AuthV1Mixin, TemplateView):
         # yo'li bu yerda `next` ni ko'tarmaydi: u ataylab tanlangan uzoq
         # yo'l va oxiri messenger'da tugaydi.
         context["next"] = _safe_next(self.request, "")
+        from frontend import public_intent
+
+        context["auth_intent"] = public_intent.describe(context["next"])
         # Matn faqat kontekst rostdan yoqilganda ko'rsatiladi: aks holda
         # sahifa «AI hisobga oladi» deb va'da qilib, hech narsa qilmagan
         # bo'lardi. Bayroq yoki xotira o'chirilsa qator ham yo'qoladi.

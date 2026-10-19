@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Sahifa eskirgan · {{ site_settings.brand_name|default:"AzureLMS" }}</title>
+  {% include "components/brand_favicon.html" %}
+  <style>
+    :root { color-scheme: light dark; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; box-sizing: border-box;
+           font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: Canvas; color: CanvasText; }
+    main { max-width: 32rem; }
+    h1 { font-size: 1.5rem; margin: 0 0 12px; }
+    p { line-height: 1.6; margin: 0 0 20px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+    a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: 10px;
+        border: 1px solid currentColor; color: inherit; text-decoration: none; font-weight: 600; }
+    a.primary { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Sahifa eskirgan</h1>
+    {# CSRF rad etildi: forma uzoq ochiq qolgan, boshqa oynada kirish/chiqish bo'lgan yoki cookie o'chirilgan. #}
+    <p>Forma yuborilmadi: sahifa ochilganidan beri xavfsizlik belgisi yangilangan. Sahifani qayta oching va yana urinib ko‘ring. Brauzeringizda cookie yoqilgan bo‘lishi kerak.</p>
+    <div class="actions">
+      <a class="primary" href="{{ retry_url }}">Sahifani qayta ochish</a>
+      <a href="/">Bosh sahifa</a>
+    </div>
+  </main>
+</body>
+</html>
