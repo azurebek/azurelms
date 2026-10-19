@@ -1,7 +1,7 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
 **Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) hamda PUB1.2a–b, PUB1.2d,
-PUB1.3 bosqichi (a–d), PUB1.4b–c, PUB1.4e, PUB1.5a–b kodda (2026-10-16/19, lokal)**; PUB1.2c
+PUB1.3 bosqichi (a–d), PUB1.4b–c, PUB1.4e, PUB1.5a–c kodda (2026-10-16/20, lokal)**; PUB1.2c
 B3.5 writer’i bilan birga ochiq; PUB1.4a owner qarori bilan keyinga qoldirilgan (2026-10-19);
 PUB1.4d (production SMTP owner qo‘lida) va keyingi kesimlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
@@ -2074,6 +2074,26 @@ claim qilinmasligi.
 request 0; “KVKK compliant” overclaim yo‘q.
 
 #### PUB1.5c — certificate opaque token va minimal verifier
+
+**Holat — 2026-10-20: kodda, lokal tekshirilgan** (branch `claude/pub15c-certificate-token`,
+migration courses0027 + core0011 — additive). `Certificate`ga `public_token` (192-bit
+`secrets.token_urlsafe(24)`, noyob, to‘qnashuvda qayta urinish), `public_status`
+(hidden/verifiable/revoked, default verifiable), `public_name_mode` (full/abbreviated/omitted,
+default **abbreviated** — PUB-D15 minimal disclosure: “Ali V.”, username hech qachon),
+`revoked_at`, xususiy `revocation_reason`, `verification_revision` (CAS). Servis
+`courses/certificate_verifier.py`: issuance’da `ensure_public_token`; `lookup` — bitta so‘rov,
+faqat holat/ism/kurs nomi/sana (ball, email, eski ID, imtihon, yozilish — so‘ralmaydi ham);
+`set_public_status` — sabab + CAS + audit (audit kodni yozmaydi). Route
+`/certificates/verify/<token>/` (`certificate_verify`, sensitive: noindex/nofollow/noarchive,
+no-store, same-origin referrer — sahifada forma va tashqi manba yo‘q). Yo‘q, yashirin, noto‘g‘ri
+format va **o‘chiq flag** bir xil “topilmadi” 404; noto‘g‘ri kod IP bo‘yicha cheklanadi (owner
+sozlamasi `certificate_verify_ip_limit`/`_window_minutes`, runtime paneli), to‘g‘ri kod sanalmaydi;
+bekor qilingan — rost (sana bilan), sababi yopiq. Flag `certificate_public_verifier` default **OFF**
+(PUB-D4: owner qarorisiz rollout yo‘q). Holat o‘zgartirish: `manage.py certificate_public_status
+<pk> --status … --reason …` (admin’da faqat o‘qish). Eski ID’li sahifa va ilova o‘zgarmadi — PUB1.5d.
+**Ochiq:** mavjud sertifikatlarga kod (backfill) va o‘quvchiga yangi havola — PUB1.5d; Caddy access
+log’ida kodni yashirish (ops, sinab qo‘llanadi): `log { format filter { wrap console; fields {
+request>uri regexp "^/certificates/verify/[^/]+" "/certificates/verify/REDACTED" } } }`.
 
 **Ish:** owner PUB-D4/PUB-D15 qaroriga mos additive fields, random token,
 status/revoke, minimal selector/template, new URL, noindex/noarchive/no-referrer/

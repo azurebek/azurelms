@@ -16,22 +16,32 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
-## 2026-10-19 [Claude]: PUBLIC-01 / PUB1.5c — WIP (limit tufayli to'xtatildi, PR ochilmagan)
+## 2026-10-20 [Claude]: PUBLIC-01 / PUB1.5c — sertifikatni tasodifiy kod bilan tekshirish
 
-Branch `claude/pub15c-certificate-token` — **yarim ish, `main`ga birlashtirilmagan**.
+2026-10-19 da limit tufayli WIP sifatida to'xtatilgan (`3d1127a`), 2026-10-20 da yakunlandi.
+Eski sertifikat havolasi `AZ-<kurs>-<o'quvchi>-<6 belgi>` — ID'lar ochiq, qolgan 24 bit taxmin
+qilinadi; sahifa ism va ballni, ilova imtihon natijalarini ko'rsatadi.
 
-- **Tayyor (kodda):** `Certificate` ga additive maydonlar (`public_token` 192-bit, `public_status`
-  hidden/verifiable/revoked, `public_name_mode` default abbreviated, `revoked_at`, xususiy
-  `revocation_reason`, `verification_revision`) — migration courses0027; `courses/certificate_verifier.py`
-  (kod berish + to'qnashuvda qayta urinish, minimal `lookup`, CAS+audit `set_public_status`);
-  issuance'da `ensure_public_token`; view `certificate_verify` + URL `/certificates/verify/<token>/`
-  (flag `certificate_public_verifier`, default OFF — PUB-D4); `templates/courses/certificate_verify.html`;
-  noto'g'ri kod IP throttle (`auth_abuse` scope, OperationalSettings maydonlari — migration core0011,
-  runtime paneli); route `_sensitive`; admin read-only; `manage.py certificate_public_status`.
-- **Qolgan:** testlar yozilmagan (`courses/test_certificate_verifier.py`); `users/test_auth_throttle.py`
-  OwnerPanelTests payload va `core/test_runtime_settings.py` ro'yxatiga 2 yangi maydon; route snapshot
-  (`UPDATE_PUBLIC_ROUTE_SNAPSHOT=1`); to'liq suite yugurilmagan; nazorat yugurishi, brauzer, docs (reja,
-  README, project-context), PR/CI. Caddy access log'da kodni yashirish — ops eslatmasi (hali yozilmagan).
+- Branch: `claude/pub15c-certificate-token`; kod commit **`53d0e54`**. Migration courses0027 +
+  core0011 (additive).
+- Qarorlar: 192-bitli `public_token` (to'qnashuvda qayta urinish), issuance'da beriladi; minimal
+  `lookup` (holat, default qisqartirilgan ism, kurs, sana; bitta so'rov); bekor qilish rost, sababi
+  yopiq; o'chiq flag, yo'q, yashirin va noto'g'ri kod bir xil 404; noto'g'ri kod IP throttle (owner
+  sozlamasi), to'g'ri kod sanalmaydi; kod logga/auditga/hisoblagichga yozilmaydi; flag
+  `certificate_public_verifier` default OFF (PUB-D4); `certificate_public_status` buyrug'i.
+- Test: `courses/test_certificate_verifier.py` — 17 test; to'liq `manage.py test` — **3153 test, OK (skipped=70)**.
+  Birinchi to'liq yugurishda `public_meta` kontrakti 2 FAIL: o'chiq flagda Django 404 sahifasi
+  `noarchive`siz edi — endi ayni "topilmadi" shabloni (imkoniyat borligi ham bilinmaydi).
+  Nazorat yugurishi: 12 ta buzilish (qisqa kod, qayta urinishsiz, issuance'siz, flag e'tiborsiz,
+  doim to'liq ism, yashirin ko'rinadi, bekor qilingan "amalda", noto'g'ri kod sanalmaydi, to'g'ri
+  kod sanaladi, CAS'siz, format tekshiruvisiz, tashqi shrift) — hammasi FAIL (bittasi test kuchaytirilgach),
+  tiklangach bayt-bayt bir xil.
+- Brauzer (DB nusxasi, flag vaqtincha ON): "Haqiqiy sertifikat", "Dilnoza K.", kurs, sana; ball/ID
+  yo'q; 375px'da siljish yo'q; qorong'i rejimda status rangi kontrasti ko'tarildi; noto'g'ri kod —
+  "topilmadi". Sinov sertifikati o'chirildi, flag qaytarildi.
+- Davom etilishi kerak: PUB1.5d (mavjud sertifikatlarga kod, o'quvchiga yangi havola, ilovani
+  yopish, eski havola grace); Caddy log filtri (reja bo'limida, ops sinab qo'llaydi); flagni yoqish —
+  owner qarori.
 
 ## 2026-10-19 [Claude]: PUBLIC-01 / PUB1.5b — brauzerda nima saqlanadi: dalil bilan ro'yxat
 

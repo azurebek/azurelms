@@ -1414,6 +1414,11 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 - Klient: ikkala renderer `components/telegram_auth_panel.html` + `static/frontend_v1/js/login.js` (PUB1.4e; eski `static/js/telegram-login.js` o'chirildi). Polling oralig'i va umri init javobidan (`poll_ms`, `expires_in`, `code`, `qr` — `segno` SVG data URI, telefonda yashirin).
 - Bot tasdig'i ikki qadam (PUB1.4e): `describe_telegram_auth_request` xabar + kod + «Kirishni tasdiqlash» / «Bu men emas» (`tgauth:ok:`/`tgauth:no:` callback); faqat tugma `handle_telegram_auth_token`ni chaqiradi. Rad etish `declined` holat — brauzer darhol ko'radi. Havolani ochishning o'zi hech kimni kiritmasligini `users/test_telegram_auth_ux.py` qulflaydi.
 
+### Sertifikat ochiq tekshiruvi (PUB1.5c, 2026-10-20)
+
+- Ochiq tekshiruv faqat `courses/certificate_verifier.py` orqali: `lookup(token)` minimal proyeksiya (bog'liq jadvalga so'rov yo'q), holat o'zgarishi `set_public_status` (sabab + `verification_revision` CAS + audit). Kodni (`public_token`) logga, auditga, xabarga yoki qidiruvga chiqarmang; yangi sertifikat `ensure_public_token` bilan kod oladi.
+- `/certificates/verify/<token>/` flag `certificate_public_verifier` (default OFF) ostida; o'chiq, yo'q, yashirin va noto'g'ri kod bir xil 404. `courses/test_certificate_verifier.py` qulflaydi.
+
 ### Brauzer xotirasi va tashqi manbalar (PUB1.5b, 2026-10-19)
 
 - Cookie, localStorage yoki sessionStorage'ga tegadigan har yangi kod `frontend/privacy_inventory.py` `ITEMS`ga yoziladi, keyin `manage.py privacy_inventory --write` — aks holda `frontend/test_privacy_inventory.py` yiqiladi. Yangi tashqi manba (script/link/img/iframe) `THIRD_PARTY`ga; kuzatuv domenlari (`TRACKER_HOSTS`) na sahifada, na CSP'da bo'lmaydi.
