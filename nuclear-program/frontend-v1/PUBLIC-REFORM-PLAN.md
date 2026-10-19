@@ -1,8 +1,9 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
 **Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) hamda PUB1.2a–b, PUB1.2d,
-PUB1.3 bosqichi (a–d) kodda (2026-10-16/19, lokal)**; PUB1.2c B3.5 writer’i bilan birga ochiq,
-PUB1.4a va keyingi kesimlar boshlanmagan
+PUB1.3 bosqichi (a–d), PUB1.4b kodda (2026-10-16/19, lokal)**; PUB1.2c B3.5 writer’i bilan
+birga ochiq; PUB1.4a owner qarori bilan keyinga qoldirilgan (2026-10-19); PUB1.4c va keyingi
+kesimlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
 **Kod tayanchi:** `main`dagi `72e82e0`
 **Birinchi implementatsiya kesimi:** `PUB1.0a`
@@ -1870,6 +1871,9 @@ closed offer duplicate enrollment/receipt 0.
 
 #### PUB1.4a — pricing funnel va truthful comparison
 
+**Holat — 2026-10-19: owner qarori bilan keyinga qoldirildi.** Stop gate o‘z kuchida:
+renewal/cancellation/refund siyosati matni hali yo‘q; owner uni bergach kesim qayta ochiladi.
+
 **Dependency/stop gate:** current `subscriptions.Plan` price, description,
 availability va featurelarni beradi, lekin renewal/cancellation/refund policy
 contracti yo‘q. A4 owneri avval canonical offer/legal-copy schema yoki service
@@ -1887,6 +1891,22 @@ auth, pricing-to-course-to-checkout intent, checkout quote equality.
 unsupported “popular/discount” 0.
 
 #### PUB1.4b — UX-04 auth error va form clarity porti
+
+**Holat — 2026-10-19: kodda, lokal tekshirilgan** (branch `claude/pub14b-auth-clarity`).
+Login, ro‘yxat, parol so‘rovi va yangi parol formalari ikkala renderer’da: har xato bir marta
+(maydon yonida, server ishlatadigan `<id>_error` joyida), bitta xulosa — umumiy xato matni va
+“N ta maydonni tekshiring” (ro‘yxatdagi takroriy flash xabar olib tashlandi); legacy’da xato va
+yordam matni `id` oladi — Django qo‘ygan `aria-describedby` endi haqiqiy elementga ishora
+qiladi (ilgari uzilgan edi). `static/frontend_v1/js/auth-validation.js` (ikki renderer):
+native pufakcha o‘rniga inline xato, required + email + parol mos emasligi birga, birinchi xatoga
+fokus, tuzatishda eskirgan xabar olinadi; xato bilan qaytgan sahifada fokus nomga emas, xatoga
+(login `autofocus` olib tashlanadi). Parol qoidalari faqat serverda — soxta “kuch” o‘lchagich
+yo‘q; parol qaytarib chizilmaydi. Legacy’dagi inglizcha Django xatolari (“This field is
+required.”, “Please enter a correct username…”) o‘zbekchaga; autocomplete ikkala renderer’da.
+Kursdan kelgan mehmonga imzoli niyatdan “… to‘lov sahifasiga qaytasiz (Pro tarifi)” eslatmasi.
+CSRF rad etilsa o‘zbekcha “Sahifa eskirgan” sahifasi (`CSRF_FAILURE_VIEW`). Legacy auth
+footer’ida Maxfiylik/Shartlar havolalari (44px), soxta “UZ/EN” belgisi olib tashlandi.
+**Ochiq (UX-04):** native klaviatura/AT va owner qabul tekshiruvi; AI onboarding CTA.
 
 **Ish:** login/register/reset forms: single summary, field association, first
 invalid focus, preserved safe values, password no echo, autocomplete/inputmode,

@@ -16,6 +16,39 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-19 [Claude]: PUBLIC-01 / PUB1.4b — auth formalarida xato bir marta, aniq va o‘zbekcha
+
+Owner qarori (2026-10-19): PUB1.4a (pricing) keyinga qoldirildi — refund/renewal siyosati
+matni yo‘q. Shuning uchun keyingi to‘siqsiz kesim PUB1.4b qilindi.
+
+Ro‘yxat formasi xato bilan qaytsa xato uch joyda turardi (flash xabar, umumiy banner, maydon
+yonida); legacy’da Django’ning `aria-describedby` havolalari mavjud bo‘lmagan elementga
+ishora qilardi, xatolar inglizcha edi (“This field is required.”, “Please enter a correct
+username…”); login xato bilan qaytganda fokus yana nom maydonida edi; CSRF rad etilsa
+inglizcha texnik sahifa chiqardi.
+
+- Branch: `claude/pub14b-auth-clarity`; kod commit **`a6382e9`**. Migration yo‘q.
+- Qarorlar: bitta xulosa (umumiy xato + “N ta maydonni tekshiring”), flash takrori olib
+  tashlandi; legacy xato/yordam matni `id` oladi; `auth-validation.js` (ikki renderer) — inline
+  required/email/mos emas, birinchi xatoga fokus, tuzatishda eskirgan xabar olinadi, parol
+  siyosati faqat serverda; o‘zbekcha xatolar va autocomplete ikkala renderer’da; imzoli niyatdan
+  “to‘lov sahifasiga qaytasiz” eslatmasi; `CSRF_FAILURE_VIEW` → o‘zbekcha “Sahifa eskirgan”;
+  legacy auth footer’ida huquqiy havolalar (44px), soxta “UZ/EN” olib tashlandi.
+- Test: `manage.py test users.test_auth_clarity` — **11 test, OK**; `node --test` 184/184
+  (yangi `auth-validation.test.mjs`); to‘liq `manage.py test` — **3065 test, OK (skipped=69)**
+  (birinchi yugurishdagi favicon shartnomasi xatosi CSRF sahifasiga favicon qo‘shib tuzatildi);
+  o‘z-review tozalashidan keyin `manage.py test users core.test_brand_control frontend
+  courses.test_public_intent` — **576 test, OK**. Nazorat yugurishi: 11 ta buzilish (flash
+  takrori, xato `id`si, autofocus, xom `next` eslatmasi, CSRF sahifasi, huquqiy havolalar,
+  inglizcha login/required, xulosa soni, JS mos emaslik, legacy onboarding eslatmasi) — hammasi
+  FAIL, tiklangach PASS.
+- Brauzer (DB nusxasi, V1 va legacy): bo‘sh/yaroqsiz email/mos emas birga, “3 ta maydonni
+  tekshiring”, fokus birinchi xatoda, tuzatishda “2 ta”; server dublikat email — bitta xato,
+  fokus emailda, parol bo‘sh qaytdi, email saqlandi, flash yo‘q; 320/375px’da siljish yo‘q,
+  huquqiy havolalar 44px.
+- Davom etilishi kerak: PUB1.4c (login/register/reset throttle va enumeration). UX-04’ning
+  native klaviatura/AT va owner qabul qismi ochiq.
+
 ## 2026-10-19 [Claude]: PUBLIC-01 / PUB1.3d — kurs sahifasidan kirgan mehmon aynan o‘sha checkout’ga qaytadi
 
 Kurs sahifasida mehmon “Kirish”ni bossa, kirgach yana o‘sha kurs sahifasiga tushardi va
