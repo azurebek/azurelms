@@ -16,8 +16,10 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
+from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db import connections
 from django.test import TestCase, TransactionTestCase
 from django.urls import reverse
 
@@ -35,6 +37,20 @@ from users.models import TelegramAuthSession
 
 User = get_user_model()
 TG_ID = 777_000_111
+
+
+def run_handler(coroutine):
+    """Bot handlerini o'z event loop'ida bajaradi va oqim ulanishini yopadi.
+
+    Handler DB'ga `sync_to_async` oqimidan kiradi; u ulanish ochiq qolsa
+    PostgreSQL test bazasini o'chira olmaydi (`bot/test_metrics.py` naqshi).
+    """
+    async def wrapped():
+        try:
+            return await coroutine
+        finally:
+            await sync_to_async(connections.close_all)()
+    return asyncio.run(wrapped())
 
 
 def set_flag(slug, enabled):
@@ -163,7 +179,7 @@ class BotRouterTests(FlowMixin, TransactionTestCase):
 
     def open_link(self, token):
         message = SimpleNamespace(from_user=self.person, answer=AsyncMock())
-        asyncio.run(cmd_start_handler(message, SimpleNamespace(args=f"auth_{token}"), None, "guest"))
+        run_handler(cmd_start_handler(message, SimpleNamespace(args=f"auth_{token}"), None, "guest"))
         return message
 
     def press(self, handler, prefix, token):
@@ -171,7 +187,7 @@ class BotRouterTests(FlowMixin, TransactionTestCase):
             data=prefix + token, from_user=self.person, answer=AsyncMock(),
             message=SimpleNamespace(edit_text=AsyncMock(), answer=AsyncMock()),
         )
-        asyncio.run(handler(callback))
+        run_handler(handler(callback))
         return callback
 
     def test_opening_the_link_only_asks(self):

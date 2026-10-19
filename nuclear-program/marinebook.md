@@ -44,6 +44,10 @@ qolardi.
   `/courses/`ga (next) kirdi; legacy — «Bu men emas»dan keyin darhol “tasdiqlanmadi”, kirish yo'q;
   bekor qilish POST 200; 320px'da gorizontal siljish yo'q. Sinov hisoblari va hisoblagichlar
   o'chirildi.
+- CI PostgreSQL ishi birinchi urinishda testlardan keyin yiqildi: bot handler testlaridagi
+  `sync_to_async` oqimi DB ulanishini ochiq qoldirib, test bazasini o'chirishga to'sqinlik qildi
+  ("being accessed by other users"). Test endi handlerni `connections.close_all` bilan yopadi
+  (`bot/test_metrics.py` naqshi); production kodi o'zgarmadi.
 - Davom etilishi kerak: real Telegram bilan owner qabul tekshiruvi (bot tugmalari prod tokenida);
   QR uchun kutubxona qarori; PUB1.4d (SMTP) yoki PUB1.5a.
 
