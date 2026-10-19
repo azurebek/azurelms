@@ -1,6 +1,6 @@
 {% extends base_template|default:"base_public.html" %}
 {% load static %}
-{% load public_content %}
+{% load public_content activity_notice %}
 {% comment %}
   To'lov (checkout_view). Proto: azurelms-proto/public/checkout.html.
   REAL oqim: tarif tanlash + (ixtiyoriy) promokod + CHEK RASMINI yuklash → pending.
@@ -99,6 +99,7 @@
           <span style="display:block;font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:7px;">Chek rasmi</span>
           <input type="file" name="receipt_image" accept="image/*" required style="width:100%;font-size:13.5px;color:var(--ink-2);padding:12px;border:1px dashed var(--line);border-radius:11px;background:var(--paper-2);cursor:pointer;">
         </label>
+        <div style="font-size:12.5px;line-height:1.55;color:var(--ink-3);margin:10px 0 0;">{% activity_notice "payment_receipt" %}</div>
       </div>
     </div>
 

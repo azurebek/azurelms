@@ -84,3 +84,7 @@ textarea.c-field { resize: vertical; line-height: var(--az-leading); }
 .c-choice:has(input:disabled) { cursor: default; }
 .c-dot { display: inline-block; width: var(--az-dot); height: var(--az-dot); background: currentColor; border-radius: 50%; }
 .c-noscript { position: fixed; inset: auto 0 0; padding: var(--az-space-3); background: var(--az-danger-soft); color: var(--az-danger); z-index: var(--az-layer-overlay); }
+/* Forma yonidagi ma'lumot eslatmasi (PUB1.5b): tugmadan ajralib tursin, havola havoladek ko'rinsin. */
+[data-activity-notice] { margin-block-start: var(--az-space-3); }
+[data-activity-notice] a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.v1-telegram [data-activity-notice] { margin-block-start: 0; }

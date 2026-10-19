@@ -1,10 +1,11 @@
-{% comment %}
+{% load activity_notice %}{% comment %}
   Telegram orqali kirish (PUB1.4e) — V1 va legacy bitta belgilash, bitta skript
   (`frontend_v1/js/login.js`); renderer faqat klasslarni beradi. Panel JS'siz
   yashirin: o'lik tugma qolmaydi, `noscript` izoh beradi. Kod bot xabaridagi
   kod bilan solishtiriladi — begona odam yuborgan havolani tasdiqlamaslik uchun.
 {% endcomment %}<div class="{{ panel_class }}" data-telegram-auth hidden data-init-url="{% url 'telegram_auth_init' %}" data-status-url="{% url 'telegram_auth_status' token='TOKEN' %}" data-consume-url="{% url 'telegram_auth_consume' token='TOKEN' %}" data-cancel-url="{% url 'telegram_auth_cancel' %}" data-csrf-token="{{ csrf_token }}" data-login-url="{% url 'login' %}{% if next %}?next={{ next|urlencode:'' }}{% endif %}">
-  <p class="{{ text_class }}" data-telegram-intro>{% if public_registration_open %}Tasdiqlash Telegram botida bo‘ladi. Telegrami ulangan hisobga kirasiz; ulanmagan bo‘lsa, yangi profil ochiladi va unga Telegram ismingiz hamda username’ingiz yoziladi. Telefon raqamingiz so‘ralmaydi.{% else %}Tasdiqlash Telegram botida bo‘ladi. Faqat Telegrami ulangan hisobga kirish mumkin — hozircha yangi profil ochilmaydi.{% endif %}</p>
+  <p class="{{ text_class }}" data-telegram-intro>Tasdiqlash Telegram botida bo‘ladi.{% if not public_registration_open %} Faqat Telegrami ulangan hisobga kirish mumkin — hozircha yangi profil ochilmaydi.{% endif %}</p>
+  {% if public_registration_open %}{% activity_notice "telegram_login" text_class %}{% endif %}
   <button class="{{ start_class }}" type="button" data-telegram-start>{% if start_icon %}<i class="{{ start_icon }}" aria-hidden="true"></i> {% endif %}{{ start_label|default:"Telegram orqali kirish" }}</button>
   <div class="{{ waiting_class }}" data-telegram-waiting hidden>
     <p class="{{ text_class }}">Tasdiqlash kodi: <strong class="{{ code_class }}" data-telegram-code></strong></p>
