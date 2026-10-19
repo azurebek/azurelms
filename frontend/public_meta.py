@@ -165,7 +165,9 @@ def _legal(context):
     if page is None:
         # E'lon qilinmagan huquqiy sahifa (503) indekslanmaydi.
         return _Inputs(title=context.get("legal_title", ""), indexable=False)
-    return _Inputs(title=page.title, description=bounded_description(page.content), modified_at=page.updated_at)
+    # Huquqiy hujjat — kuchga kirgan vaqti (PUB1.5a), FAQ — oxirgi tahrir.
+    modified_at = context.get("legal_effective_at") or getattr(page, "updated_at", None)
+    return _Inputs(title=page.title, description=bounded_description(page.content), modified_at=modified_at)
 
 
 def _course(context):

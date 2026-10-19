@@ -21,6 +21,7 @@ from aicontrol.models import FeatureFlag
 from blog.models import BlogPost
 from core.rich_content_policy import public_plain_text, safe_url, sanitize_public_editorial
 from courses.models import Course
+from frontend.testing_legal import publish_legal
 from frontend.models import (
     AboutPage,
     AuthPageSettings,
@@ -198,6 +199,8 @@ class PublicFieldMatrixTests(TestCase):
         TeamMember.objects.create(name="Birinchi", role_1="Ustoz", role_2="CEO", bio=payload("FEATURED"), order=1)
         TeamMember.objects.create(name="Ikkinchi", role_1="Ustoz", role_2="Mentor", bio=payload("MEMBER"), order=2)
         LegalPage.objects.create(page_type=LegalPage.PAGE_TERMS, title="Shartlar", content=payload("TERMS"))
+        # Shartlar amaldagi versiyadan o'qiladi (PUB1.5a); render yana `public_rich` orqali.
+        publish_legal(LegalPage.PAGE_TERMS, title="Shartlar", content=payload("TERMS"))
         LegalPage.objects.create(page_type=LegalPage.PAGE_FAQ, title="FAQ", content=payload("FAQ"))
         self.course = Course.objects.create(title="Turk tili A1", description=payload("COURSE"), level="beginner")
         self.plan = Plan.objects.create(name="Faol tarif", price=230000, description=payload("PLAN"))
@@ -269,6 +272,7 @@ class PublicFieldMatrixTests(TestCase):
 
     def test_public_get_does_not_write(self):
         LegalPage.objects.create(page_type=LegalPage.PAGE_PRIVACY, title="Maxfiylik", content=payload("PRIVACY"))
+        publish_legal(LegalPage.PAGE_PRIVACY, title="Maxfiylik", content=payload("PRIVACY"))
         routes = [("home", []), ("about", []), ("terms_of_service", []), ("privacy_policy", []), ("faq_page", []),
                   ("course_detail", [self.course.pk]), ("subscriptions:pricing", []),
                   ("sit:knowledge_detail", [self.article.slug])]

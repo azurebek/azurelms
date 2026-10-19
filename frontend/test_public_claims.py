@@ -260,6 +260,9 @@ class ReadinessTests(ClaimMixin, TestCase):
             model.objects.create()
         for page_type in ("privacy", "terms", "faq"):
             LegalPage.objects.create(page_type=page_type, title="Owner", content="<p>Owner matni</p>")
+        from frontend.testing_legal import publish_all_legal
+
+        publish_all_legal()
         probe = lambda: PROBE_FUNCTIONS["public_content"](capability_by_slug("public_content"))  # noqa: E731
         result = probe()
         self.assertEqual(result.status, "green")  # dalilsiz = yashirin, xavfsiz holat

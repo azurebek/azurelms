@@ -388,6 +388,42 @@
   "post": "302>login"
  },
  {
+  "name": "backoffice_legal_documents",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_legal_edit",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_legal_new",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
+  "name": "backoffice_legal_preview",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "405",
+  "post": "405"
+ },
+ {
   "name": "backoffice_lesson_edit",
   "class": "private",
   "anonymous": "302>login",

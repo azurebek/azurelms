@@ -49,6 +49,9 @@ class ShellMixin:
     def setUp(self):
         for page_type in ("privacy", "terms", "faq"):
             LegalPage.objects.create(page_type=page_type, title=f"Owner {page_type}", content="<p>Owner matni</p>")
+        from frontend.testing_legal import publish_all_legal
+
+        publish_all_legal()
         set_flag("public_registration", True)
 
     def page(self, name):

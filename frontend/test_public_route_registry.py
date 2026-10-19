@@ -62,6 +62,10 @@ def fixture_world(cls):
     Plan.objects.create(name="Faol tarif", price=230000)
     for page_type in ("privacy", "terms", "faq"):
         LegalPage.objects.create(page_type=page_type, title=f"Owner {page_type}", content="<p>Owner matni</p>")
+    from frontend.testing_legal import publish_legal
+
+    for kind in ("privacy", "terms"):
+        publish_legal(kind, title=f"Owner {kind}")
 
 
 def kwargs_for(test):

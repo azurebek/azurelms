@@ -38,8 +38,15 @@ def _static(route_name):
 
 def _legal(route_name, page_type):
     def source():
+        from frontend import legal_revisions
         from frontend.models import LegalPage
 
+        # Sahifa view'ining ayni manbasi: huquqiy hujjat — amaldagi versiya (PUB1.5a).
+        if page_type in legal_revisions.KINDS:
+            revision = legal_revisions.effective_revision(page_type)
+            if revision is None:
+                return []
+            return [SitemapEntry(route_name, absolute_url(reverse(route_name)), revision.effective_at)]
         page = LegalPage.published(page_type)
         if page is None:
             return []

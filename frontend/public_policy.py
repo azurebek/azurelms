@@ -170,7 +170,8 @@ PRIVATE_ROUTES = frozenset({
     "backoffice_workspace_quiz_new", "backoffice_workspace_quiz_edit", "backoffice_users", "backoffice_chats",
     "backoffice_courses", "backoffice_course_create", "backoffice_course_edit", "backoffice_lessons",
     "backoffice_lesson_edit", "backoffice_exams", "backoffice_exam_edit", "backoffice_ai_control",
-    "backoffice_claim_evidence",
+    "backoffice_claim_evidence", "backoffice_legal_documents", "backoffice_legal_new", "backoffice_legal_edit",
+    "backoffice_legal_preview",
     # O'qituvchi paneli.
     "teacher_dashboard", "teacher_cohorts", "teacher_students", "teacher_courses", "teacher_grading",
     "teacher_grade_exam", "teacher_grade_assignment", "teacher_attendance", "teacher_release",

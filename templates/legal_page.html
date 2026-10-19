@@ -3,7 +3,8 @@
 {% comment %}
   Huquqiy sahifa — privacy / terms / faq (legal_page_view).
   Proto: azurelms-proto/public/legal.html.
-  Kontekst: legal_page (LegalPage yoki None — e'lon qilinmagan), legal_title, active_legal_page.
+  Kontekst: legal_page (amaldagi LegalRevision, FAQ uchun LegalPage, yoki None — e'lon qilinmagan),
+  legal_title, active_legal_page; huquqiy hujjatda legal_version va legal_effective_at (PUB1.5a).
 {% endcomment %}
 
 {% block title %}{{ legal_title }} — {{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}
@@ -34,7 +35,7 @@
   <div style="margin-bottom:4px;">
     <div class="legal-eyebrow">Huquqiy hujjatlar</div>
     <h1 class="legal-title">{{ legal_title }}</h1>
-    {% if legal_page %}<div class="legal-updated">Oxirgi yangilanish: {{ legal_page.updated_at|date:"d.m.Y" }}</div>{% endif %}
+    {% if legal_version %}<div class="legal-updated" data-legal-version>Versiya {{ legal_version }} · {{ legal_effective_at|date:"d.m.Y" }} dan amal qiladi</div>{% elif legal_page %}<div class="legal-updated">Oxirgi yangilanish: {{ legal_page.updated_at|date:"d.m.Y" }}</div>{% endif %}
   </div>
 
   <div class="legal-tabs">

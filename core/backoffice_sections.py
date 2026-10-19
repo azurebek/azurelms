@@ -70,7 +70,9 @@ def site(request):
         cards += [card('Logo va brend', 'Platforma nomi, logotipi va brend ma’lumotlarini yangilang.', 'backoffice_brand', 'Brendni tahrirlash'),
                   card('Sayt bosh sahifasi', 'Tashrif buyuruvchilar ko‘radigan bosh sahifa matni va bo‘limlarini tahrirlang.', 'backoffice_landing', 'Bosh sahifani tahrirlash'),
                   card('Da’volar dalili', 'Talaba soni, foiz, reyting va o‘quvchi fikrlari faqat dalil va rozilik bilan saytda chiqadi.',
-                       'backoffice_claim_evidence', 'Dalillarni ko‘rish')]
+                       'backoffice_claim_evidence', 'Dalillarni ko‘rish'),
+                  card('Huquqiy hujjatlar', 'Maxfiylik siyosati va foydalanish shartlari: versiya, tasdiq, kuchga kirish sanasi va oldingisiga qaytish.',
+                       'backoffice_legal_documents', 'Hujjatlarni ochish')]
     cards += [card('Blog', 'Maqola yozing, qoralamalarni davom ettiring va nashr holatini boshqaring.', 'blog:studio', 'Maqolalarni ochish')]
     if request.user.is_superuser:
         cards += [card('Turkiyada o‘qish', 'Universitetlar, e’lonlar va qo‘llanmalarni boshqaring.', 'sit_backoffice:dashboard', 'Kontentni ochish')]

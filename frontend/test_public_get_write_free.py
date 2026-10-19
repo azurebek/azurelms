@@ -25,7 +25,8 @@ from core.control_center.registry import capability_by_slug
 from core.control_center.snapshot import PROBE_FUNCTIONS
 from core.public_readiness import LEGACY_GENERATED_LEGAL_CONTENT
 from courses.models import Course
-from frontend.models import AboutPage, AuthPageSettings, LandingPage, LegalPage, SiteSettings
+from frontend.models import AboutPage, AuthPageSettings, LandingPage, LegalDocument, LegalPage, LegalRevision, SiteSettings
+from frontend.testing_legal import publish_all_legal, publish_legal
 from sit.models import KnowledgeArticle, University
 from subscriptions.models import Plan
 
@@ -45,7 +46,7 @@ def set_v1(enabled):
 
 
 def table_snapshot():
-    models = (*SINGLETONS, LegalPage)
+    models = (*SINGLETONS, LegalPage, LegalDocument, LegalRevision)
     return {model._meta.label: list(model.objects.order_by("pk").values()) for model in models}
 
 
@@ -145,6 +146,8 @@ class PopulatedDatabaseTests(WriteFreeMixin, TestCase):
         BlogHomeSettings.objects.create(hero_kicker="Owner jurnali")
         for page_type in LEGAL_ROUTES.values():
             LegalPage.objects.create(page_type=page_type, title=f"Owner {page_type}", content=f"<p>Owner {page_type} matni</p>")
+        for kind in ("privacy", "terms"):
+            publish_legal(kind, title=f"Owner {kind}", content=f"<p>Owner {kind} matni</p>")
 
     def test_every_public_and_auth_get_writes_nothing_and_keeps_owner_content(self):
         for enabled in (False, True):
@@ -221,17 +224,19 @@ class ReadinessProbeTests(TestCase):
         self.assertIn(("legal_missing", "privacy, terms, faq"), result.details)
 
     def test_legacy_generated_sample_text_is_amber(self):
+        # Maxfiylik/shartlar endi tasdiqlangan versiyadan (PUB1.5a) — namuna matn u yerda
+        # tasdiqlanmaydi; eski namuna faqat FAQ'da (u `LegalPage`da qoladi) qolishi mumkin.
         self.fill_singletons()
-        LegalPage.objects.create(page_type="privacy", title="Privacy Policy", content=LEGACY_GENERATED_LEGAL_CONTENT["privacy"])
-        LegalPage.objects.create(page_type="terms", title="Shartlar", content="<p>Owner shartlari</p>")
+        publish_all_legal()
         LegalPage.objects.create(page_type="faq", title="FAQ", content=LEGACY_GENERATED_LEGAL_CONTENT["faq"])
         result = self.probe()
         self.assertEqual(result.status, "amber")
-        self.assertIn(("legal_generated", "privacy, faq"), result.details)
+        self.assertIn(("legal_generated", "faq"), result.details)
 
     def test_missing_settings_rows_are_amber_once_legal_is_ready(self):
         for page_type in LEGAL_ROUTES.values():
             LegalPage.objects.create(page_type=page_type, title="Owner", content="<p>Owner matni</p>")
+        publish_all_legal()
         result = self.probe()
         self.assertEqual(result.status, "amber")
         self.assertIn("frontend.SiteSettings", dict(result.details)["settings_missing"])
@@ -240,4 +245,5 @@ class ReadinessProbeTests(TestCase):
         self.fill_singletons()
         for page_type in LEGAL_ROUTES.values():
             LegalPage.objects.create(page_type=page_type, title="Owner", content="<p>Owner matni</p>")
+        publish_all_legal()
         self.assertEqual(self.probe().status, "green")
