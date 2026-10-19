@@ -1,7 +1,7 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
 **Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) hamda PUB1.2a–b, PUB1.2d,
-PUB1.3 bosqichi (a–d), PUB1.4b–c, PUB1.4e, PUB1.5a kodda (2026-10-16/19, lokal)**; PUB1.2c
+PUB1.3 bosqichi (a–d), PUB1.4b–c, PUB1.4e, PUB1.5a–b kodda (2026-10-16/19, lokal)**; PUB1.2c
 B3.5 writer’i bilan birga ochiq; PUB1.4a owner qarori bilan keyinga qoldirilgan (2026-10-19);
 PUB1.4d (production SMTP owner qo‘lida) va keyingi kesimlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
@@ -2042,6 +2042,24 @@ dry-run/rerun/readback.
 generic seed approved bo‘lmagan; old row lost 0.
 
 #### PUB1.5b — activity notice, consent va cookie inventory
+
+**Holat — 2026-10-19: kodda, lokal tekshirilgan** (branch `claude/pub15b-cookie-inventory`,
+migration yo‘q). **Inventory:** `frontend/privacy_inventory.py` — 3 faol cookie (`sessionid`,
+`csrftoken`, `messages`; nomlar va muddat Django sozlamasidan), eski `blog_visitor` (faqat
+o‘chiriladi), 4 localStorage mavzu kaliti, 5 sessionStorage qoralama prefiksi va 4 uchinchi tomon
+manbasi (Google Fonts ×2, jsDelivr, telegram.org — faqat Mini App); hammasi zarur yoki
+foydalanuvchi tanlagan sozlama. `manage.py privacy_inventory [--write]` undan
+`PUBLIC-COOKIE-INVENTORY.md`ni yaratadi. Qamrov ikki tomondan: koddan (brauzer xotirasi/cookie’ga
+tegadigan har fayl ro‘yxatda) va javobdan (barcha public route’lar ×2 renderer × mehmon/a’zo,
+login/logout — faqat ro‘yxatdagi cookie, faqat ro‘yxatdagi tashqi manba, kuzatuv domeni yo‘q).
+**Rozilik:** ixtiyoriy maqsad yo‘q (PUB-D6) — banner ataylab qurilmadi; CSP’dan
+`google-analytics`/`googletagmanager` olib tashlandi (rozilikdan oldin ixtiyoriy so‘rov 0 —
+tasodifan qo‘shilgan teg ham ishlamaydi). “KVKK/GDPR mos” da’vosi shablonlarda yo‘qligi test bilan.
+**Faoliyat eslatmalari:** `frontend/activity_notices.py` + `{% activity_notice %}` — ro‘yxat,
+parol tiklash, Telegram, blog izohi, to‘lov cheki (V1 va legacy): nima saqlanishi kod bilan
+tekshirilgan (masalan, chek yopiq — faqat egasi va xodimlar), muddat va‘da qilinmaydi, maxfiylik
+siyosatiga havola. **Ochiq:** Google Fonts/jsDelivr’ni o‘z serverdan berish (PUB1.7b); ixtiyoriy
+analitika va rozilik mexanizmi — PUB-D6 qaroridan keyin.
 
 **Ish:** register/reset/Telegram/blog/payment activity notice map; generated
 cookie inventory; optional-cookie engine faqat PUB-D6 admit qilsa. Accept/Reject/
