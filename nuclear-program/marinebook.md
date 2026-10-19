@@ -16,6 +16,29 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-20 [Claude]: PUBLIC-01 / PUB1.5d — ballar ilovasi yopildi, eski havola minimal
+
+Ballar ilovasi (imtihon natijalari) aniq `AZ-…` ID bilan har kimga ochiq edi; eski sertifikat
+sahifasi esa ism, ball, daraja va o'qituvchini ko'rsatardi — ID'da o'quvchi va kurs raqami bor,
+qolgan 24 bit taxmin qilinadi.
+
+- Branch: `claude/pub15d-certificate-legacy`; kod commit **`0b54d55`**. Migration yo'q.
+- Qarorlar: ilova private (login + egasi/xodim, aks holda 404); eski havola — egasi/xodimga to'liq
+  hujjat, boshqalarga minimal ko'rinish (o'tish davri flagi `certificate_legacy_public_view`, default
+  ON; owner yopadi); kesh telemetriyasi (`certificate_legacy_views_30d`); `backfill_certificate_tokens`
+  (davom ettiriladi, digest, kod chiqarilmaydi); o'quvchiga yangi havola flag yoqilgandagina, o'chsa
+  eski havola qaytadi. Hech narsa o'chirilmadi.
+- Test: yangi `courses/test_certificate_legacy.py` (14); 4 ta mavjud test fayli ilova/hujjatni egasi
+  sifatida ochadigan qilib moslandi; route snapshot'da ilova private; to'liq `manage.py test` —
+  **3168 OK (skipped=70)**. Nazorat yugurishi: 11 ta buzilish (ochiq ilova, loginsiz ilova, hammaga to'liq hujjat,
+  xodim e'tiborsiz, o'tish davri flagi e'tiborsiz, noto'g'ri ID sanalmaydi, yashirin ko'rinadi,
+  telemetriyasiz, flagsiz havola, backfill hamma qatorga, backfill yozmaydi) — hammasi FAIL, tiklangach
+  bayt-bayt bir xil.
+- Brauzer (DB nusxasi): mehmon eski havolada minimal tasdiq va "Bu eski havola" izohini ko'rdi;
+  ilova login sahifasiga yo'naltirdi. Sinov sertifikati o'chirildi, flag qaytarildi.
+- Davom etilishi kerak: deploy'dan keyin `backfill_certificate_tokens --apply`; owner — yangi
+  tekshiruvni yoqish (PUB-D4) va o'tish davrini yopish (PUB-D15). Keyingi kesim PUB1.6a.
+
 ## 2026-10-20 [Claude]: PUBLIC-01 / PUB1.5c — sertifikatni tasodifiy kod bilan tekshirish
 
 2026-10-19 da limit tufayli WIP sifatida to'xtatilgan (`3d1127a`), 2026-10-20 da yakunlandi.
