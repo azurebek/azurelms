@@ -19,7 +19,7 @@
   </div>
 
   {% if plans %}
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;align-items:stretch;max-width:980px;margin:0 auto;">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:18px;align-items:stretch;max-width:980px;margin:0 auto;">
     {% for plan in plans %}
     <article style="position:relative;border-radius:16px;background:var(--panel);padding:26px;display:flex;flex-direction:column;{% if plan.is_popular %}border:1.5px solid var(--azure);box-shadow:0 2px 8px rgba(11,14,21,.06),0 30px 70px rgba(18,87,230,.12);{% else %}border:1px solid var(--line);{% endif %}">
       {% if plan.is_popular %}

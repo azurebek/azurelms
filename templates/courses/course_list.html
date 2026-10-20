@@ -39,7 +39,7 @@
 
   {% if courses %}
   <!-- Kurslar to'ri -->
-  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;">
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr));gap:20px;">
     {% for course in courses %}
     <a href="{% url 'course_detail' pk=course.id %}" class="pub-lift" style="border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow:hidden;display:flex;flex-direction:column;">
       {# Cover: yuklangan rasm yoki gradient SVG (cover_media_url ikkalasini beradi). Rasmda sarlavha overlay bilan chiqadi. #}

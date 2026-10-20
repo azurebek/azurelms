@@ -5,7 +5,7 @@
      their original light/dark colors intact; no second palette is persisted. */
   :root:not([data-theme="dark"]) {
     --paper: var(--az-canvas, #fbfcfd); --paper-2: var(--az-soft, #f1f4f9); --panel: var(--az-surface, #ffffff);
-    --ink: var(--az-text, #0b0e15); --ink-2: var(--az-muted, #4b5360); --ink-3: var(--az-faint, #8a92a0); --ink-4: var(--az-faint, #b3bac6);
+    --ink: var(--az-text, #0b0e15); --ink-2: var(--az-muted, #4b5360); --ink-3: var(--az-faint, #626b79); --ink-4: var(--az-faint, #626b79);
     --line: var(--az-border, #e5e9f0); --line-2: var(--az-soft, #eef1f6);
     --azure: var(--az-action, #1257e6); --azure-2: var(--az-action-hover, #0e44b8); --azure-soft: var(--az-action-soft, rgba(18,87,230,.07)); --on-azure: var(--az-on-action, #ffffff);
     --green: var(--az-success, #0f9d58); --green-soft: var(--az-success-soft, rgba(15,157,88,.1));
@@ -14,7 +14,7 @@
   }
   :root[data-theme="dark"] {
     --paper: var(--az-canvas, #090b0f); --paper-2: var(--az-soft, #0e1117); --panel: var(--az-surface, #12151c);
-    --ink: var(--az-text, #e9edf4); --ink-2: var(--az-muted, #99a2b1); --ink-3: var(--az-faint, #69717f); --ink-4: var(--az-faint, #454c58);
+    --ink: var(--az-text, #e9edf4); --ink-2: var(--az-muted, #99a2b1); --ink-3: var(--az-faint, #868e9d); --ink-4: var(--az-faint, #868e9d);
     --line: var(--az-border, #1d222b); --line-2: var(--az-soft, #161a22);
     --azure: var(--az-action, #5b8dff); --azure-2: var(--az-action-hover, #3d7dff); --azure-soft: var(--az-action-soft, rgba(91,141,255,.11)); --on-azure: var(--az-on-action, #06090f);
     --green: var(--az-success, #3fcf8e); --green-soft: var(--az-success-soft, rgba(63,207,142,.13));
