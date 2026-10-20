@@ -154,7 +154,7 @@
           <h2 style="font-size:clamp(24px,2.8vw,34px);font-weight:600;letter-spacing:-.03em;line-height:1.08;color:var(--ink);margin:0;max-width:20ch;">{{ page.how_it_works_title|default:"Bu qanday ishlaydi?" }}</h2>
           <p style="font-size:14px;color:var(--ink-2);margin:0;max-width:34ch;line-height:1.55;">{{ page.how_it_works_subtitle|default:"Ro'yxatdan sertifikatgacha — aniq bosqichlar." }}</p>
         </div>
-        <div data-reveal style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;opacity:0;transform:translateY(16px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);">
+        <div data-reveal style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:14px;opacity:0;transform:translateY(16px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);">
           {% for step in how_it_works_steps %}
           <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:20px;">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;">

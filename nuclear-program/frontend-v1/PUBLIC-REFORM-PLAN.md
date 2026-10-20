@@ -1,7 +1,7 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
 **Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) hamda PUB1.2a–b, PUB1.2d,
-PUB1.3 bosqichi (a–d), PUB1.4b–c, PUB1.4e, PUB1.5 va PUB1.6 bosqichlari, PUB1.7a–b kodda (2026-10-16/20, lokal)**; PUB1.2c
+PUB1.3 bosqichi (a–d), PUB1.4b–c, PUB1.4e, PUB1.5, PUB1.6 va PUB1.7 bosqichlari kodda (2026-10-16/20, lokal)**; PUB1.2c
 B3.5 writer’i bilan birga ochiq; PUB1.4a owner qarori bilan keyinga qoldirilgan (2026-10-19);
 PUB1.4d (production SMTP owner qo‘lida) va keyingi kesimlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
@@ -2285,6 +2285,20 @@ evidence imkoniga qarab; keyboard/zoom/reflow/text spacing/forced colors/no-JS.
 
 **Tugashi:** automated critical/serious 0; core keyboard/no-JS 100%; overflow 0;
 native/AT bajarilmagan bo‘lsa “PASS” emas, explicit OPEN.
+
+**Holat — 2026-10-20: kodda, lokal tekshirilgan** (branch `claude/pub17c-wcag-acceptance`, migration yo‘q).
+Dalil va ochiq bandlar: [PUBLIC-A11Y-EVIDENCE.md](PUBLIC-A11Y-EVIDENCE.md). **CI:** `frontend/a11y_probe.py`
+(axe critical/serious’ning HTML’dan aniqlanadigan 16 qoidasi + o‘lik `#…` havola) 21 sahifa × legacy/V1 ×
+mehmon/kirgan — 0 topilma; probe o‘zi ham sinovda; JavaScriptsiz yo‘llar (katalog, Blog, SIT filtri, kirish,
+parol tiklash, izoh) sahifadagi forma bilan PASS; kontrast va fokus/harakat CSS qulfi
+(`frontend/test_public_a11y.py`). **Brauzer (axe-core 4.10.3, haqiqiy maket):** critical/serious — legacy
+SIT rang kontrasti (`#8a92a0` ≈ 3.05:1, 19 element) **tuzatildi**: legacy xira matn tokenlari
+(`--ink-3/--ink-4`, SIT va design runtime zaxiralari) yorug‘ `#626b79`, qorong‘i `#868e9d` (≥4.76/4.84:1) —
+dizayn mavzusi nashr qilinmagan production uchun ham; qolgani 0. Moderate: V1 kurs/SIT ichki `aside` →
+nomlangan `section` (tuzatildi); `heading-order` (legacy kartalar, kontent) ochiq. **Reflow 320px:** legacy
+katalog 338px edi → setkalar `minmax(min(Npx,100%),1fr)` → barcha sahifa 320. **OPEN:** NVDA/VoiceOver/
+TalkBack, 200–400% zoom va matn oralig‘i, to‘liq klaviatura yo‘li, forced colors ko‘rib chiqish, owner
+qurilmasi — PASS deb yozilmagan.
 
 ### PUB1.8 — measurement, pilot va production release
 

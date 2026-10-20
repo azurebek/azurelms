@@ -59,7 +59,7 @@
 
   {% if posts %}
   <!-- Maqolalar to'ri -->
-  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;">
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:20px;">
     {% for post in posts %}
     <a href="{{ post.get_absolute_url }}{% if blog_return_to %}?return_to={{ blog_return_to|urlencode }}{% endif %}" class="pub-lift" style="display:flex;flex-direction:column;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--panel);">
       {% if post.cover_image %}

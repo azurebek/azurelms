@@ -114,7 +114,7 @@
   <!-- O'xshash maqolalar -->
   {% if related_posts %}
   <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:0 0 14px;">O'xshash maqolalar</div>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:14px;">
     {% for rp in related_posts %}
     <a href="{{ rp.get_absolute_url }}{% if blog_return_to %}?return_to={{ blog_return_to|urlencode }}{% endif %}" class="pub-lift" style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:18px;">
       {% for tag in rp.tags.all|slice:":1" %}<span style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.05em;color:var(--azure);background:var(--azure-soft);padding:3px 8px;border-radius:6px;">{{ tag.name }}</span>{% endfor %}
