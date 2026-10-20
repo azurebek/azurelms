@@ -1,9 +1,7 @@
 {% extends "errors/_base_error.html" %}
-{% block err_title %}Oflayn{% endblock %}
-{% block err_code %}<i class="bi bi-wifi-off"></i>{% endblock %}
-{% block err_color %}var(--ink-3){% endblock %}
-{% block err_heading %}Internet aloqasi yo'q{% endblock %}
-{% block err_message %}Tarmoqqa ulanish uzildi. Ulanishni tekshiring va qayta urinib ko'ring.{% endblock %}
-{% block err_actions %}
-<button type="button" onclick="location.reload()" style="display:inline-flex;align-items:center;gap:8px;height:46px;padding:0 22px;border-radius:11px;background:var(--azure);color:var(--on-azure);font-size:14.5px;font-weight:600;border:none;cursor:pointer;"><i class="bi bi-arrow-clockwise"></i> Qayta urinish</button>
-{% endblock %}
+{% comment %}Service worker yo'q — "oflayn ishlaydi" deyilmaydi; faqat tarmoq holati tushuntiriladi (PUB1.7a).{% endcomment %}
+{% block err_title %}Aloqa yo‘q{% endblock %}
+{% block err_code %}…{% endblock %}
+{% block err_heading %}Internet aloqasini tekshiring{% endblock %}
+{% block err_message %}Platforma oflayn rejimda ishlamaydi: sahifalar faqat internet orqali ochiladi. Ulanishni tekshiring va qayta urinib ko‘ring.{% endblock %}
+{% block err_actions %}<a class="sys-button sys-button--primary" href="/">Qayta urinish</a>{% endblock %}

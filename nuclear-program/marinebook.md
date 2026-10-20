@@ -16,6 +16,31 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-20 [Claude]: PUBLIC-01 / PUB1.7a — rost va o'zi yetarli holat sahifalari
+
+Xato sahifalari Google Fonts va jsDelivr'ga tayanardi, 500 "jamoamiz xabardor qilindi" derdi (alert
+kanali yo'q), 500 shabloni kontekst protsessorlari orqali bazaga tegardi, texnik ishlar va oflayn
+sahifalari `location.reload()` bilan POST'ni qayta yuborishi mumkin edi, `/healthz`/`/readyz` esa
+begonaga muhit, reliz va probe ro'yxatini berardi.
+
+- Branch: `claude/pub17a-system-states`; kod commit **`e06d765`**. Migration core 0012
+  (`maintenance_retry_after_minutes`, default 0 — additiv).
+- Qarorlar: `core/system_states.py::render_state` (kontekst protsessorlarisiz; 500 `allow_db=False`
+  va `BARE_500` zaxirasi; `no-store` + `noindex`); lokal `css/system-states.css`; 403 kirish faqat
+  mehmonga; 404 real yo'llar; POST qayta yuborilmaydi; `Retry-After` faqat owner belgilasa; oflayn
+  sahifa service worker va'da qilmaydi; CSRF sahifasi ham shu qobiqda; probe'lar begonaga faqat
+  `status`, egasiga tafsilot (Docker healthcheck o'zgarmadi). Owner sahifasida 10-panel.
+- Test: yangi `core/test_system_states.py` (16); readiness testlari tafsilotni egasi sifatida
+  o'qiydi; panel soni 9→10; to'liq `manage.py test` — **3213 OK (skipped=70)**. Nazorat yugurishi: 13 ta buzilish
+  (soxta "xabardor", tashqi shrift, inline skript, POST replay, 500'da baza, sarlavhasiz, a'zoga
+  kirish, taxminiy Retry-After, healthz va readyz sizishi, BARE_500'siz, 404 yo'lsiz, reload tugmasi)
+  — hammasi FAIL, tiklangach bayt-bayt bir xil.
+- Brauzer (DB nusxasi, 375px, yorug' va qorong'i): `/maintenance/` 503, `Retry-After` yo'q, "hali
+  belgilanmagan"; `/offline/` rost matn; yagona tashqi so'rov — lokal CSS; `/healthz`, `/readyz`
+  begonaga faqat `status`. Preview bazaga core 0012 qo'llandi.
+- Davom etilishi kerak: Django butunlay o'chganda Caddy o'z 502'sini beradi — statik outage sahifasi
+  deploy kesimi; sayt bo'ylab texnik ishlar rejimi yo'q. Keyingi kesim PUB1.7b.
+
 ## 2026-10-20 [Claude]: PUBLIC-01 / PUB1.6b — SIT bitta adapter orqali umumiy ochiq qatlamda
 
 SIT route registri, meta, sitemap va cache'ni PUB1.1'dan olgan edi, lekin "nashr etilgan" qoidasi

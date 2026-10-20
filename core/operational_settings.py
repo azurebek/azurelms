@@ -46,6 +46,8 @@ DEFAULTS = {
     # Kurs sahifasidan kirish/ro'yxatga o'tgan mehmonni o'sha kursga qaytaruvchi
     # imzoli havola muddati (PUB1.3d). Narx va qabul qaytishda qayta tekshiriladi.
     "public_intent_minutes": 120,
+    # Texnik ishlar sahifasidagi `Retry-After` (PUB1.7a). 0 — aytilmaydi (taxmin yo'q).
+    "maintenance_retry_after_minutes": 0,
 }
 
 BOUNDS = {
@@ -76,6 +78,7 @@ BOUNDS = {
     "certificate_verify_window_minutes": (1, 1440),
     "auth_throttle_rows_amber": (100, 10000000),
     "public_intent_minutes": (5, 1440),
+    "maintenance_retry_after_minutes": (0, 1440),
 }
 
 #: AMBER/RED juftliklari — RED har doim kattaroq bo'lishi kerak.
@@ -160,6 +163,7 @@ class Thresholds:
     certificate_verify_window_minutes: int
     auth_throttle_rows_amber: int
     public_intent_minutes: int
+    maintenance_retry_after_minutes: int
 
     @classmethod
     def defaults(cls):

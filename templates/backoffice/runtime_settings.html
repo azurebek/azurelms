@@ -64,6 +64,21 @@
       <button class="brand-submit" type="submit">Havola muddatini saqlash</button>
     </form>
     {% if backoffice_unified_enabled %}</details>{% endif %}
+    {% if backoffice_unified_enabled %}<details class="bo-settings-detail" id="settings-maintenance"{% if maintenance_form.is_bound or maintenance_form.errors %} open{% endif %}><summary><strong>Texnik ishlar sahifasi</strong><span>Texnik ishlar paytida qachon qayta urinishni aytish (0 — aytilmaydi).</span></summary>{% endif %}
+<form class="brand-form" method="post">
+      {% csrf_token %}<input type="hidden" name="form_name" value="maintenance">
+      <section class="brand-panel">
+        <div class="brand-panel-head"><span>Holat</span><div><h2>Texnik ishlar: qayta urinish vaqti</h2><p>`/maintenance/` sahifasi 503 bilan javob beradi. Vaqt belgilansa sahifada va `Retry-After` sarlavhasida aytiladi; 0 bo‘lsa vaqt taxmin qilinmaydi.</p></div></div>
+        {% if maintenance_form.non_field_errors %}<div class="brand-errors">{{ maintenance_form.non_field_errors }}</div>{% endif %}
+        <div class="brand-fields brand-fields--nums">{% for field, unit in maintenance_form.numeric_fields %}<label class="brand-field"><span>{{ field.label }}</span><span class="brand-numfield">{{ field }}<span class="brand-unit">{{ unit }}</span></span><small>{{ field.help_text }}</small>{% for error in field.errors %}<em>{{ error }}</em>{% endfor %}</label>{% endfor %}</div>
+      </section>
+      <section class="brand-panel"><div class="brand-fields">
+        <label class="brand-field"><span>{{ maintenance_form.change_reason.label }}</span>{{ maintenance_form.change_reason }}{% for error in maintenance_form.change_reason.errors %}<em>{{ error }}</em>{% endfor %}</label>
+        <label class="brand-field brand-field--check">{{ maintenance_form.confirm_change }}<span>{{ maintenance_form.confirm_change.label }}</span>{% for error in maintenance_form.confirm_change.errors %}<em>{{ error }}</em>{% endfor %}</label>
+      </div></section>
+      <button class="brand-submit" type="submit">Qayta urinish vaqtini saqlash</button>
+    </form>
+    {% if backoffice_unified_enabled %}</details>{% endif %}
     {% if backoffice_unified_enabled %}<details class="bo-settings-detail" id="settings-auth_throttle"{% if auth_throttle_form.is_bound or auth_throttle_form.errors %} open{% endif %}><summary><strong>Kirish urinishlari cheklovi</strong><span>Parol taxmini va yangi hisob/email toshqinidan himoya.</span></summary>{% endif %}
 <form class="brand-form" method="post">
       {% csrf_token %}<input type="hidden" name="form_name" value="auth_throttle">

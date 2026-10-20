@@ -1,7 +1,7 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
 **Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) hamda PUB1.2a–b, PUB1.2d,
-PUB1.3 bosqichi (a–d), PUB1.4b–c, PUB1.4e, PUB1.5 va PUB1.6 bosqichlari kodda (2026-10-16/20, lokal)**; PUB1.2c
+PUB1.3 bosqichi (a–d), PUB1.4b–c, PUB1.4e, PUB1.5 va PUB1.6 bosqichlari, PUB1.7a kodda (2026-10-16/20, lokal)**; PUB1.2c
 B3.5 writer’i bilan birga ochiq; PUB1.4a owner qarori bilan keyinga qoldirilgan (2026-10-19);
 PUB1.4d (production SMTP owner qo‘lida) va keyingi kesimlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
@@ -2217,6 +2217,28 @@ snapshotlari, cache/robots, focus/keyboard/light-dark/forced colors.
 
 **Tugashi:** outage page third partyga bog‘liq emas; fake operational claim 0;
 blind POST replay 0; probe orchestration contract saqlangan.
+
+**Holat — 2026-10-20: kodda, lokal tekshirilgan** (branch `claude/pub17a-system-states`, migration
+core 0012 — `OperationalSettings.maintenance_retry_after_minutes`, default 0). **Qobiq:**
+`templates/errors/_base_error.html` endi faqat lokal `static/css/system-states.css` (tizim shrifti,
+yorug‘/qorong‘i, forced-colors, `:focus-visible`, skip link) — Google Fonts, jsDelivr, bootstrap-icons,
+inline skript/style va `onclick` yo‘q; `<main id="main">`, bitta `h1`, robots `noindex, nofollow`,
+canonical yo‘q. CSRF sahifasi ham shu qobiqda. **Javob:** `core/system_states.py::render_state` —
+kontekst protsessorlarisiz chiziladi; 500 bazaga umuman tegmaydi (`allow_db=False`), shablon ham
+chizilmasa mustaqil `BARE_500`; har holatda `Cache-Control: no-store` va `X-Robots-Tag: noindex`
+(registrdan tashqari manzildagi 404 ham). **Rost matn:** 500 “jamoa xabardor qilindi” demaydi, xato
+tafsiloti va so‘rov tanasi chiqmaydi; GET’da “Sahifani qayta ochish” (ayni URL), POST’da qayta
+yuborish havolasi yo‘q — “avtomatik qayta yuborilmaydi” izohi. 403 kirishni faqat mehmonga taklif
+qiladi (kirgach shu sahifaga). 404 — bosh sahifa, kurslar katalogi, Blog. Texnik ishlar 503;
+`Retry-After` va “taxminan N daqiqa” faqat owner `Operatsion sozlamalar → Texnik ishlar sahifasi`da
+belgilasa (0 — “qaytish vaqti hali belgilanmagan”; baza yetmasa ham sahifa chiqadi, va’da yo‘q). Oflayn
+sahifa “platforma oflayn rejimda ishlamaydi” deydi (service worker yo‘q). **Probe’lar:** `/healthz` va
+`/readyz` begonaga faqat `{"status": …}` va 200/503; muhit, reliz va `checks` faqat Control Center
+egasining sessiyasiga. GET-only, keshlanmaydi, `/healthz` bazaga tegmaydi — Docker healthcheck
+o‘zgarmagan. Maxfiylik inventaridan eskirgan `_base_error.html` (`az-v2-theme`) yo‘li olib tashlandi.
+**Qilinmadi:** Caddy darajasidagi outage sahifasi (Django butunlay o‘chganda Caddy o‘z 502’sini beradi)
+— deploy o‘zgarishi, alohida; sayt bo‘ylab texnik ishlar rejimi (switch) yo‘q — `/maintenance/` faqat
+sahifa.
 
 #### PUB1.7b — route bundles, media va performance budgets
 

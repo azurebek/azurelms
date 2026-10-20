@@ -34,6 +34,7 @@ from .brand_forms import BrandSettingsForm
 from .landing_forms import LandingPageForm
 from .control_center import build_control_center_snapshot
 from . import frontend_v1_editors as editor_v1
+from . import system_states
 from .access import (
     is_backoffice_user as _is_backoffice_user,
     is_control_center_owner as _is_control_center_owner,
@@ -85,23 +86,35 @@ def _backoffice_context(active, user=None):
 
 
 def page_not_found(request, exception=None):
-    return render(request, "errors/404.html", status=404)
+    return system_states.render_state("errors/404.html", status=404, state="404")
 
 
 def permission_denied(request, exception=None):
-    return render(request, "errors/403.html", status=403)
+    return system_states.render_state(
+        "errors/403.html", status=403, state="403", context={"login_url": system_states.login_url_for(request)}
+    )
 
 
 def server_error(request):
-    return render(request, "errors/500.html", status=500)
+    # Baza yiqilgan bo'lishi mumkin: 500 hech narsani o'qimaydi (PUB1.7a).
+    return system_states.render_state(
+        "errors/500.html", status=500, state="500", allow_db=False,
+        context={"retry_url": system_states.retry_url(request)},
+    )
 
 
 def maintenance(request):
-    return render(request, "errors/maintenance.html", status=503)
+    """503; `Retry-After` faqat owner kutish vaqtini belgilagan bo'lsa (taxmin qilinmaydi)."""
+    minutes = system_states.maintenance_retry_after_minutes()
+    return system_states.render_state(
+        "errors/maintenance.html", status=503, state="maintenance",
+        context={"retry_after_minutes": minutes, "retry_url": "/"},
+        headers={"Retry-After": str(minutes * 60)} if minutes else None,
+    )
 
 
 def offline(request):
-    return render(request, "errors/offline.html")
+    return system_states.render_state("errors/offline.html", status=200, state="offline")
 
 
 @login_required
@@ -232,6 +245,7 @@ def backoffice_runtime_settings(request):
         AuthThrottleSettingsForm,
         BotDeliverySettingsForm,
         CheckoutSettingsForm,
+        MaintenanceSettingsForm,
         PublicIntentSettingsForm,
         DispatcherThresholdsForm,
         ExamReceiptSettingsForm,
@@ -271,6 +285,13 @@ def backoffice_runtime_settings(request):
             "action": "settings.public_intent.update",
             "label": "Kursga qaytish havolasi muddati",
             "message": "Kursga qaytish havolasi muddati saqlandi.",
+        },
+        "maintenance": {
+            "form_class": MaintenanceSettingsForm,
+            "instance": thresholds,
+            "action": "settings.maintenance.update",
+            "label": "Texnik ishlar: qayta urinish vaqti",
+            "message": "Texnik ishlar qayta urinish vaqti saqlandi.",
         },
         "auth_throttle": {
             "form_class": AuthThrottleSettingsForm,
@@ -359,6 +380,7 @@ def backoffice_runtime_settings(request):
         "library_form": forms_out["library"],
         "checkout_form": forms_out["checkout"],
         "public_intent_form": forms_out["public_intent"],
+        "maintenance_form": forms_out["maintenance"],
         "auth_throttle_form": forms_out["auth_throttle"],
         "exam_receipts_form": forms_out["exam_receipts"],
         "delivery": delivery,
@@ -1553,4 +1575,6 @@ def csrf_failure(request, reason=""):
     Django'ning inglizcha DEBUG sahifasi o'rniga: nima bo'lganini va qanday
     davom etishni aytadi. Sabab (`reason`) foydalanuvchiga ko'rsatilmaydi.
     """
-    return render(request, "csrf_failure.html", {"retry_url": request.get_full_path()}, status=403)
+    return system_states.render_state(
+        "csrf_failure.html", status=403, state="csrf", context={"retry_url": request.get_full_path()}
+    )

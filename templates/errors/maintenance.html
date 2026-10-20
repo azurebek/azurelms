@@ -1,9 +1,8 @@
 {% extends "errors/_base_error.html" %}
+{% comment %}503. Qaytish vaqti taxmin qilinmaydi: faqat owner belgilagan `Retry-After` bo'lsa aytiladi (PUB1.7a).{% endcomment %}
 {% block err_title %}Texnik ishlar{% endblock %}
-{% block err_code %}<i class="bi bi-cone-striped"></i>{% endblock %}
-{% block err_color %}var(--amber){% endblock %}
+{% block err_code %}503{% endblock %}
 {% block err_heading %}Texnik ishlar olib borilmoqda{% endblock %}
-{% block err_message %}Platformani yaxshilash uchun qisqa muddatli texnik ishlar bajarilmoqda. Tez orada qaytamiz — sabringiz uchun rahmat.{% endblock %}
-{% block err_actions %}
-<button type="button" onclick="location.reload()" style="display:inline-flex;align-items:center;gap:8px;height:46px;padding:0 22px;border-radius:11px;background:var(--azure);color:var(--on-azure);font-size:14.5px;font-weight:600;border:none;cursor:pointer;"><i class="bi bi-arrow-clockwise"></i> Qayta yuklash</button>
-{% endblock %}
+{% block err_message %}Platforma vaqtincha ishlamayapti.{% endblock %}
+{% block err_note %}{% if retry_after_minutes %}<p class="sys-note" data-retry-after>Taxminan {{ retry_after_minutes }} daqiqadan keyin qayta urinib ko‘ring.</p>{% else %}<p class="sys-note">Qaytish vaqti hali belgilanmagan. Birozdan so‘ng qayta tekshirib ko‘ring.</p>{% endif %}{% endblock %}
+{% block err_actions %}<a class="sys-button sys-button--primary" href="{{ retry_url|default:'/' }}">Qayta tekshirish</a>{% endblock %}

@@ -1,10 +1,6 @@
 {% extends "errors/_base_error.html" %}
 {% block err_title %}Topilmadi{% endblock %}
 {% block err_code %}404{% endblock %}
-{% block err_color %}var(--azure){% endblock %}
 {% block err_heading %}Sahifa topilmadi{% endblock %}
-{% block err_message %}Qidirgan sahifangiz mavjud emas yoki ko'chirilgan. Bosh sahifaga qaytib, kerakli bo'limni tanlang.{% endblock %}
-{% block err_actions %}
-<a href="/" style="display:inline-flex;align-items:center;gap:8px;height:46px;padding:0 22px;border-radius:11px;background:var(--azure);color:var(--on-azure);font-size:14.5px;font-weight:600;"><i class="bi bi-house"></i> Bosh sahifaga</a>
-<a href="/courses/" style="display:inline-flex;align-items:center;gap:8px;height:46px;padding:0 20px;border-radius:11px;border:1px solid var(--line);color:var(--ink);font-size:14.5px;font-weight:600;"><i class="bi bi-journal-text"></i> Kurslar</a>
-{% endblock %}
+{% block err_message %}Bu manzilda sahifa yo‘q yoki u ko‘chirilgan. Quyidagi bo‘limlardan davom eting.{% endblock %}
+{% block err_actions %}<a class="sys-button sys-button--primary" href="/">Bosh sahifaga</a><a class="sys-button" href="/courses/">Kurslar katalogi</a><a class="sys-button" href="/blog/">Blog</a>{% endblock %}

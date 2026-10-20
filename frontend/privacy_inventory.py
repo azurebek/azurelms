@@ -92,7 +92,7 @@ ITEMS = (
         clearing="Brauzer ma'lumotlarini tozalash; serverga yuborilmaydi",
         code_paths=("static/frontend_v1/js/theme.js", "static/js/app.js", "static/js/exam-shell.js",
                     "templates/users/settings/account.html", "templates/base.html",
-                    "templates/courses/exam_detail.html", "templates/errors/_base_error.html"),
+                    "templates/courses/exam_detail.html"),
     ),
     StorageItem(
         name="az-theme", kind=LOCAL, set_by="brauzer (JS)",
