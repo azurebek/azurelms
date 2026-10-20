@@ -175,7 +175,7 @@ PRIVATE_ROUTES = frozenset({
     "backoffice_lesson_edit", "backoffice_exams", "backoffice_exam_edit", "backoffice_ai_control",
     # Ballar ilovasi — faqat egasi va xodimlar (PUB1.5d).
     "certificate_appendix",
-    "backoffice_claim_evidence", "backoffice_legal_documents", "backoffice_legal_new", "backoffice_legal_edit",
+    "backoffice_claim_evidence", "backoffice_legal_documents", "backoffice_release_readiness", "backoffice_legal_new", "backoffice_legal_edit",
     "backoffice_legal_preview",
     # O'qituvchi paneli.
     "teacher_dashboard", "teacher_cohorts", "teacher_students", "teacher_courses", "teacher_grading",

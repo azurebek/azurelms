@@ -83,6 +83,8 @@ def site(request):
 def settings(request):
     cards = [
         card('Platforma holati', 'Xizmatlar ishlayaptimi va qayerga e’tibor kerakligini ko‘ring.', 'backoffice_control', 'Holatni tekshirish'),
+        card('Reliz tayyorligi', 'Saytni ochishdan oldin: huquqiy matn, kurs, aloqa, to‘lov rekvizitlari, email va media — har biri yashil bo‘lsin, keyin tasdiqlang.',
+             'backoffice_release_readiness', 'Tayyorlikni tekshirish'),
         card('Muddat va limitlar', 'Eslatma, to‘lov tasdig‘i va material saqlash chegaralarini sozlang.', 'backoffice_runtime_settings', 'Sozlamalarni ochish'),
         card('Yoqish va o‘chirish', 'Platforma imkoniyatlarini yoqing yoki vaqtincha o‘chiring.', 'backoffice_feature_flags', 'Imkoniyatlarni ko‘rish'),
         card('Yetkazilmagan xabarlar', 'Yuborilmay qolgan xabarlarni tekshiring va ruxsatli qayta urinishni tanlang.', 'backoffice_dead_letter', 'Xabarlarni tekshirish'),

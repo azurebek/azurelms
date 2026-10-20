@@ -207,6 +207,24 @@ CAPABILITY_REGISTRY = (
         ),
     ),
     CapabilityDefinition(
+        slug="public_release",
+        label="Ochiq sayt reliz tayyorligi",
+        category="Governance",
+        criticality="high",
+        owner="Azurbek",
+        description=(
+            "Pilotdan oldin majburiy bandlar (PUB1.8b): huquqiy matn, sotuvdagi kurs, aloqa, to'lov rekvizitlari, email, "
+            "asosiy manzil, sitemap, ochiq media. Ixtiyoriylari: da'volar, fikrlar, yopiq kurslar, sertifikat, "
+            "SIT dolzarbligi, sozlamalar. Selector — `frontend/release_readiness.py`."
+        ),
+        dependencies=("database",),
+        runbook=(
+            "Sozlamalar → Reliz tayyorligi: har bandning tuzatish yo'li yozilgan. Majburiylarning hammasi "
+            "yashil bo'lgach owner sabab bilan tasdiqlaydi (audit: public.release.signoff). CLI: "
+            "`manage.py public_release_gate`."
+        ),
+    ),
+    CapabilityDefinition(
         slug="email",
         label="Email",
         category="Runtime",

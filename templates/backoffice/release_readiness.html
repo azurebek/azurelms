@@ -1,0 +1,72 @@
+{% extends "backoffice/base.html" %}
+{% load static %}
+{% comment %}Owner: ochiq sayt reliz tayyorligi va tasdiq (core/backoffice_release.py, PUB1.8b).{% endcomment %}
+
+{% block bo_title %}Reliz tayyorligi{% endblock %}
+{% block bo_icon %}bi-clipboard-check{% endblock %}
+{% block bo_topbar %}Reliz tayyorligi{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/landing-control.css' %}">{% endblock %}
+
+{% block bo_content %}
+<div class="bo-editor">
+<section class="lc-hero">
+  <div>
+    <span class="lc-kicker">OCHIQ SAYT</span>
+    <h1>Reliz tayyorligi</h1>
+    <p>Saytni ochishdan oldin har majburiy band yashil bo‘lishi kerak. Qizil bandni saytdan yashirish yetarli emas — band o‘zi yashil bo‘lsin. Shu ro‘yxat Control Center va <code>manage.py public_release_gate</code> bilan bir xil.</p>
+  </div>
+  <a class="lc-back" href="{% url 'backoffice_control' %}"><i class="bi bi-activity"></i> Platforma holati</a>
+</section>
+
+{% if errors %}<div class="lc-errors" role="alert" data-release-errors>{% for error in errors %}<p>{{ error }}</p>{% endfor %}</div>{% endif %}
+
+<section class="lc-panel" aria-labelledby="release-status" style="margin-bottom:16px;" data-release-status="{{ readiness.status }}">
+  <div class="lc-panel-head"><div class="lc-panel-title">
+    <h2 id="release-status">{% if readiness.ready_for_pilot %}Majburiy bandlar yashil — tasdiqlashingiz mumkin{% else %}Hali tayyor emas: {{ readiness.blockers|length }} ta majburiy band{% endif %}</h2>
+    <p>Holat izi: <code data-release-digest>{{ readiness.digest }}</code> · tekshirildi: {{ readiness.checked_at|date:"d.m.Y H:i" }}</p>
+  </div></div>
+</section>
+
+<section class="lc-panel" aria-labelledby="release-required" style="margin-bottom:16px;">
+  <div class="lc-panel-head"><div class="lc-panel-title"><h2 id="release-required">Majburiy</h2></div></div>
+  <ul class="lc-list" data-release-required>
+    {% for item in required_items %}
+    <li data-release-item="{{ item.key }}" data-status="{{ item.status }}">
+      <strong>{% if item.status == "green" %}✓ Yashil{% elif item.status == "amber" %}! Sariq{% else %}✕ Qizil{% endif %} — {{ item.label }}</strong>
+      <span>{{ item.summary }}</span>{% if item.fix and item.status != "green" %}<small>Nima qilish kerak: {{ item.fix }}{% if item.href %} <a href="{{ item.href }}" aria-label="Tuzatishga o‘tish: {{ item.label }}" data-release-fix>Tuzatishga o‘tish</a>{% endif %}</small>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+
+<section class="lc-panel" aria-labelledby="release-optional" style="margin-bottom:16px;">
+  <div class="lc-panel-head"><div class="lc-panel-title"><h2 id="release-optional">Ixtiyoriy (e’tibor bering)</h2></div></div>
+  <ul class="lc-list" data-release-optional>
+    {% for item in optional_items %}
+    <li data-release-item="{{ item.key }}" data-status="{{ item.status }}">
+      <strong>{% if item.status == "green" %}✓ Yashil{% elif item.status == "amber" %}! Sariq{% else %}✕ Qizil{% endif %} — {{ item.label }}</strong>
+      <span>{{ item.summary }}</span>{% if item.fix and item.status != "green" %}<small>Nima qilish kerak: {{ item.fix }}{% if item.href %} <a href="{{ item.href }}" aria-label="Tuzatishga o‘tish: {{ item.label }}" data-release-fix>Tuzatishga o‘tish</a>{% endif %}</small>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+
+<section class="lc-panel" aria-labelledby="release-signoff">
+  <div class="lc-panel-head"><div class="lc-panel-title">
+    <h2 id="release-signoff">Owner tasdig‘i</h2>
+    {% if last_sign_off %}<p data-release-last>Oxirgi tasdiq: {{ last_sign_off.created_at|date:"d.m.Y H:i" }}{% if last_sign_off.actor %} · {{ last_sign_off.actor.get_full_name|default:last_sign_off.actor.username }}{% endif %} · {{ last_sign_off.target_label }}</p>{% else %}<p data-release-last>Hali tasdiqlanmagan.</p>{% endif %}
+  </div></div>
+  {% if readiness.ready_for_pilot %}
+  <form method="post" class="lc-form" data-release-signoff>{% csrf_token %}
+    <input type="hidden" name="digest" value="{{ readiness.digest }}">
+    <label class="lc-field"><span>Sabab va izoh</span><textarea name="reason" rows="2" class="lc-input" maxlength="240" required></textarea></label>
+    <label class="lc-check"><input type="checkbox" name="confirm" required> <span>Majburiy bandlarni o‘zim tekshirdim; ochiq sahifalarni pilotga ochishga roziman</span></label>
+    <button class="lc-save" type="submit">Tasdiqlash</button>
+  </form>
+  {% else %}
+  <p data-release-locked>Tasdiq tugmasi majburiy bandlarning hammasi yashil bo‘lganda chiqadi.</p>
+  {% endif %}
+  {% if sign_offs %}<ul class="lc-list" data-release-history>{% for event in sign_offs %}<li>{{ event.created_at|date:"d.m.Y H:i" }} — {{ event.reason }}</li>{% endfor %}</ul>{% endif %}
+</section>
+</div>
+{% endblock %}

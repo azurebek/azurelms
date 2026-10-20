@@ -20,6 +20,7 @@ SETTINGS_ROUTES = {
     'backoffice_control', 'backoffice_feature_flags', 'backoffice_runtime_settings',
     'backoffice_ai_cost', 'backoffice_ai_control', 'backoffice_ai_kill_switch',
     'backoffice_ai_circuit_reset', 'backoffice_dead_letter', 'backoffice_workspace_settings',
+    'backoffice_release_readiness',
 }
 STUDENT_ROUTES = {'backoffice_users', 'backoffice_chats', 'backoffice_workspace_students', 'backoffice_workspace_student'}
 SECTION_TITLES = {'home': 'Ish stoli', 'courses': 'Kurslar', 'students': 'O‘quvchilar',
