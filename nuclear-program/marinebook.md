@@ -16,6 +16,19 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-20 [Claude]: certifi 2026.2.25 → 2026.10.19 (GHSA-6q48-6c7w-9gw2)
+
+Supply-chain skani (`audit_dependencies`) yangi advisory topib barcha PR'larni blokladi:
+`certifi` 2026.10.18 dan oldingi versiyalari CA to'plamida `emSign ECC Root CA - G3` ildiz
+sertifikatini saqlaydi. Tuzatilgan versiya 2026.10.19 — faqat CA to'plami, kod o'zgarmadi.
+
+- Branch: `claude/certifi-2026-10-19`; commit `2ec03b3`.
+- Tekshiruv (lokal): `pip-audit -r requirements.txt --no-deps -f json` + `python manage.py
+  audit_dependencies --report pip-audit.json` — yangi zaiflik yo'q (qolgani — reyestrdagi Twisted,
+  `review_by` 2026-11-15); `python manage.py check` OK; `python manage.py test core.test_supply_chain_gate
+  core.test_health_endpoints bot` — 291 OK. CI uchala job yashil.
+- Davom etilishi kerak: keyingi deploy'da Docker image qayta yig'ilsin (yangi certifi).
+
 ## 2026-10-20 [Claude]: PUBLIC-01 / PUB1.7c — qulaylik qabuli: CI probe, kontrast, reflow, rost OPEN
 
 Ochiq sahifalarning qulayligi avtomatik qulflanmagan edi; legacy xira matn rangi (`#8a92a0`) faqat
