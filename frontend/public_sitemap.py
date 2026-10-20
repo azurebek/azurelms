@@ -74,20 +74,21 @@ def _blog_posts():
 
 
 def _universities():
-    from sit.models import University
+    # SIT nimani "amalda" deb hisoblashini faqat o'zi biladi (PUB1.6b adapteri).
+    from sit.public import effective_universities
 
     return [
         SitemapEntry("sit:university_detail", absolute_url(university.get_absolute_url()), university.updated_at)
-        for university in University.objects.published().only("slug", "updated_at").order_by("pk")
+        for university in effective_universities().only("slug", "updated_at").order_by("pk")
     ]
 
 
 def _articles():
-    from sit.models import KnowledgeArticle
+    from sit.public import effective_articles
 
     return [
         SitemapEntry("sit:knowledge_detail", absolute_url(article.get_absolute_url()), article.updated_at)
-        for article in KnowledgeArticle.objects.published().only("slug", "updated_at").order_by("pk")
+        for article in effective_articles().only("slug", "updated_at").order_by("pk")
     ]
 
 

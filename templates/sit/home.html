@@ -6,12 +6,12 @@
 {% block content %}
 <section class="hero">
   <div class="wrap">
-    <div class="eyebrow">Study in Turkey · Universitet qabullari · Maslahat</div>
+    <div class="eyebrow">Study in Turkey · Universitet qabullari · Qo'llanmalar</div>
     <h1>Turkiyada o'qishni <span>bitta joydan</span> boshla.</h1>
-    <p>Qabuli ochiq universitetlar, kontrakt narxlari, hujjat talablari va real maslahat — hammasi bir portalda. Byudjetingizga mos universitetni toping, keyin hujjat topshirishga yordam oling.</p>
+    <p>Qabuli ochiq universitetlar, kontrakt narxlari, hujjat talablari va rasmiy manbalar — hammasi bir portalda. Byudjetingizga mos universitetni toping va shartlarni rasmiy manbadan tekshiring.</p>
     <div class="hero-cta">
       <a class="btn btn-primary" href="{% url 'sit:university_list' %}">Universitetlarni ko'rish <i class="bi bi-arrow-right"></i></a>
-      <a class="btn btn-ghost" href="#advisor"><i class="bi bi-stars"></i> AI maslahatchidan so'ra</a>
+      <a class="btn btn-ghost" href="#kb"><i class="bi bi-journal-text"></i> Qo'llanmalar</a>
     </div>
     <div class="hero-stats">
       <div><b>{{ portal_stats.universities }}</b><small>Universitet</small></div>
@@ -58,8 +58,8 @@
     <div class="steps">
       <div class="step"><div class="n">01</div><h4>O'rgan</h4><p>Universitetlar, dasturlar, narx va hujjat talablari bo'yicha aniq ma'lumot.</p></div>
       <div class="step"><div class="n">02</div><h4>Solishtir</h4><p>Shahar, til, narx va qabul holati bo'yicha filtrlab, mos variantlarni tanlang.</p></div>
-      <div class="step"><div class="n">03</div><h4>AI maslahat</h4><p>Byudjet va maqsadingizni ayting — AI portal ma'lumotlaridan variant tavsiya qiladi.</p></div>
-      <div class="step"><div class="n">04</div><h4>Yordam ol</h4><p>Hujjat topshirishga tayyor bo'lsangiz, jarayonni mutaxassis bilan olib boring.</p></div>
+      <div class="step"><div class="n">03</div><h4>Tekshir</h4><p>Qabul shartlari va narxni universitetning rasmiy manbasidan tasdiqlang.</p></div>
+      <div class="step"><div class="n">04</div><h4>Hujjat tayyorla</h4><p>Kerakli hujjatlar ro'yxati har universitet sahifasida.</p></div>
     </div>
   </div>
 </section>
@@ -86,27 +86,16 @@
   </div>
 </section>
 
-<section class="section section-flush-top" id="advisor">
+{# Umumiy AI suhbatiga yo'llovchi blok SIT-01 darvozasigacha katalog solishtiruviga almashtirilgan (PUB1.6b, SIT1.0a). #}
+<section class="section section-flush-top" id="compare">
   <div class="wrap">
-    <div class="section-head">
-      <div><div class="eyebrow"><span class="accent">03</span> / AI maslahatchi</div><h2>Byudjetingizga mos universitetni AI topadi</h2></div>
-      <p>AI maslahatchi portalga kiritilgan nashr etilgan ma'lumotlar asosida variantlarni solishtirishga yordam beradi.</p>
-    </div>
-    <div class="advisor">
-      <div class="advisor-head"><span class="dot accent-dot"></span><span class="mono">sit-advisor · maslahat</span></div>
-      <div class="advisor-body">
-        <div class="bubble bubble-user">Byudjetim yiliga $1 300, ingliz tilida muhandislik o'qimoqchiman.</div>
-        <div class="bubble bubble-ai">
-          Universitet, dastur, til va narx filtrlari asosida mos variantlarni topamiz. Yakuniy qabul shartlarini universitetning rasmiy manbasidan tekshirish kerak.
-          <div class="advisor-action">
-            {% if request.user.is_authenticated %}
-              <a class="btn btn-primary btn-sm" href="{% url 'messenger:ai' %}">Azure AI'ni ochish</a>
-            {% else %}
-              <a class="btn btn-primary btn-sm" href="{% url 'login' %}?next={% url 'messenger:ai' %}">AI bilan maslahatlashish</a>
-            {% endif %}
-          </div>
-        </div>
+    <div class="help-band">
+      <div>
+        <div class="eyebrow">03 / Solishtirish</div>
+        <h2>Variantlarni katalogda solishtiring</h2>
+        <p>Shahar, ta'lim tili, daraja, kontrakt va qabul holati bo'yicha filtrlang. Yakuniy tanlovni rasmiy manbadan tekshiring.</p>
       </div>
+      <a class="btn help-band-btn" href="{% url 'sit:university_list' %}">Universitetlarni solishtirish <i class="bi bi-arrow-right"></i></a>
     </div>
   </div>
 </section>
@@ -139,9 +128,9 @@
   <div class="wrap">
     <div class="help-band">
       <div>
-        <div class="eyebrow">Yordam xizmati</div>
-        <h2>Hujjat topshirishga tayyormisiz?</h2>
-        <p>Universitet tanlashdan hujjat topshirishgacha mutaxassis bilan ishlang.</p>
+        <div class="eyebrow">Keyingi qadam</div>
+        <h2>Tanlovga tayyormisiz?</h2>
+        <p>Universitet sahifasida qabul holati, talablar va kerakli hujjatlar ro'yxati bor.</p>
       </div>
       <a class="btn help-band-btn" href="{% url 'sit:university_list' %}">Universitet tanlash <i class="bi bi-arrow-right"></i></a>
     </div>

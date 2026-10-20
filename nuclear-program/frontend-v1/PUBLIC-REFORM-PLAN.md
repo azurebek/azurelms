@@ -1,7 +1,7 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
 **Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) hamda PUB1.2a–b, PUB1.2d,
-PUB1.3 bosqichi (a–d), PUB1.4b–c, PUB1.4e, PUB1.5 bosqichi (a–d), PUB1.6a kodda (2026-10-16/20, lokal)**; PUB1.2c
+PUB1.3 bosqichi (a–d), PUB1.4b–c, PUB1.4e, PUB1.5 va PUB1.6 bosqichlari kodda (2026-10-16/20, lokal)**; PUB1.2c
 B3.5 writer’i bilan birga ochiq; PUB1.4a owner qarori bilan keyinga qoldirilgan (2026-10-19);
 PUB1.4d (production SMTP owner qo‘lida) va keyingi kesimlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
@@ -2181,6 +2181,26 @@ filter/detail/back, no duplicate registry entry, public/SIT flag combinations.
 
 **Tugashi:** bitta public infra; SIT domain truth SIT-01da; dead generic help/AI
 CTA SIT roadmap gate’iga mos.
+
+**Holat — 2026-10-20: kodda, lokal tekshirilgan** (branch `claude/pub16b-sit-public-adapter`,
+migration yo‘q). Route registry/meta/sitemap/cache SIT’da PUB1.1’dan bor edi; bu kesim SIT’ni ularga
+**bitta adapter** orqali uladi. `sit/public.py`: `effective_universities()`, `effective_articles()`,
+`effective_announcements()` (nashr etilmagan universitetga bog‘langan e’lon chiqmaydi — qoralama
+sizmaydi), `catalog_url()` (normallashgan filtr, standart `status=open` va 1-sahifa yozilmaydi). Katalog,
+bosh sahifa, statistika, filtr variantlari va sitemap faqat shulardan o‘qiydi; SIT1.x effective
+selectorlari kelganda faqat shu funksiyalar ichi almashadi. `sit/policy.py::can_preview` (hozir faol
+xodim; SIT1.0a toraytiradi). **Katalog:** `q` va `city` umumiy chegarada (`frontend/public_query`),
+tartib oxirida `id`, mavjud bo‘lmagan sahifa 404 (`get_page` boshqa sahifani nusxalardi), raqamli
+sahifalar `aria-current`/`rel` bilan (legacy’dagi `?{{ request.GET.urlencode }}&page=` takror `page`
+xatosi tuzatildi), karta → universitet → “Universitetlar” ikkala rendererda ayni filtr/sahifaga
+(`safe_return_to`), V1 karta havolasi nomi universitet bilan, qabul holati yorlig‘i xom qiymat emas.
+**Dolzarblik:** eskirgan (`last_verified_on` eski) universitet PUBLIC tomonidan yashirilmaydi va
+tekshirilgan sanasi bilan chiqadi — qoida SIT1.0b’da. **CTA (SIT1.0a 1–2-band bilan bir xil):** umumiy
+AI suhbatiga yo‘llovchi blok va navdagi “AI maslahatchi” katalog solishtiruviga almashtirildi;
+universitet sahifasidagi “5 000 so‘m” to‘lov da’vosi, ustoz xonasi (`messenger:tutor`) tugmasi va “AI’dan
+so‘rang” izohi olib tashlandi — o‘rniga sozlangan aloqa (`SiteSettings.public_contact_*`) yoki halol
+“Onlayn ariza hozircha qabul qilinmaydi”. `application_help_fee` bazada qoldi. **O‘zgarmadi:** SIT
+manba/versiya/so‘rov/AI mantig‘i, `sit_advisor` skill’i, media/srcset (SIT1.7b/PUB1.7b).
 
 ### PUB1.7 — system states, performance va accessibility
 

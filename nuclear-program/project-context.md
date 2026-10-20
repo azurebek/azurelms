@@ -856,7 +856,8 @@ Access helper: `core.views._is_backoffice_user`. Legacy `/admin/` faqat `ENABLE_
 2. `/sit/universities/` katalogi GET filterlari bilan universitetlarni server-side saralaydi; default qabul holati `open`.
 3. `/sit/universities/<slug>/` universitet, fakultet/dastur, tayyorlov kursi, talab/hujjat/xizmat va media bloklarini bitta detailda beradi.
 4. Har public universitet va qo'llanmada rasmiy manba hamda oxirgi tekshirilgan sana ko'rinadi.
-5. Hujjat topshirish CTA login qilingan userni tutor messengerga, AI CTA esa mavjud Azure AI messengerga olib boradi. `sit_advisor` published SIT katalog tool'i bilan mavjud; canonical inquiry/payment/help lifecycle (S2) keyingi slice.
+5. Hujjat topshirish bo'yicha blok (PUB1.6b) sozlangan aloqani (`SiteSettings.public_contact_*`) yoki halol "Onlayn ariza hozircha qabul qilinmaydi"ni ko'rsatadi; to'lov summasi, ustoz xonasi va umumiy AI suhbatiga ochiq SIT sahifalaridan havola yo'q (SIT-01 so'rov oqimi S2 gacha). `sit_advisor` skill'i messenger ichida mavjud.
+8. Umumiy ochiq qatlam (katalog, bosh sahifa, sitemap) SIT kontentini faqat `sit/public.py` effective selectorlaridan oladi; qoralama ko'rish huquqi `sit/policy.py::can_preview`. Katalog havolalari `sit.public.catalog_url()`dan. `sit/test_public_adapter.py` qulflaydi.
 6. Owner-only `/backoffice/sit/` universitetlar va ularning fakultet/dastur/talab/hujjat/xizmat/media qismlari, e'lonlar va qo'llanmalarni audit sabab bilan boshqaradi. 90 kundan eski public universitet ma'lumoti dashboardda tekshiruv signali oladi.
 7. SIT bosh sahifasidagi e'lonlar faqat `is_published=True` va `show_on_home=True` bo'lsa chiqadi; oddiy publish yozuvni avtomatik featured qilmaydi.
 

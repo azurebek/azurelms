@@ -25,7 +25,6 @@
       <nav class="sit-nav" aria-label="SIT navigatsiyasi">
         <a{% if active_nav == "home" %} class="active"{% endif %} href="{% url 'sit:home' %}">Bosh sahifa</a>
         <a{% if active_nav == "universities" %} class="active"{% endif %} href="{% url 'sit:university_list' %}">Universitetlar</a>
-        <a href="{% url 'sit:home' %}#advisor">AI maslahatchi</a>
         <a{% if active_nav == "knowledge" %} class="active"{% endif %} href="{% url 'sit:home' %}#kb">Bilim bazasi</a>
       </nav>
       <div class="sit-top-cta">

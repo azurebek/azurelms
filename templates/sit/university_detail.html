@@ -7,11 +7,11 @@
 <section class="section detail-section">
   <div class="wrap">
     {% if is_preview %}<div class="preview-banner">PREVIEW · bu universitet hali nashr etilmagan</div>{% endif %}
-    <div class="breadcrumbs">
-      <a href="{% url 'sit:university_list' %}">Universitetlar</a>
-      <i class="bi bi-chevron-right"></i> {{ university.city }}
-      <i class="bi bi-chevron-right"></i> {{ university.short_name }}
-    </div>
+    <nav class="breadcrumbs" aria-label="Sahifa yo'li">
+      <a href="{{ public_back_url }}">Universitetlar</a>
+      <i class="bi bi-chevron-right" aria-hidden="true"></i> {{ university.city }}
+      <i class="bi bi-chevron-right" aria-hidden="true"></i> {{ university.short_name }}
+    </nav>
 
     <div class="uni-hero">
       <div class="uni-hero-cover uni-cover--{{ university.cover_theme }}">
@@ -160,19 +160,19 @@
 
       <aside>
         {% if university.application_help_enabled %}
+        {# To'lov da'vosi, ustoz xonasi va umumiy AI'ga yo'llash SIT-01 so'rov oqimigacha olib tashlangan (PUB1.6b, SIT1.0a). #}
         <div class="help-card" id="help">
-          <div class="eyebrow">Yordam xizmati</div>
-          <h3>Hujjat topshirishga yordam</h3>
-          <p>Ariza, hujjat tayyorlash va topshirish jarayonini mutaxassis bilan messenger orqali olib boring.</p>
-          <div class="help-price"><b>{{ university.display_help_fee }}</b></div>
-          <p class="help-copy">Boshlang'ich to'lov yakuniy xizmat narxidan chegiriladi.</p>
-          {% if request.user.is_authenticated %}
-            <a class="btn btn-primary btn-block" href="{% url 'messenger:tutor' %}"><i class="bi bi-chat-dots"></i> Yordam olishni boshlash</a>
+          <div class="eyebrow">Hujjat topshirish</div>
+          <h3>Hujjat topshirish bo'yicha savol</h3>
+          {% if site_settings.public_contact_phone or site_settings.public_contact_email %}
+            <p>Savolingizni platformaga yuboring:</p>
+            <p data-sit-help-contact>
+              {% if site_settings.public_contact_phone %}<a href="tel:{{ site_settings.public_contact_phone|cut:" " }}">{{ site_settings.public_contact_phone }}</a>{% endif %}
+              {% if site_settings.public_contact_email %}<a href="mailto:{{ site_settings.public_contact_email }}">{{ site_settings.public_contact_email }}</a>{% endif %}
+            </p>
           {% else %}
-            <a class="btn btn-primary btn-block" href="{% url 'login' %}?next={{ request.path|urlencode }}"><i class="bi bi-box-arrow-in-right"></i> Kirish va boshlash</a>
+            <p data-sit-help-unavailable>Onlayn ariza hozircha qabul qilinmaydi. Talab va hujjatlarni shu sahifadan hamda rasmiy manbadan tekshiring.</p>
           {% endif %}
-          <div class="help-note"><i class="bi bi-shield-check"></i> Davom etish uchun hisobga kirish kerak</div>
-          <div class="help-note"><i class="bi bi-stars"></i> Avval AI maslahatchidan bepul so'rab ko'ring</div>
         </div>
         {% endif %}
 

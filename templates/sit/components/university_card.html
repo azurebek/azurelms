@@ -1,4 +1,4 @@
-<a class="uni-card" href="{{ university.get_absolute_url }}">
+<a class="uni-card" href="{{ university.get_absolute_url }}{% if sit_return_to %}?return_to={{ sit_return_to|urlencode }}{% endif %}">
   <div class="uni-cover uni-cover--{{ university.cover_theme }}">
     {% if university.cover_image %}
       <img class="uni-cover-image" src="{{ university.cover_image.url }}" alt="">
