@@ -18,7 +18,7 @@ from unittest import mock
 
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
-from django.db import connection
+from django.db import DatabaseError, connection, transaction
 from django.test import TestCase
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
@@ -171,6 +171,25 @@ class ResilienceTests(FunnelWorld):
             self.assertEqual(response.status_code, 302)
             self.assertFalse(public_telemetry.record(public_telemetry.LANDING))
         self.assertTrue(any("public_telemetry_failed" in line for line in logs.output))
+
+    def test_receipt_transaction_runs_no_telemetry_queries(self):
+        """Chek tranzaksiyasi ichida flag, a'zolik yoki voronka jadvaliga so'rov yo'q (PR #236 review)."""
+        enrollment = Enrollment.objects.create(student=self.user, cohort=self.cohort, status="pending")
+        with self.captureOnCommitCallbacks(execute=False) as callbacks, CaptureQueriesContext(connection) as queries:
+            with transaction.atomic():
+                PaymentReceipt.objects.create(enrollment=enrollment, plan=self.plan, amount=200000, base_amount=200000)
+        touched = " ".join(q["sql"] for q in queries.captured_queries)
+        self.assertNotIn("aicontrol_featureflag", touched)
+        self.assertNotIn("frontend_publicfunnel", touched)
+        self.assertEqual(len(callbacks), 1)
+
+    def test_a_telemetry_database_error_leaves_the_callers_transaction_usable(self):
+        with transaction.atomic(), self.assertLogs("frontend.public_telemetry", level="WARNING"):
+            with mock.patch.object(PublicFunnelDay.objects, "filter", side_effect=DatabaseError("baza xatosi")):
+                self.assertFalse(public_telemetry.record(public_telemetry.LANDING))
+            self.assertEqual(get_user_model().objects.filter(pk=self.user.pk).count(), 1)
+            get_user_model().objects.filter(pk=self.user.pk).update(first_name="Vali")
+        self.assertEqual(get_user_model().objects.get(pk=self.user.pk).first_name, "Vali")
 
     def test_old_receipts_are_pruned_and_counts_stay(self):
         public_telemetry.record(public_telemetry.AUTH_COMPLETED, dedupe="eski")

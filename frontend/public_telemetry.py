@@ -103,13 +103,16 @@ def record(event, *, course_id=None, dimension="", dedupe=None):
     if event not in EVENTS:
         raise ValueError(event)
     try:
-        if not enabled():
-            return False
         from frontend.models import PublicFunnelDay, PublicFunnelReceipt
 
         dimension = dimension if dimension in DIMENSIONS.get(event, ()) else ""
         course_id = int(course_id or 0)
         today = timezone.localdate()
+        # Chaqiruvchilar biznes tranzaksiyasidan tashqarida: middleware (view'dan keyin) va
+        # `on_commit` callback'lari. Chek signali tranzaksiya ichida hech narsa o'qimaydi (PR #236).
+        if not enabled():
+            return False
+        # Yozuvlar savepoint ichida: xato faqat o'lchovni bekor qiladi.
         with transaction.atomic():
             if dedupe is not None:
                 try:
@@ -124,7 +127,7 @@ def record(event, *, course_id=None, dimension="", dedupe=None):
                         PublicFunnelDay.objects.create(day=today, event=event, course_id=course_id, dimension=dimension, count=1)
                 except IntegrityError:
                     row.update(count=F("count") + 1)
-        _prune_daily(today)
+            _prune_daily(today)
         return True
     except Exception:  # o'lchov hech qachon sahifa yoki to'lovni buzmaydi
         logger.warning("public_telemetry_failed", extra={"telemetry_event": event}, exc_info=True)
@@ -219,18 +222,29 @@ class PublicFunnelMiddleware:
 
 
 def on_receipt_saved(sender, instance, created, **kwargs):
-    """Yangi to'lov cheki — tranzaksiya muvaffaqiyatli yakunlangandan keyin bir marta."""
+    """Yangi to'lov cheki — tranzaksiya muvaffaqiyatli yakunlangandan keyin bir marta.
+
+    Chek tranzaksiyasi ichida hech qanday so'rov yo'q (flag, a'zolik, kurs) — faqat
+    commit'dan keyingi callback ro'yxatga olinadi. Ichkarida o'qish xatosi to'lovni
+    bekor qilishi mumkin edi (PR #236 review).
+    """
     if not created or getattr(instance, "kind", None) != sender.KIND_PERIOD:
         return
+    receipt_id, enrollment_id = instance.pk, instance.enrollment_id
+    transaction.on_commit(lambda: _record_receipt(receipt_id, enrollment_id))
+
+
+def _record_receipt(receipt_id, enrollment_id):
     try:
         if not enabled():
             return
-        course_id = instance.enrollment.cohort.course_id
+        from cohorts.models import Enrollment
+
+        course_id = Enrollment.objects.filter(pk=enrollment_id).values_list("cohort__course_id", flat=True).first()
     except Exception:
         logger.warning("public_telemetry_receipt_failed", exc_info=True)
         return
-    receipt_id = instance.pk
-    transaction.on_commit(lambda: record(RECEIPT, course_id=course_id, dedupe=f"receipt:{receipt_id}"))
+    record(RECEIPT, course_id=course_id, dedupe=f"receipt:{receipt_id}")
 
 
 # --- Hisobot -------------------------------------------------------------------------------------
