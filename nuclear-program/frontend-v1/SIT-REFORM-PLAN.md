@@ -1047,6 +1047,11 @@ kirmaydi. Keyingi band oldingisining DoD’iga suyanadi.
 
 #### SIT1.0a — birinchi kesim: claim, rich content va preview containment
 
+> **PUB1.6b bilan koordinatsiya (2026-10-20):** 1-band (5 000 so‘m da’vosi va ustoz dead-end’i olib
+> tashlandi; sozlangan aloqa yoki halol “hozircha qabul qilinmaydi”) va 2-band (umumiy AI CTA katalog
+> solishtiruviga almashtirildi) PUBLIC tomonidan bajarildi; preview `sit/policy.py::can_preview` orqali
+> (hozir faol xodim — 4-bandda toraytiriladi). SIT1.0a qolgan bandlarni shu modullar ustiga quradi.
+
 **Ish:**
 
 1. Public 5 000 UZS/payment claimini va enrollment-only tutor dead-endini olib

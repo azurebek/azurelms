@@ -8,10 +8,10 @@
     <div class="eyebrow catalog-count">Katalog · {{ result_count }} universitet</div>
     <h1 class="page-title">Turkiya universitetlari</h1>
 
-    <form class="filters" method="get">
+    <form class="filters" method="get" role="search">
       <label class="search">
-        <i class="bi bi-search"></i>
-        <input name="q" value="{{ filters.q }}" placeholder="Universitet yoki shahar qidiring…">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <input name="q" value="{{ filters.q }}" maxlength="{{ max_query_chars }}" aria-label="Universitet yoki shahar" placeholder="Universitet yoki shahar qidiring…">
       </label>
       <select class="select" name="type" aria-label="Universitet turi">
         <option value="">Turi: barchasi</option>
@@ -68,15 +68,12 @@
       </div>
     {% endif %}
 
-    {% if page_obj.paginator.num_pages > 1 %}
-      <nav class="pagination" aria-label="Katalog sahifalari">
-        {% if page_obj.has_previous %}
-          <a class="btn btn-ghost btn-sm" href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">Oldingi</a>
-        {% endif %}
-        <span>{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-        {% if page_obj.has_next %}
-          <a class="btn btn-ghost btn-sm" href="?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">Keyingi</a>
-        {% endif %}
+    {% if page_links %}
+      {# Havolalar faqat normallashgan filtrdan (PUB1.6b): raw so'rov satri va takror `page` yo'q. #}
+      <nav class="pagination" aria-label="{{ pages_label }}">
+        {% if previous_page_url %}<a class="btn btn-ghost btn-sm" href="{{ previous_page_url }}" rel="prev">Oldingi</a>{% endif %}
+        {% for link in page_links %}{% if link %}<a class="btn btn-sm {% if link.current %}btn-primary{% else %}btn-ghost{% endif %}" href="{{ link.url }}" aria-label="{{ link.number }}-sahifa"{% if link.current %} aria-current="page"{% endif %}>{{ link.number }}</a>{% else %}<span aria-hidden="true">…</span>{% endif %}{% endfor %}
+        {% if next_page_url %}<a class="btn btn-ghost btn-sm" href="{{ next_page_url }}" rel="next">Keyingi</a>{% endif %}
       </nav>
     {% endif %}
   </div>

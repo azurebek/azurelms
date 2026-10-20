@@ -1,5 +1,7 @@
 from django.db.models import Prefetch, Q
 
+from frontend.public_query import MAX_QUERY_CHARS, bounded_text, clean
+
 from .models import (
     University,
     UniversityDocument,
@@ -30,7 +32,9 @@ def _faculty_queryset():
 
 
 def university_catalog_queryset(*, include_unpublished=False):
-    queryset = University.objects.all() if include_unpublished else University.objects.published()
+    from .public import effective_universities
+
+    queryset = University.objects.all() if include_unpublished else effective_universities()
     return queryset.prefetch_related(
         Prefetch("faculties", queryset=_faculty_queryset(), to_attr="visible_faculties")
     )
@@ -82,9 +86,10 @@ def advisor_catalog_queryset():
 
 
 def apply_catalog_filters(queryset, params):
-    search_query = params.get("q", "").strip()
+    # Kirish katalog va Blog bilan bir chegarada (PUB1.6b, `frontend/public_query`).
+    search_query = bounded_text(params.get("q", ""))
     university_type = params.get("type", "").strip()
-    city = params.get("city", "").strip()
+    city = clean(params.get("city", ""))[:MAX_QUERY_CHARS]
     language = params.get("language", "").strip()
     degree = params.get("level", "").strip()
     price = params.get("price", "").strip()
@@ -120,7 +125,9 @@ def apply_catalog_filters(queryset, params):
 
 
 def catalog_filter_options():
-    base = University.objects.published()
+    from .public import effective_universities
+
+    base = effective_universities()
     return {
         "cities": list(base.order_by("city").values_list("city", flat=True).distinct()),
         "university_types": University.UniversityType.choices,
@@ -131,18 +138,17 @@ def catalog_filter_options():
 
 
 def portal_stats():
-    universities = University.objects.published()
+    from .public import effective_universities
+
+    universities = effective_universities()
+    programs = UniversityProgram.objects.filter(
+        is_active=True,
+        faculty__is_active=True,
+        faculty__university__in=effective_universities(),
+    )
     return {
         "universities": universities.count(),
-        "programs": UniversityProgram.objects.filter(
-            is_active=True,
-            faculty__is_active=True,
-            faculty__university__is_published=True,
-        ).count(),
+        "programs": programs.count(),
         "cities": universities.values("city").distinct().count(),
-        "languages": UniversityProgram.objects.filter(
-            is_active=True,
-            faculty__is_active=True,
-            faculty__university__is_published=True,
-        ).values("language").distinct().count(),
+        "languages": programs.values("language").distinct().count(),
     }
