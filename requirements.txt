@@ -57,7 +57,7 @@ mccabe==0.7.0
 msgpack==1.2.1
 multidict==6.9.1
 packaging==26.0
-pillow==12.3.0
+pillow==13.0.0
 prompt_toolkit==3.0.52
 propcache==0.4.1
 psycopg2-binary==2.9.11
