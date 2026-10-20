@@ -16,6 +16,20 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-21 [Claude]: Pillow 12.3.0 → 13.0.0 (8 ta CVE)
+
+Supply-chain skani yangi advisory'lar bilan barcha PR'larni blokladi: Pillow 12.3.0 — TIFF tile
+decode OOB read/uninitialised, GIF seek, PPM/PGM nol kenglik, PDF append, EPS scale (CVE-2026-112395,
+-112397, -112400, -112404, -112895, -112896, -112897, -112899). Tuzatish faqat 13.0.0 da (major).
+
+- Branch: `claude/pillow-13`. Kod o'zgarmadi: loyiha faqat barqaror API'lardan foydalanadi
+  (`Image.open`, `ImageOps.exif_transpose/fit`, `Image.Resampling.LANCZOS`, `ImageDraw`, `ImageFont`).
+- Tekshiruv (lokal, Pillow 13.0.0 o'rnatilgan): `pip check` — buzilgan bog'liqlik yo'q; `pip-audit` +
+  `manage.py audit_dependencies` — yangi zaiflik yo'q (qolgani reyestrdagi Twisted); to'liq
+  `manage.py test` — 3229 OK (skipped=70).
+- Davom etilishi kerak: keyingi deploy'da Docker image qayta yig'ilsin. Rasm yuklash (kurs muqovasi,
+  avatar, AI hujjat rasmi) deploy'dan keyin bir marta qo'lda sinab ko'rilsin.
+
 ## 2026-10-20 [Claude]: PUBLIC-01 / PUB1.8a — shaxsiy ma'lumotsiz server voronkasi
 
 Asosiy KPI (kurs sahifasidan checkout/chekka o'tish) uchun hech qanday o'lchov yo'q edi; tashqi
