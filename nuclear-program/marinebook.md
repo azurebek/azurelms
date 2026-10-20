@@ -16,6 +16,30 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-20 [Claude]: PUBLIC-01 / PUB1.6a — Blog umumiy ochiq kontraktda
+
+Blog meta/cache/tracking qoidalarini PUB1.0–1.1’dan olgan edi, lekin ro'yxat so'rovi chegarasiz,
+legacy sahifa havolalari kodlanmagan, muallif va izoh egasi ismi o'rnida login chiqardi, legacy
+qoralama ko'rinishida olqish/izoh formasi bor edi. Domen (izoh, olqish, studio) o'zgarmadi.
+
+- Branch: `claude/pub16a-blog-public-contract`; kod commit **`517b88f`**. Migration yo'q.
+- Qarorlar: `frontend/public_query.py` — katalog va Blog uchun bitta kirish/sahifa qoidasi;
+  `blog/listing.py::BlogListQuery` (teg faqat slug, to'liq tartib, toza havolalar, carousel so'rovi
+  olib tashlandi); `public_v1.safe_return_to` ikkala rendererda; `frontend/public_people.py` —
+  ism yoki umumiy nom, login hech qayerda (JSON-LD va kurs o'qituvchisi ham); legacy qoralama/yopiq izoh/ko'rishlar soni
+  rost ko'rsatildi; JavaScriptsiz olqish formasi maqolaga qaytadi (JSON standart javob saqlandi).
+- Test: yangi `blog/test_public_contract.py` (16, ikkala renderer) va `frontend/test_public_people.py` (2);
+  to'liq `manage.py test` —
+  **3186 OK (skipped=70)**. Nazorat yugurishi: 16 ta buzilish (chegarasiz q, tekshirilmagan teg, `id`siz tartib,
+  kodlanmagan havola, har qanday return_to, username zaxirasi, JSON-LD username, qoralamada olqish,
+  yopiq izoh yashirilgan, JSON sahifa, N+1, tanlangan ikki marta, bir xil karta nomi, izohga kirish
+  boshiga, kurs kartasi va kurs sahifasida username) — hammasi FAIL, tiklangach bayt-bayt bir xil.
+- Brauzer (DB nusxasi, V1 va legacy, 375px): qidiruv 80 belgi, filtrlangan ro'yxat `noindex, follow`,
+  canonical toza; karta → maqola → "Blog" ayni qidiruvga qaytdi; muallif "Platforma muallifi"
+  (DB'dagi akkauntda ism yo'q); gorizontal siljish yo'q. Renderer flagi qaytarildi.
+- Davom etilishi kerak: owner akkauntida to'liq ism bo'lmasa maqolalarda "Platforma muallifi"
+  chiqadi — ism sozlamalardan qo'yiladi (kurs o'qituvchisi uchun ham). Keyingi kesim PUB1.6b.
+
 ## 2026-10-20 [Claude]: PUBLIC-01 / PUB1.5d — ballar ilovasi yopildi, eski havola minimal
 
 Ballar ilovasi (imtihon natijalari) aniq `AZ-…` ID bilan har kimga ochiq edi; eski sertifikat

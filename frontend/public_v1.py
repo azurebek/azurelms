@@ -19,6 +19,23 @@ TITLES = {
 }
 
 
+def safe_return_to(request, fallback):
+    """`return_to` faqat ayni ro'yxat sahifasiga (filtr/sahifa bilan) qaytsa; aks holda `fallback`.
+
+    Navigatsiya uchun: tashqi, protocol-relative, boshqa yo'l yoki boshqaruv
+    belgili qiymat hech qachon qabul qilinmaydi. Ikkala renderer ishlatadi (PUB1.6a).
+    """
+    candidate = request.GET.get("return_to", "")
+    try:
+        parts = urlsplit(candidate)
+        valid = (len(candidate) <= 2000 and not parts.scheme and not parts.netloc
+                 and parts.path == fallback and not parts.fragment
+                 and not any(ord(char) < 32 or char == "\\" for char in candidate))
+    except ValueError:
+        valid = False
+    return candidate if valid else fallback
+
+
 def public_context(request, template, context):
     result = dict(context, frontend_v1_title=TITLES[template])
     for key, attribute in (("course", "title"), ("post", "title"), ("legal_page", "title"), ("university", "name"), ("article", "title")):
@@ -31,17 +48,7 @@ def public_context(request, template, context):
             result["frontend_v1_title"] = result["legal_title"]
     family = {"courses/course_detail.html": "courses", "blog/post_detail.html": "blog:list", "sit/university_detail.html": "sit:university_list"}.get(template)
     if family:
-        fallback = reverse(family)
-        candidate = request.GET.get("return_to", "")
-        # Navigation only: never accept an external/protocol-relative return URL.
-        try:
-            parts = urlsplit(candidate)
-            valid = (len(candidate) <= 2000 and not parts.scheme and not parts.netloc
-                     and parts.path == fallback and not parts.fragment
-                     and not any(ord(char) < 32 or char == "\\" for char in candidate))
-        except ValueError:
-            valid = False
-        result["public_back_url"] = candidate if valid else fallback
+        result["public_back_url"] = safe_return_to(request, reverse(family))
     return result
 
 

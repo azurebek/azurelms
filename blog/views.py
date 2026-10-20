@@ -1,12 +1,13 @@
 from urllib.parse import quote
 from core.flags import flag_enabled
 from frontend.public_meta import absolute_url
-from frontend.public_v1 import PublicFrontendV1Mixin
+from frontend.public_query import MAX_QUERY_CHARS, pagination_context
+from frontend.public_v1 import PublicFrontendV1Mixin, safe_return_to
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import IntegrityError, transaction
-from django.db.models import Avg, Count, F, Q, Sum
+from django.db.models import Avg, F, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
@@ -14,8 +15,9 @@ from django.utils import timezone
 from django.views import View
 from django.views.generic import CreateView, DetailView, ListView, TemplateView, UpdateView
 
+from . import listing
 from .forms import BlogCommentForm, BlogPostForm
-from .models import BlogComment, BlogCommentLike, BlogHomeSettings, BlogPost, BlogPostClap, BlogPostRead, BlogTag
+from .models import BlogComment, BlogCommentLike, BlogHomeSettings, BlogPost, BlogPostClap, BlogPostRead
 from .utils import forget_legacy_visitor_cookie, is_probable_bot, reader_key
 
 
@@ -27,64 +29,50 @@ class BlogStaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         return user.is_staff or user.is_superuser
 
 
+def _return_to(url):
+    """Toza ro'yxat manziliga qaytish havolaga qo'shilmaydi (`?return_to=/blog/` ortiqcha)."""
+    return "" if url == reverse("blog:list") else url
+
+
 class BlogListView(PublicFrontendV1Mixin, ListView):
+    """Ochiq Blog ro'yxati: chegaralangan qidiruv, barqaror tartib, toza havolalar (PUB1.6a)."""
+
     template_name = "blog/post_list.html"
     context_object_name = "posts"
     paginate_by = 9
 
     def get_queryset(self):
-        self.base_queryset = (
-            BlogPost.objects.published()
-            .select_related("author")
-            .prefetch_related("tags")
-            .order_by("-featured", "-published_at", "-created_at")
-        )
-        queryset = self.base_queryset
-        self.search_query = self.request.GET.get("q", "").strip()
-        self.active_tag = self.request.GET.get("tag", "").strip()
+        self.query = listing.BlogListQuery.from_params(self.request.GET)
+        queryset = listing.list_queryset(self.query)
         self.featured_post = None
-
-        if self.search_query:
-            queryset = queryset.filter(
-                Q(title__icontains=self.search_query)
-                | Q(excerpt__icontains=self.search_query)
-                | Q(body__icontains=self.search_query)
-                | Q(tags__name__icontains=self.search_query)
-            ).distinct()
-
-        if self.active_tag:
-            queryset = queryset.filter(tags__slug=self.active_tag)
-
-        if not self.search_query and not self.active_tag:
+        if not self.query.is_filtered:
             self.featured_post = queryset.filter(featured=True).first()
             if self.featured_post:
                 queryset = queryset.exclude(pk=self.featured_post.pk)
-
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        published_filter = Q(posts__status=BlogPost.STATUS_PUBLISHED, posts__published_at__lte=timezone.now())
-        landing_settings = BlogHomeSettings.current()
-        carousel_posts = list(
-            BlogPost.objects.published()
-            .select_related("author")
-            .prefetch_related("tags")
-            .order_by("-featured", "-published_at", "-created_at")[:5]
+        query, page_obj = self.query, context["page_obj"]
+        tags = listing.top_tags()
+        context.update(
+            landing_settings=BlogHomeSettings.current(),
+            featured_post=self.featured_post,
+            blog_query=query,
+            search_query=query.q,
+            active_tag=query.tag,
+            max_query_chars=MAX_QUERY_CHARS,
+            top_tags=tags,
+            tag_links=[
+                {"name": tag.name, "slug": tag.slug, "url": query.url(tag=tag.slug), "current": tag.slug == query.tag}
+                for tag in tags
+            ],
+            all_tags_url=query.url(tag=""),
+            # Maqoladagi "Blogga qaytish" ayni qidiruv, teg va sahifaga qaytaradi.
+            blog_return_to=_return_to(query.url(page=page_obj.number)),
+            pages_label="Maqolalar sahifalari",
+            **pagination_context(page_obj, context["is_paginated"], lambda number: query.url(page=number)),
         )
-
-        for index, post in enumerate(carousel_posts):
-            post.carousel_active = index == 0
-
-        context["landing_settings"] = landing_settings
-        context["carousel_posts"] = carousel_posts
-        context["featured_post"] = self.featured_post
-        context["hero_post"] = self.featured_post or (carousel_posts[0] if carousel_posts else None)
-        context["search_query"] = self.search_query
-        context["active_tag"] = self.active_tag
-        context["top_tags"] = BlogTag.objects.annotate(post_total=Count("posts", filter=published_filter)).filter(
-            post_total__gt=0
-        )[:8]
         return context
 
 
@@ -166,6 +154,9 @@ class BlogDetailView(PublicFrontendV1Mixin, DetailView):
         ) if viewer_key else 0
 
         context["is_preview"] = self.is_preview
+        # Ro'yxatdagi filtr va sahifaga qaytish — ikkala rendererda bir xil (PUB1.6a).
+        context["public_back_url"] = safe_return_to(request, reverse("blog:list"))
+        context["blog_return_to"] = _return_to(context["public_back_url"])
         context["comment_form"] = BlogCommentForm()
         context["root_comments"] = root_comments
         context["comments_total"] = len(comments)
@@ -178,14 +169,7 @@ class BlogDetailView(PublicFrontendV1Mixin, DetailView):
         context["x_share_url"] = f"https://twitter.com/intent/tweet?url={quote(share_url)}&text={quote(share_text)}"
         context["linkedin_share_url"] = f"https://www.linkedin.com/sharing/share-offsite/?url={quote(share_url)}"
         context["facebook_share_url"] = f"https://www.facebook.com/sharer/sharer.php?u={quote(share_url)}"
-        context["related_posts"] = (
-            BlogPost.objects.published()
-            .filter(Q(tags__in=post.tags.all()) | Q(author=post.author))
-            .exclude(pk=post.pk)
-            .select_related("author")
-            .prefetch_related("tags")
-            .distinct()[:3]
-        )
+        context["related_posts"] = listing.related_posts(post)
         return context
 
 
@@ -265,6 +249,17 @@ class BlogPostUpdateView(BlogStudioFormCopyMixin, BlogStaffRequiredMixin, Update
         return reverse("blog:studio_edit", kwargs={"slug": self.object.slug})
 
 
+def _wants_json(request):
+    return "application/json" in request.headers.get("Accept", "") or (
+        request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    )
+
+
+def _is_page_form(request):
+    """JavaScriptsiz brauzer formasi: sahifa (`text/html`) kutadi, JSON emas."""
+    return "text/html" in request.headers.get("Accept", "") and not _wants_json(request)
+
+
 class BlogPostClapView(View):
     def post(self, request, slug):
         post = get_object_or_404(BlogPost.objects.published(), slug=slug)
@@ -273,10 +268,7 @@ class BlogPostClapView(View):
             # Anonim olqish bir yillik yashirin cookie yaratardi. PUB-D6 qarorigacha
             # olqish uchun kirish kerak (izoh va izohni yoqtirish kabi) (PUB1.0g).
             login_url = f"{reverse('login')}?next={quote(post.get_absolute_url())}"
-            accepts_json = "application/json" in request.headers.get("Accept", "") or (
-                request.headers.get("X-Requested-With") == "XMLHttpRequest"
-            )
-            if accepts_json:
+            if _wants_json(request):
                 return JsonResponse({"ok": False, "error": "auth_required", "login_url": login_url}, status=403)
             return redirect(login_url)
 
@@ -288,6 +280,9 @@ class BlogPostClapView(View):
             )
             added = clap.add_clap()
 
+        if _is_page_form(request):
+            # JavaScriptsiz forma (legacy) xom JSON sahifaga tushmaydi: maqolaga qaytadi (PUB1.6a).
+            return forget_legacy_visitor_cookie(request, redirect(f"{post.get_absolute_url()}#clap"))
         post.refresh_from_db(fields=["clap_count"])
         response = JsonResponse(
             {
