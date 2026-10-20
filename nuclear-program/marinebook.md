@@ -16,6 +16,31 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-20 [Claude]: PUBLIC-01 / PUB1.7c — qulaylik qabuli: CI probe, kontrast, reflow, rost OPEN
+
+Ochiq sahifalarning qulayligi avtomatik qulflanmagan edi; legacy xira matn rangi (`#8a92a0`) faqat
+nashr qilingan dizayn mavzusi bo'lsa AA'dan o'tardi — mavzusiz (production) SIT'da 3.05:1; legacy
+katalog 320px'da 18px chiqib ketardi.
+
+- Branch: `claude/pub17c-wcag-acceptance`; kod commit **`fee9439`**. Migration yo'q.
+- Qarorlar: `frontend/a11y_probe.py` (axe critical/serious'ning HTML'dan aniqlanadigan 16 qoidasi,
+  `page_forms`, `missing_fragment_targets`); legacy/SIT/design-runtime `--ink-3/--ink-4` yorug'
+  `#626b79`, qorong'i `#868e9d`; V1 kurs/SIT ichki `aside` → nomlangan `section`; legacy setkalar
+  `minmax(min(Npx,100%),1fr)`; `PUBLIC-A11Y-EVIDENCE.md` — dalil va OPEN bandlar.
+- Test: yangi `frontend/test_public_a11y.py` (7; 21 sahifa × 2 renderer × mehmon/kirgan);
+  to'liq `manage.py test` — **3229 OK (skipped=70)**. Nazorat yugurishi: 10 ta buzilish (eski kontrast,
+  buzilgan label, `main`siz holat sahifasi, o'lik `#kb`, JS'siz qidiruv nomi, yashirin nav,
+  CSRF'siz izoh formasi, fokus qoidasi, alt'siz brend rasmi, nomsiz ikonka-tugma) — hammasi FAIL,
+  tiklangach bayt-bayt bir xil. Birinchi yugurishda 4 tasi o'tib ketdi (kontrast rejimini noto'g'ri
+  taxmin, umumiy fokus qidiruvi, rasm chizilmagan, bo'sh `aria-label` aslida xato emas) — testlar
+  kuchaytirildi/ssenariy almashtirildi.
+- Brauzer (DB nusxasi, axe-core 4.10.3 vaqtincha preview static'da): V1 yorug'/qorong'i va legacy
+  (mavzu bilan/mavzusiz, yorug'/qorong'i) — critical/serious 0 (tuzatishdan keyin); 320px reflow
+  barcha sahifada 320; klaviatura: birinchi Tab skip link, fokus ko'rinadi.
+- Davom etilishi kerak: NVDA/VoiceOver/TalkBack, zoom 200–400%, matn oralig'i, to'liq klaviatura
+  yo'li, forced colors, owner qurilmasi — OPEN. Moderate `heading-order` (legacy kartalar, kontent).
+  Keyingi kesim PUB1.8a.
+
 ## 2026-10-20 [Claude]: PUBLIC-01 / PUB1.7b — o'z serverimizdagi shrift/ikonka, route bundle, asset byudjeti
 
 Legacy sahifalar har tashrifda Google Fonts va jsDelivr'ga murojaat qilardi (IP uchinchi tomonga,
