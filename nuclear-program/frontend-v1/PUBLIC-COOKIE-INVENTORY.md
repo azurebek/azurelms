@@ -39,9 +39,6 @@ shuning uchun rozilik banneri ham yo'q. Bu hujjat huquqiy muvofiqlik da'vosi ema
 
 | Manba | Maqsad | Qayerda yuklanadi | Ular nimani ko'radi | Izoh |
 |---|---|---|---|---|
-| https://fonts.googleapis.com | Shrift uslublari (CSS) | Eski (legacy) public, auth va ilova sahifalari | IP manzil, brauzer turi | Cookie qo'yilmaydi. O'z serverimizdan berish — PUB1.7b (tezlik byudjeti) bilan. |
-| https://fonts.gstatic.com | Shrift fayllari | fonts.googleapis.com bilan birga | IP manzil, brauzer turi | Cookie qo'yilmaydi. |
-| https://cdn.jsdelivr.net | Ikonka shrifti va kutubxonalar (Bootstrap Icons va boshqalar) | Eski (legacy) sahifalar | IP manzil, brauzer turi | Cookie qo'yilmaydi. |
 | https://telegram.org | Telegram Mini App skripti | Faqat Telegram ichida ochiladigan Mini App sahifalari | IP manzil, brauzer turi | Public va auth sahifalarida yuklanmaydi. |
 
 ## Kuzatuv xizmatlari

@@ -16,6 +16,30 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-20 [Claude]: PUBLIC-01 / PUB1.7b — o'z serverimizdagi shrift/ikonka, route bundle, asset byudjeti
+
+Legacy sahifalar har tashrifda Google Fonts va jsDelivr'ga murojaat qilardi (IP uchinchi tomonga,
+CDN yiqilsa ikonkasiz), V1 ochiq sahifalar ishlatilmaydigan `auth.css`/`learning.css`/`shell.js`ni
+yuklardi, sekinlashishni ushlaydigan signal yo'q edi.
+
+- Branch: `claude/pub17b-route-bundles`; kod commit **`be95064`**. Migration yo'q.
+- Qarorlar: `static/vendor/` (Space Grotesk 5.2.10 o'zgaruvchan, Space Mono 5.2.9, Bootstrap Icons
+  1.11.3; OFL/MIT litsenziyalari; npm'dan, pinned) — 7 shablon; CSP'dan Google Fonts va jsDelivr
+  olib tashlandi (`font-src 'self'`), maxfiylik inventaridan ham; V1 `app_bundle` bloki ochiq
+  sahifada bo'sh (CSS ~11 000 → 8 210 bayt gzip); `frontend/public_budgets.py` byudjeti CI'da;
+  karta rasmlari lazy + band joy, bosh rasm sekin emas; `audit_public_media` (faqat o'qiydi);
+  legacy CSS'da reduced-motion. `collectstatic` manifest vendor fayllarni hash bilan qayta yozdi.
+- Test: yangi `frontend/test_public_budgets.py` (9); to'liq `manage.py test` — **3222 OK (skipped=70)**; `node
+  --test` 193 OK. Nazorat yugurishi: 10 ta buzilish (CDN qaytdi, CSP kengaydi, ochiq sahifada
+  ilova bundle, tor byudjet, bosh rasm lazy, karta joyi yo'q, auditda qoralama, xabar uslubsiz,
+  ikonka so'rov qatori, yo'q static fayl) — hammasi FAIL, tiklangach bayt-bayt bir xil. Birinchi
+  yugurishda CDN buzilishini faqat shablon skaneri ushladi (tahlilchi `href`→`rel` tartibini
+  ko'rmasdi) — tahlilchi tuzatildi, endi sahifa testi ham ushlaydi.
+- Brauzer (DB nusxasi): legacy Blog — tashqi so'rov 0, Space Grotesk va ikonkalar lokal, turkcha
+  `latin-ext` faqat kerak bo'lganda; V1 Blog — `auth`/`learning`/`shell` yo'q, ko'rinish o'zgarmagan.
+- Davom etilishi kerak: Docker image qayta yig'ilishi (yangi static); renditions/srcset, video
+  poster/caption, Lighthouse/RUM — keyingi kesimlar. Keyingi kesim PUB1.7c.
+
 ## 2026-10-20 [Claude]: PUBLIC-01 / PUB1.7a — rost va o'zi yetarli holat sahifalari
 
 Xato sahifalari Google Fonts va jsDelivr'ga tayanardi, 500 "jamoamiz xabardor qilindi" derdi (alert

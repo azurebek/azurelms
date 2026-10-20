@@ -93,6 +93,8 @@
 .p-public-list { padding-left: var(--az-space-5); }
 .p-public-list li + li { margin-top: var(--az-space-2); }
 .p-public-image { display: block; width: 100%; height: auto; border-radius: var(--az-radius-sm); }
+/* Karta rasmi joyini oldindan band qiladi (CLS yo'q); fayl yo'q bo'lsa ham karta buzilmaydi (PUB1.7b). */
+.p-public-image--card { aspect-ratio: 16 / 9; object-fit: cover; background: var(--az-soft); }
 .p-public-program { border-top: 1px solid var(--az-border); padding-top: var(--az-space-3); }
 .p-public-rich { overflow-wrap: anywhere; min-width: 0; }
 .p-public-rich > * + * { margin-top: var(--az-space-4); }

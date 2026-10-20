@@ -150,3 +150,7 @@
   .pub-course-layout>aside{ position:static !important; }
   .pub-course-summary{ display:grid; gap:8px; border:1px solid var(--line); border-radius:14px; background:var(--panel); padding:16px; margin:-12px 0 28px; }
 }
+/* Harakatni kamaytirish so'ralganda o'tish va animatsiyalar o'chadi (PUB1.7b). */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

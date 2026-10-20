@@ -81,9 +81,6 @@
 .s-brand__mark img { width: 100%; height: 100%; object-fit: contain; }
 .v1-login-form { margin-top: var(--az-space-6); }
 .v1-login-form .errorlist { list-style: none; color: var(--az-danger); font-size: var(--az-text-sm); margin-top: var(--az-space-2); }
-.v1-error { color: var(--az-danger); background: var(--az-danger-soft); margin-block: var(--az-space-4); }
-.v1-error ul { list-style: none; }
-.v1-messages { display: grid; gap: var(--az-space-3); margin-bottom: var(--az-space-5); }
 .v1-telegram { display: grid; gap: var(--az-space-3); padding-top: var(--az-space-5); margin-top: var(--az-space-5); border-top: 1px solid var(--az-border); }
 .v1-telegram__wait { display: grid; gap: var(--az-space-3); padding: var(--az-space-4); border: 1px solid var(--az-border); border-radius: var(--az-radius, 12px); }
 .v1-telegram__code { font-family: var(--az-font-mono, ui-monospace, monospace); font-size: var(--az-text-lg, 1.125rem); letter-spacing: .18em; }

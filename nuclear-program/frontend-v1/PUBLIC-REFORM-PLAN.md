@@ -1,7 +1,7 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
 **Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) hamda PUB1.2a–b, PUB1.2d,
-PUB1.3 bosqichi (a–d), PUB1.4b–c, PUB1.4e, PUB1.5 va PUB1.6 bosqichlari, PUB1.7a kodda (2026-10-16/20, lokal)**; PUB1.2c
+PUB1.3 bosqichi (a–d), PUB1.4b–c, PUB1.4e, PUB1.5 va PUB1.6 bosqichlari, PUB1.7a–b kodda (2026-10-16/20, lokal)**; PUB1.2c
 B3.5 writer’i bilan birga ochiq; PUB1.4a owner qarori bilan keyinga qoldirilgan (2026-10-19);
 PUB1.4d (production SMTP owner qo‘lida) va keyingi kesimlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
@@ -2252,6 +2252,28 @@ budget, Lighthouse lab. RUM hali alohida.
 
 **Tugashi:** unused auth/learning bundle publicda 0; broken media dead-end 0;
 budget regression CI’da signal; CSPni weakening yo‘q.
+
+**Holat — 2026-10-20: kodda, lokal tekshirilgan** (branch `claude/pub17b-route-bundles`, migration yo‘q).
+**Route bundle:** `frontend_v1/base.html`da `{% block app_bundle %}` (`auth.css`, `learning.css`,
+`shell.js`); V1 ochiq bazasi uni bo‘sh qiladi — mehmon sahifasida CSS ~11 000 → 8 210 bayt (gzip).
+Flash xabar uslubi (`.v1-messages`, `.v1-error`) `components.css`ga ko‘chdi. **Self-host:** Space Grotesk
+(o‘zgaruvchan, `@fontsource-variable/space-grotesk@5.2.10`), Space Mono (`@fontsource/space-mono@5.2.9`)
+lotin + lotin-kengaytma (turkcha ğ/ş/İ) `unicode-range` bilan va Bootstrap Icons 1.11.3 (faqat woff2,
+so‘rov qatorisiz — manifest hash ishlaydi) `static/vendor/`da, litsenziyalari bilan (OFL 1.1, MIT);
+7 shablon (`base.html`, SIT, sertifikat, ilova, imtihon, ikki backoffice bridge)
+`components/vendor_fonts.html`/`vendor_icons.html` orqali. **CSP faqat toraydi:** Google Fonts va
+jsDelivr `script/style/font-src`dan olib tashlandi (`font-src 'self'`); maxfiylik inventaridan ham.
+**Byudjet:** `frontend/public_budgets.py` — har ochiq va kirish sahifasi (legacy/V1) faqat lokal
+CSS/JS, har fayl static’da topiladi, siqilgan hajm `BUDGETS`dan (o‘lchov + ~10%) oshsa
+`frontend/test_public_budgets.py` CI’da yiqiladi; tahlil atribut tartibidan qat’i nazar va
+`preconnect`/`preload`ni ham ushlaydi. **Media:** karta rasmlari `loading="lazy" decoding="async"` va
+`aspect-ratio: 16/9` bilan joyi band (fayl yo‘q bo‘lsa ham karta buzilmaydi); sahifaning bosh rasmi
+(LCP) sekin emas; galereya/avatar lazy. `frontend/public_media.py` + `manage.py audit_public_media` —
+ochiq media reestri, fayli saqlovchida yo‘q havolalarni topadi (faqat o‘qiydi). Legacy public va SIT
+CSS’da `prefers-reduced-motion`. **Qilinmadi:** rasm renditions/`srcset` (upload pipeline — BLOG/SIT
+media kesimlari), video poster/caption (ma’lumot maydoni yo‘q; video `preload="none"` + `controls`,
+avtoplay yo‘q), Lighthouse/RUM lab (PUB1.8), CSP report-only, inline style/script olib tashlash
+(legacy shablonlari inline style’ga qurilgan — alohida).
 
 #### PUB1.7c — WCAG/no-JS/native acceptance
 
