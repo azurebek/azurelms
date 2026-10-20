@@ -257,6 +257,9 @@ class CourseDetailView(PublicFrontendV1Mixin, DetailView):
         )
         context['active_cohort_count'] = offer.active_cohort_count
         context['active_nav'] = 'courses'
+        # Voronka o'lchovi uchun (PUB1.8a): mehmonga "hozir yozilib bo'lmaydi" ko'rsatildi — sabab kodi.
+        if not self.request.user.is_authenticated and not offer.available:
+            self.request.public_unavailable_reason = offer.reason
         return context
 
 class CourseStudyRedirectView(LoginRequiredMixin, View):
@@ -1354,6 +1357,7 @@ def public_intent_continue(request):
         return redirect("courses")
     resolution = resolve_purchase_intent(intent, user=request.user)
     public_intent.record(outcome=resolution.outcome, intent=intent)
+    request.public_intent_outcome = resolution.outcome  # voronka o'lchovi uchun (PUB1.8a)
     if resolution.message:
         messages.info(request, resolution.message)
     return redirect(resolution.url)

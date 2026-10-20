@@ -27,7 +27,8 @@ from courses.models import Course
 search_migration = importlib.import_module("courses.migrations.0026_course_search_text")
 # Har renderer uchun so'rovlar chegarasi (kurslar sonidan qat'i nazar; bo'sh katalogda kamroq).
 # PUB1.3b: +3 — kartadagi qabul holati (tariflar, ularning imkoniyatlari, faol guruhlar).
-CATALOG_QUERY_BUDGET = {"legacy": 12, "v1": 12}
+# +1 — voronka o'lchovi flagini o'qish (PUB1.8a), kurslar soniga bog'liq emas.
+CATALOG_QUERY_BUDGET = {"legacy": 13, "v1": 13}
 
 
 def renderers():

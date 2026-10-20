@@ -150,6 +150,16 @@ FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
         runbook="OFF: yangi havola 404. Qaysi ma'lumot ochiq ko'rinishi — owner qarori (PUB-D4/PUB-D15).",
     ),
     FlagDefinition(
+        slug="public_telemetry_v1",
+        label="Ochiq voronka o'lchovi",
+        description=(
+            "Mehmon kurs sahifasidan to'lovgacha qadamlarini server tomonida kunlik son sifatida sanaydi: "
+            "cookie, IP, ism, qidiruv matni yoki token saqlanmaydi. O'chiq bo'lsa hech narsa yozilmaydi."
+        ),
+        default=False, category="Frontend",
+        runbook="Yoqilgach 2–4 hafta asosiy ko'rsatkich yig'iladi: `manage.py public_funnel_report --days 28`.",
+    ),
+    FlagDefinition(
         slug="certificate_legacy_public_view",
         label="Eski sertifikat havolasi — o'tish davri",
         description=(

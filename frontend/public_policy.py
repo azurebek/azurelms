@@ -81,13 +81,15 @@ def _status(name):
 PUBLIC_SURFACES = (
     # Kontent sahifalari (§5.3 matritsasi). PUBLIC_CONTENT avval
     # `max-age=0, must-revalidate`; shared cache faqat isbotdan keyin.
-    _content("home", claim_gate=True),
+    # `telemetry` — mehmon ko'rishi voronkaning qaysi hodisasi (PUB1.8a, `frontend/public_telemetry.py`).
+    _content("home", claim_gate=True, telemetry="public_landing_view"),
     _content("about", claim_gate=True),
     _content("privacy_policy"),
     _content("terms_of_service"),
     _content("faq_page"),
-    _content("courses", index="conditional", canonical="clean_base", cache=CacheClass.PUBLIC_QUERY, rich=None),
-    _content("course_detail", canonical="object", sitemap="object", claim_gate=True),
+    _content("courses", index="conditional", canonical="clean_base", cache=CacheClass.PUBLIC_QUERY, rich=None,
+             telemetry="catalog_results_view"),
+    _content("course_detail", canonical="object", sitemap="object", claim_gate=True, telemetry="course_detail_view"),
     _content("subscriptions:pricing", index="conditional", sitemap="object", rich=None, claim_gate=True),
     _content("blog:list", index="conditional", canonical="clean_base", cache=CacheClass.PUBLIC_QUERY, rich=None),
     _content("blog:detail", index="conditional", canonical="object", sitemap="object", telemetry="blog_read"),

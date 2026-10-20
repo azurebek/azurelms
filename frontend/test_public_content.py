@@ -22,7 +22,8 @@ from frontend.public_content import HOME_COURSE_LIMIT
 from frontend.test_public_claims import approve_for_test
 
 # Har renderer uchun so'rovlar chegarasi (mavjud ma'lumot hajmidan qat'i nazar).
-QUERY_BUDGET = {("legacy", "home"): 14, ("v1", "home"): 13, ("legacy", "about"): 12, ("v1", "about"): 11}
+# Bosh sahifa: +1 — voronka o'lchovi flagini o'qish (PUB1.8a; flag yoqilganda hodisa yozuvi alohida).
+QUERY_BUDGET = {("legacy", "home"): 15, ("v1", "home"): 14, ("legacy", "about"): 12, ("v1", "about"): 11}
 USER_TABLE_SCAN = re.compile(r'FROM\s+"users_customuser"', re.IGNORECASE)
 # Public sahifa hech qachon o'qimasligi kerak bo'lgan foydalanuvchi ustunlari.
 PII_COLUMNS = ("email", "phone_number", "password", "telegram_id", "date_joined", "last_login")

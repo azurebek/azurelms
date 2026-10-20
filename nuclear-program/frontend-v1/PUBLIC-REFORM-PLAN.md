@@ -1,7 +1,7 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
 **Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) hamda PUB1.2a–b, PUB1.2d,
-PUB1.3 bosqichi (a–d), PUB1.4b–c, PUB1.4e, PUB1.5, PUB1.6 va PUB1.7 bosqichlari kodda (2026-10-16/20, lokal)**; PUB1.2c
+PUB1.3 bosqichi (a–d), PUB1.4b–c, PUB1.4e, PUB1.5, PUB1.6 va PUB1.7 bosqichlari, PUB1.8a kodda (2026-10-16/20, lokal)**; PUB1.2c
 B3.5 writer’i bilan birga ochiq; PUB1.4a owner qarori bilan keyinga qoldirilgan (2026-10-19);
 PUB1.4d (production SMTP owner qo‘lida) va keyingi kesimlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
@@ -2314,6 +2314,26 @@ buzmasligi.
 
 **Tugashi:** KPI numerator/denominator reproducible; telemetry PII 0; 2–4 hafta
 baseline olish mumkin. A/B hali yo‘q.
+
+**Holat — 2026-10-20: kodda, lokal tekshirilgan** (branch `claude/pub18a-funnel-baseline`, migration
+frontend 0024 — ikki yangi jadval). `frontend/public_telemetry.py`: §5.11 ro‘yxatidagi 10 hodisa; flag
+`public_telemetry_v1` (**default OFF** — owner yoqmaguncha hech narsa yozilmaydi). **Saqlanadi:**
+`PublicFunnelDay` — kun, hodisa, kurs raqami, ruxsat etilgan o‘lcham (`login/register`, niyat natijasi,
+yopiqlik sababi), son; `PublicFunnelReceipt` — takrorni bloklovchi HMAC kalit (SECRET_KEY bilan, maqsadga
+bog‘langan), niyat muddati (owner sozlamasi) + 1 kundan keyin o‘chadi (birinchi hodisa kuniga bir marta;
+`purge_public_telemetry`). **Saqlanmaydi:** foydalanuvchi, email, ism, IP, user-agent, qidiruv matni,
+forma, token, URL, referrer, cookie. **Hodisalar:** mehmon ko‘rishlari route registridagi `telemetry`
+maydonidan (bosh, katalog, kurs; bot/preview/HEAD/kirgan emas — sahifa ko‘rishlari, noyob odam emas);
+`purchase_intent_created` (imzoli niyat bilan kirish/ro‘yxat sahifasi), `auth_started` (forma yuborildi),
+`auth_completed` (kirgach niyat qaytarildi, o‘lcham — natija) — uchalasi niyat nonce’i bo‘yicha bir marta;
+`checkout_quote_viewed` (o‘quvchi+kurs+kun bo‘yicha bir marta); `receipt_created` — `PaymentReceipt` (davr
+cheki) tranzaksiyasi commit bo‘lgandan keyin (chek bo‘yicha bir marta); `public_unavailable_shown` (sabab
+kodi). `support_action_used` ro‘yxatda, server signali yo‘q (aloqa `tel:`/`mailto:`) — sanalmaydi. Bitta
+`PublicFunnelMiddleware` (`AuthenticationMiddleware`dan keyin); o‘lchov xatosi savepoint ichida, sahifa/
+kirish/chekni buzmaydi. **Hisobot:** `manage.py public_funnel_report [--days 28]` — har ko‘rsatkich
+surat/maxraj va ta’rifi bilan; maxraj 0 bo‘lsa foiz chiqmaydi. Mehmon voronka sahifalarida flagni
+o‘qish +1 so‘rov (katalog/bosh sahifa byudjeti yangilandi). **Owner qarori:** yoqish vaqti; maxfiylik
+siyosatida “umumlashtirilgan sahifa statistikasi” jumlasi (owner matni).
 
 #### PUB1.8b — content/data/release readiness gate
 
