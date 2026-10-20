@@ -1,6 +1,7 @@
 {% extends "errors/_base_error.html" %}
-{% block err_title %}Ruxsat yo'q{% endblock %}
+{% comment %}Kirish taklifi faqat u yordam bera oladigan holatda — mehmonga (PUB1.7a).{% endcomment %}
+{% block err_title %}Ruxsat yo‘q{% endblock %}
 {% block err_code %}403{% endblock %}
-{% block err_color %}var(--amber){% endblock %}
-{% block err_heading %}Kirish taqiqlangan{% endblock %}
-{% block err_message %}Bu sahifaga kirish uchun ruxsatingiz yo'q. Agar bu xato deb hisoblasangiz, administrator bilan bog'laning.{% endblock %}
+{% block err_heading %}Bu sahifaga ruxsat yo‘q{% endblock %}
+{% block err_message %}{% if login_url %}Bu sahifa hisobga kirgan foydalanuvchilar uchun bo‘lishi mumkin. Kirgandan keyin shu yerga qaytasiz.{% else %}Hisobingiz bilan bu sahifani ochib bo‘lmaydi. Kerakli bo‘limga bosh sahifadan o‘ting.{% endif %}{% endblock %}
+{% block err_actions %}{% if login_url %}<a class="sys-button sys-button--primary" href="{{ login_url }}">Kirish</a><a class="sys-button" href="/">Bosh sahifaga</a>{% else %}<a class="sys-button sys-button--primary" href="/">Bosh sahifaga</a>{% endif %}{% endblock %}

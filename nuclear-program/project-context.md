@@ -1102,8 +1102,8 @@ Kataloglar: `backoffice/`, `blog/`, `bot/` (Mini App), `cohorts/`, `components/`
 | `/privacy-policy/` | `privacy_policy` |
 | `/terms-of-service/` | `terms_of_service` |
 | `/faq/` | `faq_page` |
-| `/healthz` | `healthz` (liveness — DB'ga tegmaydi) |
-| `/readyz` | `readyz` (readiness — critical capability'lar, `503` bera oladi) |
+| `/healthz` | `healthz` (liveness — DB'ga tegmaydi; begonaga faqat `status`, PUB1.7a) |
+| `/readyz` | `readyz` (readiness — critical capability'lar, `503` bera oladi; tafsilot faqat Control Center egasiga) |
 | `/maintenance/` | `maintenance` |
 | `/offline/` | `offline` |
 
@@ -1334,6 +1334,7 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 - Non-local profilda `core/settings.py` → `core/runtime_gate.py::enforce_remote_services()` cache/channel manzili bo'lmasa yoki broker bo'sh/`memory://` bo'lsa startupni `ImproperlyConfigured` bilan to'xtatadi. In-memory cache/channel va eager broker faqat local profil uchun. Bu konfiguratsiya gate'i; haqiqiy ulanish va worker heartbeat'i alohida runtime dalilini talab qiladi.
 - ~~Default S3 media storage `public-read` va unsigned URL ishlatadi; protected upload klasslari hozir alohida private storage'ga ajratilmagan.~~ **Yopildi 2026-08-15 (A0b/3):** to'lov cheki, vazifa fayli, chat biriktirmasi va speaking yozuvi `PRIVATE_MEDIA_ROOT` ichida — `MEDIA_ROOT` dan tashqarida — saqlanadi va faqat ruxsat tekshiradigan view orqali beriladi. Private storage public URL bermaydi. Future S3 uchun bu view signed URL'ga redirect qiladigan qilib kengaytiriladi.
 - `.github/workflows/ci.yml` uchta required jobni belgilaydi; PostgreSQL+pgvector va Valkey integration ishi ham shu yerda. `/healthz` (liveness) tashqi xizmat probe'larini chaqirmaydi. `/readyz` (readiness) Control Center registry'sidagi faqat `critical` capability probe'larini yugurtiradi va birortasi `red` bo'lsa `503` qaytaradi.
+- Holat sahifalari (403/404/500, `/maintenance/`, `/offline/`, CSRF) faqat `core/system_states.py::render_state` orqali: kontekst protsessorlarisiz, 500 bazaga tegmaydi, `no-store` + `noindex`, lokal `css/system-states.css`. Yangi holat sahifasiga tashqi shrift/CDN, skript yoki `{% url %}`/`request` qo'shmang; "xabardor qilindi" kabi da'vo faqat haqiqiy alert kanali bo'lganda. Texnik ishlar `Retry-After` — `OperationalSettings.maintenance_retry_after_minutes` (0 = aytilmaydi). `core/test_system_states.py` qulflaydi.
 - `TelegramOutbox` doimiy worker'i `Procfile` va production compose'da bor. DM va Classbook outbox atomik claim/lease, runtime retry policy, exponential backoff va owner dead-letter replay oqimini ishlatadi (`bot/outbox.py`, `bot/retry_policy.py`, `bot/dead_letter.py`). Kafolat at-least-once: yuborish muvaffaqiyatli bo'lib DB yangilanishidan oldin process o'lsa xabar takrorlanishi mumkin; exactly-once kafolati yo'q.
 - `AIResponseRun` status, model, skill, token, duration, metadata, error va idempotency keyni saqlaydi. Pul bahosi `AIModelPrice` snapshotlari + `core/ai_cost.py` orqali alohida hisoblanadi; AI quality/cost release gate A9 sifatida ochiq.
 - Capability registry/snapshot AI supply budget/cooldown bilan birga append-only `SystemAuditEvent`, `WorkerHeartbeat`, `ReleaseRecord`, backup/email/memory probe'lari, feature flags va AI cost holatini ko'rsatadi.

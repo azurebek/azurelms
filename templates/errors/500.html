@@ -1,6 +1,8 @@
 {% extends "errors/_base_error.html" %}
+{% comment %}Haqiqiy ogohlantirish kanali (incident receipt) yo'q — "jamoa xabardor" deyilmaydi (PUB1.7a). Tafsilot, so'rov tanasi va shaxsiy ma'lumot chiqmaydi.{% endcomment %}
 {% block err_title %}Server xatosi{% endblock %}
 {% block err_code %}500{% endblock %}
-{% block err_color %}var(--red){% endblock %}
 {% block err_heading %}Serverda xatolik{% endblock %}
-{% block err_message %}Kutilmagan xatolik yuz berdi. Jamoamiz xabardor qilindi. Iltimos, birozdan so'ng qayta urinib ko'ring.{% endblock %}
+{% block err_message %}So‘rovingizni bajarishda kutilmagan xatolik yuz berdi. Bu sizning xatoingiz emas.{% endblock %}
+{% block err_note %}{% if retry_url %}<p class="sys-note">Birozdan so‘ng sahifani qayta ochib ko‘ring.</p>{% else %}<p class="sys-note" data-no-replay>Yuborgan formangiz avtomatik qayta yuborilmaydi. Natijani tekshirib, kerak bo‘lsa qaytadan to‘ldiring.</p>{% endif %}{% endblock %}
+{% block err_actions %}{% if retry_url %}<a class="sys-button sys-button--primary" href="{{ retry_url }}">Sahifani qayta ochish</a>{% endif %}<a class="sys-button{% if not retry_url %} sys-button--primary{% endif %}" href="/">Bosh sahifaga</a>{% endblock %}

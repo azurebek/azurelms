@@ -256,6 +256,14 @@ class OperationalSettings(models.Model):
             "o‘sha kursning to‘lov sahifasiga qaytariladi. Narx va qabul qaytishda qayta tekshiriladi."
         ),
     )
+    maintenance_retry_after_minutes = models.PositiveIntegerField(
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(1440)],
+        verbose_name="Texnik ishlar: qayta urinish (daqiqa)",
+        help_text=(
+            "0–1440 daqiqa. Texnik ishlar sahifasi (`/maintenance/`, 503) brauzer va botlarga shuncha daqiqadan keyin qayta urinishni aytadi (`Retry-After`). 0 — vaqt aytilmaydi: taxmin qilinmaydi."
+        ),
+    )
 
     updated_at = models.DateTimeField(auto_now=True)
     updated_by = models.ForeignKey(

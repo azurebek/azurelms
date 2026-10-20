@@ -88,8 +88,9 @@ class SettingsReadabilityTests(TestCase):
         self.set_unified(True)
         response, page = self.page('backoffice_runtime_settings')
         tasks = [d for d in page.details if d['attrs'].get('id', '').startswith('settings-')]
-        # 8-panel: kirish urinishlari cheklovi (PUB1.0c); 9-panel: kursga qaytish havolasi (PUB1.3d).
-        self.assertEqual(len(tasks), 9)
+        # 8-panel: kirish urinishlari cheklovi (PUB1.0c); 9-panel: kursga qaytish havolasi (PUB1.3d);
+        # 10-panel: texnik ishlar sahifasining qayta urinish vaqti (PUB1.7a).
+        self.assertEqual(len(tasks), 10)
         for detail in tasks:
             self.assertNotIn('open', detail['attrs'])
             names = [control[1] for control in detail['controls']]

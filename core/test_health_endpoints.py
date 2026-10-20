@@ -43,6 +43,14 @@ class LivenessTests(SimpleTestCase):
 
 
 class ReadinessTests(TestCase):
+    def setUp(self):
+        # Probe tafsiloti faqat Control Center egasiga (PUB1.7a); begona faqat holatni oladi —
+        # u `core/test_system_states.py`da.
+        from django.contrib.auth import get_user_model
+
+        owner = get_user_model().objects.create_superuser("owner", "owner@example.test", "x")
+        self.client.force_login(owner)
+
     def test_readyz_reports_ready_on_a_healthy_local_profile(self):
         response = self.client.get(reverse("readyz"))
         self.assertEqual(response.status_code, 200)
@@ -80,6 +88,7 @@ class ReadinessTests(TestCase):
         self.assertIn("database", [c["slug"] for c in response.json()["checks"]])
 
     def test_readyz_is_reachable_without_authentication(self):
+        self.client.logout()
         self.assertEqual(self.client.get(reverse("readyz")).status_code, 200)
 
 

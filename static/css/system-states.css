@@ -1,0 +1,171 @@
+/* Holat sahifalari (403/404/500, texnik ishlar, oflayn, CSRF) — PUB1.7a.
+ *
+ * O'zi yetarli: tashqi shrift/ikonka/CDN yo'q, skript yo'q, bazaga bog'liq
+ * ma'lumot talab qilmaydi. Tizim shrifti, foydalanuvchi tanlagan yorug'/qorong'i
+ * rejim va Windows "forced colors" rejimi hurmat qilinadi.
+ */
+:root {
+  color-scheme: light dark;
+  --sys-bg: #f7f8fb;
+  --sys-panel: #ffffff;
+  --sys-ink: #0f172a;
+  --sys-muted: #475569;
+  --sys-line: #d6dbe5;
+  --sys-accent: #1d4ed8;
+  --sys-on-accent: #ffffff;
+  --sys-code: #1d4ed8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sys-bg: #0b1020;
+    --sys-panel: #121a2e;
+    --sys-ink: #e5e9f2;
+    --sys-muted: #a3adc2;
+    --sys-line: #2a3550;
+    --sys-accent: #7aa2ff;
+    --sys-on-accent: #0b1020;
+    --sys-code: #7aa2ff;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { margin: 0; }
+
+body.sys {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--sys-bg);
+  color: var(--sys-ink);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.6;
+}
+
+.sys-skip {
+  position: absolute;
+  left: 12px;
+  top: -64px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--sys-panel);
+  color: var(--sys-ink);
+  z-index: 10;
+}
+
+.sys-skip:focus { top: 12px; }
+
+.sys-head {
+  display: flex;
+  align-items: center;
+  min-height: 62px;
+  padding: 0 clamp(16px, 3vw, 28px);
+}
+
+.sys-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.sys-brand .brand-logo-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--sys-accent);
+  color: var(--sys-on-accent);
+  font-weight: 700;
+}
+
+.sys-brand .brand-logo-image { max-height: 34px; width: auto; }
+
+.sys-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+  text-align: center;
+}
+
+.sys-main:focus { outline: none; }
+
+.sys-code {
+  margin: 0;
+  font-size: clamp(56px, 14vw, 112px);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--sys-code);
+}
+
+.sys-main h1 {
+  margin: 16px 0 10px;
+  font-size: clamp(22px, 3vw, 30px);
+  line-height: 1.25;
+}
+
+.sys-message,
+.sys-note {
+  margin: 0 0 12px;
+  max-width: 44ch;
+  color: var(--sys-muted);
+}
+
+.sys-note { font-size: 14px; }
+
+.sys-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.sys-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 20px;
+  border-radius: 11px;
+  border: 1px solid var(--sys-line);
+  background: var(--sys-panel);
+  color: var(--sys-ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.sys-button--primary {
+  border-color: var(--sys-accent);
+  background: var(--sys-accent);
+  color: var(--sys-on-accent);
+}
+
+.sys-button:focus-visible,
+.sys-brand:focus-visible,
+.sys-skip:focus-visible {
+  outline: 3px solid var(--sys-accent);
+  outline-offset: 3px;
+}
+
+@media (forced-colors: active) {
+  .sys-button,
+  .sys-brand .brand-logo-mark { border: 1px solid ButtonText; }
+  .sys-button--primary { background: ButtonText; color: ButtonFace; }
+  .sys-code { color: CanvasText; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

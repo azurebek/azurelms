@@ -394,6 +394,8 @@ class RuntimeSettingsSurfaceTests(TestCase):
             "auth_register_attempt_ip_limit",
             # PUB1.5c — sertifikat tekshiruvida noto'g'ri kod.
             "certificate_verify_ip_limit", "certificate_verify_window_minutes",
+            # PUB1.7a — texnik ishlar sahifasining `Retry-After` vaqti.
+            "maintenance_retry_after_minutes",
         ]
         for name in expected:
             self.assertContains(
@@ -402,10 +404,10 @@ class RuntimeSettingsSurfaceTests(TestCase):
         # To'qqiz forma, to'qqizta sabab/tasdiq juftligi va to'qqiz `form_name`.
         self.assertContains(response, 'name="checkout_quote_minutes"')
         self.assertContains(response, 'name="exam_receipt_limit"')
-        # 9-panel: kursga qaytish havolasi muddati (PUB1.3d).
-        self.assertContains(response, 'name="form_name"', count=9)
-        self.assertContains(response, 'name="change_reason"', count=9)
-        self.assertContains(response, 'name="confirm_change"', count=9)
+        # 9-panel: kursga qaytish havolasi muddati (PUB1.3d); 10-panel: texnik ishlar (PUB1.7a).
+        self.assertContains(response, 'name="form_name"', count=10)
+        self.assertContains(response, 'name="change_reason"', count=10)
+        self.assertContains(response, 'name="confirm_change"', count=10)
 
     def test_exam_receipt_limit_is_live_audited_and_noop_preserves_other_settings(self):
         self.client.force_login(self.owner)

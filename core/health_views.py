@@ -15,6 +15,11 @@ sahifa, `system_audit` CLI va readiness endpointi bir xil haqiqatni ko'radi.
 
 Faqat `critical` probe'lar yugurtiriladi: readiness har necha soniyada
 so'raladi, o'nta probe esa har safar bir necha DB so'rovi degani.
+
+Tashqi javob qo'pol (PUB1.7a): begonaga faqat holat — `alive`, `ready` yoki
+`not-ready` va status kodi (200/503). Muhit, reliz va probe tafsiloti faqat
+Control Center egasiga (sessiya bilan) qo'shiladi. Orkestrator semantikasi
+o'zgarmagan: GET, `200`/`503`, keshlanmaydi.
 """
 
 from django.conf import settings
@@ -22,23 +27,35 @@ from django.http import JsonResponse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET
 
+from core.access import is_control_center_owner
 from core.control_center.registry import CAPABILITY_REGISTRY
 from core.control_center.snapshot import PROBE_FUNCTIONS, _release_sha
 
 READINESS_CRITICALITY = "critical"
 
 
+def _owner_detail(request):
+    """Tafsilot faqat Control Center egasiga; begonaga hech narsa (`/healthz` bazaga tegmasin).
+
+    Sessiya cookie'si bo'lmagan so'rov (orkestrator) foydalanuvchini bazadan
+    yuklamaydi — `/healthz` baza yiqilganda ham yashil qoladi.
+    """
+    if settings.SESSION_COOKIE_NAME not in request.COOKIES:
+        return False
+    try:
+        return is_control_center_owner(getattr(request, "user", None))
+    except Exception:
+        return False
+
+
 @require_GET
 @never_cache
 def healthz(request):
     """Liveness — hech qanday tashqi bog'liqlikka tegmaydi."""
-    return JsonResponse(
-        {
-            "status": "alive",
-            "environment": getattr(settings, "APP_ENV", "unknown"),
-            "release": _release_sha(),
-        }
-    )
+    payload = {"status": "alive"}
+    if _owner_detail(request):
+        payload.update(environment=getattr(settings, "APP_ENV", "unknown"), release=_release_sha())
+    return JsonResponse(payload)
 
 
 @require_GET
@@ -65,12 +82,7 @@ def readyz(request):
             ready = False
         checks.append({"slug": definition.slug, "status": status, "summary": summary})
 
-    return JsonResponse(
-        {
-            "status": "ready" if ready else "not-ready",
-            "environment": getattr(settings, "APP_ENV", "unknown"),
-            "release": _release_sha(),
-            "checks": checks,
-        },
-        status=200 if ready else 503,
-    )
+    payload = {"status": "ready" if ready else "not-ready"}
+    if _owner_detail(request):
+        payload.update(environment=getattr(settings, "APP_ENV", "unknown"), release=_release_sha(), checks=checks)
+    return JsonResponse(payload, status=200 if ready else 503)

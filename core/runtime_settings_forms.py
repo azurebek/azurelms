@@ -287,6 +287,22 @@ class PublicIntentSettingsForm(_AuditedSettingsForm):
             field.widget.attrs['id'] = f'id_public_intent_{name}'
 
 
+class MaintenanceSettingsForm(_AuditedSettingsForm):
+    """Texnik ishlar sahifasining `Retry-After` vaqti (PUB1.7a). 0 — vaqt aytilmaydi."""
+
+    UNITS = {"maintenance_retry_after_minutes": "daqiqa"}
+
+    class Meta:
+        model = OperationalSettings
+        fields = ("maintenance_retry_after_minutes",)
+        labels = {"maintenance_retry_after_minutes": "Qayta urinish vaqti"}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            field.widget.attrs['id'] = f'id_maintenance_{name}'
+
+
 class AuthThrottleSettingsForm(_AuditedSettingsForm):
     """Login, ro'yxat, parol tiklash va Telegram kirishi urinishlari (PUB1.0c).
 

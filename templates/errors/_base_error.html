@@ -1,44 +1,34 @@
-{% load static public_meta %}
-{% comment %}
-  Error sahifalari uchun standalone baza (404/403/500/maintenance/offline).
-  MUHIM: 500 handler minimal kontekst bilan render qiladi (context-processor'larsiz,
-  request kafolatlanmaydi) — shuning uchun bu yerda {% url %}/request/site_settings
-  ISHLATILMAYDI, faqat oddiy href'lar. base.html'dan meros OLMAYDI (mustaqil).
-{% endcomment %}
-<!DOCTYPE html>
-<html lang="uz" data-theme="light">
+{% load static %}{% comment %}
+  Holat sahifalari uchun mustaqil baza (403/404/500, texnik ishlar, oflayn, CSRF) — PUB1.7a.
+  O'zi yetarli: tashqi shrift/ikonka/CDN yo'q, inline skript/style yo'q, faqat lokal
+  `css/system-states.css`. Kontekst `core/system_states.py`dan keladi: 500 bazaga
+  umuman tegmaydi (`site_settings` bo'lmasa brend nomi standart). `{% url %}` va
+  `request` ishlatilmaydi — 500 ham shu shablonni chizadi. Robots — registrdagi
+  holat sahifalari bilan bir xil `noindex, nofollow`; canonical yo'q.
+{% endcomment %}<!DOCTYPE html>
+<html lang="uz">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ site_settings.brand_name|default:"AzureLMS" }} — {% block err_title %}Xatolik{% endblock %}</title>
-  {% public_meta_tags force_noindex=True %}
+  <meta name="color-scheme" content="light dark">
+  <meta name="robots" content="noindex, nofollow">
+  <title>{% block err_title %}Xatolik{% endblock %} · {{ brand_name }}</title>
   {% include "components/brand_favicon.html" %}
-  <script>(function(){try{var t=localStorage.getItem('az-v2-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
-  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
-  <link rel="stylesheet" href="{% static 'css/base.css' %}">
-  <link rel="stylesheet" href="{% static 'css/brand.css' %}">
+  <link rel="stylesheet" href="{% static 'css/system-states.css' %}">
 </head>
-<body>
-<div style="min-height:100vh;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;position:relative;overflow:hidden;">
-  <div style="position:absolute;inset:0;background-image:linear-gradient(var(--line-2) 1px,transparent 1px),linear-gradient(90deg,var(--line-2) 1px,transparent 1px);background-size:46px 46px;-webkit-mask-image:radial-gradient(80% 60% at 50% 42%,#000 20%,transparent 75%);mask-image:radial-gradient(80% 60% at 50% 42%,#000 20%,transparent 75%);opacity:.6;"></div>
-
-  <header style="position:relative;flex:0 0 auto;display:flex;align-items:center;height:62px;padding:0 clamp(16px,3vw,28px);">
-    <a href="/" style="display:flex;align-items:center;gap:10px;">{% include "components/brand_logo.html" %}</a>
+<body class="sys" data-system-state="{{ state }}">
+  <a class="sys-skip" href="#main">Asosiy mazmunga o‘tish</a>
+  <header class="sys-head">
+    <a class="sys-brand" href="/">{% include "components/brand_logo.html" %}</a>
   </header>
-
-  <main style="position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:24px;">
-    <div style="font-family:'Space Mono',monospace;font-size:clamp(72px,15vw,140px);font-weight:700;letter-spacing:-.04em;color:{% block err_color %}var(--azure){% endblock %};line-height:.9;">{% block err_code %}!{% endblock %}</div>
-    <h1 style="font-size:clamp(22px,3vw,30px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:18px 0 10px;">{% block err_heading %}Xatolik yuz berdi{% endblock %}</h1>
-    <p style="font-size:15px;line-height:1.6;color:var(--ink-2);margin:0 0 28px;max-width:44ch;">{% block err_message %}Kutilmagan xatolik yuz berdi.{% endblock %}</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
-      {% block err_actions %}
-      <a href="/" style="display:inline-flex;align-items:center;gap:8px;height:46px;padding:0 22px;border-radius:11px;background:var(--azure);color:var(--on-azure);font-size:14.5px;font-weight:600;"><i class="bi bi-house"></i> Bosh sahifaga</a>
-      {% endblock %}
-    </div>
+  <main id="main" class="sys-main" tabindex="-1">
+    <p class="sys-code" aria-hidden="true">{% block err_code %}!{% endblock %}</p>
+    <h1>{% block err_heading %}Xatolik yuz berdi{% endblock %}</h1>
+    <p class="sys-message">{% block err_message %}Kutilmagan xatolik yuz berdi.{% endblock %}</p>
+    {% block err_note %}{% endblock %}
+    <nav class="sys-actions" aria-label="Davom etish">
+      {% block err_actions %}<a class="sys-button sys-button--primary" href="/">Bosh sahifaga</a>{% endblock %}
+    </nav>
   </main>
-</div>
 </body>
 </html>
