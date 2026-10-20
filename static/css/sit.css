@@ -215,3 +215,7 @@ img{max-width:100%;display:block}
   .media-grid{grid-template-columns:1fr}.uni-hero-body{padding:16px;margin-top:-38px}.uni-hero-logo{width:72px;height:72px}
   .uni-hero-main{padding-top:0;min-width:100%}.uni-foot{align-items:flex-end}.bubble{max-width:94%}.help-band{padding:20px}
 }
+/* Harakatni kamaytirish so'ralganda o'tish va animatsiyalar o'chadi (PUB1.7b). */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

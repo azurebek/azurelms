@@ -5,7 +5,7 @@
 {% block workspace_section %}<i class="bi {% block t_icon %}bi-pencil-square{% endblock %}" aria-hidden="true"></i> {% block t_topbar %}Maqolalar{% endblock %}{% endblock %}
 {% block workspace_main_class %}ws-legacy-main{% endblock %}
 {% block workspace_media %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+{% include "components/vendor_icons.html" %}
 {% block page_css %}{% endblock %}
 <link rel="stylesheet" href="{% static 'backoffice/legacy-workspace.css' %}">
 <script defer src="{% static 'backoffice/legacy-workspace.js' %}"></script>

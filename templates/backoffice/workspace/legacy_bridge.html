@@ -5,7 +5,7 @@
 {% block workspace_section %}<i class="bi {% block bo_icon %}bi-grid-1x2{% endblock %}" aria-hidden="true"></i> {% block bo_topbar %}{{ workspace_section_title|default:"Boshqaruv" }}{% endblock %}{% endblock %}
 {% block workspace_main_class %}ws-legacy-main{% endblock %}
 {% block workspace_media %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+{% include "components/vendor_icons.html" %}
 <link rel="stylesheet" href="{% static 'css/brand.css' %}">
 {% block page_css %}{% endblock %}
 <link rel="stylesheet" href="{% static 'backoffice/legacy-workspace.css' %}">

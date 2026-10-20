@@ -88,3 +88,7 @@ textarea.c-field { resize: vertical; line-height: var(--az-leading); }
 [data-activity-notice] { margin-block-start: var(--az-space-3); }
 [data-activity-notice] a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 .v1-telegram [data-activity-notice] { margin-block-start: 0; }
+/* Flash xabarlari — ilova va ochiq sahifalarda bir xil (PUB1.7b: learning.css'dan ko'chirildi). */
+.v1-error { color: var(--az-danger); background: var(--az-danger-soft); margin-block: var(--az-space-4); }
+.v1-error ul { list-style: none; }
+.v1-messages { display: grid; gap: var(--az-space-3); margin-bottom: var(--az-space-5); }

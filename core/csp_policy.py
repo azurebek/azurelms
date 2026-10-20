@@ -27,9 +27,11 @@ def build_csp_policy(app_domain=""):
             "default-src": ["'self'"],
             # `unsafe-inline` hali kerak: shablonlarda inline `<script>` bloklari
             # bor. Ularni nonce'ga ko'chirish alohida ish.
+            # PUB1.7b: shrift va ikonkalar o'z serverimizda (`static/vendor/`) — Google Fonts va
+            # jsDelivr hech bir direktivada yo'q. Qaytarib qo'shmang: tashqi CDN yiqilsa sahifa
+            # ikonkasiz/shriftsiz qolardi va har tashrif uchinchi tomonga IP berardi.
             "script-src": [
                 "'self'",
-                "https://cdn.jsdelivr.net",
                 # Analitika skripti yo'q va PUB-D6 qaroriga qadar o'chiq (PUB1.5b): kuzatuv
                 # domenlari ataylab ruxsat etilmaydi — tasodifan qo'shilgan teg ham ishlamaydi.
                 # Mini App `telegram-web-app.js` ni shu domendan yuklaydi.
@@ -38,11 +40,9 @@ def build_csp_policy(app_domain=""):
             ],
             "style-src": [
                 "'self'",
-                "https://cdn.jsdelivr.net",
-                "https://fonts.googleapis.com",
                 "'unsafe-inline'",
             ],
-            "font-src": ["'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net"],
+            "font-src": ["'self'"],
             "img-src": [
                 "'self'",
                 "data:",

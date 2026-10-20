@@ -13,9 +13,10 @@
   <link rel="stylesheet" href="{% static 'frontend_v1/css/base.css' %}">
   <link rel="stylesheet" href="{% static 'frontend_v1/css/components.css' %}">
   <link rel="stylesheet" href="{% static 'frontend_v1/css/shell.css' %}">
-  <link rel="stylesheet" href="{% static 'frontend_v1/css/auth.css' %}">
+  {% comment %}Ilova/auth bundle'i (PUB1.7b): ochiq sahifalar (`frontend_v1/public/base.html`) uni bo'sh blok bilan almashtiradi — mehmon ishlatilmaydigan CSS/JS yuklamaydi.{% endcomment %}
+  {% block app_bundle %}<link rel="stylesheet" href="{% static 'frontend_v1/css/auth.css' %}">
   <link rel="stylesheet" href="{% static 'frontend_v1/css/learning.css' %}">
-  <script defer src="{% static 'frontend_v1/js/shell.js' %}"></script>
+  <script defer src="{% static 'frontend_v1/js/shell.js' %}"></script>{% endblock %}
   {% block extra_head %}{% endblock %}
   {% published_design_css %}
 </head>

@@ -150,22 +150,9 @@ ITEMS = (
     ),
 )
 
+# Google Fonts (fonts.googleapis.com, fonts.gstatic.com) va jsDelivr PUB1.7b'da olib tashlandi:
+# shrift va ikonkalar `static/vendor/`dan beriladi, CSP'da ham yo'q.
 THIRD_PARTY = (
-    ThirdPartyResource(
-        origin="https://fonts.googleapis.com", purpose="Shrift uslublari (CSS)",
-        loaded_on="Eski (legacy) public, auth va ilova sahifalari", data_seen="IP manzil, brauzer turi",
-        note="Cookie qo'yilmaydi. O'z serverimizdan berish — PUB1.7b (tezlik byudjeti) bilan.",
-    ),
-    ThirdPartyResource(
-        origin="https://fonts.gstatic.com", purpose="Shrift fayllari",
-        loaded_on="fonts.googleapis.com bilan birga", data_seen="IP manzil, brauzer turi",
-        note="Cookie qo'yilmaydi.",
-    ),
-    ThirdPartyResource(
-        origin="https://cdn.jsdelivr.net", purpose="Ikonka shrifti va kutubxonalar (Bootstrap Icons va boshqalar)",
-        loaded_on="Eski (legacy) sahifalar", data_seen="IP manzil, brauzer turi",
-        note="Cookie qo'yilmaydi.",
-    ),
     ThirdPartyResource(
         origin="https://telegram.org", purpose="Telegram Mini App skripti",
         loaded_on="Faqat Telegram ichida ochiladigan Mini App sahifalari", data_seen="IP manzil, brauzer turi",
