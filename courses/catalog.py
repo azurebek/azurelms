@@ -10,19 +10,20 @@ sahifa havolalari faqat normallashgan parametrlardan quriladi.
 `courses/0026` migratsiyasi shu moduldagi `search_document`ni chaqiradi.
 Normallashtirishni o'zgartirsangiz mavjud qatorlarni
 `manage.py rebuild_course_search --apply` bilan yangilang.
+
+Kirish chegaralari, normallashtirish va sahifa havolalari Blog bilan umumiy:
+`frontend/public_query.py` (PUB1.6a).
 """
 
-import re
-import unicodedata
 from dataclasses import dataclass
 from urllib.parse import urlencode
 
 from django.urls import reverse
 
 from core.rich_content_policy import public_plain_text
+from frontend import public_query
+from frontend.public_query import MAX_QUERY_CHARS, MAX_TERMS, bounded_text, fold  # noqa: F401 — tashqi import nomlari
 
-MAX_QUERY_CHARS = 80
-MAX_TERMS = 6
 DEFAULT_SORT = "newest"
 SORT_ORDERING = {
     "newest": ("-created_at", "-id"),
@@ -31,22 +32,6 @@ SORT_ORDERING = {
 }
 SEARCH_SOURCE_FIELDS = frozenset({"title", "description"})
 SEARCH_BATCH_SIZE = 200
-
-# O'zbek lotin yozuvidagi tutuq belgisining hamma ko'rinishi bitta belgiga.
-_APOSTROPHES = str.maketrans({char: "'" for char in "‘’ʻʼ`´′"})
-_WHITESPACE = re.compile(r"\s+")
-
-
-def _clean(value):
-    """NFKC, boshqaruv belgilari bo'shliqqa, bo'shliqlar bittaga."""
-    text = unicodedata.normalize("NFKC", str(value or ""))
-    text = "".join(" " if unicodedata.category(char).startswith("C") else char for char in text)
-    return _WHITESPACE.sub(" ", text).strip()
-
-
-def fold(value):
-    """Solishtirish shakli: kichik harf, yagona tutuq belgisi, `İ` → `i`."""
-    return _clean(value).casefold().replace("̇", "").translate(_APOSTROPHES)
 
 
 def search_document(title, description):
@@ -68,8 +53,7 @@ class CatalogQuery:
 
     @classmethod
     def from_params(cls, params):
-        words = _clean(params.get("q", "")).split(" ")[:MAX_TERMS]
-        q = " ".join(words)[:MAX_QUERY_CHARS].strip()
+        q = bounded_text(params.get("q", ""))
         terms = tuple(dict.fromkeys(term for term in fold(q).split(" ") if term))
         requested = set(params.getlist("level"))
         levels = tuple(value for value in level_values() if value in requested)
@@ -126,15 +110,7 @@ def catalog_queryset(query):
 
 def page_links(page_obj, query, *, window=1):
     """Raqamli sahifa havolalari: birinchi, oxirgi va joriy atrofi; oraliqda `None`."""
-    total, current = page_obj.paginator.num_pages, page_obj.number
-    shown = sorted({1, total, *range(max(1, current - window), min(total, current + window) + 1)})
-    links, previous = [], 0
-    for number in shown:
-        if number - previous > 1:
-            links.append(None)
-        links.append({"number": number, "url": query.url(page=number), "current": number == current})
-        previous = number
-    return links
+    return public_query.page_links(page_obj, lambda number: query.url(page=number), window=window)
 
 
 def refresh_search_text(queryset, *, apply=True, batch_size=SEARCH_BATCH_SIZE):

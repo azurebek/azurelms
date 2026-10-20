@@ -1,7 +1,7 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
 **Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) hamda PUB1.2a–b, PUB1.2d,
-PUB1.3 bosqichi (a–d), PUB1.4b–c, PUB1.4e, PUB1.5 bosqichi (a–d) kodda (2026-10-16/20, lokal)**; PUB1.2c
+PUB1.3 bosqichi (a–d), PUB1.4b–c, PUB1.4e, PUB1.5 bosqichi (a–d), PUB1.6a kodda (2026-10-16/20, lokal)**; PUB1.2c
 B3.5 writer’i bilan birga ochiq; PUB1.4a owner qarori bilan keyinga qoldirilgan (2026-10-19);
 PUB1.4d (production SMTP owner qo‘lida) va keyingi kesimlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
@@ -2139,6 +2139,27 @@ hash; existing learner hujjati yo‘qolmaydi.
 ### PUB1.6 — Blog va SIT public adapterlari
 
 #### PUB1.6a — Blog shared public contracti, domain redesignsiz
+
+**Holat — 2026-10-20: kodda, lokal tekshirilgan** (branch `claude/pub16a-blog-public-contract`,
+migration yo‘q). Meta/canonical/cache/rich-content/URL/tracking PUB1.0–1.1’dan allaqachon Blog’da
+edi; bu kesim qolganini yopdi. **Umumiy so‘rov qoidasi:** `frontend/public_query.py` (80 belgi, 6 so‘z,
+boshqaruv belgilarisiz; `page_links`, `pagination_context`) — kurslar katalogi ham shundan foydalanadi
+(ikkinchi nusxa yo‘q). **Blog ro‘yxati** `blog/listing.py::BlogListQuery`: teg faqat slug (boshqasi
+e’tiborsiz), to‘liq tartib (oxirida `id`, related ham), sahifa/teg havolalari faqat normallashgan
+parametrlardan (legacy’dagi kodlanmagan `&q=` tuzatildi), raqamli sahifalar `aria-current`,
+`rel=prev/next`, ishlatilmaydigan carousel so‘rovi olib tashlandi; so‘rovlar soni maqolalar soniga
+bog‘liq emas. Legacy ro‘yxatga qidiruv formasi qo‘shildi. **Qaytish:** kartalar normallashgan
+`return_to` bilan, maqoladagi “Blog” ikkala rendererda ayni filtr/sahifaga (`public_v1.safe_return_to`;
+tashqi qiymat rad). **Odam nomi:** `frontend/public_people.py` — hisobdagi to‘liq ism, bo‘lmasa
+“Platforma muallifi”/“Platforma o‘qituvchisi”/“Foydalanuvchi”; login (username) Blog sahifalarida,
+izohlarda, JSON-LD’da va kurs o‘qituvchisi (katalog kartasi, kurs sahifasi) o‘rnida chiqmaydi (ismsiz
+muallif JSON-LD’da Organization; `frontend/test_public_people.py`). **Kartalar:** V1 havola nomi sarlavha bilan,
+`<time datetime>` hamma joyda, sarlavha darajasi h3. **Rost holatlar (legacy):** qoralama ko‘rinishida
+olqish/izoh formasi yo‘q, yopiq izohlar aytiladi, ko‘rishlar soni olib tashlandi (anonim o‘qish
+PUB1.0g’dan beri sanalmaydi), o‘qish vaqti endi chiqadi (`reading_time` nomi xato edi), ulashish
+`noreferrer`, izohga kirish `#comments`ga qaytaradi; JavaScriptsiz olqish formasi (`Accept: text/html`)
+maqolaga qaytadi — JSON klientlar o‘zgarmaydi. **O‘zgarmadi:** izoh/olqish/studio modeli va hayot
+sikli, qidiruv semantikasi (`icontains`, BLOG1.3’da).
 
 **Ish:** shared meta/canonical/cache/rich-content/URL/privacy, list query bounds,
 author/date/source presentation, accessible cards/pagination va truthful CTA.

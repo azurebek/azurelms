@@ -1445,6 +1445,7 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 - Kirgan o'quvchi: `BlogPostRead(post, user)` bir marta, IP xeshi/user-agent yozilmaydi. Olqish (`blog:clap`) login talab qiladi.
 - Eski yig'ilgan data: `manage.py purge_blog_read_tracking` (hisobot) / `--apply` (anonim qatorlar o'chadi, IP/UA bo'shatiladi, jami sonlar saqlanadi). Control Center `public_content` qolgan qatorlarni sariq ko'rsatadi.
 - Ixtiyoriy anonim analytics faqat PUB-D6 owner qarori bilan (PUB1.5b/PUB1.8a).
+- Ro'yxat so'rovi `blog/listing.py` (PUB1.6a): kirish chegarasi `frontend/public_query.py`dan (katalog bilan umumiy), havolalar faqat `BlogListQuery.url()`dan. Ochiq sahifada odam nomi faqat `public_person` / `frontend/public_people.py` orqali — `get_full_name|default:username` yozmang. `blog/test_public_contract.py` qulflaydi.
 
 ### Public route registri (PUB1.1a, 2026-10-17)
 

@@ -24,6 +24,7 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 
 from core.rich_content_policy import approved_image_src, public_plain_text
+from frontend.public_people import real_name
 from frontend.public_policy import CacheClass, surface_by_name
 
 DESCRIPTION_MAX = 160
@@ -199,7 +200,9 @@ def _blog_post(context):
     data = {"@context": "https://schema.org", "@type": "BlogPosting", "headline": post.share_title,
             "description": description, "url": absolute_url(path),
             "datePublished": post.published_at, "dateModified": post.updated_at,
-            "author": {"@type": "Person", "name": post.author.get_full_name() or post.author.get_username()}}
+            # Login (username) chiqmaydi: ism bo'lmasa muallif — platforma (PUB1.6a).
+            "author": ({"@type": "Person", "name": author_name} if (author_name := real_name(post.author))
+                       else {"@type": "Organization", "name": _brand(context)})}
     if image:
         data["image"] = image
     return _Inputs(

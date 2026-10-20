@@ -60,7 +60,7 @@
           {# 0 bo'lgan son ko'rsatilmaydi (PUB1.3c). #}
           {% if course.annotated_lessons_count %}<span style="display:flex;align-items:center;gap:6px;"><i class="bi bi-collection-play" style="font-size:13px;" aria-hidden="true"></i> {{ course.annotated_lessons_count }} dars</span>{% endif %}
           {% if course.annotated_students_count %}<span style="display:flex;align-items:center;gap:6px;"><i class="bi bi-people" style="font-size:13px;" aria-hidden="true"></i> {{ course.annotated_students_count }} o'quvchi</span>{% endif %}
-          {% if course.instructor %}<span style="margin-left:auto;display:flex;align-items:center;gap:5px;color:var(--ink-2);"><i class="bi bi-mortarboard" style="font-size:12px;"></i> {{ course.instructor.get_full_name|default:course.instructor.username }}</span>{% endif %}
+          {% if course.instructor %}<span style="margin-left:auto;display:flex;align-items:center;gap:5px;color:var(--ink-2);"><i class="bi bi-mortarboard" style="font-size:12px;"></i> {{ course.instructor|public_person:"teacher" }}</span>{% endif %}
         </div>
       </div>
     </a>

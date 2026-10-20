@@ -10,6 +10,7 @@ from django import template
 from django.utils.safestring import mark_safe
 
 from core.rich_content_policy import public_plain_text, sanitize_public_editorial
+from frontend.public_people import public_person_name
 from frontend.public_url_policy import public_link_url, public_nav_url
 
 register = template.Library()
@@ -56,3 +57,15 @@ def public_nav(value):
 def public_link(value):
     """Kontent yoki manba havolasi; ruxsatsiz bo'lsa ``""``."""
     return public_link_url(value)
+
+
+@register.filter
+def public_person(user, role="user"):
+    """Ochiq sahifadagi ism: hisobdagi to'liq ism, bo'lmasa umumiy nom; login hech qachon (PUB1.6a)."""
+    return public_person_name(user, role)
+
+
+@register.filter
+def public_initials(user, role="user"):
+    """Avatar o'rnidagi bosh harflar — `public_person` ismidan, ko'pi bilan ikkita."""
+    return "".join(word[0] for word in public_person_name(user, role).split()[:2]).upper()
