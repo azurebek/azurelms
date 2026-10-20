@@ -16,6 +16,31 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-20 [Claude]: PUBLIC-01 / PUB1.6b — SIT bitta adapter orqali umumiy ochiq qatlamda
+
+SIT route registri, meta, sitemap va cache'ni PUB1.1'dan olgan edi, lekin "nashr etilgan" qoidasi
+view, selector va sitemap'da alohida-alohida yozilgan, katalog sahifalash havolalari `page`ni
+takrorlardi, nashr etilmagan universitet e'lon orqali sizardi va universitet sahifasi 5 000 so'm
+to'lov, ustoz xonasi va umumiy AI suhbatiga yo'llardi (SIT-01 audit: dead-end).
+
+- Branch: `claude/pub16b-sit-public-adapter`; kod commit **`35daa88`**. Migration yo'q.
+- Qarorlar: `sit/public.py` effective selectorlari + `catalog_url`; `sit/policy.py::can_preview`;
+  katalog kirishi umumiy chegarada, mavjud bo'lmagan sahifa 404, toza raqamli sahifalar va qaytish
+  ikkala rendererda; eskirgan universitet yashirilmaydi (SIT1.0b qoidasi); CTA'lar SIT1.0a 1–2-band
+  bilan bir xil (katalog solishtiruvi, sozlangan aloqa yoki halol "hozircha qabul qilinmaydi").
+  SIT-REFORM-PLAN'ga koordinatsiya izohi qo'shildi.
+- Test: yangi `sit/test_public_adapter.py` (11, ikkala renderer); to'liq `manage.py test` —
+  **3197 OK (skipped=70)**. Nazorat yugurishi: 13 ta buzilish (sitemap o'z qoidasi, selector o'z qoidasi, e'lon
+  sizishi, har kimga preview, URL'da standart status, sahifa siqish, chegarasiz q, legacy orqaga
+  ildizga, AI CTA qaytdi, to'lov da'vosi qaytdi, aloqa e'tiborsiz, kartada qaytishsiz, N+1) —
+  hammasi FAIL, tiklangach bayt-bayt bir xil. To'lov da'vosi testi avval o'tib ketdi (HTML
+  `&#x27;`), test tuzatildi.
+- Brauzer (DB nusxasi, V1 va legacy, 375px): vaqtinchalik e'lon qilingan va qoralama universitet
+  bilan — qoralama va uning e'loni hech qayerda yo'q, `utm` qaytishdan tushdi, orqaga ayni filtrga,
+  eskirgan sana ko'rinadi, aloqa sozlanmagani uchun halol xabar. Sinov ma'lumoti o'chirildi.
+- Davom etilishi kerak: owner `Sayt sozlamalari`da telefon/email kiritsa SIT yordam bloki shu
+  aloqani ko'rsatadi. Keyingi kesim PUB1.7a.
+
 ## 2026-10-20 [Claude]: PUBLIC-01 / PUB1.6a — Blog umumiy ochiq kontraktda
 
 Blog meta/cache/tracking qoidalarini PUB1.0–1.1’dan olgan edi, lekin ro'yxat so'rovi chegarasiz,
