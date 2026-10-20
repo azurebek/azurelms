@@ -261,6 +261,8 @@ MIDDLEWARE = [
     "frontend.public_response.PublicResponsePolicyMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # Ochiq voronka o'lchovi (PUB1.8a): javobdan keyin, flag o'chiq bo'lsa hech narsa yozmaydi.
+    "frontend.public_telemetry.PublicFunnelMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "bot.django_middleware.TelegramMiniAppFrameMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",

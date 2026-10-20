@@ -1194,3 +1194,49 @@ class PublicClaimEvidence(models.Model):
 
     def __str__(self):
         return self.claim_key
+
+
+class PublicFunnelDay(models.Model):
+    """Ochiq voronka hodisalarining kunlik soni (PUB1.8a) — shaxsiy ma'lumotsiz.
+
+    Faqat kun, ruxsat etilgan hodisa nomi, kurs raqami (0 — umumiy) va ruxsat
+    etilgan qisqa o'lcham (masalan, `login`, `checkout`, `full`). Foydalanuvchi,
+    IP, qidiruv matni, token yoki URL yo'q. Yozuv faqat `frontend/public_telemetry.py`
+    orqali va `public_telemetry_v1` flagi yoqilganda.
+    """
+
+    day = models.DateField(db_index=True)
+    event = models.CharField(max_length=40)
+    course_id = models.PositiveIntegerField(default=0)
+    dimension = models.CharField(max_length=32, blank=True, default="")
+    count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = "Voronka kuni"
+        verbose_name_plural = "Voronka kunlari"
+        constraints = [
+            models.UniqueConstraint(fields=["day", "event", "course_id", "dimension"], name="public_funnel_day_unique"),
+        ]
+
+    def __str__(self):
+        return f"{self.day} {self.event} {self.course_id} {self.dimension}: {self.count}"
+
+
+class PublicFunnelReceipt(models.Model):
+    """Bitta o'tish bir marta sanalsin (PUB1.8a): yangilash/qayta yuborish takrorlamaydi.
+
+    `key` — maqsadga bog'langan HMAC (hodisa + niyat nonce'i yoki chek raqami); undan
+    nonce, foydalanuvchi yoki chekni tiklab bo'lmaydi. Qisqa umrli: niyat muddati
+    o'tgach o'chiriladi (`public_telemetry.prune_receipts`).
+    """
+
+    key = models.CharField(max_length=64, unique=True)
+    event = models.CharField(max_length=40)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        verbose_name = "Voronka takror kaliti"
+        verbose_name_plural = "Voronka takror kalitlari"
+
+    def __str__(self):
+        return f"{self.event} {self.created_at:%Y-%m-%d}"

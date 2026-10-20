@@ -30,6 +30,29 @@ decode OOB read/uninitialised, GIF seek, PPM/PGM nol kenglik, PDF append, EPS sc
 - Davom etilishi kerak: keyingi deploy'da Docker image qayta yig'ilsin. Rasm yuklash (kurs muqovasi,
   avatar, AI hujjat rasmi) deploy'dan keyin bir marta qo'lda sinab ko'rilsin.
 
+## 2026-10-20 [Claude]: PUBLIC-01 / PUB1.8a — shaxsiy ma'lumotsiz server voronkasi
+
+Asosiy KPI (kurs sahifasidan checkout/chekka o'tish) uchun hech qanday o'lchov yo'q edi; tashqi
+analitika esa PUB-D6 qarorisiz taqiqlangan. Endi server tomonida, cookie va shaxsiy ma'lumotsiz
+kunlik sonlar yig'iladi — owner flagni yoqqanda.
+
+- Branch: `claude/pub18a-funnel-baseline`; kod commit **`c59a630`**. Migration frontend 0024
+  (`PublicFunnelDay`, `PublicFunnelReceipt` — yangi jadvallar, additiv).
+- Qarorlar: `frontend/public_telemetry.py` (10 hodisa allowlist, o'lcham allowlist, HMAC takror
+  kaliti, savepoint + log, kunlik o'z-o'zini tozalash), `PublicFunnelMiddleware`, registrdagi
+  `telemetry` maydoni (bosh/katalog/kurs), kurs sahifasi va continue view'dan sabab/natija belgisi,
+  `PaymentReceipt` `post_save` → `on_commit`; `public_funnel_report`, `purge_public_telemetry`;
+  flag `public_telemetry_v1` default OFF. Bosh va katalog so'rov byudjeti +1 (flag o'qish).
+- Test: yangi `frontend/test_public_telemetry.py` (13); to'liq `manage.py test` — **3242 OK (skipped=70)**.
+  Nazorat yugurishi: 12 ta buzilish (flag e'tiborsiz, takror bloklash yo'q, erkin o'lcham, kirgan
+  sanaladi, bot sanaladi, chek commit'dan oldin, chek takror, xato sahifaga chiqadi, tozalash yo'q,
+  xom kalit, noto'g'ri maxraj, middleware yo'q) — hammasi FAIL, tiklangach bayt-bayt bir xil.
+- Brauzer (DB nusxasi, flag vaqtincha yoqilgan): mehmon bosh/katalog (qidiruv bilan)/kurs → kurs
+  sahifasidan xarid havolasi → kirish sahifasi 2 marta: ko'rishlar sanaldi, qidiruv matni yo'q,
+  niyat 1 marta, kalit HMAC; hisobot surat/maxraj bilan. Keyin flag o'chirildi, qatorlar tozalandi.
+- Davom etilishi kerak: owner flagni yoqib 2–4 hafta baseline yig'adi; maxfiylik siyosatiga
+  "umumlashtirilgan sahifa statistikasi" jumlasi (owner matni). Keyingi kesim PUB1.8b.
+
 ## 2026-10-20 [Claude]: certifi 2026.2.25 → 2026.10.19 (GHSA-6q48-6c7w-9gw2)
 
 Supply-chain skani (`audit_dependencies`) yangi advisory topib barcha PR'larni blokladi:
