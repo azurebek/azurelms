@@ -460,6 +460,15 @@
   "post": "302>login"
  },
  {
+  "name": "backoffice_release_readiness",
+  "class": "private",
+  "anonymous": "302>login",
+  "authenticated": "302>login",
+  "deactivated": "302>login",
+  "head": "302>login",
+  "post": "302>login"
+ },
+ {
   "name": "backoffice_runtime_settings",
   "class": "private",
   "anonymous": "302>login",

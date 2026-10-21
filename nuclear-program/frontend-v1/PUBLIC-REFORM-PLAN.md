@@ -1,7 +1,7 @@
 # PUBLIC-01 — anonim tashrifni ishonchli va ultra qulay yo‘lga aylantirish
 
 **Holat:** REJA TAYYOR; **PUB1.0 va PUB1.1 bosqichlari (a–g, a–d) hamda PUB1.2a–b, PUB1.2d,
-PUB1.3 bosqichi (a–d), PUB1.4b–c, PUB1.4e, PUB1.5, PUB1.6 va PUB1.7 bosqichlari, PUB1.8a kodda (2026-10-16/20, lokal)**; PUB1.2c
+PUB1.3 bosqichi (a–d), PUB1.4b–c, PUB1.4e, PUB1.5, PUB1.6 va PUB1.7 bosqichlari, PUB1.8a–b kodda (2026-10-16/21, lokal)**; PUB1.2c
 B3.5 writer’i bilan birga ochiq; PUB1.4a owner qarori bilan keyinga qoldirilgan (2026-10-19);
 PUB1.4d (production SMTP owner qo‘lida) va keyingi kesimlar boshlanmagan
 **Tadqiqot sanasi:** 2026-10-15
@@ -2346,6 +2346,29 @@ media, console mail, no live offer; anonymous healthz/readyz detail leak 0.
 
 **Tugashi:** pilot only all required green; red item UI’da yashirishning o‘zi
 release proofi emas; owner decision receipt mavjud.
+
+**Holat — 2026-10-21: kodda, lokal tekshirilgan** (branch `claude/pub18b-readiness-gate`, migration yo‘q).
+Bitta selector — `frontend/release_readiness.py::release_readiness()`: Control Center `public_release`
+(Governance, `high` — `/readyz`ga ta’sir qilmaydi), `manage.py public_release_gate [--json] [--fail-on
+pilot|red|amber|never]` (default `pilot` — majburiy band sariq bo‘lsa ham yiqiladi) va owner sahifasi `/backoffice/release/` (Sozlamalar → Reliz tayyorligi; Control
+Center’dan ham havola) ayni natijani ko‘rsatadi. **Majburiy (pilot faqat hammasi yashil bo‘lsa):**
+maxfiylik va shartlar (amaldagi tasdiqlangan versiya; namuna matn — qizil), sotuvdagi kurs (`build_offers`
+bo‘yicha kamida bitta kursga hozir yozilish mumkin), aloqa kanali (namuna emas), to‘lov rekvizitlari
+(karta raqami bo‘sh yoki model namunasi — qizil), email (console/dummy: lokalda sariq, aks holda qizil;
+24 soatda reset xati yuborilmagan bo‘lsa sariq), asosiy manzil (https, localhost emas, faqat sxema va domen — `azurelms.E202` bilan bir qoida; lokalda sariq),
+sitemap (xatosiz, bo‘sh emas), ochiq media (saytda chiqadigan qatorlar fayli saqlovchida bor; fikr rasmi faqat
+rozilik bilan chiqadigan fikr uchun). **Ixtiyoriy (umumiy holatni ko‘pi
+bilan sariq qiladi):** FAQ, yopiq kurslar, da’volar (yashirilgan yoki 14 kunda tugaydigan dalil),
+o‘quvchilar fikri (roziliksiz yashirin), sertifikat kodlari (tekshiruv yoqilgan bo‘lsa), SIT dolzarbligi
+(90 kun), sozlama qatorlari. Har bandda sabab va tuzatish yo‘li, sahifasi bo‘lsa havola. Bitta tekshiruv
+yiqilsa u qizil majburiy band bo‘ladi, qolganlari baribir hisoblanadi. **Owner tasdig‘i:** tugma faqat
+majburiylar yashil bo‘lganda; server qayta tekshiradi, sabab va tasdiq belgisi majburiy, sahifa
+ochilgandagi holat izi (kalit+holat xeshi) mos kelmasa rad etiladi; natija `public.release.signoff` audit
+yozuvi (iz va har band holati) — qaror kvitansiyasi. Begonaga `/healthz`/`/readyz` tafsilot bermaydi.
+**Topilgan bo‘shliq:** aloqa, to‘lov rekvizitlari, FAQ va “Biz haqimizda” faqat legacy `/admin/`
+(`ENABLE_LEGACY_ADMIN`, default o‘chiq) orqali tahrirlanadi; checkout va bot qator saqlanmagan bo‘lsa
+model namunasidagi karta raqamini ko‘rsatadi. Keyingi kichik kesim — **PUB1.8b2**: aloqa va to‘lov
+rekvizitlari uchun owner muharriri (audit bilan) va namuna kartani checkout/botda ko‘rsatmaslik.
 
 #### PUB1.8c — staged rollout, rollback va final evidence
 

@@ -18,6 +18,7 @@ from core import student_support_views as student_support
 from core import design_views
 from core import backoffice_claims
 from core import backoffice_legal
+from core import backoffice_release
 from subscriptions import backoffice_views as catalog_views
 
 handler404 = "core.views.page_not_found"
@@ -94,6 +95,8 @@ urlpatterns = [
     path('backoffice/legal/new/<str:kind>/', backoffice_legal.legal_edit, name='backoffice_legal_new'),
     path('backoffice/legal/<int:pk>/edit/', backoffice_legal.legal_edit, name='backoffice_legal_edit'),
     path('backoffice/legal/<int:pk>/preview/', backoffice_legal.legal_preview, name='backoffice_legal_preview'),
+    # Ochiq sayt reliz tayyorligi va owner tasdig'i (PUB1.8b).
+    path('backoffice/release/', backoffice_release.release_readiness_view, name='backoffice_release_readiness'),
     path('backoffice/receipts/', core_views.backoffice_receipts, name='backoffice_receipts'),
     path('backoffice/catalog/', catalog_views.catalog, name='backoffice_catalog'),
     path('backoffice/catalog/plans/<int:plan_id>/', catalog_views.plan_editor, name='backoffice_plan_edit'),

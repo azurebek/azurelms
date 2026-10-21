@@ -1075,6 +1075,20 @@ def _public_content_probe(definition: CapabilityDefinition) -> CapabilityResult:
     return _result(definition, "green", "Huquqiy sahifalar va public sozlamalar owner tomonidan yozilgan.", **details)
 
 
+def _public_release_probe(definition: CapabilityDefinition) -> CapabilityResult:
+    """Reliz tayyorligi darvozasi (PUB1.8b) — ayni selector owner sahifasi va CLI bilan."""
+    from frontend.release_readiness import release_readiness
+
+    readiness = release_readiness()
+    details = {item.key: f"{item.status}{' (majburiy)' if item.required else ''}" for item in readiness.items}
+    details["digest"] = readiness.digest()
+    if readiness.ready_for_pilot:
+        summary = "Majburiy bandlar yashil — pilotga tayyor (owner tasdig'i kerak)."
+    else:
+        summary = "Pilotga tayyor emas: " + ", ".join(item.label for item in readiness.blockers) + "."
+    return _result(definition, readiness.status, summary, **details)
+
+
 PROBE_FUNCTIONS: dict[str, Callable[[CapabilityDefinition], CapabilityResult]] = {
     "database": _database_probe,
     "cache": _cache_probe,
@@ -1089,6 +1103,7 @@ PROBE_FUNCTIONS: dict[str, Callable[[CapabilityDefinition], CapabilityResult]] =
     "security": _security_probe,
     "auth_throttle": _auth_throttle_probe,
     "public_content": _public_content_probe,
+    "public_release": _public_release_probe,
     "backup": _backup_probe,
     "media_backup": _media_backup_probe,
     "email": _email_probe,

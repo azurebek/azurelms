@@ -82,3 +82,11 @@ textarea.lc-input{resize:vertical;min-height:64px}
   .bo-editor .lc-toc{display:none}
 }
 @media(prefers-reduced-motion:reduce){.lc-tabbed .lc-section.is-active{animation:none}}
+/* Reliz tayyorligi ro'yxati (PUB1.8b): holat matn bilan ham yoziladi — faqat rangga tayanilmaydi. */
+.lc-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.lc-list li{display:grid;gap:4px;padding:12px 14px;border:1px solid var(--line);border-left-width:4px;border-radius:12px;background:var(--panel)}
+.lc-list li[data-status="green"]{border-left-color:var(--green)}
+.lc-list li[data-status="amber"]{border-left-color:var(--amber)}
+.lc-list li[data-status="red"]{border-left-color:var(--red)}
+.lc-list small{color:var(--ink-3);line-height:1.5}
+.lc-check{display:flex;gap:8px;align-items:flex-start;margin:10px 0}
