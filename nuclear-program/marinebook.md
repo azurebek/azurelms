@@ -26,19 +26,22 @@ bandlar yashil bo'lganda, sabab bilan tasdiqlaydi va bu audit yozuvi bo'lib qola
 - Selector `frontend/release_readiness.py::release_readiness()` — owner sahifasi `/backoffice/release/`
   (Sozlamalar → Reliz tayyorligi, Control Center'dan ham havola), Control Center `public_release`
   (Governance, `high` — `/readyz`ga ta'sir qilmaydi) va `manage.py public_release_gate [--json]
-  [--fail-on red|amber|never]` ayni natijani ko'rsatadi.
+  [--fail-on pilot|red|amber|never]` (default `pilot`) ayni natijani ko'rsatadi.
 - Majburiy: maxfiylik, shartlar, sotuvdagi kurs, aloqa, **to'lov rekvizitlari**, email, asosiy manzil,
   sitemap, ochiq media. Ixtiyoriy: FAQ, yopiq kurslar, da'volar, fikrlar, sertifikat kodlari, SIT
   dolzarbligi, sozlama qatorlari. Tasdiq: server qayta tekshiradi, holat izi (digest) mos kelishi shart;
   audit `public.release.signoff`.
 - Preview bazasida: maxfiylik, shartlar, aloqa va to'lov rekvizitlari qizil (karta raqami model namunasi
   `8600 1234 …`); email va domen lokal profil sababli sariq.
-- Test: `frontend/test_release_readiness.py` — 39 test, 29 ta ataylab buzish (hammasi ushlandi); to'liq
+- Test: `frontend/test_release_readiness.py` — 41 test, 32 ta ataylab buzish (hammasi ushlandi); to'liq
   `manage.py test` — 3283 OK (skipped=70); `check`, `makemigrations --check` toza. Brauzer: preview'da
   owner sahifasi, 375px'da gorizontal toshish yo'q.
 - Topilgan bo'shliq (keyingi kesim **PUB1.8b2**): aloqa, to'lov rekvizitlari, FAQ va "Biz haqimizda"
   faqat legacy `/admin/` orqali tahrirlanadi (`ENABLE_LEGACY_ADMIN`, default o'chiq); checkout va bot
   qator saqlanmagan bo'lsa namuna karta raqamini ko'rsatadi.
+- Codex review (#239): CLI default endi pilotga tayyorlik bo'yicha yiqiladi (majburiy sariq ham);
+  asosiy manzilda yo'l/so'rov/login qizil; `PUBLIC_MEDIA` fikrlardan faqat saytda chiqadiganini tekshiradi
+  (`audit_public_media` ham).
 - Risk: media tekshiruvi har fayl uchun saqlovchidan so'raydi — hozir lokal disk (`USE_S3=False`), S3
   yoqilsa Control Center sekinlashishi mumkin (kesh kerak bo'ladi).
 

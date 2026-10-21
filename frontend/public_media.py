@@ -37,6 +37,14 @@ def _articles():
     return effective_articles()
 
 
+def _testimonials():
+    # Faqat saytda chiqadigan fikrlar (rozilik bilan) — yashirin fikrning rasmi ochiq media emas.
+    from frontend.models import Testimonial
+    from frontend.public_claims import public_testimonials
+
+    return Testimonial.objects.filter(pk__in=[item.pk for item in public_testimonials(limit=None)])
+
+
 def _courses():
     from courses.models import Course
 
@@ -64,7 +72,7 @@ PUBLIC_MEDIA = (
         "how_it_works_background_image", "how_it_works_background_video",
         "footer_background_image", "footer_background_video", "cta_background_image", "cta_background_video",
     ), _model("frontend.LandingPage")),
-    ("frontend.Testimonial", ("avatar",), _model("frontend.Testimonial")),
+    ("frontend.Testimonial", ("avatar",), _testimonials),
     ("frontend.TeamMember", ("avatar",), _model("frontend.TeamMember")),
     ("frontend.SiteSettings", ("logo_image", "logo_dark_image", "logo_mark_image", "favicon_image"),
      _model("frontend.SiteSettings")),

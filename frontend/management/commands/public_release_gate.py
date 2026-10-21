@@ -1,8 +1,11 @@
 """Ochiq sayt reliz tayyorligi darvozasi (PUB1.8b) — faqat o'qiydi.
 
-    python manage.py public_release_gate                 # matn; qizil bo'lsa xato bilan chiqadi
+    python manage.py public_release_gate                 # matn; pilotga tayyor bo'lmasa xato bilan chiqadi
     python manage.py public_release_gate --json
     python manage.py public_release_gate --fail-on never
+
+`--fail-on`: `pilot` (default — majburiy band yashil bo'lmasa, sariq bo'lsa ham), `red`, `amber`
+(umumiy holat sariq yoki qizil), `never`.
 
 Owner sahifasi (/backoffice/release/) va Control Center bilan ayni selector
 (`frontend/release_readiness.py`). Tasdiq faqat sahifadan, sabab bilan.
@@ -20,7 +23,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--json", action="store_true", dest="as_json")
-        parser.add_argument("--fail-on", choices=("red", "amber", "never"), default="red")
+        parser.add_argument("--fail-on", choices=("pilot", "red", "amber", "never"), default="pilot")
 
     def handle(self, *args, **options):
         readiness = release_readiness()
@@ -35,5 +38,10 @@ class Command(BaseCommand):
                 if item.fix and item.status != "green":
                     self.stdout.write(f"        → {item.fix}")
         fail_on = options["fail_on"]
-        if fail_on != "never" and ORDER[readiness.status] >= ORDER[fail_on]:
-            raise CommandError(f"Reliz darvozasi: {readiness.status}")
+        if fail_on == "pilot":
+            failed = not readiness.ready_for_pilot
+        else:
+            failed = fail_on != "never" and ORDER[readiness.status] >= ORDER[fail_on]
+        if failed:
+            blockers = ", ".join(item.label for item in readiness.blockers) or "-"
+            raise CommandError(f"Reliz darvozasi: {readiness.status}; majburiy to'siqlar: {blockers}")

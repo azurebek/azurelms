@@ -219,6 +219,12 @@ def _origin_item():
     origin = getattr(settings, "PUBLIC_CANONICAL_ORIGIN", "") or ""
     parts = urlsplit(origin)
     local_host = parts.hostname in (None, "localhost", "127.0.0.1", "::1") or (parts.hostname or "").endswith(".localhost")
+    # `frontend/checks.py` (azurelms.E202) bilan bir qoida: faqat `sxema://host[:port]` — `absolute_url()`
+    # yo'lni shu qiymatga to'g'ridan-to'g'ri ulaydi.
+    if parts.path or parts.query or parts.fragment or parts.username or parts.password:
+        return _item("canonical_origin", "Saytning asosiy manzili", RED, True,
+                     f"Faqat sxema va domen bo'lishi kerak (yo'l, so'rov satri yoki login emas): {origin}.",
+                     "deploy/.env: APP_DOMAIN (yoki PUBLIC_CANONICAL_ORIGIN) — masalan https://lms.example.com.")
     if parts.scheme == "https" and not local_host:
         return _item("canonical_origin", "Saytning asosiy manzili", GREEN, True, origin)
     if settings.IS_LOCAL:

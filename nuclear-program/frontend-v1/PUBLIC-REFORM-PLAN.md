@@ -2350,13 +2350,14 @@ release proofi emas; owner decision receipt mavjud.
 **Holat — 2026-10-21: kodda, lokal tekshirilgan** (branch `claude/pub18b-readiness-gate`, migration yo‘q).
 Bitta selector — `frontend/release_readiness.py::release_readiness()`: Control Center `public_release`
 (Governance, `high` — `/readyz`ga ta’sir qilmaydi), `manage.py public_release_gate [--json] [--fail-on
-red|amber|never]` va owner sahifasi `/backoffice/release/` (Sozlamalar → Reliz tayyorligi; Control
+pilot|red|amber|never]` (default `pilot` — majburiy band sariq bo‘lsa ham yiqiladi) va owner sahifasi `/backoffice/release/` (Sozlamalar → Reliz tayyorligi; Control
 Center’dan ham havola) ayni natijani ko‘rsatadi. **Majburiy (pilot faqat hammasi yashil bo‘lsa):**
 maxfiylik va shartlar (amaldagi tasdiqlangan versiya; namuna matn — qizil), sotuvdagi kurs (`build_offers`
 bo‘yicha kamida bitta kursga hozir yozilish mumkin), aloqa kanali (namuna emas), to‘lov rekvizitlari
 (karta raqami bo‘sh yoki model namunasi — qizil), email (console/dummy: lokalda sariq, aks holda qizil;
-24 soatda reset xati yuborilmagan bo‘lsa sariq), asosiy manzil (https, localhost emas; lokalda sariq),
-sitemap (xatosiz, bo‘sh emas), ochiq media (fayl saqlovchida bor). **Ixtiyoriy (umumiy holatni ko‘pi
+24 soatda reset xati yuborilmagan bo‘lsa sariq), asosiy manzil (https, localhost emas, faqat sxema va domen — `azurelms.E202` bilan bir qoida; lokalda sariq),
+sitemap (xatosiz, bo‘sh emas), ochiq media (saytda chiqadigan qatorlar fayli saqlovchida bor; fikr rasmi faqat
+rozilik bilan chiqadigan fikr uchun). **Ixtiyoriy (umumiy holatni ko‘pi
 bilan sariq qiladi):** FAQ, yopiq kurslar, da’volar (yashirilgan yoki 14 kunda tugaydigan dalil),
 o‘quvchilar fikri (roziliksiz yashirin), sertifikat kodlari (tekshiruv yoqilgan bo‘lsa), SIT dolzarbligi
 (90 kun), sozlama qatorlari. Har bandda sabab va tuzatish yo‘li, sahifasi bo‘lsa havola. Bitta tekshiruv

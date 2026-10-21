@@ -221,7 +221,7 @@ CAPABILITY_REGISTRY = (
         runbook=(
             "Sozlamalar → Reliz tayyorligi: har bandning tuzatish yo'li yozilgan. Majburiylarning hammasi "
             "yashil bo'lgach owner sabab bilan tasdiqlaydi (audit: public.release.signoff). CLI: "
-            "`manage.py public_release_gate`."
+            "`manage.py public_release_gate` (pilotga tayyor bo'lmasa xato bilan chiqadi)."
         ),
     ),
     CapabilityDefinition(

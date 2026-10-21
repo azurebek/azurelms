@@ -156,17 +156,29 @@ class SelectorTests(ReadyWorld):
         self.assertIn("1", item.summary)
 
     def test_origin_must_be_a_real_https_domain(self):
-        for origin in ("http://azurelms.uz", "https://localhost:8000", "https://app.localhost", ""):
+        for origin in ("http://azurelms.uz", "https://localhost:8000", "https://app.localhost", "",
+                       "https://azurelms.uz/", "https://azurelms.uz/kurslar", "https://azurelms.uz?ref=1",
+                       "https://azurelms.uz#top", "https://egasi@azurelms.uz", "https://egasi:parol@azurelms.uz"):
             with self.subTest(origin=origin), override_settings(PUBLIC_CANONICAL_ORIGIN=origin):
                 self.assertEqual(by_key(gate.release_readiness())["canonical_origin"].status, gate.RED)
         with override_settings(PUBLIC_CANONICAL_ORIGIN="http://localhost:8000", IS_LOCAL=True):
             self.assertEqual(by_key(gate.release_readiness())["canonical_origin"].status, gate.AMBER)
+        with override_settings(PUBLIC_CANONICAL_ORIGIN="http://localhost:8000/app", IS_LOCAL=True):
+            self.assertEqual(by_key(gate.release_readiness())["canonical_origin"].status, gate.RED)
 
     def test_a_public_file_missing_from_storage_is_red(self):
         Course.objects.filter(pk=self.course.pk).update(thumbnail="courses/yoq-rasm.jpg")
         item = by_key(gate.release_readiness())["public_media"]
         self.assertEqual(item.status, gate.RED)
         self.assertIn(f"courses.Course #{self.course.pk}", item.summary)
+
+    def test_only_publicly_shown_testimonial_photos_can_block(self):
+        hidden = Testimonial.objects.create(name="Vali", text="Yaxshi", is_active=True, avatar="testimonials/yoq-1.jpg")
+        self.assertEqual(by_key(gate.release_readiness())["public_media"].status, gate.GREEN)
+        public_claims.set_testimonial_consent(hidden, actor=self.owner, confirmed=True, reason="Yozma rozilik")
+        item = by_key(gate.release_readiness())["public_media"]
+        self.assertEqual(item.status, gate.RED)
+        self.assertIn(f"frontend.Testimonial #{hidden.pk}", item.summary)
 
     def test_a_broken_sitemap_is_red(self):
         with mock.patch("frontend.public_sitemap.sitemap_entries", side_effect=ValueError("blog_tags: exclude")):
@@ -400,6 +412,17 @@ class SameAnswerEverywhereTests(TestCase):
         self.assertEqual(details["support_contact"], "red (majburiy)")
         self.assertEqual(details["claims"], "amber")
         self.assertIn("Aloqa kanali", result.summary)
+
+    def test_cli_fails_by_default_when_a_required_item_is_only_amber(self):
+        amber_required = gate.ReadinessItem("email_delivery", "Email yuborish", gate.AMBER, True, "console")
+        with mock.patch.object(gate, "CHECKS", fake_checks(GREEN_REQUIRED, amber_required)):
+            self.assertEqual(gate.release_readiness().status, gate.AMBER)
+            with self.assertRaises(CommandError) as raised:
+                call_command("public_release_gate", stdout=StringIO())
+            self.assertIn("Email yuborish", str(raised.exception))
+            call_command("public_release_gate", "--fail-on", "red", stdout=StringIO())
+            with self.assertRaises(CommandError):
+                call_command("public_release_gate", "--fail-on", "amber", stdout=StringIO())
 
     def test_cli_reports_the_same_items_and_fails_on_red(self):
         out = StringIO()
