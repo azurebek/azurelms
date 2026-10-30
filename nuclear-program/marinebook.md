@@ -37,6 +37,27 @@ o'z HTTP yo'lida edi. 2026-10-28 da tuzatish faqat 26.10.0rc'da edi va owner ist
 - Davom etilishi kerak: keyingi deploy'da Docker image qayta yig'ilsin; PDF o'qish/yozish (AI hujjatlari,
   sertifikat) deploy'dan keyin bir marta qo'lda sinalsin.
 
+## 2026-10-28 [Claude]: PUBLIC-02 — editorial public dizaynini ko'chirish rejasi
+
+Owner bilan 2026-10-21…28 da lokal prototip (`playground/Thirteenth Trial/`, git'ga kirmaydi) qurildi: 18 ochiq
+sahifa + o'quv maydoni, faqat production V1 tokenlarida, ochiq sahifa → kirish → o'quv maydoni logo/header
+uzluksizligi ±1px. Endi uni production'ga ko'chirish rejasi yozildi; kod o'zgarmadi.
+
+- Branch: `claude/public-editorial-port-plan`; hujjat `nuclear-program/frontend-v1/PUBLIC-EDITORIAL-PORT-PLAN.md`.
+- Qarorlar: flag `public_editorial_v1` (default OFF; OFF — bugungi V1 aynan); shablon tanlovi bitta
+  `public_template_names` funksiyasida, ko'chirilmagan sahifa hozirgi V1'ga tushadi; kontekst va adapterlar
+  o'zgarmaydi; prototip qoidalari (`verify.mjs`) CI Node testiga ko'chadi. Kesimlar PE0–PE10, taklif status
+  `ADMIT — post-launch`.
+- Owner qarorlari PE1 dan oldin: D1 to'q footer, D2 logo balandligi, D3 tugma rangi (`#1257e6` tavsiya),
+  D4 DESIGN-01 "Urg'u burchagi", D5 "FAQ" → "Savol-javob".
+- Prototipda sinab ko'rilib rad etilgan: o'quv maydonidagi "ko'prik" media (owner: keragi yo'q).
+- Production'da topilgan beshta mustaqil xato (rejaning 8-bo'limi): yopiq `details` kartadagi ortiqcha joy,
+  cho'zilgan nishon, o'lik `.f-study-art`, tariflarda "/ oy", ro'yxat eslatmasi tugmaga yopishgan.
+- Test: docs-only — `git diff --check` toza. Prototipda `node --test verify.mjs` 8/8, `continuity.mjs` ±1px.
+- 2026-10-30: owner D1–D5ni tavsiya bo'yicha qabul qildi (to'q footer, logo `2.5rem`, tugma `#1257e6`,
+  "Urg'u burchagi" maydoni, "Savol-javob"). PR #240 supply-chain skani tufayli kutdi — #241 bilan ochildi.
+- Davom etilishi kerak: PE1 (poydevor).
+
 ## 2026-10-21 [Claude]: PUBLIC-01 / PUB1.8b — reliz tayyorligi darvozasi
 
 Saytni pilotga ochishdan oldin nima tayyor emasligini bitta joyda ko'rsatadigan darvoza yo'q edi. Endi
