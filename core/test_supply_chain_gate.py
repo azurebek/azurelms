@@ -7,15 +7,12 @@ tasdiq biror narsani anglatadi.
 """
 
 import json
-import re
 import subprocess
 from datetime import date
-from importlib import metadata
 from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from django.conf import settings
 from django.core.management import CommandError, call_command
 from django.test import SimpleTestCase, override_settings
 
@@ -27,14 +24,13 @@ from core.dependency_audit import (
     report_findings,
     review_overdue,
 )
-from core.secret_scan import scan_repository, scan_text, tracked_env_files, tracked_files
+from core.secret_scan import scan_repository, scan_text, tracked_env_files
 
 # Ko'rib chiqilgan va owner qabul qilgan istisnolar. Reyestrga yangi yozuv
 # qo'shish shu konstantani ham ataylab o'zgartirishni talab qiladi.
-REVIEWED_EXEMPTIONS = {
-    # 2026-10-16: tuzatilgan reliz yo'q; zaif `twisted.mail` ishlatilmaydi.
-    "twisted==26.4.0": ["CVE-2026-106454"],
-}
+# 2026-10-30 dan yana bo'sh: Twisted 26.10.0 CVE-2026-106454ni tuzatdi va
+# 2026-10-16 dagi yagona istisno (hamda uning `twisted.mail` qo'riqchisi) olib tashlandi.
+REVIEWED_EXEMPTIONS = {}
 
 # Soxta, ammo formati haqiqiy sirlar. Skaner ularni ushlashi shart — shu sababli
 # skanerning o'zi ham ularni topadi va bu fayl uni qizil qilib qo'yadi. `allow`
@@ -242,64 +238,6 @@ class CommittedBaselineTests(SimpleTestCase):
                 (baseline.get("review_by") or "").strip(),
                 "Istisno bor, ammo `review_by` sanasi yo'q.",
             )
-
-    def test_the_twisted_exemption_stays_unreachable(self):
-        """CVE-2026-106454 istisnosining asosi: `twisted.mail` hech qayerda ishlatilmaydi.
-
-        Zaiflik faqat Twisted'ning IMAP serverida. Istisno shu kod yo'li
-        AzureLMSda ishga tushmagani uchun xavfsiz; agar loyiha kodi yoki
-        Twisted'ni talab qiluvchi paket (bugun `daphne`) `twisted.mail`ni
-        import qila boshlasa, istisno o'z asosini yo'qotadi va test qizil
-        bo'lishi kerak. Naqsh ikki bo'lakdan yig'iladi — aks holda bu faylning
-        o'zi topilmaga aylanadi.
-        """
-        if "twisted==26.4.0" not in load_json(baseline_path())["known"]:
-            self.skipTest("Twisted istisnosi reyestrda yo'q — tekshiruv shart emas.")
-
-        needles = ("twisted" + ".mail", "imap" + "4")
-        root = Path(settings.BASE_DIR)
-        # Bu faylning izohlari zaiflikni nomlaydi; u qo'riqchi, iste'molchi emas.
-        own_name = Path(__file__).resolve().relative_to(root.resolve()).as_posix()
-        offenders = []
-
-        for name in tracked_files(root):
-            if not name.endswith(".py") or name == own_name:
-                continue
-            path = root / name
-            if not path.is_file():
-                continue
-            text = path.read_text(encoding="utf-8", errors="ignore")
-            if any(needle in text for needle in needles):
-                offenders.append(name)
-
-        def requirement_name(requirement):
-            match = re.match(r"\s*([A-Za-z0-9._-]+)", requirement)
-            return match.group(1).lower() if match else ""
-
-        for dist in metadata.distributions():
-            # Twisted'ning o'zi zaif modulni saqlaydi — gap uni kim chaqirishida.
-            if (dist.metadata["Name"] or "").lower() == "twisted":
-                continue
-            requirements = dist.requires or []
-            if not any(requirement_name(req) == "twisted" for req in requirements):
-                continue
-            for file in dist.files or []:
-                if not str(file).endswith(".py"):
-                    continue
-                try:
-                    text = Path(dist.locate_file(file)).read_text(
-                        encoding="utf-8", errors="ignore"
-                    )
-                except OSError:
-                    continue
-                if any(needle in text for needle in needles):
-                    offenders.append(f"{dist.metadata['Name']}:{file}")
-
-        self.assertEqual(
-            offenders, [],
-            "`twisted.mail` ishlatila boshlandi — CVE-2026-106454 istisnosi endi "
-            "asossiz. Twisted'ni ko'taring yoki istisnoni qayta baholang.",
-        )
 
     def test_an_exemption_would_require_a_review_date(self):
         """Bo'sh reyestrda ham qoida amalda ekanini tekshiradi."""

@@ -16,6 +16,27 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-30 [Claude]: Xavfsizlik — 22 advisory yopildi, istisnolar reyestri yana bo'sh
+
+Supply-chain skani 2026-10-28 dan barcha PR'larni blokladi: pypdf 6.19.0 (11), Twisted 26.4.0 (6 yangi +
+istisnodagi CVE-2026-106454), fpdf2 2.8.7 (2), msgpack 1.2.1 (1); 2026-10-30 da autobahn 26.7.1 (1) qo'shildi.
+Twisted'ning bittasi (CVE-2026-115877, `twisted.web.http` sarlavhada yolg'iz CR/LF — request smuggling) Daphne'ning
+o'z HTTP yo'lida edi. 2026-10-28 da tuzatish faqat 26.10.0rc'da edi va owner istisnoni tanladi; 2026-10-30 da
+26.10.0 final chiqdi, shuning uchun reyestr qoidasi bo'yicha (birinchi yo'l — ko'tarish) paket ko'tarildi.
+
+- Branch: `claude/deps-2026-10-30`. `Twisted 26.4.0 → 26.10.0`, `autobahn 26.7.1 → 26.10.2`, `cbor2 5.9.0 → 6.1.5`
+  (autobahn 26.10.x `cbor2>=6.1` talab qiladi; cbor2'ni faqat autobahn ishlatadi), `msgpack 1.2.1 → 1.2.4`,
+  `fpdf2 2.8.7 → 2.8.9`, `pypdf 6.19.0 → 6.21.4`. Twisted 26.10.0 CVE-2026-106454ni ham tuzatdi — reyestr
+  bo'sh (maqsad holati), `REVIEWED_EXEMPTIONS = {}`, `twisted.mail` qo'riqchi testi asossiz bo'lib olib tashlandi.
+- Tekshiruv (lokal): `pip check` toza; `pip-audit` + `manage.py audit_dependencies` — 0 advisory. Daphne tutun
+  sinovi eski va yangi versiyada bir xil: `/healthz` `/readyz` `/robots.txt` 200, WebSocket handshake autobahn
+  orqali (403 — kirmagan foydalanuvchi); sarlavhada yolg'iz LF: eski 200, yangi **400** (CVE tuzatilgani ko'rindi).
+  To'liq `manage.py test` — **3284 OK (skipped=70)**.
+- Oldindan bor, bog'liq emas: lokal Daphne ostida HTML sahifalar (`/`, `/about/`, `/users/login/`, `/courses/`)
+  20 s ichida javob bermaydi — ikkala Twisted versiyasida bir xil; `runserver` va R2 relizida ishlaydi.
+- Davom etilishi kerak: keyingi deploy'da Docker image qayta yig'ilsin; PDF o'qish/yozish (AI hujjatlari,
+  sertifikat) deploy'dan keyin bir marta qo'lda sinalsin.
+
 ## 2026-10-28 [Claude]: PUBLIC-02 — editorial public dizaynini ko'chirish rejasi
 
 Owner bilan 2026-10-21…28 da lokal prototip (`playground/Thirteenth Trial/`, git'ga kirmaydi) qurildi: 18 ochiq
@@ -33,7 +54,9 @@ uzluksizligi ±1px. Endi uni production'ga ko'chirish rejasi yozildi; kod o'zgar
 - Production'da topilgan beshta mustaqil xato (rejaning 8-bo'limi): yopiq `details` kartadagi ortiqcha joy,
   cho'zilgan nishon, o'lik `.f-study-art`, tariflarda "/ oy", ro'yxat eslatmasi tugmaga yopishgan.
 - Test: docs-only — `git diff --check` toza. Prototipda `node --test verify.mjs` 8/8, `continuity.mjs` ±1px.
-- Davom etilishi kerak: owner D1–D5 → PE1.
+- 2026-10-30: owner D1–D5ni tavsiya bo'yicha qabul qildi (to'q footer, logo `2.5rem`, tugma `#1257e6`,
+  "Urg'u burchagi" maydoni, "Savol-javob"). PR #240 supply-chain skani tufayli kutdi — #241 bilan ochildi.
+- Davom etilishi kerak: PE1 (poydevor).
 
 ## 2026-10-21 [Claude]: PUBLIC-01 / PUB1.8b — reliz tayyorligi darvozasi
 
