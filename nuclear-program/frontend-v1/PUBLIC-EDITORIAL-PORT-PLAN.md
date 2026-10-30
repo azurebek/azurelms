@@ -1,6 +1,6 @@
 # PUBLIC-02 — editorial public dizaynini production'ga ko'chirish rejasi
 
-**Holat — 2026-10-28: reja yozildi, implementatsiya boshlanmagan.** Manba — owner bilan qurilgan lokal
+**Holat — 2026-10-30: reja yozildi, owner qarorlari D1–D5 qabul qilingan (§3), implementatsiya boshlanmagan.** Manba — owner bilan qurilgan lokal
 prototip `playground/Thirteenth Trial/` (2026-10-21…28). `playground/` git'ga kirmaydi: prototip faqat shu
 kompyuterda. Shu sabab birinchi kod kesimi (PE1) uning normativ qismini (CSS qoidalari va tekshiruvi) repo'ga
 olib kiradi; ungacha `playground/Thirteenth Trial/` o'chirilmaydi.
@@ -42,6 +42,9 @@ media (2026-10-28, owner: keragi yo'q) — o'quv maydoni o'z ko'rinishida qoladi
    Yakuniy status owner qarori.
 
 ## 3. Owner qarorlari (PE1 dan oldin)
+
+**Qaror — 2026-10-30: owner D1–D5ni tavsiya bo'yicha qabul qildi.** To'q footer va bandlar — ha; logo `2.5rem`;
+tugma rangi `#1257e6` qoladi; DESIGN-01'ga "Urg'u burchagi" — ha, bo'sh standart; yorliq "Savol-javob".
 
 | # | Savol | Tavsiya (agent) | Ta'siri |
 |---|---|---|---|
