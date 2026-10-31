@@ -1,6 +1,6 @@
 """PUB1.6a — Blog umumiy ochiq kontrakti (domen o'zgarishisiz).
 
-Asosiy da'volar, ikkala rendererda (legacy va V1):
+Asosiy da'volar, uchala rendererda (legacy, V1 va editorial):
 * qidiruv kirishi katalog bilan bir chegarada; teg faqat slug; noma'lum qiymat 500 bermaydi;
 * sahifa/teg havolalari faqat normallashgan parametrlardan (kodlangan), `aria-current`,
   `rel=prev/next`; ro'yxat to'liq tartibda (oxirida `id`);
@@ -27,7 +27,7 @@ from courses import catalog
 from frontend import public_query
 from users.models import CustomUser
 
-RENDERERS = (("legacy", False), ("v1", True))
+RENDERERS = (("legacy", False, False), ("v1", True, False), ("editorial", True, True))
 
 
 class BlogWorld(TestCase):
@@ -44,8 +44,9 @@ class BlogWorld(TestCase):
             status=status, featured=featured, published_at=self.now - timedelta(minutes=minutes_ago), **extra)
         return post
 
-    def renderer(self, v1):
+    def renderer(self, v1, editorial=False):
         FeatureFlag.objects.update_or_create(slug="frontend_v1_public", defaults={"enabled": v1})
+        FeatureFlag.objects.update_or_create(slug="public_editorial_v1", defaults={"enabled": editorial})
 
 
 class QueryBoundsTests(BlogWorld):
@@ -61,8 +62,8 @@ class QueryBoundsTests(BlogWorld):
 
     def test_unknown_or_malformed_filters_never_break_the_page(self):
         self.make_post("Birinchi maqola")
-        for name, v1 in RENDERERS:
-            self.renderer(v1)
+        for name, v1, editorial in RENDERERS:
+            self.renderer(v1, editorial)
             with self.subTest(renderer=name):
                 weird = self.client.get(reverse("blog:list"), {"tag": "<script>", "q": "\x00" * 50})
                 self.assertEqual(weird.status_code, 200)
@@ -73,8 +74,8 @@ class QueryBoundsTests(BlogWorld):
 
     def test_the_search_form_keeps_the_bounded_value(self):
         long_query = "so'z " * 20
-        for name, v1 in RENDERERS:
-            self.renderer(v1)
+        for name, v1, editorial in RENDERERS:
+            self.renderer(v1, editorial)
             with self.subTest(renderer=name):
                 response = self.client.get(reverse("blog:list"), {"q": long_query})
                 self.assertContains(response, f'maxlength="{public_query.MAX_QUERY_CHARS}"')
@@ -102,8 +103,8 @@ class PaginationAndOrderTests(BlogWorld):
         query = listing.BlogListQuery(q="a&b", tag=self.tag.slug)
         page_two = query.url(page=2)
         self.assertEqual(page_two, f"/blog/?q=a%26b&tag={self.tag.slug}&page=2")
-        for name, v1 in RENDERERS:
-            self.renderer(v1)
+        for name, v1, editorial in RENDERERS:
+            self.renderer(v1, editorial)
             with self.subTest(renderer=name):
                 response = self.client.get(reverse("blog:list"), {"q": "a&b", "tag": self.tag.slug})
                 html = response.content.decode()
@@ -115,8 +116,8 @@ class PaginationAndOrderTests(BlogWorld):
                 self.assertContains(second, 'rel="prev"')
 
     def test_tag_links_keep_the_search_and_mark_the_current_tag(self):
-        for name, v1 in RENDERERS:
-            self.renderer(v1)
+        for name, v1, editorial in RENDERERS:
+            self.renderer(v1, editorial)
             with self.subTest(renderer=name):
                 response = self.client.get(reverse("blog:list"), {"q": "Maqola", "tag": self.tag.slug})
                 links = response.context["tag_links"]
@@ -127,8 +128,8 @@ class PaginationAndOrderTests(BlogWorld):
 class FeaturedAndCardTests(BlogWorld):
     def test_featured_is_shown_once_and_the_empty_state_is_truthful(self):
         featured = self.make_post("Yagona tanlangan", featured=True)
-        for name, v1 in RENDERERS:
-            self.renderer(v1)
+        for name, v1, editorial in RENDERERS:
+            self.renderer(v1, editorial)
             with self.subTest(renderer=name):
                 response = self.client.get(reverse("blog:list"))
                 self.assertEqual(response.content.decode().count(f'{featured.get_absolute_url()}'), 1)
@@ -148,11 +149,11 @@ class FeaturedAndCardTests(BlogWorld):
 
 
 class ReturnToTests(BlogWorld):
-    def test_detail_returns_to_the_same_filter_and_page_in_both_renderers(self):
+    def test_detail_returns_to_the_same_filter_and_page_in_all_renderers(self):
         post = self.make_post("Qaytish")
         back = "/blog/?q=Qaytish"
-        for name, v1 in RENDERERS:
-            self.renderer(v1)
+        for name, v1, editorial in RENDERERS:
+            self.renderer(v1, editorial)
             with self.subTest(renderer=name):
                 listing_page = self.client.get(reverse("blog:list"), {"q": "Qaytish"})
                 self.assertContains(listing_page, f"{post.get_absolute_url()}?return_to=/blog/%3Fq%3DQaytish")
@@ -168,8 +169,8 @@ class PeopleTests(BlogWorld):
         post = self.make_post("Ismlar", allow_comments=True)
         BlogComment.objects.create(post=post, user=self.author, content="Login egasi izohi")
         BlogComment.objects.create(post=post, user=self.named, content="Ismli izoh")
-        for name, v1 in RENDERERS:
-            self.renderer(v1)
+        for name, v1, editorial in RENDERERS:
+            self.renderer(v1, editorial)
             with self.subTest(renderer=name):
                 for url in (reverse("blog:list"), post.get_absolute_url()):
                     response = self.client.get(url)
@@ -209,8 +210,8 @@ class LegacyTruthTests(BlogWorld):
 
     def test_comment_login_returns_to_the_comments(self):
         post = self.make_post("Izohga kirish")
-        for name, v1 in RENDERERS:
-            self.renderer(v1)
+        for name, v1, editorial in RENDERERS:
+            self.renderer(v1, editorial)
             with self.subTest(renderer=name):
                 response = self.client.get(post.get_absolute_url())
                 self.assertContains(response, f"?next={post.get_absolute_url()}%23comments")
@@ -231,8 +232,8 @@ class NoScriptClapTests(BlogWorld):
 class PublicContractTests(BlogWorld):
     def test_filtered_lists_are_not_indexed_and_guests_leave_no_trace(self):
         post = self.make_post("Iz")
-        for name, v1 in RENDERERS:
-            self.renderer(v1)
+        for name, v1, editorial in RENDERERS:
+            self.renderer(v1, editorial)
             with self.subTest(renderer=name):
                 filtered = self.client.get(reverse("blog:list"), {"q": "Iz"})
                 self.assertContains(filtered, '<meta name="robots" content="noindex, follow">')
@@ -252,8 +253,8 @@ class PublicContractTests(BlogWorld):
         first = self.make_post("Boshlang'ich", featured=True)
         first.tags.add(self.tag)
         self.make_post("Ikkinchi", minutes_ago=20).tags.add(self.tag)  # ro'yxat bo'sh emas
-        for name, v1 in RENDERERS:
-            self.renderer(v1)
+        for name, v1, editorial in RENDERERS:
+            self.renderer(v1, editorial)
             with self.subTest(renderer=name):
                 small_list, small_detail = count(reverse("blog:list")), count(first.get_absolute_url())
                 extra = [self.make_post(f"Qo'shimcha {index}", minutes_ago=30 + index) for index in range(12)]
