@@ -22,9 +22,28 @@ test('reopening a just-published draft starts new edits from that publication an
 });
 
 test('all canonical fields and built-in styles remain valid without filling inherited overrides', () => {
-  assert.equal(fields(catalog).length, 87);
+  assert.equal(fields(catalog).length, 88);
   assert.equal(assertSafe(catalog, fresh()).values['button-radius'], null);
   for (const preset of catalog.presets) assert.equal(inspectDesign(catalog,builtin(catalog,preset.id)).errors.length,0,preset.id);
+});
+
+test('a later-added field is optional only in older copies; other missing or inherited keys still fail', () => {
+  // Brauzerdagi eski qoralama yoki tarix nusxasida "Urg‘u burchagi" yo‘q — standart qiymat bilan o‘qiladi.
+  const older=fresh(); delete older.values['shape-radius'];
+  const upgraded=validate(catalog,older);
+  assert.equal(upgraded.values['shape-radius'],null);
+  assert.equal(Object.hasOwn(older.values,'shape-radius'),false);
+  assert.deepEqual(upgraded,fresh());
+  const recovered=parseRecovery(catalog,JSON.stringify({version:1,base:{draft_revision:1,base_version:0},value:older}));
+  assert.equal(recovered.value.values['shape-radius'],null);
+  assert.equal(edit(catalog,fresh(),'shape-radius','values','32').values['shape-radius'],32);
+  assert.throws(()=>edit(catalog,fresh(),'shape-radius','values','49'));
+  const original=fresh(); delete original.values['card-radius'];
+  assert.throws(()=>validate(catalog,original),/maydonlari mos emas/);
+  for (const key of ['__proto__','constructor','toString']) {
+    const foreign=JSON.parse(JSON.stringify(fresh()).replace('"values":{','"values":{"'+key+'":1,'));
+    assert.throws(()=>validate(catalog,foreign),/maydonlari mos emas/,key);
+  }
 });
 
 test('unsafe CSS, foreign keys and invalid numeric types never reach the preview compiler', () => {

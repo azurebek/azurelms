@@ -10,6 +10,11 @@ import re
 CATALOG = json.loads(Path(__file__).with_name("design_catalog.json").read_text(encoding="utf-8"))
 FIELDS = tuple(field for group in CATALOG["groups"] for field in group["fields"])
 BY_KEY = {field["key"]: field for field in FIELDS}
+# Katalogga keyin qo'shilgan maydonlar (`"added"` sanasi bilan). Bazadagi nashr, qoralama, tarix va variantlar
+# ular paydo bo'lishidan oldin yozilgan — ularda bu kalit yo'q. Qat'iy kalit tengligi ularni rad etsa, deploy'dan
+# keyin nashr qilingan ko'rinish jimgina standartga tushib qolardi va ustaxona ochilmasdi. Shu sabab faqat shu
+# maydonlar yo'q bo'lsa standart qiymat oladi; asl maydon yo'qligi va begona kalit avvalgidek rad etiladi.
+ADDED_KEYS = frozenset(field["key"] for field in FIELDS if field.get("added"))
 
 
 class DesignValidationError(ValueError):
@@ -54,7 +59,8 @@ def validate(value):
             or type(value["version"]) is not int or value["version"] != CATALOG["version"]):
         raise DesignValidationError("Ko‘rinish formati mos emas. Sahifani qayta oching.")
     for section in ("light", "dark", "values"):
-        if type(value[section]) is not dict or set(value[section]) != set(expected[section]):
+        if (type(value[section]) is not dict or set(value[section]) - set(expected[section])
+                or set(expected[section]) - set(value[section]) - ADDED_KEYS):
             raise DesignValidationError("Ko‘rinish maydonlari mos emas.", section=section)
     # Read only the schema's scalar leaves. Copying the untrusted graph first
     # would recurse through arbitrary nested arrays before we could reject them.
@@ -62,7 +68,11 @@ def validate(value):
     for field in FIELDS:
         key = field["key"]
         for section in ("light", "dark") if field.get("mode") else ("values",):
-            item = value[section][key]
+            if key not in value[section]:
+                # Faqat ADDED_KEYS shu yerga yetadi (yuqoridagi tekshiruv); standart qiymat ham tekshiruvdan o'tadi.
+                item = deepcopy(field["default"][section] if field.get("mode") else field["default"])
+            else:
+                item = value[section][key]
             valid = False
             if field["kind"] == "color":
                 valid = ((item is None and bool(field.get("inherit")))

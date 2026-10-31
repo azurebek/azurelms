@@ -73,6 +73,18 @@
   --az-layer-overlay: 20;
   --az-fast: 100ms;
   --az-motion: 160ms;
+  /* PUBLIC-02 (owner D1/D2/D4, 2026-10-30). To'q "inverse" yuza — brend kitidagi to'q yozuv rangi (#152C46):
+     footer, tanlash bandi, kirish yon paneli. Komponent o'zgarmaydi, `[data-surface="inverse"]` tokenlarni almashtiradi. */
+  --az-inverse: #152c46;
+  --az-on-inverse: #ffffff;
+  --az-inverse-muted: #bccadc;
+  --az-inverse-border: #2d4766;
+  --az-inverse-action: #a9c8ff;
+  --az-logo: 2.5rem;
+  /* Shakl burchaklari: oddiy (media, band) va bitta katta urg'u burchagi. Owner sozlamasi (DESIGN-01 "Karta → Burchak"
+     va "Urg'u burchagi") ularni `backoffice/design-runtime.css` orqali almashtiradi; bu yerda — sozlamasiz qiymat. */
+  --az-radius-tile: var(--az-radius);
+  --az-radius-shape: calc(var(--az-radius-lg) * 2);
 }
 [data-theme="dark"] {
   color-scheme: dark;
@@ -98,6 +110,29 @@
   --az-focus: #b2c8ff;
   --az-overlay: rgb(0 5 15 / 65%);
   --az-shadow: 0 12px 36px rgb(0 0 0 / 20%);
+  --az-inverse: #0b1220;
+  --az-on-inverse: #eef2f8;
+  --az-inverse-muted: #aab7ca;
+  --az-inverse-border: #26344a;
+  --az-inverse-action: #9bb8ff;
+}
+/* Inverse yuza: ichidagi komponentlar (tugma, havola, chiziq, fokus) to'q fonga mos tokenlarni oladi.
+   Production klassiga alohida selector yozilmaydi — faqat tokenlar qayta tayinlanadi. */
+[data-surface="inverse"] {
+  --az-surface: var(--az-inverse);
+  --az-canvas: var(--az-inverse);
+  --az-soft: var(--az-inverse-border);
+  --az-text: var(--az-on-inverse);
+  --az-muted: var(--az-inverse-muted);
+  --az-faint: var(--az-inverse-muted);
+  --az-border: var(--az-inverse-border);
+  --az-action: var(--az-inverse-action);
+  --az-action-hover: var(--az-on-inverse);
+  --az-on-action: var(--az-inverse);
+  --az-action-soft: var(--az-inverse-border);
+  --az-focus: var(--az-inverse-action);
+  background: var(--az-inverse);
+  color: var(--az-on-inverse);
 }
 /* Same light palette for paper; neither data-theme nor its stored choice changes. */
 @media print {

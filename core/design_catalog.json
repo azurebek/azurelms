@@ -928,7 +928,7 @@
     {
       "id": "S14",
       "title": "Karta",
-      "description": "Chat pufagi burchagi mustaqil qoladi.",
+      "description": "Chat pufagi burchagi mustaqil qoladi. Urg‘u burchagi — ochiq sahifalardagi katta shakl burchagi; bo‘sh bo‘lsa karta burchagidan ikki baravar.",
       "fields": [
         {
           "key": "card-radius",
@@ -962,6 +962,18 @@
           "step": 1,
           "unit": "px",
           "css": "--dc-card-pad"
+        },
+        {
+          "key": "shape-radius",
+          "label": "Urg‘u burchagi",
+          "added": "2026-10-31",
+          "kind": "number",
+          "default": null,
+          "min": 0,
+          "max": 48,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-shape-radius"
         }
       ]
     },

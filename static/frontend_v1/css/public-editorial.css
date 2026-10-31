@@ -1,0 +1,144 @@
+/*
+ * PUBLIC-02 — editorial ochiq sahifa patternlari (nuclear-program/frontend-v1/PUBLIC-EDITORIAL-PORT-PLAN.md).
+ * Manba: owner bilan qurilgan lokal prototip `playground/Thirteenth Trial/` (CONTRACT.md §3), 2026-10-21…31.
+ * Faqat `public_editorial_v1` yoqilgan sahifalar yuklaydi (PE2 dan). Qoida: faqat production tokenlari
+ * (`var(--az-*)`); xom rang, literal o'lcham (1px/2px chiziqdan tashqari), yangi shrift, yangi breakpoint,
+ * `!important` va boshqa production klassiga selector yo'q — `tests/frontend_v1/public-editorial.test.mjs`.
+ * Shakl ritmi: bir burchagi katta (`--az-radius-shape`, owner sozlamasi) media, aylana raqamlar, ustma-ust
+ * chiqib turadigan bandlar — bir xil to'rtburchaklar qatori bo'lmasin.
+ */
+
+/* Logo: brend kitining gorizontal lockup'i; mavzu bo'yicha almashinuvi production `s-theme-*` bilan. */
+.s-public-logo { display: block; height: var(--az-logo); width: auto; }
+
+/* Media o'rni: rasm bo'lsa — rasm; bo'lmasa token-asosli "atmosfera" (mavzu va DESIGN-01 rangiga ergashadi). */
+.p-public-media { position: relative; overflow: hidden; background: var(--az-soft); }
+.p-public-media--atmos {
+  background:
+    radial-gradient(60% 80% at 18% 22%, color-mix(in srgb, var(--az-action) 70%, transparent), transparent 72%),
+    radial-gradient(55% 75% at 88% 18%, color-mix(in srgb, var(--az-action-border) 90%, transparent), transparent 70%),
+    radial-gradient(70% 90% at 62% 108%, color-mix(in srgb, var(--az-success) 45%, transparent), transparent 70%),
+    var(--az-hero);
+}
+/* Variantlar faqat urg'u joyini va token aralashmasini o'zgartiradi — qator bir xil ko'rinmasin. */
+.p-public-media--atmos-2 {
+  background:
+    radial-gradient(65% 85% at 82% 24%, color-mix(in srgb, var(--az-success) 55%, transparent), transparent 72%),
+    radial-gradient(60% 80% at 12% 90%, color-mix(in srgb, var(--az-action) 45%, transparent), transparent 70%),
+    var(--az-hero);
+}
+.p-public-media--atmos-3 {
+  background:
+    radial-gradient(70% 90% at 50% 0%, color-mix(in srgb, var(--az-action-hover) 60%, transparent), transparent 72%),
+    radial-gradient(55% 70% at 100% 100%, color-mix(in srgb, var(--az-action-border) 85%, transparent), transparent 70%),
+    var(--az-soft);
+}
+.p-public-media__mark { position: absolute; inset: 0; margin: auto; width: min(var(--az-art-width), 40%); height: auto; opacity: .92; }
+
+/* Bo'limlar orasidagi bitta ritm. */
+.p-public-block { margin-bottom: var(--az-space-16); }
+.p-public-block:last-child { margin-bottom: 0; }
+
+/* 1. Hero: media + panel (carousel yo'q, autoplay yo'q). */
+.p-public-feature { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); overflow: hidden; margin-bottom: var(--az-space-16); border-radius: var(--az-radius-lg); }
+/* Keng ekranda media panel balandligiga cho'ziladi (uzun sarlavhada bo'sh joy qolmaydi); torda nisbat bilan. */
+.p-public-feature__media { min-height: var(--az-empty); }
+.p-public-feature__panel { display: grid; align-content: center; justify-items: start; gap: var(--az-space-4); padding: var(--az-space-10); }
+.p-public-feature__title { font-size: var(--az-text-display); line-height: var(--az-leading-tight); }
+
+/* 2. Kartalar qatori (BC "highlights", "research"): rasm — bir burchagi katta, teg, sarlavha, matn. */
+.p-public-stories { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--az-space-8) var(--az-space-6); }
+.p-public-story { display: grid; gap: var(--az-space-3); align-content: start; justify-items: start; min-width: 0; }
+.p-public-story__media { width: 100%; aspect-ratio: 3 / 2; margin-bottom: var(--az-space-2); border-radius: var(--az-radius-tile) var(--az-radius-tile) var(--az-radius-shape) var(--az-radius-tile); }
+.p-public-story h3 a:hover { color: var(--az-action); text-decoration: underline; text-underline-offset: var(--az-space-1); }
+
+/* 3. Raqamlar bandi (BC "We are global"): aylanalar; ostidan to'q band chiqib turadi. */
+.p-public-stats { display: grid; justify-items: center; gap: var(--az-space-3); padding: var(--az-space-12) var(--az-space-8) calc(var(--az-space-16) + var(--az-space-12)); background: var(--az-soft); border-radius: var(--az-radius-tile); text-align: center; }
+.p-public-stats__list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--az-space-8); width: 100%; margin-top: var(--az-space-8); list-style: none; }
+.p-public-stat { display: grid; justify-items: center; gap: var(--az-space-3); }
+.p-public-stat__circle { display: grid; place-items: center; align-content: center; width: calc(var(--az-space-16) * 2); aspect-ratio: 1; border-radius: 50%; background: var(--az-action); color: var(--az-on-action); }
+.p-public-stat__circle strong { font-size: var(--az-text-2xl); line-height: var(--az-leading-tight); letter-spacing: var(--az-tracking); }
+.p-public-stat__circle span { font-size: var(--az-text-xs); font-weight: var(--az-weight-medium); }
+.p-public-stat--alt .p-public-stat__circle { background: var(--az-success); }
+
+/* 4. To'q tanlash bandi (BC "Visit worldwide"): raqamlar bandiga chiqib turadi, bir burchagi katta. */
+.p-public-picker { position: relative; display: grid; justify-items: center; gap: var(--az-space-5); width: min(calc(100% - 2 * var(--az-space-8)), calc(var(--az-reading) + var(--az-space-16))); margin: calc(-1 * (var(--az-space-16) + var(--az-space-4))) auto var(--az-space-16); padding: var(--az-space-10) var(--az-space-8); border-radius: var(--az-radius-tile) var(--az-radius-tile) var(--az-radius-shape) var(--az-radius-tile); text-align: center; }
+.p-public-picker__form { display: flex; align-items: end; flex-wrap: wrap; justify-content: center; gap: var(--az-space-3); width: 100%; text-align: left; }
+.p-public-picker__field { display: grid; flex: 0 1 var(--az-drawer); min-width: 0; }
+
+/* 5. Asosiy maqola (BC "Podcast episode"): matn + katta media, orqasida siljigan urg'u shakli. */
+.p-public-spotlight { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); align-items: center; gap: var(--az-space-12); margin-block: var(--az-space-8) var(--az-space-12); }
+.p-public-spotlight__copy { display: grid; justify-items: start; gap: var(--az-space-4); }
+.p-public-spotlight__copy h3 { font-size: var(--az-text-2xl); line-height: var(--az-leading-tight); letter-spacing: var(--az-tracking); }
+.p-public-spotlight__visual { position: relative; padding: var(--az-space-6) var(--az-space-6) 0 0; }
+.p-public-spotlight__visual::before { content: ""; position: absolute; top: 0; right: 0; width: 45%; height: 60%; background: var(--az-action); border-radius: 0 var(--az-radius-shape) 0 0; }
+.p-public-spotlight__media { aspect-ratio: 16 / 10; border-radius: var(--az-radius-shape) var(--az-radius-tile) var(--az-radius-tile) var(--az-radius-tile); }
+
+/* 6. Kulrang band (BC "Voices"): sarlavha qatori + kartalar, bitta urg'u burchak. */
+.p-public-showcase { padding: var(--az-space-10); background: var(--az-soft); border-radius: var(--az-radius-shape) var(--az-radius-tile) var(--az-radius-tile) var(--az-radius-tile); }
+.p-public-showcase .p-public-stories { margin-top: var(--az-space-8); }
+
+/* 7. Muqova: kurs kartasi, kurs va maqola sahifasi — bir burchagi urg'uli. */
+.p-public-cover { width: 100%; aspect-ratio: 16 / 9; margin-block: var(--az-space-2); border-radius: var(--az-radius-tile) var(--az-radius-tile) var(--az-radius-shape) var(--az-radius-tile); }
+
+/* 8. Muallif qatori: avatar + ism, sana, o'qish vaqti. */
+.p-public-byline { display: flex; align-items: center; gap: var(--az-space-3); margin-top: var(--az-space-4); }
+
+/* 9. Kirish sahifasi ochiq sahifa ramkasida (alohida dizayn emas): forma + inverse yon panel. */
+.p-public-auth { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--az-space-6); width: min(100%, calc(var(--az-dialog) * 2 + var(--az-space-6))); margin-inline: auto; }
+.p-public-auth__aside { display: flex; flex-direction: column; align-items: flex-start; gap: var(--az-space-4); padding: var(--az-space-10); border-radius: var(--az-radius-tile) var(--az-radius-tile) var(--az-radius-shape) var(--az-radius-tile); }
+.p-public-auth__mark { width: var(--az-space-16); height: auto; margin-bottom: auto; }
+.p-public-divider { display: flex; align-items: center; gap: var(--az-space-3); margin-block: var(--az-space-5); color: var(--az-muted); font-size: var(--az-text-xs); }
+.p-public-divider::before, .p-public-divider::after { content: ""; flex: 1; border-top: 1px solid var(--az-border); }
+
+/* 10. Uzun hujjat (shartlar, maxfiylik, savol-javob): yonida mundarija, o'qish kengligidagi matn.
+   Mundarija hujjatdagi h2'lardan — production'da matn owner'niki, ro'yxat server tomonida yig'iladi. */
+.p-public-doc { display: grid; grid-template-columns: minmax(0, var(--az-aside)) minmax(0, var(--az-reading)); align-items: start; gap: var(--az-space-12); }
+.p-public-doc__toc { position: sticky; top: var(--az-space-6); display: grid; gap: var(--az-space-1); padding-left: var(--az-space-4); border-left: 2px solid var(--az-border); }
+.p-public-doc__toc p { margin-bottom: var(--az-space-2); }
+.p-public-doc__toc a { padding-block: var(--az-space-1); color: var(--az-muted); font-size: var(--az-text-sm); }
+.p-public-doc__toc a:hover { color: var(--az-action); }
+.p-public-doc h2 { scroll-margin-top: var(--az-space-6); }
+
+/* 11. Ko'p filtrli qidiruv (universitetlar): qidiruv butun qator, tanlovlar o'zi ustunlarga bo'linadi, tugma oxirida.
+   Katalogdagi `p-public-filters` uch maydonga qurilgan — yetti maydon u yerda notekis joylashadi. */
+.p-public-facets { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, calc(var(--az-space-16) * 2.5)), 1fr)); align-items: end; gap: var(--az-space-4); padding: var(--az-space-5); }
+.p-public-facets > div { min-width: 0; }
+.p-public-facets__q { grid-column: 1 / -1; }
+
+/* Sarlavha bloki (h2 + izoh) — bo'lim boshida tugma bilan yonma-yon. */
+.p-public-lede { display: grid; gap: var(--az-space-2); max-width: var(--az-reading); }
+
+/* Inverse surface ichidagi to'liq kenglikdagi band (footer): footer chizig'i band chetiga tushadi. */
+.p-public-band { display: flow-root; }
+
+
+@media (width < 1024px) {
+  .p-public-feature, .p-public-spotlight { grid-template-columns: minmax(0, 1fr); }
+  .p-public-feature__panel { padding: var(--az-space-8); }
+  .p-public-feature__media { min-height: 0; aspect-ratio: 16 / 10; }
+  .p-public-stories { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .p-public-spotlight__visual { order: -1; }
+  .p-public-auth { grid-template-columns: minmax(0, 1fr); }
+  .p-public-auth__aside { padding: var(--az-space-6); }
+  /* Torda mundarija matn ustida, oddiy ro'yxat (yopishmaydi). */
+  .p-public-doc { grid-template-columns: minmax(0, 1fr); gap: var(--az-space-6); }
+  .p-public-doc__toc { position: static; }
+}
+@media (width < 640px) {
+  .p-public-feature__panel, .p-public-showcase { padding: var(--az-space-5); }
+  .p-public-stories { grid-template-columns: minmax(0, 1fr); gap: var(--az-space-6); }
+  .p-public-story__media { aspect-ratio: 16 / 9; }
+  /* Telefonda ham uchta aylana bir qatorda — kichikroq. */
+  .p-public-stats { padding-inline: var(--az-space-4); }
+  .p-public-stats__list { gap: var(--az-space-3); margin-top: var(--az-space-6); }
+  .p-public-stat__circle { width: calc(var(--az-space-16) * 1.5); }
+  .p-public-stat__circle strong { font-size: var(--az-text-xl); }
+  .p-public-stat p { font-size: var(--az-text-xs); }
+  .p-public-picker { width: calc(100% - 2 * var(--az-space-4)); padding: var(--az-space-6) var(--az-space-5); }
+  .p-public-picker__form { flex-direction: column; align-items: stretch; }
+  .p-public-picker__field { flex-basis: auto; }
+  /* Telefonda tanlovlar ikki ustunda (yetti maydon birinchi ekranni egallamasin), 320px'da bitta; tugma butun qatorda. */
+  .p-public-facets { grid-template-columns: repeat(auto-fill, minmax(min(100%, calc(var(--az-space-16) * 2)), 1fr)); padding: var(--az-space-4); }
+  .p-public-facets > button { grid-column: 1 / -1; }
+}
