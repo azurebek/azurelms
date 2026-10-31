@@ -160,6 +160,20 @@ FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
         runbook="Yoqilgach 2–4 hafta asosiy ko'rsatkich yig'iladi: `manage.py public_funnel_report --days 28`.",
     ),
     FlagDefinition(
+        slug="public_editorial_v1",
+        label="Ochiq sahifalarning yangi dizayni",
+        description=(
+            "PUBLIC-02: ochiq sahifalar, kirish va ro'yxat yangi (editorial) ko'rinishda — katta rasmli bloklar, "
+            "to'q footer, logo uchala ramkada bir joyda. Faqat ko'rinish: kontent, tarif, kirish va to'lov "
+            "qoidalari o'zgarmaydi. Hali ko'chirilmagan sahifa hozirgi ko'rinishda qoladi."
+        ),
+        default=False, category="Frontend",
+        runbook=(
+            "OFF — hozirgi V1 public, auth va o'quv maydoni aynan bugungidek. ON faqat barcha kesimlar "
+            "(PUBLIC-EDITORIAL-PORT-PLAN.md, PE2–PE9) va owner ko'rib chiqishidan keyin; frontend_v1_public ham ON bo'lishi kerak."
+        ),
+    ),
+    FlagDefinition(
         slug="certificate_legacy_public_view",
         label="Eski sertifikat havolasi — o'tish davri",
         description=(

@@ -23,8 +23,8 @@ from core.flags import set_flag
 class DesignSchemaTests(SimpleTestCase):
     def test_complete_catalog_defaults_are_safe_and_detached(self):
         value = defaults()
-        self.assertEqual(len(FIELDS), 87)
-        self.assertEqual(sum(len(value[section]) for section in ("light", "dark", "values")), 118)
+        self.assertEqual(len(FIELDS), 88)
+        self.assertEqual(sum(len(value[section]) for section in ("light", "dark", "values")), 119)
         self.assertEqual(validate(value), value)
         value["light"]["surface"] = "#000000"
         self.assertEqual(defaults()["light"]["surface"], "#ffffff")
@@ -119,8 +119,30 @@ class DesignSchemaTests(SimpleTestCase):
         self.assertIn('--az-font:Georgia, "Times New Roman", serif;', css)
         self.assertIn("--dc-overlay:rgb(0 0 0 / 50%);", css)
         self.assertNotIn("--dc-card-radius:", css)
+        self.assertNotIn("--dc-shape-radius:", css)
         self.assertNotIn("--dc-text-sm:", css)
         self.assertNotIn("@import", css)
+
+    def test_later_added_field_is_optional_only_for_older_values(self):
+        """PUBLIC-02 "Urg'u burchagi": maydondan oldingi qiymat o'qiladi, boshqa qat'iylik saqlanadi."""
+        older = defaults()
+        del older["values"]["shape-radius"]
+        upgraded = validate(older)
+        self.assertIsNone(upgraded["values"]["shape-radius"])
+        self.assertNotIn("shape-radius", older["values"], "kiruvchi qiymat o'zgarmaydi")
+        self.assertEqual(upgraded, defaults())
+        value = defaults()
+        value["values"]["shape-radius"] = 32
+        self.assertIn("--dc-shape-radius:32px;", compile_css(value))
+        for bad in (49, -1, 12.5, "32px", True):
+            value["values"]["shape-radius"] = bad
+            with self.subTest(bad=bad), self.assertRaises(DesignValidationError):
+                validate(value)
+        # Asl (keyin qo'shilmagan) maydon yo'qligi avvalgidek rad etiladi.
+        original_missing = defaults()
+        del original_missing["values"]["card-radius"]
+        with self.assertRaises(DesignValidationError):
+            validate(original_missing)
 
 
 @override_settings(GEMINI_API_KEY="", TELEGRAM_BOT_TOKEN="")
@@ -510,6 +532,22 @@ class DesignServiceTests(TestCase):
             self.assertEqual(read_published(), {"version": 0, "value": defaults()})
         set_flag("backoffice_design_workspace", enabled=False, reason="Read fallback")
         self.assertEqual(read_published(), {"version": 0, "value": defaults()})
+
+    def test_stored_values_from_before_a_later_field_still_read_and_publish(self):
+        """Deploy'dan keyin bazadagi eski nashr standartga tushib qolmasin va ustaxona ochilsin."""
+        older = self.value(20)
+        del older["values"]["shape-radius"]
+        version = DesignVersion.objects.create(number=1, value=older, kind="publish", reason="Eski nashr",
+                                               actor=self.owner)
+        DesignState.objects.create(pk=1, current_version=version)
+        DesignDraft.objects.create(owner=self.owner, revision=1, base_version=1, value=older)
+        published = read_published()
+        self.assertEqual(published["version"], 1)
+        self.assertEqual(published["value"]["values"]["button-radius"], 20)
+        self.assertIsNone(published["value"]["values"]["shape-radius"])
+        state = read_state(self.owner)
+        self.assertEqual(state["draft"]["value"]["values"]["button-radius"], 20)
+        self.assertIsNone(state["draft"]["value"]["values"]["shape-radius"])
 
     def test_version_and_receipt_snapshots_cannot_be_updated_or_deleted(self):
         self.draft()

@@ -10,21 +10,31 @@ export function defaults(catalog) {
   }
   return result;
 }
+// Katalogga keyin qo'shilgan (`added`) maydon eski nusxada (tarix, variant, brauzerdagi qoralama) bo'lmasligi mumkin:
+// u standart qiymat oladi. Server `design_schema.validate` bilan bir qoida; boshqa yo'q yoki begona kalit rad etiladi.
 export function validate(catalog, value) {
   if (!record(value) || value.version !== catalog.version || Object.keys(value).sort().join() !== 'dark,light,values,version') throw Error('Qoralama formati mos emas.');
-  const expected = defaults(catalog);
+  const expected = defaults(catalog), added = new Set(fields(catalog).filter(field => field.added).map(field => field.key));
   for (const section of ['light', 'dark', 'values']) {
-    if (!record(value[section]) || Object.keys(value[section]).sort().join() !== Object.keys(expected[section]).sort().join()) throw Error('Qoralama maydonlari mos emas.');
+    // `in` emas, `Object.hasOwn`: `__proto__`/`constructor` kabi meros kalitlar ham begona hisoblanadi.
+    if (!record(value[section]) || Object.keys(value[section]).some(key => !Object.hasOwn(expected[section], key))
+        || Object.keys(expected[section]).some(key => !Object.hasOwn(value[section], key) && !added.has(key))) throw Error('Qoralama maydonlari mos emas.');
   }
+  // Asl qiymat tekshiriladi: JSON nusxa NaN/Infinity'ni jimgina null qilib yuborardi.
+  const missing = [];
   for (const field of fields(catalog)) for (const section of field.mode ? ['light','dark'] : ['values']) {
-    const item = value[section][field.key];
+    const present = Object.hasOwn(value[section], field.key);
+    if (!present) missing.push([section, field.key]);
+    const item = present ? value[section][field.key] : expected[section][field.key];
     let ok = false;
     if (field.kind === 'color') ok = (item === null && Boolean(field.inherit)) || (typeof item === 'string' && /^#[0-9a-f]{6}$/i.test(item));
     if (field.kind === 'select') ok = field.options.some(option => option.value === item);
     if (field.kind === 'number') ok = item === null || (typeof item === 'number' && Number.isFinite(item) && item >= field.min && item <= field.max && Math.abs((item-field.min)/field.step-Math.round((item-field.min)/field.step)) < 1e-7);
     if (!ok) throw Error(`${field.label}: ruxsat etilgan qiymatni kiriting.`);
   }
-  return clone(value);
+  const result = clone(value);
+  for (const [section, key] of missing) result[section][key] = expected[section][key];
+  return result;
 }
 export function edit(catalog, state, key, section, raw) {
   const field = fields(catalog).find(item => item.key === key);

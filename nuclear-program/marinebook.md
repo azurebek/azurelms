@@ -16,6 +16,28 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-31 [Claude]: PUBLIC-02 / PE1 — editorial dizayn poydevori
+
+Editorial public dizaynning (Thirteenth Trial) birinchi kod kesimi: tokenlar, owner sozlamasi, CSS patternlar
+va ularni qo'riqlaydigan CI qoidasi. Hech bir sahifa hali yangi CSS'ni yuklamaydi; flag OFF — sayt bugungidek.
+
+- Branch: `claude/pe1-editorial-foundation`. Migration yo'q.
+- `static/frontend_v1/css/tokens.css`: `--az-inverse` oilasi (D1), `--az-logo: 2.5rem` (D2), `--az-radius-tile`,
+  `--az-radius-shape`, `[data-surface="inverse"]` yuzasi. `--az-action` `#1257e6` qoladi (D3).
+  `static/backoffice/design-runtime.css` burchak tokenlarini owner sozlamasiga bog'laydi.
+- DESIGN-01 (D4): S14'ga `shape-radius` "Urg‘u burchagi" (0–48px, bo'sh = karta × 2). **Topilgan xavf:**
+  `design_schema.validate` kalitlarni qat'iy tenglik bilan tekshiradi — yangi maydon bazadagi eski nashrni
+  o'qib bo'lmaydigan qilib, deploy'dan keyin owner ko'rinishini jimgina standartga tushirardi va ustaxonani
+  yopardi. Endi keyin qo'shilgan maydon `"added"` bilan belgilanadi va eski qiymatda standart oladi (server va
+  `design-model.mjs` bir qoida; boshqa yo'q/begona kalit, `__proto__` ham, rad etiladi).
+- `static/frontend_v1/css/public-editorial.css` (prototip patternlari), flag `public_editorial_v1` (default OFF),
+  `tests/frontend_v1/public-editorial.test.mjs` — token, breakpoint, selector, inverse kontrast AA, burchak bog'i.
+- Test: `manage.py test core.test_design_service core.test_design_runtime core.test_design_views` 67 OK
+  (skipped=2); `node --test tests/frontend_v1/*.test.mjs` 194/194. Nazorat yugurishi: 6 buzish (xom rang, yangi
+  breakpoint, `.c-card` selectori, past kontrast, `added` olib tashlash, server qat'iyligi) — hammasi FAIL,
+  tiklangach bayt-bayt bir xil. To'liq `manage.py test` — **3286 OK (skipped=70)**; `check`, `makemigrations --check` toza.
+- Davom etilishi kerak: PE2 (umumiy ramka — editorial base, header, to'q footer, logo; `public_template_names`).
+
 ## 2026-10-30 [Claude]: Xavfsizlik — 22 advisory yopildi, istisnolar reyestri yana bo'sh
 
 Supply-chain skani 2026-10-28 dan barcha PR'larni blokladi: pypdf 6.19.0 (11), Twisted 26.4.0 (6 yangi +

@@ -1,6 +1,7 @@
 # PUBLIC-02 — editorial public dizaynini production'ga ko'chirish rejasi
 
-**Holat — 2026-10-30: reja yozildi, owner qarorlari D1–D5 qabul qilingan (§3), implementatsiya boshlanmagan.** Manba — owner bilan qurilgan lokal
+**Holat — 2026-10-31: owner qarorlari D1–D5 qabul qilingan (§3); PE1 (poydevor) kodda, lokal tekshirilgan;
+PE2–PE10 boshlanmagan.** Manba — owner bilan qurilgan lokal
 prototip `playground/Thirteenth Trial/` (2026-10-21…28). `playground/` git'ga kirmaydi: prototip faqat shu
 kompyuterda. Shu sabab birinchi kod kesimi (PE1) uning normativ qismini (CSS qoidalari va tekshiruvi) repo'ga
 olib kiradi; ungacha `playground/Thirteenth Trial/` o'chirilmaydi.
@@ -103,6 +104,19 @@ preview), `public-editorial.css`, `public_editorial_v1` flagi (registr + runbook
 *Test:* `core` dizayn testlari, `node --test tests/frontend_v1/*.test.mjs`, `manage.py check`.
 *Tugashi:* flag OFF'da hech bir sahifa baytda o'zgarmaydi (snapshot); ustaxonada yangi maydon qoralama → nashr
 → qaytarish bilan ishlaydi.
+
+**Holat — 2026-10-31: kodda, lokal tekshirilgan** (branch `claude/pe1-editorial-foundation`, migration yo'q).
+`tokens.css`: `--az-inverse` oilasi (yorug'/qorong'i), `--az-logo`, `--az-radius-tile`, `--az-radius-shape` va
+`[data-surface="inverse"]` yuzasi (faqat tokenlarni almashtiradi). Owner sozlamasi bilan bog'lash `design-runtime.css`da
+(V1 CSS `--dc-*`ni o'qimaydi — mavjud tartib). DESIGN-01: S14 "Karta" guruhiga `shape-radius` "Urg‘u burchagi"
+(0–48px, bo'sh standart) — Kengaytirilgan muharrirda avtomatik chiqadi; oddiy "Shakllar" bo'limiga editorial
+sahifalar uni ko'rsatganda (PE3) qo'shiladi. **Yangi qoida:** katalogga keyin qo'shilgan maydon `"added"` sanasi
+bilan belgilanadi — bazadagi eski nashr/qoralama/tarix/variantda u bo'lmasa standart qiymat oladi
+(`design_schema.validate` va `design-model.mjs::validate` bir xil); usiz deploy'dan keyin nashr qilingan ko'rinish
+jimgina standartga tushib, ustaxona ochilmay qolardi. Asl maydon yo'qligi va begona kalit (`__proto__` ham)
+avvalgidek rad etiladi. `public-editorial.css` (prototip patternlari, holatlar sahifasiga xos klasslarsiz) hali hech
+bir sahifa yuklamaydi — PE2 dan. Flag `public_editorial_v1` registrda (default OFF). Qoidalar CI'da:
+`tests/frontend_v1/public-editorial.test.mjs` (4 test).
 
 **PE2 — umumiy ramka.** `public_template_names`, `editorial/base.html` (to'liq kenglikdagi header, inverse
 footer bandi, gorizontal logo komponenti), PUB1.2d owner menyusi o'zgarmaydi.

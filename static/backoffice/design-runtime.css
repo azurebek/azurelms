@@ -23,6 +23,9 @@
   }
 
   body[data-frontend="v1"] { font-weight: var(--dc-body-weight, 400); line-height: var(--dc-body-leading, var(--az-leading)); }
+  /* PUBLIC-02 shakl burchaklari: oddiy burchak karta burchagiga ergashadi; urg'u burchagi berilmasa karta × 2.
+     Karta burchagi 0 bo'lsa ikkalasi ham 0 — sahifa butunlay tekis bo'ladi. */
+  body[data-frontend="v1"] { --az-radius-tile: var(--dc-card-radius, var(--az-radius)); --az-radius-shape: var(--dc-shape-radius, calc(var(--dc-card-radius, var(--az-radius-lg)) * 2)); }
   body[data-frontend="v1"] :is(h1,h2,h3):not(.ck *) { font-family: var(--dc-heading-font, var(--az-font)); font-weight: var(--dc-heading-weight, var(--az-weight-bold)); }
   body[data-frontend="v1"] h1:not(.ck *) { line-height: var(--dc-heading-leading, var(--az-leading-tight)); }
   body[data-frontend="v1"] h2:not(.ck *) { line-height: var(--dc-heading-leading, 1.35); }
