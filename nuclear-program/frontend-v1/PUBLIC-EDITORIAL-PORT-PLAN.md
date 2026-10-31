@@ -1,7 +1,7 @@
 # PUBLIC-02 — editorial public dizaynini production'ga ko'chirish rejasi
 
-**Holat — 2026-10-31: owner qarorlari D1–D5 qabul qilingan (§3); PE1 (poydevor), PE2 (umumiy ramka) va PE3
-(bosh sahifa, "Biz haqimizda") kodda, lokal tekshirilgan; PE4–PE10 boshlanmagan.** Manba — owner bilan qurilgan lokal
+**Holat — 2026-10-31: owner qarorlari D1–D5 qabul qilingan (§3); PE1 (poydevor), PE2 (umumiy ramka), PE3
+(bosh sahifa, "Biz haqimizda") va PE4 (katalog, kurs, tariflar) kodda, lokal tekshirilgan; PE5–PE10 boshlanmagan.** Manba — owner bilan qurilgan lokal
 prototip `playground/Thirteenth Trial/` (2026-10-21…28). `playground/` git'ga kirmaydi: prototip faqat shu
 kompyuterda. Shu sabab birinchi kod kesimi (PE1) uning normativ qismini (CSS qoidalari va tekshiruvi) repo'ga
 olib kiradi; ungacha `playground/Thirteenth Trial/` o'chirilmaydi.
@@ -154,6 +154,16 @@ brauzerda "Katta" tanlanganda namunadagi media burchagi 48px, qolgan burchaklar 
 saqlanadi), tariflar: kurs tanlashga olib boradi (PUB-D1), "Ommabop" PUB1.4a gacha yo'q, qaytarish/uzaytirish
 matni yo'q, davr taklifdagi `period_days` bilan.
 *Test:* `courses` public offer/intent testlari, PUB1.3 byudjetlari, `subscriptions`.
+
+**Holat — 2026-10-31: kodda, lokal tekshirilgan** (branch `claude/pe4-editorial-catalog-course-pricing`, migration
+yo'q). Katalog va kurs sahifasining tanasi umumiy qismga chiqdi (`frontend_v1/public/courses/_catalog_body.html`,
+`_detail_body.html`) — V1 va editorial PUB1.3a filtrlari, PUB1.3b/c taklif va faktlari, PUB1.3d niyati bilan
+**bitta belgilashdan** (kurs sahifasidagi "keyingi qadam" bloki ikki rendererda bayt-bayt bir xil — test). Editorial
+qo'shimchasi: muqova (`Course.uses_uploaded_image_cover`, bo'lmasa token-asosli fon; katalogda so'rov qo'shmaydi) va
+"Boshqa kurslar" (`courses.catalog.related_courses` — katalogning standart tartibi, +1 so'rov). Tariflar: narx
+`Plan.price` (kursga bog'liq emas — prototipdagi "Narx kursga bog'liq" bandi rost emasligi sababli "Avval kursni
+tanlang" bo'ldi), davr `courses.public_offer.billing_period_days()` (kurs taklifidagi `period_days` bilan bir manba),
+tugma katalogga (PUB-D1), "Ommabop" yo'q (PUB1.4a). Kurslar bandi `home_courses()` dan.
 
 **PE5 — Azure Journal.** Ro'yxat (spotlight + qator), maqola (muallif qatori, muqova, izoh va olqish).
 *Test:* `blog` testlari, PUB1.6a so'rov qoidasi.

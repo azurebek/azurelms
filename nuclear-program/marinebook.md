@@ -16,6 +16,25 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-31 [Claude]: PUBLIC-02 / PE4 — editorial katalog, kurs va tariflar
+
+`public_editorial_v1` yoqilsa katalog kartalari va kurs sahifasi muqova bilan, kurs ostida "Boshqa kurslar", tariflar
+yangi ko'rinishda. Taklif, faktlar va "keyingi qadam" V1 bilan bitta belgilashdan — ikki joyda ikki mantiq yo'q.
+
+- Branch: `claude/pe4-editorial-catalog-course-pricing`. Migration yo'q.
+- Qarorlar: V1 katalog/kurs tanasi `_catalog_body.html`/`_detail_body.html` ga chiqdi (V1 chiqishi bo'shliqdan tashqari
+  o'zgarmagan, V1 testlari o'tdi); `course_card.html` ixtiyoriy `with_cover`. `courses.catalog.related_courses`,
+  `courses.public_offer.billing_period_days`. Tariflarda prototipdagi "Narx kursga bog'liq" rost emas (narx
+  `Plan.price`) — "Avval kursni tanlang" bo'ldi; "Ommabop" yo'q; tugma katalogga. `subscriptions/views.py` aralash
+  satr oxirli — HEAD baytlaridan, yangi qatorlar LF bilan.
+- Test: `frontend/test_public_editorial.py` +5 (katalog muqovasi so'rovsiz, yuklangan rasm muqova, kurs "keyingi
+  qadam" V1 bilan bir xil, "Boshqa kurslar" katalog qoidasi va +1 so'rov, tariflar rostligi). To'liq `manage.py test` —
+  **3304 OK (skipped=70)**; `node --test` 198/198; `check`, `makemigrations --check` toza. Nazorat: 6 buzish (keyingi qadam
+  farqi, muqova N+1, boshqa kurslar qoidasi, "Ommabop", tugma ro'yxatga, qotirilgan davr) — hammasi FAIL, tiklangach bayt-bayt bir xil.
+- Brauzer (bazaning nusxasi): katalog, kurs, tariflar 1440/390/320px yorug'/qorong'i — toshish 0.
+- Ko'rilgan, tuzatilmagan (reja §8.1, V1'da ham): yopiq "Dastur" kartasi ostida ortiqcha joy.
+- Davom etilishi kerak: PE5 (Azure Journal).
+
 ## 2026-10-31 [Claude]: PUBLIC-02 / PE3 — editorial bosh sahifa va "Biz haqimizda"
 
 `public_editorial_v1` yoqilsa bosh sahifa va "Biz haqimizda" prototip tuzilishida: katta rasmli hero, kurslar qatori,

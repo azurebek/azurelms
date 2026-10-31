@@ -108,6 +108,11 @@ def catalog_queryset(query):
     return queryset.order_by(*SORT_ORDERING[query.sort])
 
 
+def related_courses(course, limit=3):
+    """Kurs sahifasidagi "Boshqa kurslar" (PUBLIC-02 editorial): katalogning standart tartibi, joriy kurssiz."""
+    return list(catalog_queryset(CatalogQuery()).exclude(pk=course.pk)[:limit])
+
+
 def page_links(page_obj, query, *, window=1):
     """Raqamli sahifa havolalari: birinchi, oxirgi va joriy atrofi; oraliqda `None`."""
     return public_query.page_links(page_obj, lambda number: query.url(page=number), window=window)

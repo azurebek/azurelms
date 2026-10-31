@@ -1,6 +1,7 @@
 from django.views.generic import ListView
 from .models import Plan
 from .catalog import purchase_plans
+from frontend.public_content import EDITORIAL, home_courses
 from frontend.public_v1 import PublicFrontendV1Mixin
 
 class PricingView(PublicFrontendV1Mixin, ListView):
@@ -15,4 +16,10 @@ class PricingView(PublicFrontendV1Mixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['active_nav'] = 'pricing'
+        if self.public_renderer == EDITORIAL:
+            # PUBLIC-02 / PE4: davr kurs taklifidagi bilan bir manbadan; narx kursga bog'liqligini kurslar bandi ko'rsatadi.
+            from courses.public_offer import billing_period_days
+
+            context['period_days'] = billing_period_days()
+            context['pricing_courses'] = home_courses()
         return context
