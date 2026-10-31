@@ -1,7 +1,7 @@
 # PUBLIC-02 — editorial public dizaynini production'ga ko'chirish rejasi
 
-**Holat — 2026-10-31: owner qarorlari D1–D5 qabul qilingan (§3); PE1 (poydevor) kodda, lokal tekshirilgan;
-PE2–PE10 boshlanmagan.** Manba — owner bilan qurilgan lokal
+**Holat — 2026-10-31: owner qarorlari D1–D5 qabul qilingan (§3); PE1 (poydevor) va PE2 (umumiy ramka) kodda,
+lokal tekshirilgan; PE3–PE10 boshlanmagan.** Manba — owner bilan qurilgan lokal
 prototip `playground/Thirteenth Trial/` (2026-10-21…28). `playground/` git'ga kirmaydi: prototip faqat shu
 kompyuterda. Shu sabab birinchi kod kesimi (PE1) uning normativ qismini (CSS qoidalari va tekshiruvi) repo'ga
 olib kiradi; ungacha `playground/Thirteenth Trial/` o'chirilmaydi.
@@ -122,6 +122,17 @@ bir sahifa yuklamaydi — PE2 dan. Flag `public_editorial_v1` registrda (default
 footer bandi, gorizontal logo komponenti), PUB1.2d owner menyusi o'zgarmaydi.
 *Test:* `frontend.test_public_shell`, `test_public_responsive`, `test_public_v1`, `core.test_brand_control`,
 `core.test_public_shell_tap_targets`, `test_public_a11y`, `public-header.test.mjs`; flag ON/OFF matritsasi.
+
+**Holat — 2026-10-31: kodda, lokal tekshirilgan** (branch `claude/pe2-editorial-frame`, migration yo'q). Renderer
+uchta qiymat oladi (`frontend/public_content.py`: `LEGACY`/`V1`/`EDITORIAL`); ikkala flag `core.flags.flags_enabled`
+bilan **bitta so'rovda** o'qiladi — ochiq sahifalarning qulflangan so'rov byudjeti o'zgarmaydi. Yagona tanlov nuqtasi
+`frontend/public_v1.py::public_template_names` (`render_public` va `PublicFrontendV1Mixin`); editorial sahifa bo'lmasa
+hozirgi V1 shabloni. Ramka sahifa shablonida `{% extends public_frame|default:"frontend_v1/public/base.html" %}` —
+flag yoqilsa barcha 12 V1 ochiq shablon `frontend_v1/editorial/base.html` ichida (`<html class="s-editorial">`,
+`public-editorial.css`, to'liq kenglikdagi header, owner'ning gorizontal logosi yorug'/qorong'i mavzu bo'yicha —
+yuklanmagan bo'lsa hozirgi belgi + nom, to'q inverse footer bandi). Header qoidalari `public.css`da `.s-editorial`
+bilan cheklangan. Byudjet: editorial ochiq sahifa CSS ~12.5 KB gzip → `("editorial","public")` 13 800.
+Test: `frontend/test_public_editorial.py` (7), a11y probe va asset byudjeti endi uchala renderer bilan.
 
 **PE3 — bosh sahifa va "Biz haqimizda".** Hero, yangiliklar qatori, raqamlar (faqat PUB1.2a dalili bilan; dalil
 yo'q bo'lsa band chiqmaydi) + tanlash bandi, Journal spotlight, SIT bandi; about: maqsad/qarash, jamoa.

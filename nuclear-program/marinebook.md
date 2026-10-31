@@ -16,6 +16,29 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-31 [Claude]: PUBLIC-02 / PE2 — editorial umumiy ramka
+
+`public_editorial_v1` yoqilsa barcha V1 ochiq sahifalar yangi ramkada: to'liq kenglikdagi header, owner'ning
+gorizontal logosi (mavzu bo'yicha), to'q inverse footer. Sahifa mazmuni hozirgi V1 shablonidan — PE3+ sahifama-sahifa
+almashtiradi. Flag OFF — hech narsa o'zgarmaydi.
+
+- Branch: `claude/pe2-editorial-frame`. Migration yo'q.
+- Qarorlar: renderer `LEGACY`/`V1`/`EDITORIAL` (`frontend/public_content.py::current_renderer`), ikkala flag
+  `core.flags.flags_enabled` bilan bitta so'rovda — ochiq sahifalarning so'rov byudjeti o'zgarmadi (test bilan).
+  Yagona tanlov `frontend/public_v1.py::public_template_names` (editorial nusxa → hozirgi V1). 12 V1 ochiq shablon
+  `{% extends public_frame|default:… %}`; ramka `templates/frontend_v1/editorial/base.html`; header qoidalari
+  `public.css`da `.s-editorial` bilan cheklangan. Logo yuklanmagan bo'lsa hozirgi belgi + nom.
+- Test: `frontend/test_public_editorial.py` (7: flag matritsasi, bitta so'rov, 14 marshrut × 3 holat, logo); a11y
+  probe (21 sahifa × mehmon/a'zo) va asset byudjeti uchala renderer bilan — editorial'da topilma 0, CSS byudjet ichida.
+  To'liq `manage.py test`: 3293 dan 2 xato — `test_renderer_is_decided_once_per_request` eski o'qish nuqtasini
+  (`flag_enabled`) mock qilardi; maqsadi saqlanib `flags_enabled`ga moslandi (birinchi o'qish bir qiymat, keyingisi teskari),
+  `frontend.test_public_content` 7/7. `node --test` 198/198; `check`, `makemigrations --check` toza. Nazorat: 5 buzish
+  (qayta o'qish, V1'siz editorial, ikki so'rov, ramka yo'q, footer to'q emas) — hammasi FAIL, tiklangach bayt-bayt bir xil.
+- Brauzer (bazaning nusxasi, flaglar ON): bosh sahifa, kurslar, SIT — 1440px yorug'/qorong'i, 390/320px: toshish 0,
+  telefonda menyu tugmasi logodan oldin, footer guruhlari yig'iladi. Nusxa bazada migratsiyalar orqada edi —
+  faqat nusxa migratsiya qilindi.
+- Davom etilishi kerak: PE3 (bosh sahifa va "Biz haqimizda" editorial shablonlari; "Shakllar"ga "Urg‘u burchagi").
+
 ## 2026-10-31 [Claude]: PUBLIC-02 / PE1 — editorial dizayn poydevori
 
 Editorial public dizaynning (Thirteenth Trial) birinchi kod kesimi: tokenlar, owner sozlamasi, CSS patternlar

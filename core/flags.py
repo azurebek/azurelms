@@ -383,6 +383,23 @@ def flag_enabled(slug: str) -> bool:
     return definition.default if row is None else bool(row["enabled"])
 
 
+def flags_enabled(*slugs: str) -> dict[str, bool]:
+    """Bir nechta flag bitta so'rovda — `flag_enabled` bilan ayni qoida (override, bo'lmasa default).
+
+    Bir sahifada birga qaror qiladigan flaglar uchun (masalan ochiq sahifa rendereri): har biri alohida
+    o'qilsa, so'rov byudjeti qulflangan ochiq sahifalarga har flag uchun yangi so'rov qo'shilardi.
+    """
+    definitions = {slug: flag_by_slug(slug) for slug in slugs}
+
+    from aicontrol.models import FeatureFlag
+
+    try:
+        rows = dict(FeatureFlag.objects.filter(slug__in=list(definitions)).values_list("slug", "enabled"))
+    except DatabaseError:
+        rows = {}
+    return {slug: bool(rows[slug]) if slug in rows else definition.default for slug, definition in definitions.items()}
+
+
 def set_flag(slug: str, *, enabled: bool, reason: str, request=None, actor=None) -> bool:
     """Flagni o'zgartiradi va auditlaydi. Qaytaradi: o'zgarish bo'ldimi.
 

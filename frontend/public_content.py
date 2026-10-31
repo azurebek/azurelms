@@ -13,7 +13,7 @@ matnidagi owner kiritgan qadamlar ishlatiladi (bu da'vo emas, jarayon tavsifi).
 
 from django.db.models import Count, Q
 
-from core.flags import flag_enabled
+from core.flags import flags_enabled
 from frontend.models import (
     AboutPage,
     LandingAIFeature,
@@ -27,13 +27,22 @@ from frontend.public_claims import public_testimonials, verified_about_statistic
 
 LEGACY = "legacy"
 V1 = "v1"
+# PUBLIC-02: V1 ma'lumoti, editorial ramka/shablon. Proyeksiyalar uni V1 kabi o'qiydi (faqat LEGACY farq qiladi).
+EDITORIAL = "editorial"
 HOME_COURSE_LIMIT = 3
 TESTIMONIAL_LIMIT = 3
 
 
 def current_renderer():
-    """`render_public` bilan ayni qaror: qaysi shablon chiziladi."""
-    return V1 if flag_enabled("frontend_v1_public") else LEGACY
+    """`render_public` bilan ayni qaror: qaysi shablon chiziladi.
+
+    Ikkala flag bitta so'rovda o'qiladi — editorial qarori ochiq sahifalarning qulflangan so'rov byudjetiga
+    yangi so'rov qo'shmaydi. Editorial faqat V1 ustida ishlaydi: `frontend_v1_public` o'chiq bo'lsa legacy.
+    """
+    flags = flags_enabled("frontend_v1_public", "public_editorial_v1")
+    if not flags["frontend_v1_public"]:
+        return LEGACY
+    return EDITORIAL if flags["public_editorial_v1"] else V1
 
 
 def _visible(model):

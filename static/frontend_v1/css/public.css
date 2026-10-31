@@ -142,3 +142,12 @@
   .s-public-footer__links { padding-bottom: var(--az-space-3); }
   .s-public-footer__links a { min-height: 2.5rem; }
 }
+
+/* PUBLIC-02 editorial ramkasi (`public_editorial_v1`, `<html class="s-editorial">`). Header to'liq kenglikda: logo
+   o'quv maydonidagi sidebar logosi bilan bitta x'da (PE9). Tor ekranda menyu tugmasi logodan oldin — o'quv maydoni
+   topbar'idagi tartib. Rollout tugagach (PE10) `.s-editorial` cheklovi olib tashlanadi. */
+.s-editorial .s-public-header__inner { width: auto; margin-inline: 0; padding-inline: calc(var(--az-space-4) + var(--az-space-3)); }
+@media (width < 1200px) {
+  .s-editorial .s-public-menu { order: -1; }
+  .s-editorial .s-public-header__inner { padding-inline: var(--az-space-4); }
+}
