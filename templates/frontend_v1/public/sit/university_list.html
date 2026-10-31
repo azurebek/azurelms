@@ -1,4 +1,4 @@
-{% extends "frontend_v1/public/base.html" %}
+{% extends public_frame|default:"frontend_v1/public/base.html" %}
 {% block content %}<a class="c-text-link p-public-back" href="{% url 'sit:home' %}">Turkiyada o‘qish</a><div class="p-public-heading"><p class="c-eyebrow">UNIVERSITETLAR</p><h1>Universitetni tanlang</h1><p class="c-lead">Faqat nashr qilingan katalog. Tanlovlar “Qo‘llash” bosilganda ishlaydi.</p></div>
 <form class="c-card p-public-filters" action="{% url 'sit:university_list' %}" method="get" role="search"><div><label class="c-field__label" for="sit-q">Qidiruv</label><input class="c-field" id="sit-q" type="search" name="q" value="{{ filters.q }}" maxlength="{{ max_query_chars }}" placeholder="Universitet yoki shahar"></div>
 <div><label class="c-field__label" for="sit-type">Turi</label><select class="c-field" id="sit-type" name="type"><option value="">Barchasi</option>{% for value, label in university_types %}<option value="{{ value }}"{% if filters.type == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>

@@ -1,6 +1,6 @@
 from django.shortcuts import redirect
 from django.utils.cache import patch_cache_control
-from .public_content import V1, about_projection, current_renderer, home_projection
+from .public_content import about_projection, current_renderer, home_projection
 from .public_v1 import render_public
 from .models import LegalPage
 
@@ -15,12 +15,12 @@ def home_view(request):
         return redirect('dashboard')
     # Renderer bir marta tanlanadi: proyeksiya va shablon ayni qarordan.
     renderer = current_renderer()
-    return render_public(request, 'index.html', home_projection(renderer), v1=renderer == V1)
+    return render_public(request, 'index.html', home_projection(renderer), renderer=renderer)
 
 
 def about_view(request):
     renderer = current_renderer()
-    return render_public(request, 'about.html', about_projection(renderer), v1=renderer == V1)
+    return render_public(request, 'about.html', about_projection(renderer), renderer=renderer)
 
 
 def legal_page_view(request, page_type):

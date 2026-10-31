@@ -34,6 +34,10 @@ BUDGETS = {
     ("legacy", "auth"): {"css": 19_000, "js": 8_500},
     ("v1", "public"): {"css": 9_100, "js": 2_600},
     ("v1", "auth"): {"css": 9_200, "js": 8_200},
+    # PUBLIC-02 editorial ramka (2026-10-31 o'lchovi + ~10%): V1 ochiq + `public-editorial.css` (~3.5 KB).
+    # Kirish sahifalari PE8 gacha V1 ramkasida — V1 kirish byudjeti bilan bir xil. PE10 da qayta o'lchanadi.
+    ("editorial", "public"): {"css": 13_800, "js": 2_600},
+    ("editorial", "auth"): {"css": 9_200, "js": 8_200},
 }
 
 

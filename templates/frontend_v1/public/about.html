@@ -1,4 +1,4 @@
-{% extends "frontend_v1/public/base.html" %}{% load public_content %}
+{% extends public_frame|default:"frontend_v1/public/base.html" %}{% load public_content %}
 {% block content %}
 <div class="p-public-heading"><p class="c-eyebrow">PLATFORMA HAQIDA</p><h1>{{ page.hero_title_start }} {{ page.hero_title_highlight }}</h1><div class="c-lead p-public-rich">{{ page.hero_subtitle|public_rich }}</div></div>
 <section class="p-public-card-grid"><article class="c-card p-public-info-card"><h2>{{ page.mission_title }}</h2><div class="p-public-rich">{{ page.mission_text|public_rich }}</div></article><article class="c-card p-public-info-card"><h2>{{ page.vision_title }}</h2><div class="p-public-rich">{{ page.vision_text|public_rich }}</div></article></section>

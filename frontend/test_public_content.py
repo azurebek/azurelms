@@ -141,7 +141,15 @@ class ProjectionTests(ContentWorld, TestCase):
         self.populate(1)
         for first, template, key in ((True, "frontend_v1/public/index.html", "popular_courses"),
                                      (False, "index.html", "level_stages")):
-            with self.subTest(first_read=first),                     mock.patch("frontend.public_content.flag_enabled", return_value=first),                     mock.patch("frontend.public_v1.flag_enabled", return_value=not first):
+            # Birinchi o'qish `first`, keyingi har qanday o'qish teskarisi: kod qarorni qayta o'qisa shablon va
+            # kontekst ajralib qoladi va test yiqiladi (PUBLIC-02 dan beri ikkala flag bitta `flags_enabled` o'qishida).
+            reads = iter([first])
+
+            def flags(*slugs, reads=reads, first=first):
+                value = next(reads, not first)
+                return {slug: value if slug == "frontend_v1_public" else False for slug in slugs}
+
+            with self.subTest(first_read=first), mock.patch("frontend.public_content.flags_enabled", side_effect=flags):
                 response = self.client.get(reverse("home"))
                 self.assertTemplateUsed(response, template)
                 self.assertIn(key, response.context)

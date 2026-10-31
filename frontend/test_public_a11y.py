@@ -30,7 +30,8 @@ from frontend.testing_legal import publish_legal
 from sit.models import KnowledgeArticle, University, UniversityFaculty, UniversityProgram
 from users.models import CustomUser
 
-RENDERERS = (("legacy", False), ("v1", True))
+# PUBLIC-02: editorial ramka ham shu probe'dan o'tadi (V1 ustida, `public_editorial_v1`).
+RENDERERS = (("legacy", False, False), ("v1", True, False), ("editorial", True, True))
 HREF_RE = re.compile(r'href="([^"]+)"')
 
 
@@ -60,9 +61,10 @@ class A11yWorld(TestCase):
         SiteSettings.objects.update(logo_mark_image="brand/belgi.png")
         BlogPost.objects.filter(pk=self.post.pk).update(cover_image="blog/covers/muqova.jpg")
 
-    def renderer(self, v1):
+    def renderer(self, v1, editorial=False):
         for slug in ("frontend_v1_public", "frontend_v1_auth"):
             FeatureFlag.objects.update_or_create(slug=slug, defaults={"enabled": v1})
+        FeatureFlag.objects.update_or_create(slug="public_editorial_v1", defaults={"enabled": editorial})
         FeatureFlag.objects.update_or_create(slug="certificate_public_verifier", defaults={"enabled": True})
 
     def guest_pages(self):
@@ -80,8 +82,8 @@ class A11yWorld(TestCase):
 
 class ProbeTests(A11yWorld):
     def test_public_auth_and_state_pages_have_no_findings(self):
-        for renderer, v1 in RENDERERS:
-            self.renderer(v1)
+        for renderer, v1, editorial in RENDERERS:
+            self.renderer(v1, editorial)
             for who in ("guest", "member"):
                 client = Client()
                 if who == "member":
@@ -137,8 +139,8 @@ class NoScriptJourneyTests(A11yWorld):
         return client.get(target, data)
 
     def test_catalog_blog_and_sit_work_without_javascript(self):
-        for renderer, v1 in RENDERERS:
-            self.renderer(v1)
+        for renderer, v1, editorial in RENDERERS:
+            self.renderer(v1, editorial)
             with self.subTest(renderer=renderer, flow="catalog"):
                 page = self.client.get(reverse("courses")).content.decode()
                 results = self.submit(self.client, reverse("courses"), self.form_with(page, "q"), q="Turk").content.decode()
@@ -156,8 +158,8 @@ class NoScriptJourneyTests(A11yWorld):
                 self.assertContains(results, "Istanbul Texnika")
 
     def test_login_reset_and_comment_work_without_javascript(self):
-        for renderer, v1 in RENDERERS:
-            self.renderer(v1)
+        for renderer, v1, editorial in RENDERERS:
+            self.renderer(v1, editorial)
             client = Client()
             with self.subTest(renderer=renderer, flow="login"):
                 page = client.get(reverse("login")).content.decode()

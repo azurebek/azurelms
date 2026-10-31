@@ -1,0 +1,26 @@
+{% extends "frontend_v1/base.html" %}{% load static public_v1 %}
+{% comment %}
+  PUBLIC-02 editorial ramkasi (PE2). `public_editorial_v1` yoqilganda barcha V1 ochiq sahifalar shu ramkada:
+  to'liq kenglikdagi header (logo o'quv maydonidagi bilan bitta x'da — `.s-editorial` bilan cheklangan
+  `public.css` qoidalari), owner'ning gorizontal logosi (yorug'/qorong'i mavzu bo'yicha) va to'q (inverse) footer.
+  Menyu, auth tugmalari, xabarlar, preview belgisi va footer guruhlari `frontend_v1/public/base.html` bilan aynan
+  bir manbadan — kontent va havolalar farq qilmaydi, faqat ramka.
+{% endcomment %}
+{% block document_class %}s-editorial{% endblock %}
+{% block app_bundle %}{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'frontend_v1/css/public.css' %}"><link rel="stylesheet" href="{% static 'frontend_v1/css/public-editorial.css' %}"><script defer src="{% static 'frontend_v1/js/public-header.js' %}"></script>{% block public_head %}{% endblock %}{% endblock %}
+{% block body %}
+<header class="s-public-header"><div class="s-public-header__inner">
+  <a class="s-brand" href="{% url 'home' %}">{% if site_settings.logo_image %}<span class="s-theme-light">{% include "components/brand_logo.html" with use_wordmark=True image_class="s-public-logo" %}</span><span class="s-theme-dark">{% if site_settings.logo_dark_image %}{% include "components/brand_logo.html" with use_wordmark=True dark=True image_class="s-public-logo" %}{% else %}{% include "components/brand_logo.html" with mark_class="s-brand__mark" %}{% endif %}</span>{% else %}{% include "components/brand_logo.html" with mark_class="s-brand__mark" %}{% endif %}</a>
+  <nav class="s-public-nav s-public-nav--desktop" aria-label="Asosiy navigatsiya">{% include "frontend_v1/public/header_links.html" %}</nav>
+  <div class="s-public-header__actions">{% include "frontend_v1/theme_button.html" %}<div class="s-public-auth s-public-auth--desktop">{% include "frontend_v1/public/header_auth.html" %}</div></div>
+  <details class="s-public-menu" data-public-menu>
+    <summary class="c-icon-button" aria-label="Menyu"><span class="s-public-menu__open">{% include "frontend_v1/icon.html" with name="menu" %}</span><span class="s-public-menu__close">{% include "frontend_v1/icon.html" with name="close" %}</span></summary>
+    <div class="s-public-menu__panel"><nav class="s-public-nav" aria-label="Mobil navigatsiya">{% include "frontend_v1/public/header_links.html" %}</nav><div class="s-public-auth">{% include "frontend_v1/public/header_auth.html" %}</div></div>
+  </details>
+</div></header>
+<main id="main" class="s-public-main" tabindex="-1">{% include "frontend_v1/messages.html" %}{% if is_preview %}<p class="c-alert c-alert--info">Ko‘rib chiqish — bu sahifa hali hammaga nashr qilinmagan.</p>{% endif %}{% block content %}{% endblock %}</main>
+<div class="p-public-band" data-surface="inverse" data-editorial-footer>
+<footer class="s-public-footer"><div class="s-public-footer__brand">{% if site_settings.logo_dark_image %}{% include "components/brand_logo.html" with use_wordmark=True dark=True image_class="s-public-logo" %}{% else %}<strong>{{ site_settings.brand_name }}</strong>{% endif %}<p>{{ public_page_settings.footer_tagline }}</p><small>{{ public_page_settings.footer_copyright }}</small></div>{% comment %}Telefonda har guruh yig‘iladi (+/−); kengroq ekranda ustunlar doim ochiq. JS bo‘lmasa hammasi ochiq qoladi.{% endcomment %}<div class="s-public-footer__groups">{% for group_title, links in footer_groups %}{% if links %}<nav class="s-public-footer__group" aria-label="Footer: {{ group_title }}"><details class="s-public-footer__fold" data-footer-fold open><summary class="s-public-footer__title"><strong>{{ group_title }}</strong><span class="s-public-footer__sign" aria-hidden="true"></span></summary><div class="s-public-footer__links">{% for item in links %}{% include "frontend_v1/public/nav_link.html" %}{% endfor %}</div></details></nav>{% endif %}{% endfor %}</div></footer>
+</div>
+{% endblock %}
