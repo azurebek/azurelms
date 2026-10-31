@@ -33,6 +33,8 @@
     radial-gradient(55% 70% at 100% 100%, color-mix(in srgb, var(--az-action-border) 85%, transparent), transparent 70%),
     var(--az-soft);
 }
+/* Owner yuklagan rasm yoki video media o'rnini to'liq egallaydi (kesib, cho'zmasdan). */
+.p-public-media__image { display: block; width: 100%; height: 100%; object-fit: cover; }
 .p-public-media__mark { position: absolute; inset: 0; margin: auto; width: min(var(--az-art-width), 40%); height: auto; opacity: .92; }
 
 /* Bo'limlar orasidagi bitta ritm. */
@@ -63,6 +65,8 @@
 
 /* 4. To'q tanlash bandi (BC "Visit worldwide"): raqamlar bandiga chiqib turadi, bir burchagi katta. */
 .p-public-picker { position: relative; display: grid; justify-items: center; gap: var(--az-space-5); width: min(calc(100% - 2 * var(--az-space-8)), calc(var(--az-reading) + var(--az-space-16))); margin: calc(-1 * (var(--az-space-16) + var(--az-space-4))) auto var(--az-space-16); padding: var(--az-space-10) var(--az-space-8); border-radius: var(--az-radius-tile) var(--az-radius-tile) var(--az-radius-shape) var(--az-radius-tile); text-align: center; }
+/* Raqamlar bandi bo'lmasa (dalil bilan tasdiqlangan raqam yo'q) — chiqib turmaydi, oddiy oqimda. */
+.p-public-picker--solo { margin-top: var(--az-space-8); }
 .p-public-picker__form { display: flex; align-items: end; flex-wrap: wrap; justify-content: center; gap: var(--az-space-3); width: 100%; text-align: left; }
 .p-public-picker__field { display: grid; flex: 0 1 var(--az-drawer); min-width: 0; }
 

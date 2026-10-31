@@ -1,0 +1,50 @@
+{% extends "frontend_v1/editorial/base.html" %}{% load public_content %}
+{% comment %}
+  PUBLIC-02 / PE3 — editorial bosh sahifa. Ma'lumot `frontend/public_content.py::home_projection` (EDITORIAL)
+  dan: owner'ning bosh sahifa matni, faqat dalil bilan tasdiqlangan raqamlar (PUB1.2a), roziligi bor fikrlar,
+  kurslar, Journal (`blog.listing.latest_posts`) va SIT (`sit.selectors.featured_open_universities`). Bo'sh band
+  chizilmaydi — o'rniga soxta namuna qo'yilmaydi. Rasm bo'lmasa token-asosli fon (`p-public-media--atmos`).
+{% endcomment %}
+{% block content %}
+<section class="c-card p-public-feature" aria-labelledby="hero-title">
+  <div class="p-public-media{% if not page.hero_video and not page.hero_image %} p-public-media--atmos{% endif %} p-public-feature__media">{% if page.hero_video %}<video class="p-public-media__image" controls preload="metadata" src="{{ page.hero_video.url }}"></video>{% elif page.hero_image %}<img class="p-public-media__image" src="{{ page.hero_image.url }}" alt="">{% elif site_settings.logo_mark_image %}<img class="p-public-media__mark" src="{{ site_settings.logo_mark_image.url }}" alt="">{% endif %}</div>
+  <div class="p-public-feature__panel"><p class="c-eyebrow">{{ site_settings.brand_tagline }}</p><h1 class="p-public-feature__title" id="hero-title">{{ page.hero_title_start }} {{ page.hero_title_highlight }} {{ page.hero_title_end }}</h1><div class="c-lead p-public-rich">{{ page.hero_subtitle|public_rich }}</div><div class="c-actions"><a class="c-button c-button--primary" href="{% url 'courses' %}">Kurslarni ko‘rish {% include "frontend_v1/icon.html" with name="arrow" %}</a><a class="c-button c-button--secondary" href="{% url 'about' %}">Platforma bilan tanishish</a></div></div>
+</section>
+{% if how_it_works_steps %}<section class="p-public-block" aria-labelledby="how-title">
+  <div class="c-section-title"><div class="p-public-lede"><h2 id="how-title">{{ page.how_it_works_title }}</h2></div></div>
+  <ol class="p-public-card-grid">{% for step in how_it_works_steps %}<li class="c-card p-public-info-card"><p><span class="c-badge c-badge--soft">{{ forloop.counter }}-qadam</span></p><h3>{{ step.title }}</h3><p class="c-muted">{{ step.description }}</p></li>{% endfor %}</ol>
+</section>{% endif %}
+<section class="p-public-block" aria-labelledby="courses-title">
+  <div class="c-section-title"><h2 id="courses-title">Kurslar</h2><a class="c-text-link" href="{% url 'courses' %}">Barcha kurslar {% include "frontend_v1/icon.html" with name="arrow" %}</a></div>
+  {% if popular_courses %}<div class="p-public-stories">{% for item in popular_courses %}<article class="p-public-story"><div class="p-public-media p-public-media--atmos{% cycle '' ' p-public-media--atmos-2' ' p-public-media--atmos-3' %} p-public-story__media"></div><span class="c-badge c-badge--soft">{{ item.get_level_display }}</span><h3><a href="{% url 'course_detail' item.pk %}">{{ item.title }}</a></h3><p class="c-muted">{{ item.description|public_plain|truncatewords:24 }}</p>{% with lessons=item.lessons_count %}{% if lessons %}<p class="c-caption">{{ lessons }} dars</p>{% endif %}{% endwith %}</article>{% endfor %}</div>
+  {% else %}<div class="c-card p-public-empty"><h3>Hozircha kurslar e’lon qilinmagan</h3><p class="c-muted">Yangi kurslar shu yerda ko‘rinadi.</p></div>{% endif %}
+</section>
+{% if statistics %}<section class="p-public-stats" aria-labelledby="stats-title">
+  <h2 id="stats-title">{{ site_settings.brand_name|default:"AzureLMS" }} raqamlarda</h2>
+  <ul class="p-public-stats__list">{% for item in statistics %}<li class="p-public-stat{% if forloop.counter|divisibleby:2 %} p-public-stat--alt{% endif %}"><span class="p-public-stat__circle"><strong>{{ item.display_value }}</strong></span><p class="c-muted">{{ item.label }}</p></li>{% endfor %}</ul>
+</section>{% endif %}
+<section class="p-public-picker{% if not statistics %} p-public-picker--solo{% endif %}" data-surface="inverse" aria-labelledby="picker-title">
+  <h2 id="picker-title">Qaysi darajadan boshlaysiz?</h2>
+  <form class="p-public-picker__form" action="{% url 'courses' %}" method="get">
+    <div class="p-public-picker__field"><label class="c-field__label" for="picker-level">Daraja</label><select class="c-field" id="picker-level" name="level">{% for value, label in course_levels %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
+    <button class="c-button c-button--primary" type="submit">Kurslarni ko‘rsatish</button>
+  </form>
+</section>
+{% if journal_posts %}{% with spotlight=journal_posts.0 %}<section class="p-public-block" aria-labelledby="journal-title">
+  <div class="c-section-title"><h2 id="journal-title">Azure Journal</h2><a class="c-button c-button--secondary" href="{% url 'blog:list' %}">Barcha maqolalar</a></div>
+  <article class="p-public-spotlight">
+    <div class="p-public-spotlight__copy">{% with tag=spotlight.tags.all.0 %}{% if tag %}<span class="c-badge c-badge--soft">{{ tag.name }}</span>{% endif %}{% endwith %}<h3><a href="{{ spotlight.get_absolute_url }}">{{ spotlight.title }}</a></h3>{% if spotlight.excerpt %}<p class="c-muted">{{ spotlight.excerpt|truncatewords:40 }}</p>{% endif %}<a class="c-text-link" href="{{ spotlight.get_absolute_url }}">Maqolani o‘qish {% include "frontend_v1/icon.html" with name="arrow" %}</a></div>
+    <div class="p-public-spotlight__visual"><div class="p-public-media{% if not spotlight.cover_image %} p-public-media--atmos-2{% endif %} p-public-spotlight__media">{% if spotlight.cover_image %}<img class="p-public-media__image" src="{{ spotlight.cover_image.url }}" alt="" loading="lazy" decoding="async">{% endif %}</div></div>
+  </article>
+  {% if journal_posts|length > 1 %}<div class="p-public-stories">{% for post in journal_posts|slice:"1:" %}<article class="p-public-story"><div class="p-public-media{% if not post.cover_image %} p-public-media--atmos{% cycle '' ' p-public-media--atmos-3' ' p-public-media--atmos-2' %}{% endif %} p-public-story__media">{% if post.cover_image %}<img class="p-public-media__image" src="{{ post.cover_image.url }}" alt="" loading="lazy" decoding="async">{% endif %}</div>{% with tag=post.tags.all.0 %}{% if tag %}<span class="c-badge c-badge--soft">{{ tag.name }}</span>{% endif %}{% endwith %}<h3><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h3>{% if post.excerpt %}<p class="c-muted">{{ post.excerpt|truncatewords:20 }}</p>{% endif %}</article>{% endfor %}</div>{% endif %}
+</section>{% endwith %}{% endif %}
+{% if sit_universities %}<section class="p-public-block p-public-showcase" aria-labelledby="sit-title">
+  <div class="c-section-title"><h2 id="sit-title">Turkiyada o‘qish</h2><a class="c-button c-button--primary" href="{% url 'sit:home' %}">Bo‘limni ochish</a></div>
+  <div class="p-public-stories">{% for university in sit_universities %}<article class="p-public-story"><div class="p-public-media{% if not university.cover_image %} p-public-media--atmos{% cycle ' p-public-media--atmos-3' '' ' p-public-media--atmos-2' %}{% endif %} p-public-story__media">{% if university.cover_image %}<img class="p-public-media__image" src="{{ university.cover_image.url }}" alt="" loading="lazy" decoding="async">{% endif %}</div><span class="c-badge c-badge--soft">{{ university.city }}</span><h3><a href="{{ university.get_absolute_url }}">{{ university.name }}</a></h3><p class="c-muted">{{ university.get_university_type_display }} · {{ university.get_admission_status_display }}</p></article>{% endfor %}</div>
+</section>{% endif %}
+{% if testimonials %}<section class="p-public-block" aria-labelledby="voices-title">
+  <div class="c-section-title"><div class="p-public-lede"><h2 id="voices-title">O‘quvchilar fikri</h2><p class="c-caption">Roziligi bilan e’lon qilingan alohida fikrlar — umumiy reyting emas.</p></div></div>
+  <div class="p-public-card-grid">{% for item in testimonials %}<article class="c-card p-public-info-card"><p>{{ item.text }}</p><strong>{{ item.public_name }}</strong><span class="c-caption">{{ item.role }}</span></article>{% endfor %}</div>
+</section>{% endif %}
+<section class="c-card p-public-cta" aria-labelledby="final-cta-title"><div><h2 id="final-cta-title">{{ page.final_cta_title }}</h2><p class="c-muted">{{ site_settings.brand_tagline }}</p></div><a class="c-button c-button--secondary" href="{% url 'subscriptions:pricing' %}">{{ page.final_cta_secondary_label }}</a></section>
+{% endblock %}

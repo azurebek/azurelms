@@ -64,6 +64,17 @@ class DesignViewsTests(TestCase):
         self.assertEqual(self.save().status_code, 403)
         self.assertEqual(self.counts(), (0, 0, 0, 0, 0))
 
+    def test_accent_radius_has_a_simple_control_and_a_public_sample(self):
+        """PUBLIC-02 / PE3: "Urg‘u burchagi" oddiy "Shakllar" bo'limida; ta'siri "Ochiq sahifa" namunasida ko'rinadi."""
+        html = self.client.get(reverse('backoffice_design')).content.decode()
+        self.assertIn('data-shape="shape-radius"', html)
+        self.assertIn('<option value="public">Ochiq sahifa</option>', html)
+        sample = re.search(r'<template id="design-sample-public">(.*?)</template>', html, re.S)
+        self.assertIsNotNone(sample)
+        self.assertIn('p-public-story__media', sample.group(1))
+        self.assertNotIn('<form', sample.group(1))
+        self.assertIn("frontend_v1/css/public-editorial.css", html)
+
     def test_editor_preview_is_inert_and_cannot_submit_real_content(self):
         response = self.client.get(reverse('backoffice_design'))
         self.assertContains(response, '<option value="editor">')

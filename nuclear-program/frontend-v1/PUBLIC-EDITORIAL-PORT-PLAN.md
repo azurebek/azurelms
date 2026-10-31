@@ -1,7 +1,7 @@
 # PUBLIC-02 — editorial public dizaynini production'ga ko'chirish rejasi
 
-**Holat — 2026-10-31: owner qarorlari D1–D5 qabul qilingan (§3); PE1 (poydevor) va PE2 (umumiy ramka) kodda,
-lokal tekshirilgan; PE3–PE10 boshlanmagan.** Manba — owner bilan qurilgan lokal
+**Holat — 2026-10-31: owner qarorlari D1–D5 qabul qilingan (§3); PE1 (poydevor), PE2 (umumiy ramka) va PE3
+(bosh sahifa, "Biz haqimizda") kodda, lokal tekshirilgan; PE4–PE10 boshlanmagan.** Manba — owner bilan qurilgan lokal
 prototip `playground/Thirteenth Trial/` (2026-10-21…28). `playground/` git'ga kirmaydi: prototip faqat shu
 kompyuterda. Shu sabab birinchi kod kesimi (PE1) uning normativ qismini (CSS qoidalari va tekshiruvi) repo'ga
 olib kiradi; ungacha `playground/Thirteenth Trial/` o'chirilmaydi.
@@ -137,6 +137,18 @@ Test: `frontend/test_public_editorial.py` (7), a11y probe va asset byudjeti endi
 **PE3 — bosh sahifa va "Biz haqimizda".** Hero, yangiliklar qatori, raqamlar (faqat PUB1.2a dalili bilan; dalil
 yo'q bo'lsa band chiqmaydi) + tanlash bandi, Journal spotlight, SIT bandi; about: maqsad/qarash, jamoa.
 *Test:* `test_public_content` so'rov byudjetlari, da'vo/fikr rostlik testlari, a11y probe.
+
+**Holat — 2026-10-31: kodda, lokal tekshirilgan** (branch `claude/pe3-editorial-home-about`, migration yo'q).
+`templates/frontend_v1/editorial/index.html` va `about.html`. Bosh sahifa: hero (owner rasmi/videosi, bo'lmasa
+token-asosli fon), "Qanday ishlaydi" qadamlari, kurslar qatori, raqamlar (faqat PUB1.2a dalili bilan) + daraja
+tanlash bandi (`Course.LEVEL_CHOICES` → `/courses/?level=`; raqam bo'lmasa `p-public-picker--solo`), Journal
+(tanlangan + 3), Turkiyada o'qish (3 universitet), roziligi bor fikrlar, yakuniy chaqiriq. Prototipdagi "Yangiliklar"
+qatori kanonik "yangilik" modeli yo'qligi sababli kurslar qatori bo'ldi. Bandlar faqat domen adapterlaridan:
+`blog.listing.latest_posts` (ro'yxat tartibi; muallif o'qilmaydi — PUB1.2b PII qoidasi) va
+`sit.selectors.featured_open_universities` (SIT bosh sahifasi ham shu bitta qoidani chaqiradi). Bo'sh band
+chizilmaydi. So'rovlar: editorial bosh sahifa ≤ 22 (eng og'ir holat, 6 va 12 elementda bir xil), about ≤ 11.
+Ustaxona: oddiy "Shakllar" bo'limida "Urg‘u burchagi" (Odatdagi/Tekis/Yumshoq/Katta) va "Ochiq sahifa" namunasi —
+brauzerda "Katta" tanlanganda namunadagi media burchagi 48px, qolgan burchaklar karta burchagi (14px).
 
 **PE4 — katalog, kurs, tariflar.** Kurs kartasi muqovasi, kurs sahifasi (telefonda birinchi ekran taklifi
 saqlanadi), tariflar: kurs tanlashga olib boradi (PUB-D1), "Ommabop" PUB1.4a gacha yo'q, qaytarish/uzaytirish

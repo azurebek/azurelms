@@ -1,0 +1,34 @@
+{% extends "frontend_v1/editorial/base.html" %}{% load public_content %}
+{% comment %}
+  PUBLIC-02 / PE3 — editorial "Biz haqimizda". Ma'lumot `about_projection` (EDITORIAL) dan: `AboutPage` matni,
+  jamoa (`TeamMember`), faqat dalil bilan tasdiqlangan raqamlar (PUB1.2a). Yakuniy chaqiriq — katalog daraja
+  filtri (`Course.LEVEL_CHOICES`) bilan "Qaysi kursdan boshlaysiz?".
+{% endcomment %}
+{% block content %}
+<section class="c-card p-public-feature" aria-labelledby="about-title">
+  <div class="p-public-media p-public-media--atmos-3 p-public-feature__media">{% if site_settings.logo_mark_image %}<img class="p-public-media__mark" src="{{ site_settings.logo_mark_image.url }}" alt="">{% endif %}</div>
+  <div class="p-public-feature__panel"><p class="c-eyebrow">PLATFORMA HAQIDA</p><h1 class="p-public-feature__title" id="about-title">{{ page.hero_title_start }} {{ page.hero_title_highlight }}</h1><div class="c-lead p-public-rich">{{ page.hero_subtitle|public_rich }}</div><div class="c-actions"><a class="c-button c-button--primary" href="{% url 'courses' %}">Kurslarni ko‘rish {% include "frontend_v1/icon.html" with name="arrow" %}</a></div></div>
+</section>
+<section class="p-public-block p-public-showcase" aria-labelledby="mission-title">
+  <div class="c-section-title"><div class="p-public-lede"><h2 id="mission-title">Maqsad va qarash</h2></div></div>
+  <div class="p-public-card-grid">
+    <article class="c-card p-public-info-card"><h3>{{ page.mission_title }}</h3><div class="p-public-rich">{{ page.mission_text|public_rich }}</div></article>
+    <article class="c-card p-public-info-card"><h3>{{ page.vision_title }}</h3><div class="p-public-rich">{{ page.vision_text|public_rich }}</div></article>
+  </div>
+</section>
+{% if team %}<section class="p-public-block" aria-labelledby="team-title">
+  <div class="c-section-title"><div class="p-public-lede"><h2 id="team-title">Jamoamiz</h2></div></div>
+  <div class="p-public-stories">{% for item in team %}<article class="c-card p-public-info-card">{% if item.avatar %}<img class="c-avatar" src="{{ item.avatar.url }}" alt="" loading="lazy" decoding="async">{% else %}<span class="c-avatar" aria-hidden="true">{{ item.name|first|upper }}</span>{% endif %}<h3>{{ item.name }}</h3><p class="c-caption">{{ item.role_1 }}{% if item.role_2 %} · {{ item.role_2 }}{% endif %}</p><div class="p-public-rich">{{ item.bio|public_rich }}</div></article>{% endfor %}</div>
+</section>{% endif %}
+{% if statistics %}<section class="p-public-stats" aria-labelledby="about-stats-title">
+  <h2 id="about-stats-title">{{ site_settings.brand_name|default:"AzureLMS" }} raqamlarda</h2>
+  <ul class="p-public-stats__list">{% for item in statistics %}<li class="p-public-stat{% if forloop.counter|divisibleby:2 %} p-public-stat--alt{% endif %}"><span class="p-public-stat__circle"><strong>{{ item.value }}</strong></span><p class="c-muted">{{ item.label }}</p></li>{% endfor %}</ul>
+</section>{% endif %}
+<section class="p-public-picker{% if not statistics %} p-public-picker--solo{% endif %}" data-surface="inverse" aria-labelledby="about-picker-title">
+  <h2 id="about-picker-title">Qaysi kursdan boshlaysiz?</h2>
+  <form class="p-public-picker__form" action="{% url 'courses' %}" method="get">
+    <div class="p-public-picker__field"><label class="c-field__label" for="about-level">Daraja</label><select class="c-field" id="about-level" name="level">{% for value, label in course_levels %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
+    <button class="c-button c-button--primary" type="submit">Kurslarni ko‘rsatish</button>
+  </form>
+</section>
+{% endblock %}
