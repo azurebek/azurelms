@@ -1,0 +1,22 @@
+{% extends "frontend_v1/editorial/base.html" %}{% load public_content %}
+{% comment %}
+  PUBLIC-02 / PE5 — Azure Journal ro'yxati. Qidiruv, teg, sahifalash va qaytish URL'lari
+  `blog.listing`dan; editorial shablon yangi tanlov yoki ORM so'rovi yaratmaydi.
+{% endcomment %}
+{% block content %}
+<div class="p-public-heading"><p class="c-eyebrow">{{ landing_settings.hero_kicker }}</p><h1>{{ landing_settings.hero_title }}</h1><p class="c-lead">{{ landing_settings.hero_description }}</p></div>
+<form class="c-card p-public-filters" action="{% url 'blog:list' %}" method="get" role="search"><div><label class="c-field__label" for="blog-q">{{ landing_settings.search_label }}</label><input class="c-field" id="blog-q" name="q" type="search" value="{{ search_query }}" maxlength="{{ max_query_chars }}" placeholder="{{ landing_settings.search_placeholder }}"></div><div><label class="c-field__label" for="blog-tag">Teg</label><input class="c-field" id="blog-tag" name="tag" value="{{ active_tag }}" maxlength="70" list="blog-tags"><datalist id="blog-tags">{% for tag in tag_links %}<option value="{{ tag.slug }}">{{ tag.name }}</option>{% endfor %}</datalist></div><button class="c-button c-button--primary" type="submit">Qo‘llash</button></form>
+{% if blog_query.is_filtered %}<p class="c-caption p-public-applied">{% if search_query %}Qidiruv: <strong>{{ search_query }}</strong>{% endif %}{% if search_query and active_tag %} · {% endif %}{% if active_tag %}Teg: <strong>{{ active_tag }}</strong>{% endif %}. <a class="c-text-link" href="{% url 'blog:list' %}">Filtrni tozalash</a></p>{% endif %}
+{% if featured_post %}<section class="p-public-block" aria-labelledby="featured-title">
+  <div class="c-section-title"><h2 id="featured-title">Tanlangan maqola</h2></div>
+  <article class="p-public-spotlight">
+    <div class="p-public-spotlight__copy">{% with tag=featured_post.tags.all.0 %}<span class="c-badge c-badge--soft">Tanlangan{% if tag %} · {{ tag.name }}{% endif %}</span>{% endwith %}<h3>{{ featured_post.title }}</h3>{% if featured_post.excerpt %}<p class="c-muted">{{ featured_post.excerpt }}</p>{% endif %}<p class="c-caption">{{ featured_post.author|public_person:"author" }} · <time datetime="{{ featured_post.published_at|date:'c' }}">{{ featured_post.published_at|date:"d.m.Y" }}</time> · {{ featured_post.reading_time_minutes }} daqiqa</p><a class="c-text-link" aria-label="{{ featured_post.title }} — maqolani o‘qish" href="{{ featured_post.get_absolute_url }}{% if blog_return_to %}?return_to={{ blog_return_to|urlencode }}{% endif %}">Maqolani o‘qish {% include "frontend_v1/icon.html" with name="arrow" %}</a></div>
+    <div class="p-public-spotlight__visual"><div class="p-public-media{% if not featured_post.cover_image %} p-public-media--atmos-2{% endif %} p-public-spotlight__media">{% if featured_post.cover_image %}<img class="p-public-media__image" src="{{ featured_post.cover_image.url }}" alt="{{ featured_post.cover_alt_text }}" decoding="async">{% endif %}</div></div>
+  </article>
+</section>{% endif %}
+<section class="p-public-block" aria-labelledby="stories-title">
+  <div class="c-section-title"><h2 id="stories-title">{{ landing_settings.stories_title }}</h2></div>
+  <div class="p-public-stories">{% for item in posts %}{% cycle '' 'p-public-media--atmos-3' 'p-public-media--atmos-2' as story_atmos silent %}{% include "frontend_v1/editorial/blog/card.html" with atmos_class=story_atmos %}{% empty %}<div class="c-card p-public-empty">{% if blog_query.is_filtered %}<h3>Maqola topilmadi</h3><p class="c-muted">Boshqa so‘z yoki teg bilan urinib ko‘ring.</p><a class="c-text-link" href="{% url 'blog:list' %}">Barcha maqolalar</a>{% elif featured_post %}<p class="c-muted">Boshqa maqola hozircha yo‘q.</p>{% else %}<h3>Hozircha maqola yo‘q</h3><p class="c-muted">Yangi maqolalar e’lon qilinganda shu yerda chiqadi.</p>{% endif %}</div>{% endfor %}</div>
+</section>
+{% include "frontend_v1/public/catalog_pagination.html" %}
+{% endblock %}

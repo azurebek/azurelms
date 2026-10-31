@@ -1,7 +1,8 @@
 # PUBLIC-02 — editorial public dizaynini production'ga ko'chirish rejasi
 
 **Holat — 2026-10-31: owner qarorlari D1–D5 qabul qilingan (§3); PE1 (poydevor), PE2 (umumiy ramka), PE3
-(bosh sahifa, "Biz haqimizda") va PE4 (katalog, kurs, tariflar) kodda, lokal tekshirilgan; PE5–PE10 boshlanmagan.** Manba — owner bilan qurilgan lokal
+(bosh sahifa, "Biz haqimizda"), PE4 (katalog, kurs, tariflar) va PE5 (Azure Journal) kodda, lokal
+tekshirilgan; PE6–PE10 boshlanmagan.** Manba — owner bilan qurilgan lokal
 prototip `playground/Thirteenth Trial/` (2026-10-21…28). `playground/` git'ga kirmaydi: prototip faqat shu
 kompyuterda. Shu sabab birinchi kod kesimi (PE1) uning normativ qismini (CSS qoidalari va tekshiruvi) repo'ga
 olib kiradi; ungacha `playground/Thirteenth Trial/` o'chirilmaydi.
@@ -167,6 +168,17 @@ tugma katalogga (PUB-D1), "Ommabop" yo'q (PUB1.4a). Kurslar bandi `home_courses(
 
 **PE5 — Azure Journal.** Ro'yxat (spotlight + qator), maqola (muallif qatori, muqova, izoh va olqish).
 *Test:* `blog` testlari, PUB1.6a so'rov qoidasi.
+
+**Holat — 2026-10-31: kodda, lokal tekshirilgan** (branch `codex/pe5-editorial-journal`, migration yo'q).
+`templates/frontend_v1/editorial/blog/` ichidagi ro'yxat, karta va maqola shablonlari mavjud `blog.listing`
+kontekstini chizadi: tanlangan maqola bir marta, normallashgan qidiruv/teg/sahifalash va filtrga qaytish URL'i,
+rost bo'sh holatlar. Maqolada xavfsiz ochiq ism/initial (`public_person`, `public_initials`), sanitizatsiyalangan
+`public_rich`, yuklangan muqova yoki token-asosli fon, teglar, ulashish, izoh va olqish bor. Preview editorial
+ramkada qoladi, lekin mutationlarni yashiradi; yangi view, selector, model, JavaScript yoki so'rov qo'shilmadi —
+mavjud `public.js` va V1 izoh partiallari qayta ishlatildi. PUB1.6a kontrakt testlari uchala rendererda yuradi;
+editorial list/detail so'rov soni V1 bilan teng. Lokal dalil: to'liq Django suite **3309 OK (skipped=70)**,
+Node **198/198**, `check`, `makemigrations --check` va `git diff --check` toza; 1440/768/390/320px yorug'/qorong'i
+brauzer sinovida toshish va konsol xatosi yo'q, filtr → maqola → filtrga qaytish saqlanadi.
 
 **PE6 — Turkiyada o'qish.** Bosh, universitetlar ro'yxati (`p-public-facets` — yetti filtr), universitet
 (telefonda qabul xulosasi), qo'llanma (`p-public-doc` mundarija bilan).

@@ -16,6 +16,25 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-31 [Codex]: PUBLIC-02 / PE5 — editorial Azure Journal
+
+`public_editorial_v1` yoqilsa Azure Journal ro'yxati spotlight + story qatori, maqola esa xavfsiz muallif
+qatori, muqova, izoh va olqish bilan editorial ko'rinishda. Canonical Blog view/endpointlari, preview va PUB1.6a
+qoidalari o'zgarmadi; yangi selector, model, migration yoki JavaScript qo'shilmadi.
+
+- Branch: `codex/pe5-editorial-journal`. Kod commit: `e6591ba`. Migration yo'q.
+- Qarorlar: `templates/frontend_v1/editorial/blog/` ro'yxat/karta/detail shablonlari mavjud `blog.listing`
+  kontekstini, `public_person`/`public_initials` PII siyosatini, `public_rich` sanitizatsiyasini, V1 izoh partiallari
+  va `public.js` reaction oqimini qayta ishlatadi. Tanlangan maqola URL'i bir marta; filtr → maqola → filtrga
+  qaytish normallashgan; preview mutationlarni yashiradi; muqova bo'lmasa token-asosli fon.
+- Test: PUB1.6a kontrakti legacy/V1/editorial uchalasida; PE5 regressionlari (PII, rich content, preview,
+  canonical POST endpointlar, muqova/LCP va V1 bilan teng so'rov soni). To'liq `manage.py test` — **3309 OK
+  (skipped=70)**; `node --test tests\\frontend_v1\\*.test.mjs` — **198/198**; `check --fail-level WARNING`,
+  `makemigrations --check --dry-run` va `git diff --check` toza. Mustaqil Codex review actionable finding topmadi.
+- Brauzer (bazaning nusxasi): list/detail/filter va filtrga qaytish 1440/768/390/320px, yorug'/qorong'i;
+  gorizontal toshish 0, konsol warning/error 0. Nusxa DB temp katalogida, original DB o'zgarmadi.
+- Davom etilishi kerak: PE6 (Turkiyada o'qish).
+
 ## 2026-10-31 [Claude]: PUBLIC-02 / PE4 — editorial katalog, kurs va tariflar
 
 `public_editorial_v1` yoqilsa katalog kartalari va kurs sahifasi muqova bilan, kurs ostida "Boshqa kurslar", tariflar

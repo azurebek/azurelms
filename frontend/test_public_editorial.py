@@ -23,7 +23,15 @@ from frontend import test_public_v1 as v1_world
 
 EDITORIAL_BASE = "frontend_v1/editorial/base.html"
 # Editorial nusxasi bor sahifalar (PE3+ har kesimda to'ldiradi); qolganlari hozirgi V1 shablonida.
-PORTED = {"index.html", "about.html", "courses/course_list.html", "courses/course_detail.html", "subscriptions/pricing.html"}
+PORTED = {
+    "index.html",
+    "about.html",
+    "courses/course_list.html",
+    "courses/course_detail.html",
+    "subscriptions/pricing.html",
+    "blog/post_list.html",
+    "blog/post_detail.html",
+}
 PNG = (b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89"
        b"\x00\x00\x00\rIDATx\x9cc\xf8\x0f\x00\x00\x01\x01\x00\x05\x18\xd8N\x00\x00\x00\x00IEND\xaeB`\x82")
 
@@ -369,3 +377,133 @@ class EditorialCatalogCoursePricingTests(TestCase):
         # Kurslar bandi bosh sahifa bilan bir tanlovdan (`home_courses`): eng yangi uchtasi.
         self.assertIn("KURS-4", html)
         self.assertNotIn("YOPIQ-KURS", html)
+
+
+class EditorialJournalTests(TestCase):
+    """PE5: Journal ro'yxati va maqola — canonical Blog konteksti, PII va mutation qoidalari saqlanadi."""
+
+    def setUp(self):
+        from django.utils import timezone
+
+        from blog.models import BlogComment, BlogPost, BlogTag
+
+        set_flags(v1=True, editorial=True)
+        User = get_user_model()
+        self.author = User.objects.create_user(
+            "journal_login", email="journal@example.test", first_name="Dilnoza", last_name="Karimova"
+        )
+        self.reader = User.objects.create_user("reader_login", email="reader@example.test", password="x")
+        self.tag = BlogTag.objects.create(name="Metodika")
+        self.featured = BlogPost.objects.create(
+            title="TANLANGAN-MAQOLA",
+            author=self.author,
+            excerpt="Tanlangan maqola qisqacha matni",
+            body="<p>OWNER-BODY</p><script>INJECTION</script>",
+            featured=True,
+            allow_comments=True,
+            status=BlogPost.STATUS_PUBLISHED,
+            published_at=timezone.now(),
+        )
+        self.featured.tags.add(self.tag)
+        self.story = BlogPost.objects.create(
+            title="ODDIY-MAQOLA",
+            author=self.author,
+            excerpt="Oddiy maqola qisqacha matni",
+            body="<p>Oddiy matn</p>",
+            status=BlogPost.STATUS_PUBLISHED,
+            published_at=timezone.now(),
+        )
+        self.story.tags.add(self.tag)
+        BlogComment.objects.create(post=self.featured, user=self.author, content="OWNER-IZOH")
+
+    def html(self, url, data=None):
+        response = self.client.get(url, data or {})
+        self.assertEqual(response.status_code, 200)
+        return response, response.content.decode()
+
+    def test_list_and_detail_use_editorial_markup_without_leaking_login_or_fake_metrics(self):
+        from blog.models import BlogPostRead
+        from django.utils import timezone
+
+        listing, list_html = self.html(reverse("blog:list"))
+        self.assertTemplateUsed(listing, "frontend_v1/editorial/blog/post_list.html")
+        self.assertIn('class="p-public-spotlight"', list_html)
+        self.assertIn('class="p-public-stories"', list_html)
+        self.assertEqual(list_html.count(self.featured.get_absolute_url()), 1)
+        self.assertIn("Dilnoza Karimova", list_html)
+        self.assertNotIn("journal_login", list_html)
+        self.assertNotIn("blog-runtime.js", list_html)
+        for post in (self.featured, self.story):
+            self.assertIn(f'<time datetime="{timezone.localtime(post.published_at).isoformat()}', list_html)
+
+        detail, detail_html = self.html(self.featured.get_absolute_url())
+        self.assertTemplateUsed(detail, "frontend_v1/editorial/blog/post_detail.html")
+        for expected in ("p-public-byline", "DK", "Dilnoza Karimova", "OWNER-BODY", "OWNER-IZOH", "public.js"):
+            self.assertIn(expected, detail_html)
+        for absent in ("journal_login", "INJECTION", "blog-runtime.js", "ko‘rish"):
+            self.assertNotIn(absent, detail_html)
+        self.assertIn("p-public-media--atmos-2", detail_html)
+        self.assertEqual(BlogPostRead.objects.count(), 0)
+
+    def test_authenticated_reactions_and_comments_keep_the_existing_post_endpoints(self):
+        self.client.force_login(self.reader)
+        _, html = self.html(self.featured.get_absolute_url())
+        self.assertIn(f'action="{reverse("blog:clap", args=[self.featured.slug])}"', html)
+        self.assertIn(f'action="{reverse("blog:comment_create", args=[self.featured.slug])}"', html)
+        self.assertIn('id="clap"', html)
+        self.assertIn('id="comments"', html)
+
+    def test_uploaded_cover_is_used_by_the_spotlight_and_article(self):
+        import tempfile
+
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        with self.settings(MEDIA_ROOT=directory.name):
+            self.featured.cover_image = SimpleUploadedFile(
+                "journal-cover.png", real_png(), content_type="image/png"
+            )
+            self.featured.cover_alt_text = "Owner yuklagan Journal muqovasi"
+            self.featured.save()
+            _, list_html = self.html(reverse("blog:list"))
+            _, detail_html = self.html(self.featured.get_absolute_url())
+        for html in (list_html, detail_html):
+            self.assertIn(self.featured.cover_image.url, html)
+            self.assertIn('alt="Owner yuklagan Journal muqovasi"', html)
+        spotlight = list_html[list_html.index('class="p-public-spotlight"'):]
+        spotlight = spotlight[:spotlight.index("</article>")]
+        self.assertNotIn('loading="lazy"', spotlight)
+
+    def test_preview_keeps_the_editorial_frame_but_hides_mutations(self):
+        from blog.models import BlogPost
+
+        staff = get_user_model().objects.create_user(
+            "journal_staff", email="staff@example.test", password="x", is_staff=True
+        )
+        draft = BlogPost.objects.create(
+            title="QORALAMA-MAQOLA",
+            author=self.author,
+            body="<p>Qoralama</p>",
+            status=BlogPost.STATUS_DRAFT,
+        )
+        self.client.force_login(staff)
+        response, html = self.html(draft.get_absolute_url(), {"preview": "1"})
+        self.assertTemplateUsed(response, "frontend_v1/editorial/blog/post_detail.html")
+        self.assertIn("Ko‘rib chiqish", html)
+        self.assertNotIn(reverse("blog:clap", args=[draft.slug]), html)
+        self.assertNotIn(reverse("blog:comment_create", args=[draft.slug]), html)
+        self.assertIn("no-store", response["Cache-Control"])
+        self.assertIn('<meta name="robots" content="noindex, nofollow">', html)
+
+    def test_editorial_templates_add_no_queries_to_the_v1_blog_contract(self):
+        counts = {}
+        for editorial in (False, True):
+            set_flags(v1=True, editorial=editorial)
+            self.client.logout()
+            for name, url in (("list", reverse("blog:list")), ("detail", self.featured.get_absolute_url())):
+                self.client.get(url)
+                with CaptureQueriesContext(connection) as queries:
+                    response = self.client.get(url)
+                self.assertEqual(response.status_code, 200)
+                counts[(name, editorial)] = len(queries)
+        for name in ("list", "detail"):
+            self.assertEqual(counts[(name, True)], counts[(name, False)], (name, counts))
