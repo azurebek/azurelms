@@ -86,6 +86,22 @@ def top_tags():
     )
 
 
+def latest_posts(limit):
+    """Ro'yxat bilan ayni tartibdagi (tanlangan, keyin yangi) e'lon qilingan maqolalar — bosh sahifa Journal bandi.
+
+    Bandda muallif chizilmaydi, shuning uchun `published_posts()`dagi `author` qo'shilmaydi: ochiq bosh sahifa
+    foydalanuvchi jadvalini o'qimaydi (PUB1.2b qoidasi) — faqat kartadagi maydonlar va teglar.
+    """
+    from blog.models import BlogPost
+
+    return list(
+        BlogPost.objects.published()
+        .only("id", "title", "slug", "excerpt", "cover_image", "featured", "published_at", "created_at")
+        .prefetch_related("tags")
+        .order_by(*LIST_ORDERING)[:limit]
+    )
+
+
 def related_posts(post):
     return list(
         published_posts()

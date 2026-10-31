@@ -16,6 +16,28 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-31 [Claude]: PUBLIC-02 / PE3 — editorial bosh sahifa va "Biz haqimizda"
+
+`public_editorial_v1` yoqilsa bosh sahifa va "Biz haqimizda" prototip tuzilishida: katta rasmli hero, kurslar qatori,
+raqamlar va daraja tanlash bandi, Journal spotlight, Turkiyada o'qish bandi, to'q tanlash bandi. Faqat owner va domen
+ma'lumoti — bo'sh band chizilmaydi, dalilsiz raqam va roziliksiz fikr chiqmaydi.
+
+- Branch: `claude/pe3-editorial-home-about`. Migration yo'q.
+- Qarorlar: projeksiya EDITORIAL tarmog'i (`frontend/public_content.py`) Journal'ni `blog.listing.latest_posts`
+  (ro'yxat tartibi, muallifsiz — bosh sahifa foydalanuvchi jadvalini o'qimaydi) va SIT'ni yangi
+  `sit.selectors.featured_open_universities` dan oladi; SIT bosh sahifasi ham shu funksiyaga o'tdi (bitta qoida).
+  Prototipdagi "Yangiliklar" qatori kurslar qatori bo'ldi (kanonik yangilik modeli yo'q). Uy kurs kartasida rasm yo'q:
+  `home_courses()` `.only()` bilan rasm ustunini o'qimaydi — o'qisa har kurs uchun so'rov bo'lardi.
+- Ustaxona: oddiy "Shakllar"ga "Urg‘u burchagi", namunaga "Ochiq sahifa".
+- Test: `frontend/test_public_editorial.py` +5 (mazmun va rostlik, bo'sh sayt, about, bitta SIT qoidasi, so'rov
+  barqarorligi 6↔12 = 22); `test_public_content` uchala renderer (byudjet, PII, determinizm, yashirin elementlar);
+  a11y probe va byudjet editorial bosh sahifa/about bilan; `core.test_design_views` +1. To'liq `manage.py test` — **3299 OK (skipped=70)**; `node --test` 198/198;
+  `check`, `makemigrations --check` toza. Nazorat: 6 buzish (dalilsiz raqam, muallif/PII, SIT boshqa qoida, qotirilgan daraja,
+  bo'sh Journal bandi, kartada muallif — N+1) — hammasi FAIL, tiklangach bayt-bayt bir xil.
+- Brauzer (bazaning nusxasi): bosh sahifa va about 1440/390/320px yorug'/qorong'i — toshish 0; ustaxonada parolsiz sinov
+  owner (faqat nusxada) bilan "Katta" → namunada urg'u burchagi 48px, qolganlari 14px; sinov sessiyasi o'chirildi.
+- Davom etilishi kerak: PE4 (katalog, kurs, tariflar).
+
 ## 2026-10-31 [Claude]: PUBLIC-02 / PE2 — editorial umumiy ramka
 
 `public_editorial_v1` yoqilsa barcha V1 ochiq sahifalar yangi ramkada: to'liq kenglikdagi header, owner'ning

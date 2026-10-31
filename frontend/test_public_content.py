@@ -22,20 +22,26 @@ from frontend.public_content import HOME_COURSE_LIMIT
 from frontend.test_public_claims import approve_for_test
 
 # Har renderer uchun so'rovlar chegarasi (mavjud ma'lumot hajmidan qat'i nazar).
+# Editorial bosh sahifa: + Journal (maqolalar, teglar) va Turkiyada o'qish (universitetlar, fakultet/dastur)
+# bandlari; eng og'ir holat — ikkalasida ham kontent bor (`test_public_editorial` o'lchaydi).
+EDITORIAL_HOME_BUDGET = 22
 # Bosh sahifa: +1 — voronka o'lchovi flagini o'qish (PUB1.8a; flag yoqilganda hodisa yozuvi alohida).
-QUERY_BUDGET = {("legacy", "home"): 15, ("v1", "home"): 14, ("legacy", "about"): 12, ("v1", "about"): 11}
+QUERY_BUDGET = {("legacy", "home"): 15, ("v1", "home"): 14, ("legacy", "about"): 12, ("v1", "about"): 11,
+                ("editorial", "home"): EDITORIAL_HOME_BUDGET, ("editorial", "about"): 11}
 USER_TABLE_SCAN = re.compile(r'FROM\s+"users_customuser"', re.IGNORECASE)
 # Public sahifa hech qachon o'qimasligi kerak bo'lgan foydalanuvchi ustunlari.
 PII_COLUMNS = ("email", "phone_number", "password", "telegram_id", "date_joined", "last_login")
 
 
-def set_v1(enabled):
+def set_v1(enabled, editorial=False):
     FeatureFlag.objects.update_or_create(slug="frontend_v1_public", defaults={"enabled": enabled})
+    FeatureFlag.objects.update_or_create(slug="public_editorial_v1", defaults={"enabled": editorial})
 
 
 def renderers():
-    for enabled, name in ((False, "legacy"), (True, "v1")):
-        set_v1(enabled)
+    # PUBLIC-02: editorial ham shu qoidalar (byudjet, PII, determinizm, dalilsiz da'vo yo'q) ostida.
+    for enabled, editorial, name in ((False, False, "legacy"), (True, False, "v1"), (True, True, "editorial")):
+        set_v1(enabled, editorial)
         yield name
 
 

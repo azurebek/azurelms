@@ -12,6 +12,7 @@ from .policy import preview_requested
 from .selectors import (
     apply_catalog_filters,
     catalog_filter_options,
+    featured_open_universities,
     portal_stats,
     university_catalog_queryset,
     university_detail_queryset,
@@ -21,22 +22,9 @@ CATALOG_PAGE_SIZE = 12
 
 
 def home(request):
-    base_queryset = university_catalog_queryset()
-    featured_universities = list(
-        base_queryset.filter(is_featured=True, admission_status=University.AdmissionStatus.OPEN)[:3]
-    )
-    if len(featured_universities) < 3:
-        existing_ids = [university.pk for university in featured_universities]
-        featured_universities.extend(
-            list(
-                base_queryset.filter(admission_status=University.AdmissionStatus.OPEN)
-                .exclude(pk__in=existing_ids)[: 3 - len(featured_universities)]
-            )
-        )
-
     context = {
         "active_nav": "home",
-        "featured_universities": featured_universities,
+        "featured_universities": featured_open_universities(3),
         "announcements": (
             public.effective_announcements()
             .filter(show_on_home=True)

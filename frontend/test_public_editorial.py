@@ -6,6 +6,7 @@ qulflangan ochiq sahifalarga yangi so'rov qo'shilmaydi.
 """
 from unittest.mock import patch
 
+from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import DatabaseError, connection
 from django.test import TestCase, override_settings
@@ -21,6 +22,8 @@ from frontend.public_v1 import public_template_names
 from frontend import test_public_v1 as v1_world
 
 EDITORIAL_BASE = "frontend_v1/editorial/base.html"
+# Editorial nusxasi bor sahifalar (PE3+ har kesimda to'ldiradi); qolganlari hozirgi V1 shablonida.
+PORTED = {"index.html", "about.html"}
 PNG = (b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89"
        b"\x00\x00\x00\rIDATx\x9cc\xf8\x0f\x00\x00\x01\x01\x00\x05\x18\xd8N\x00\x00\x00\x00IEND\xaeB`\x82")
 
@@ -75,8 +78,9 @@ class EditorialFrameTests(TestCase):
                     html = response.content.decode()
                     on = v1 and editorial
                     if v1:
-                        # Mazmun hozirgi V1 sahifasidan — PE3+ dan oldin editorial sahifa yo'q.
-                        self.assertTemplateUsed(response, "frontend_v1/public/" + template)
+                        # Ko'chirilgan sahifa editorial nusxadan, qolgani hozirgi V1 shablonidan.
+                        ported = on and template in PORTED
+                        self.assertTemplateUsed(response, ("frontend_v1/editorial/" if ported else "frontend_v1/public/") + template)
                         self.assertIn("private", response["Cache-Control"])
                     self.assertEqual(EDITORIAL_BASE in [t.name for t in response.templates], on)
                     self.assertEqual('class="s-editorial"' in html, on)
@@ -91,14 +95,15 @@ class EditorialFrameTests(TestCase):
                         self.assertNotIn("frontend_v1/css/auth.css", html)
 
     def test_the_frame_adds_no_query(self):
+        # Faqat hali ko'chirilmagan sahifalar: ramkaning o'zi so'rov qo'shmaydi (bandlar o'z testida).
         counts = {}
         for editorial in (False, True):
             set_flags(v1=True, editorial=editorial)
-            for name in ("home", "courses", "sit:home"):
+            for name in ("courses", "sit:home"):
                 with CaptureQueriesContext(connection) as queries:
                     self.assertEqual(self.client.get(reverse(name)).status_code, 200)
                 counts[(name, editorial)] = len(queries)
-        for name in ("home", "courses", "sit:home"):
+        for name in ("courses", "sit:home"):
             self.assertEqual(counts[(name, True)], counts[(name, False)], name)
 
 
@@ -135,3 +140,115 @@ class EditorialLogoTests(TestCase):
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)
         return directory.name
+
+
+class EditorialHomeAboutTests(TestCase):
+    """PE3: editorial bosh sahifa va "Biz haqimizda" — owner mazmuni, rostlik qoidalari, bo'sh holat, so'rov soni."""
+
+    def setUp(self):
+        set_flags(v1=True, editorial=True)
+
+    def journal_and_sit(self, count):
+        from django.utils import timezone
+
+        from blog.models import BlogPost, BlogTag
+        from sit.models import University, UniversityFaculty, UniversityProgram
+
+        User = get_user_model()
+        author = User.objects.filter(username="jurnal-muallif").first() or User.objects.create_user(
+            "jurnal-muallif", email="muallif@example.test")
+        tag, _ = BlogTag.objects.get_or_create(slug="grammatika", defaults={"name": "Grammatika"})
+        offset = BlogPost.objects.count()
+        for index in range(offset, offset + count):
+            post = BlogPost.objects.create(title=f"Maqola {index}", author=author, excerpt=f"Qisqa {index}",
+                                           body="<p>Matn</p>", status=BlogPost.STATUS_PUBLISHED,
+                                           published_at=timezone.now())
+            post.tags.add(tag)
+            # Eng og'ir holat: faqat bittasi "bosh sahifada" belgilangan — qolgani zaxira so'rovidan keladi;
+            # har birida fakultet va dastur (prefetch) bor.
+            university = University.objects.create(
+                name=f"Universitet {index}", short_name=f"U{index}", city="Istanbul", is_published=True,
+                admission_status="open", is_featured=index == 0, source_url="https://example.edu.tr/",
+                last_verified_on=timezone.now().date())
+            faculty = UniversityFaculty.objects.create(university=university, name="Muhandislik")
+            UniversityProgram.objects.create(faculty=faculty, name="Dasturlash", degree_level="bachelor",
+                                             language="tr", duration="4 yil", tuition_fee=1200)
+
+    def count(self, url):
+        self.client.get(url)
+        with CaptureQueriesContext(connection) as queries:
+            response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        return response, len(queries)
+
+    def test_home_bands_have_a_flat_query_count(self):
+        from frontend.test_public_content import EDITORIAL_HOME_BUDGET
+
+        counts = []
+        for size in (6, 6):
+            self.journal_and_sit(size)
+            response, total = self.count(reverse("home"))
+            self.assertTemplateUsed(response, "frontend_v1/editorial/index.html")
+            counts.append(total)
+        self.assertEqual(counts[0], counts[1], "maqola/universitet soniga qarab so'rov ko'paymasin")
+        self.assertLessEqual(counts[1], EDITORIAL_HOME_BUDGET, counts)
+
+    def test_home_draws_owner_content_and_only_verified_or_consented_claims(self):
+        from courses.models import Course
+        from frontend.models import LandingPage, Statistic, Testimonial
+        from frontend.test_public_claims import approve_for_test
+
+        page = LandingPage.load()
+        page.hero_title_start = "EGASI-SARLAVHA"
+        page.final_cta_title = "EGASI-CHAQIRIQ"
+        page.save()
+        Course.objects.create(title="KURS-A1", description="<p>Tavsif</p>", level="beginner")
+        approve_for_test(Statistic.objects.create(value="77", label="TASDIQLANGAN-RAQAM", order=0))
+        Statistic.objects.create(value="999", label="DALILSIZ-RAQAM", order=1)
+        Testimonial.objects.create(name="ROZILIKSIZ", text="ROZILIKSIZ-FIKR", order=0)
+        self.journal_and_sit(2)
+        response = self.client.get(reverse("home"))
+        self.assertTemplateUsed(response, "frontend_v1/editorial/index.html")
+        html = response.content.decode()
+        for expected in ("EGASI-SARLAVHA", "EGASI-CHAQIRIQ", "KURS-A1", "TASDIQLANGAN-RAQAM", "Maqola 0", "Universitet 0",
+                         'class="p-public-stats"', 'data-surface="inverse"'):
+            self.assertIn(expected, html)
+        for absent in ("DALILSIZ-RAQAM", "ROZILIKSIZ-FIKR", "p-public-picker--solo"):
+            self.assertNotIn(absent, html)
+        # Daraja tanlash — katalog filtrining o'zi qabul qiladigan qiymatlar.
+        for value, label in Course.LEVEL_CHOICES:
+            self.assertIn(f'<option value="{value}">', html)
+        self.assertIn(f'action="{reverse("courses")}" method="get"', html)
+
+    def test_empty_site_draws_no_fake_bands(self):
+        html = self.client.get(reverse("home")).content.decode()
+        self.assertIn("Hozircha kurslar e’lon qilinmagan", html)
+        for absent in ('class="p-public-stats"', "Azure Journal</h2>", "Turkiyada o‘qish</h2>", "O‘quvchilar fikri"):
+            self.assertNotIn(absent, html)
+        # Raqamlar bandi bo'lmasa tanlash bandi chiqib turmaydi, oddiy oqimda.
+        self.assertIn("p-public-picker--solo", html)
+
+    def test_about_draws_owner_text_team_and_verified_numbers(self):
+        from frontend.models import AboutPage, AboutStatistic, TeamMember
+        from frontend.test_public_claims import approve_for_test
+
+        page = AboutPage.load()
+        page.mission_title = "EGASI-MAQSAD"
+        page.save()
+        TeamMember.objects.create(name="Dilnoza Karimova", role_1="Ustoz", role_2="", bio="<p>BIO-MATN</p>", order=0)
+        approve_for_test(AboutStatistic.objects.create(value="12", label="TASDIQLANGAN-HAQIDA", order=0))
+        AboutStatistic.objects.create(value="99", label="DALILSIZ-HAQIDA", order=1)
+        response = self.client.get(reverse("about"))
+        self.assertTemplateUsed(response, "frontend_v1/editorial/about.html")
+        html = response.content.decode()
+        for expected in ("EGASI-MAQSAD", "Dilnoza Karimova", "BIO-MATN", "TASDIQLANGAN-HAQIDA", "Qaysi kursdan boshlaysiz?"):
+            self.assertIn(expected, html)
+        self.assertNotIn("DALILSIZ-HAQIDA", html)
+
+    def test_sit_home_and_platform_home_share_one_selection_rule(self):
+        from sit.selectors import featured_open_universities
+
+        self.journal_and_sit(5)
+        expected = [university.pk for university in featured_open_universities(3)]
+        self.assertEqual([u.pk for u in self.client.get(reverse("home")).context["sit_universities"]], expected)
+        self.assertEqual([u.pk for u in self.client.get(reverse("sit:home")).context["featured_universities"]], expected)

@@ -31,6 +31,9 @@ V1 = "v1"
 EDITORIAL = "editorial"
 HOME_COURSE_LIMIT = 3
 TESTIMONIAL_LIMIT = 3
+# Editorial bosh sahifa bandlari: Journal (1 tanlangan + 3), Turkiyada o'qish (3 universitet).
+HOME_JOURNAL_LIMIT = 4
+HOME_SIT_LIMIT = 3
 
 
 def current_renderer():
@@ -108,7 +111,24 @@ def home_projection(renderer=None):
             popular_courses=home_courses(),
             testimonials=public_testimonials(TESTIMONIAL_LIMIT),
         )
+    if renderer == EDITORIAL:
+        # Editorial bosh sahifaning qo'shimcha bandlari — faqat o'z domen adapterlaridan (yangi qoida yo'q).
+        from blog.listing import latest_posts
+        from sit.selectors import featured_open_universities
+
+        data.update(
+            journal_posts=latest_posts(HOME_JOURNAL_LIMIT),
+            sit_universities=featured_open_universities(HOME_SIT_LIMIT),
+            course_levels=course_levels(),
+        )
     return data
+
+
+def course_levels():
+    """Daraja tanlash bandi uchun — katalog filtrining o'zi qabul qiladigan qiymatlar (`Course.LEVEL_CHOICES`)."""
+    from courses.models import Course
+
+    return Course.LEVEL_CHOICES
 
 
 def about_projection(renderer=None):
@@ -123,4 +143,6 @@ def about_projection(renderer=None):
             team_members=team[1:],
             testimonials=public_testimonials(TESTIMONIAL_LIMIT),
         )
+    if renderer == EDITORIAL:
+        data["course_levels"] = course_levels()
     return data

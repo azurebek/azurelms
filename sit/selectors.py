@@ -40,6 +40,22 @@ def university_catalog_queryset(*, include_unpublished=False):
     )
 
 
+def featured_open_universities(limit=3):
+    """Qabul ochiq universitetlar: avval "bosh sahifada ko'rsatilsin" belgilanganlar, so'ng qolgan ochiqlar.
+
+    SIT bosh sahifasi va platforma bosh sahifasining SIT bandi (PUBLIC-02) shu bitta qoidadan o'qiydi —
+    ikki joyda ikki xil tanlov paydo bo'lmasin.
+    """
+    base_queryset = university_catalog_queryset()
+    featured = list(base_queryset.filter(is_featured=True, admission_status=University.AdmissionStatus.OPEN)[:limit])
+    if len(featured) < limit:
+        featured.extend(
+            base_queryset.filter(admission_status=University.AdmissionStatus.OPEN)
+            .exclude(pk__in=[university.pk for university in featured])[: limit - len(featured)]
+        )
+    return featured
+
+
 def university_detail_queryset(*, include_unpublished=False):
     return university_catalog_queryset(include_unpublished=include_unpublished).prefetch_related(
         Prefetch(
