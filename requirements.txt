@@ -62,7 +62,7 @@ prompt_toolkit==3.0.52
 propcache==0.4.1
 psycopg2-binary==2.9.11
 py-ubjson==0.16.1
-pyasn1==0.6.4
+pyasn1==0.6.5
 pyasn1_modules==0.4.2
 pycodestyle==2.14.0
 pycparser==3.0

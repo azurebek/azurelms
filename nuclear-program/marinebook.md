@@ -16,6 +16,19 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-31 [Claude]: pyasn1 0.6.4 → 0.6.5 (4 ta CVE)
+
+Supply-chain skani yangi advisory'lar bilan PR'larni (#242) blokladi: pyasn1 0.6.4 — BER/CER/DER dekodlashda
+kvadratik CPU (BIT STRING, OCTET STRING va string bo'laklari, uzun tag ID'lar, REAL mantissa): CVE-2026-119194,
+-119195, -119196, -119197. Tuzatish 0.6.5 da (patch). Loyiha kodi pyasn1'ni import qilmaydi — `service-identity`
+(Twisted TLS) va `pyasn1_modules` bog'liqligi.
+
+- Branch: `claude/deps-pyasn1-0-6-5`. Kod o'zgarmadi.
+- Tekshiruv (lokal): `pip check` toza; `pip-audit` + `manage.py audit_dependencies` — 0 advisory, reyestr bo'sh;
+  `pyasn1`, `pyasn1_modules`, `service_identity` import; `manage.py check`; `manage.py test core.test_supply_chain_gate
+  core.test_health_endpoints` — 39 OK. To'liq suite CI'da.
+- Davom etilishi kerak: keyingi deploy'da Docker image qayta yig'ilsin.
+
 ## 2026-10-30 [Claude]: Xavfsizlik — 22 advisory yopildi, istisnolar reyestri yana bo'sh
 
 Supply-chain skani 2026-10-28 dan barcha PR'larni blokladi: pypdf 6.19.0 (11), Twisted 26.4.0 (6 yangi +
