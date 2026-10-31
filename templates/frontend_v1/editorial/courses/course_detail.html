@@ -1,0 +1,12 @@
+{% extends "frontend_v1/editorial/base.html" %}{% load public_content %}
+{% comment %}
+  PUBLIC-02 / PE4 — editorial kurs sahifasi. Faktlar, taklif, tariflar va keyingi qadam V1 bilan bitta tanadan
+  (PUB1.3b/c/d — `_detail_body.html`); qo'shimchasi: muqova va katalog qoidasidagi "Boshqa kurslar".
+{% endcomment %}
+{% block content %}
+{% include "frontend_v1/public/courses/_detail_body.html" with show_cover=True %}
+{% if related_courses %}<section class="p-public-block p-public-section" aria-labelledby="more-courses-title">
+  <div class="c-section-title"><h2 id="more-courses-title">Boshqa kurslar</h2><a class="c-text-link" href="{% url 'courses' %}">Barcha kurslar {% include "frontend_v1/icon.html" with name="arrow" %}</a></div>
+  <div class="p-public-stories">{% for item in related_courses %}<article class="p-public-story"><div class="p-public-media{% if not item.uses_uploaded_image_cover %} p-public-media--atmos{% cycle '' ' p-public-media--atmos-3' ' p-public-media--atmos-2' %}{% endif %} p-public-story__media">{% if item.uses_uploaded_image_cover %}<img class="p-public-media__image" src="{{ item.cover_media_url }}" alt="" loading="lazy" decoding="async">{% endif %}</div><span class="c-badge c-badge--soft">{{ item.get_level_display }}</span><h3><a href="{% url 'course_detail' item.pk %}">{{ item.title }}</a></h3><p class="c-muted">{{ item.description|public_plain|truncatewords:18 }}</p></article>{% endfor %}</div>
+</section>{% endif %}
+{% endblock %}

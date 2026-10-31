@@ -23,9 +23,20 @@ from frontend import test_public_v1 as v1_world
 
 EDITORIAL_BASE = "frontend_v1/editorial/base.html"
 # Editorial nusxasi bor sahifalar (PE3+ har kesimda to'ldiradi); qolganlari hozirgi V1 shablonida.
-PORTED = {"index.html", "about.html"}
+PORTED = {"index.html", "about.html", "courses/course_list.html", "courses/course_detail.html", "subscriptions/pricing.html"}
 PNG = (b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89"
        b"\x00\x00\x00\rIDATx\x9cc\xf8\x0f\x00\x00\x01\x01\x00\x05\x18\xd8N\x00\x00\x00\x00IEND\xaeB`\x82")
+
+
+def real_png():
+    """Pillow'dan o'tadigan haqiqiy PNG (kurs rasmi saqlashda qayta ishlanadi)."""
+    from io import BytesIO
+
+    from PIL import Image
+
+    buffer = BytesIO()
+    Image.new("RGB", (8, 8), (18, 87, 230)).save(buffer, "PNG")
+    return buffer.getvalue()
 
 
 def set_flags(*, v1, editorial):
@@ -99,11 +110,11 @@ class EditorialFrameTests(TestCase):
         counts = {}
         for editorial in (False, True):
             set_flags(v1=True, editorial=editorial)
-            for name in ("courses", "sit:home"):
+            for name in ("blog:list", "sit:home"):
                 with CaptureQueriesContext(connection) as queries:
                     self.assertEqual(self.client.get(reverse(name)).status_code, 200)
                 counts[(name, editorial)] = len(queries)
-        for name in ("courses", "sit:home"):
+        for name in ("blog:list", "sit:home"):
             self.assertEqual(counts[(name, True)], counts[(name, False)], name)
 
 
@@ -252,3 +263,109 @@ class EditorialHomeAboutTests(TestCase):
         expected = [university.pk for university in featured_open_universities(3)]
         self.assertEqual([u.pk for u in self.client.get(reverse("home")).context["sit_universities"]], expected)
         self.assertEqual([u.pk for u in self.client.get(reverse("sit:home")).context["featured_universities"]], expected)
+
+
+class EditorialCatalogCoursePricingTests(TestCase):
+    """PE4: katalog, kurs va tariflar — V1 bilan bitta tana, muqova so'rovsiz, tariflarda rostlik."""
+
+    def setUp(self):
+        from courses.models import Course, Lesson, Module
+
+        set_flags(v1=True, editorial=True)
+        self.courses = []
+        for index in range(5):
+            course = Course.objects.create(title=f"KURS-{index}", description=f"<p>Tavsif {index}</p>", level="beginner")
+            module = Module.objects.create(course=course, title=f"Modul {index}")
+            Lesson.objects.create(module=module, title=f"Dars {index}", content="<p>x</p>")
+            self.courses.append(course)
+        Course.objects.create(title="YOPIQ-KURS", description="<p>x</p>", level="beginner", is_active=False)
+
+    def html(self, url):
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        return response, response.content.decode()
+
+    def test_catalog_cards_get_a_cover_without_extra_queries(self):
+        counts = {}
+        for editorial in (False, True):
+            set_flags(v1=True, editorial=editorial)
+            self.client.get(reverse("courses"))
+            with CaptureQueriesContext(connection) as queries:
+                response, html = self.html(reverse("courses"))
+            counts[editorial] = len(queries)
+            self.assertTemplateUsed(response, "frontend_v1/public/courses/_catalog_body.html")
+            self.assertEqual("p-public-cover" in html, editorial)
+        self.assertEqual(counts[True], counts[False])
+
+    def test_uploaded_course_image_becomes_the_cover(self):
+        import tempfile
+
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        with self.settings(MEDIA_ROOT=directory.name):
+            course = self.courses[0]
+            course.cover_mode = "image"
+            course.thumbnail = SimpleUploadedFile("muqova.png", real_png(), content_type="image/png")
+            course.save()
+            _, catalog = self.html(reverse("courses"))
+            _, detail = self.html(reverse("course_detail", args=[course.pk]))
+        for html in (catalog, detail):
+            self.assertIn(course.thumbnail.url, html)
+            self.assertIn("p-public-media__image", html)
+
+    def test_course_page_next_step_is_the_same_markup_as_v1(self):
+        import re
+
+        course = self.courses[1]
+        offers = {}
+        for editorial in (False, True):
+            set_flags(v1=True, editorial=editorial)
+            response, html = self.html(reverse("course_detail", args=[course.pk]))
+            self.assertTemplateUsed(response, "frontend_v1/public/courses/_detail_body.html")
+            offers[editorial] = re.search(r'<section class="c-card p-public-detail__next".*?</section>', html, re.S).group(0)
+        self.assertEqual(offers[True], offers[False])
+
+    def test_related_courses_follow_the_catalog_rule_and_add_one_query(self):
+        from courses.catalog import CatalogQuery, catalog_queryset
+
+        course = self.courses[2]
+        counts = {}
+        for editorial in (False, True):
+            set_flags(v1=True, editorial=editorial)
+            url = reverse("course_detail", args=[course.pk])
+            self.client.get(url)
+            with CaptureQueriesContext(connection) as queries:
+                response, html = self.html(url)
+            counts[editorial] = len(queries)
+        related = [item.pk for item in response.context["related_courses"]]
+        expected = [item.pk for item in catalog_queryset(CatalogQuery()).exclude(pk=course.pk)[:3]]
+        self.assertEqual(related, expected)
+        self.assertNotIn(course.pk, related)
+        self.assertNotIn("YOPIQ-KURS", html)
+        self.assertIn("Boshqa kurslar", html)
+        self.assertEqual(counts[True] - counts[False], 1, counts)
+
+    def test_pricing_is_truthful_and_leads_to_course_choice(self):
+        from courses.public_offer import billing_period_days
+        from subscriptions.models import Plan, PlanFeature
+
+        plan = Plan.objects.create(name="Guruh", price=290000, is_popular=True)
+        PlanFeature.objects.create(plan=plan, name="Jonli darslar", is_included=True)
+        PlanFeature.objects.create(plan=plan, name="Shaxsiy ustoz", is_included=False)
+        Plan.objects.create(name="SOTUVDA-EMAS", price=1, is_available_for_purchase=False)
+        response, html = self.html(reverse("subscriptions:pricing"))
+        self.assertTemplateUsed(response, "frontend_v1/editorial/subscriptions/pricing.html")
+        self.assertIn(f"{billing_period_days()} kunlik davr uchun", html)
+        self.assertIn("Jonli darslar", html)
+        self.assertIn("Shaxsiy ustoz (kiritilmagan)", html)
+        self.assertNotIn("SOTUVDA-EMAS", html)
+        # "Ommabop" PUB1.4a dalil darvozasigacha yo'q; narx kursga bog'liq deb da'vo qilinmaydi (Plan.price).
+        self.assertNotIn("Ommabop", html)
+        self.assertNotIn("Narx kursga bog", html)
+        card = html[html.index('class="c-card p-public-price-card"'):]
+        card = card[:card.index("</article>")]
+        self.assertIn(f'href="{reverse("courses")}"', card)
+        self.assertNotIn(reverse("register"), card)
+        # Kurslar bandi bosh sahifa bilan bir tanlovdan (`home_courses`): eng yangi uchtasi.
+        self.assertIn("KURS-4", html)
+        self.assertNotIn("YOPIQ-KURS", html)

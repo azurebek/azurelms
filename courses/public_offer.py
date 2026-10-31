@@ -128,6 +128,11 @@ def _period_days(today):
     return (end - start).days
 
 
+def billing_period_days(today=None):
+    """Tarif davri (kun) — kurs taklifidagi `period_days` bilan bir manba (checkout davri)."""
+    return _period_days(today or timezone.localdate())
+
+
 def _sale_plans():
     from subscriptions.catalog import purchase_plans
     from subscriptions.models import PlanFeature

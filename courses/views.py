@@ -13,12 +13,13 @@ from django.utils import timezone
 
 from core.frontend_v1 import FrontendV1Mixin
 from core.flags import flag_enabled
+from frontend.public_content import EDITORIAL
 from frontend.public_v1 import PublicFrontendV1Mixin
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST, require_safe
 
 from .access_service import build_lesson_access_bundle, check_lesson_access
-from .catalog import MAX_QUERY_CHARS, CatalogQuery, catalog_queryset, page_links
+from .catalog import MAX_QUERY_CHARS, CatalogQuery, catalog_queryset, page_links, related_courses
 from .public_offer import (
     CHECKOUT, STUDY, build_course_facts, build_offer, build_offers, offer_cta, plan_links,
 )
@@ -257,6 +258,9 @@ class CourseDetailView(PublicFrontendV1Mixin, DetailView):
         )
         context['active_cohort_count'] = offer.active_cohort_count
         context['active_nav'] = 'courses'
+        if self.public_renderer == EDITORIAL:
+            # Editorial kurs sahifasining "Boshqa kurslar" bandi — katalog qoidasidan (PUBLIC-02 / PE4).
+            context['related_courses'] = related_courses(self.object)
         # Voronka o'lchovi uchun (PUB1.8a): mehmonga "hozir yozilib bo'lmaydi" ko'rsatildi — sabab kodi.
         if not self.request.user.is_authenticated and not offer.available:
             self.request.public_unavailable_reason = offer.reason
