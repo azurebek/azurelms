@@ -138,7 +138,11 @@ jobs:
 
   integration:
     name: PostgreSQL+pgvector va Valkey smoke
-    runs-on: ubuntu-latest
+    # Backup/restore drill host klientini ishlatadi. `ubuntu-latest` 2026-11-01
+    # kuni Ubuntu 26 ga o'tib, PG18 klientini PG16 servisiga uladi; PG18 dumpi
+    # yozgan `transaction_timeout`ni PG16 tiklay olmaydi. Runner va klient
+    # majori shu sabab ongli ravishda pinlangan.
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     services:
       postgres:
@@ -181,16 +185,22 @@ jobs:
         run: pip install -r requirements.txt
 
       # `pg_dump`/`pg_restore` — zaxira va restore drill testlari uchun.
-      # GitHub runner'ida odatda bor, ammo image versiyasi o'zgarganda jimgina
-      # yo'qolishi mumkin va o'shanda testlar "skip" bo'lib, gate jimgina
-      # yashil qolardi. Shu sabab mavjudligi majburlanadi.
+      # Faqat mavjudligini tekshirish yetmaydi: yangi klient eski serverdan
+      # dump ola oladi, ammo server tanimaydigan GUC yozib restore'ni yiqitadi.
+      # Aniq PG16 binary path'i keyingi qadamlarda PATH boshiga qo'yiladi.
       - name: PostgreSQL klient vositalari
         run: |
-          if ! command -v pg_dump > /dev/null; then
-            sudo apt-get update && sudo apt-get install -y postgresql-client
+          AZURELMS_PG16_BIN=/usr/lib/postgresql/16/bin
+          if [ ! -x "$AZURELMS_PG16_BIN/pg_dump" ] || [ ! -x "$AZURELMS_PG16_BIN/pg_restore" ]; then
+            sudo apt-get update
+            sudo apt-get install -y postgresql-client-16
           fi
+          echo "$AZURELMS_PG16_BIN" >> "$GITHUB_PATH"
+          export PATH="$AZURELMS_PG16_BIN:$PATH"
           pg_dump --version
           pg_restore --version
+          pg_dump --version | grep -qE ' 16\.'
+          pg_restore --version | grep -qE ' 16\.'
 
       - name: Baza haqiqatan PostgreSQL ekanini tasdiqlash
         run: |

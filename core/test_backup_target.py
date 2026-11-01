@@ -107,6 +107,39 @@ class WritableTargetTests(SimpleTestCase):
             "pg_dump/pg_restore majori PostgreSQL server bilan bir xil emas",
         )
 
+    def test_ci_postgres_client_major_matches_the_service_image(self):
+        """Integration gate runner yangilanganda backup drill buzilmasin."""
+        import re
+
+        from django.conf import settings
+
+        workflow = (
+            Path(settings.BASE_DIR) / ".github" / "workflows" / "ci.yml"
+        ).read_text(encoding="utf-8")
+        job = re.search(
+            r"\n  integration:\n(?P<body>.*?)(?=\n  [\w-]+:\n)",
+            workflow,
+            flags=re.DOTALL,
+        )
+        self.assertIsNotNone(job, "CI integration jobi topilmadi")
+        body = job.group("body")
+
+        runner = re.search(r"runs-on:\s*(ubuntu-[\d.]+)", body)
+        server = re.search(r"image:\s*pgvector/pgvector:pg(\d+)", body)
+        package = re.search(r"postgresql-client-(\d+)", body)
+        binary = re.search(r"/usr/lib/postgresql/(\d+)/bin", body)
+
+        self.assertIsNotNone(runner, "CI runner versiyasi pin qilinmagan")
+        self.assertEqual(runner.group(1), "ubuntu-24.04")
+        self.assertIsNotNone(server, "CI PostgreSQL server majori pin qilinmagan")
+        self.assertIsNotNone(package, "CI PostgreSQL klient paketi pin qilinmagan")
+        self.assertIsNotNone(binary, "CI PostgreSQL binary path'i pin qilinmagan")
+        self.assertEqual(
+            {server.group(1), package.group(1), binary.group(1)},
+            {server.group(1)},
+            "CI pg_dump/pg_restore majori PostgreSQL servisiga mos emas",
+        )
+
 
 class RemediationTests(SimpleTestCase):
     """Tavsiya sababga va yo'lga mos bo'lishi kerak (PR #110 review).
