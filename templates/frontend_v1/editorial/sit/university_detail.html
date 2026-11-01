@@ -1,0 +1,36 @@
+{% extends "frontend_v1/editorial/base.html" %}{% load public_v1 %}
+{% block content %}
+<a class="c-text-link p-public-back" href="{{ public_back_url }}">Universitetlarga qaytish</a>
+<section class="p-public-detail">
+  <div>
+    <header class="p-public-heading"><p class="c-eyebrow">{{ university.city }} · {{ university.get_university_type_display }}</p><h1>{{ university.name }}</h1><div class="p-public-facts"><span class="c-badge {{ university.admission_badge_class }}">{{ university.get_admission_status_display }}</span><span>{{ university.language_summary }}</span><span>{{ university.display_tuition_from }}</span></div></header>
+
+    <aside class="c-card p-public-offer-summary" aria-label="Qabul holati"><strong>{{ university.get_admission_status_display }}</strong>{% if university.admission_deadline %}<span>{{ university.admission_deadline|date:"d.m.Y" }} gacha</span>{% endif %}<a class="c-button c-button--secondary" href="#qabul">Qabul ma’lumotlari</a></aside>
+
+    <div class="p-public-media{% if not university.cover_image %} p-public-media--atmos-3{% endif %} p-public-cover">{% if university.cover_image %}<img class="p-public-media__image" src="{{ university.cover_image.url }}" alt="" decoding="async">{% endif %}</div>
+    {% if university.description %}<p class="p-public-section">{{ university.description|linebreaksbr }}</p>{% endif %}
+
+    <div class="p-public-stack">
+      {% for section in program_sections %}<section class="c-card p-public-info-card" aria-labelledby="program-{{ section.value }}"><h2 id="program-{{ section.value }}">{{ section.label }}</h2>{% for group in section.faculty_groups %}<h3>{{ group.faculty.name }}</h3>{% for program in group.programs %}<div class="p-public-program"><strong>{{ program.name }}</strong><p>{{ program.duration }} · {{ program.get_language_display }}</p><p>{{ program.display_tuition }} / yil</p></div>{% endfor %}{% endfor %}</section>{% endfor %}
+
+      {% if university.visible_preparation_courses %}<section class="c-card p-public-info-card"><h2>Til tayyorlov kursi</h2>{% for course in university.visible_preparation_courses %}<p>{{ course.language }} · {{ course.duration }} · {{ course.display_tuition }}</p>{% endfor %}<a class="c-text-link" href="{% url 'courses' %}">Turk tili kurslari {% include "frontend_v1/icon.html" with name="arrow" %}</a></section>{% endif %}
+
+      {% if university.visible_requirements or university.visible_required_documents %}<div class="p-public-card-grid">{% if university.visible_requirements %}<section class="c-card p-public-info-card"><h2>Qabul talablari</h2><ul class="p-public-list">{% for item in university.visible_requirements %}<li>{{ item.text }}</li>{% endfor %}</ul></section>{% endif %}{% if university.visible_required_documents %}<section class="c-card p-public-info-card"><h2>Kerakli hujjatlar</h2><ul class="p-public-list">{% for item in university.visible_required_documents %}<li>{{ item.text }}</li>{% endfor %}</ul></section>{% endif %}</div>{% endif %}
+
+      {% if university.visible_service_items %}<section class="c-card p-public-info-card"><h2>Yordam xizmati</h2><ul class="p-public-list">{% for item in university.visible_service_items %}<li>{{ item.text }}</li>{% endfor %}</ul></section>{% endif %}
+
+      {% if university.visible_media_items %}<section class="c-card p-public-info-card"><h2>Galereya</h2><div class="p-public-card-grid">{% for media in university.visible_media_items %}{% if media.media_type == 'image' and media.image %}<figure><img class="p-public-image" src="{{ media.image.url }}" alt="{{ media.caption }}" loading="lazy" decoding="async">{% if media.caption %}<figcaption>{{ media.caption }}</figcaption>{% endif %}</figure>{% else %}{% with href=media.video_url|public_url %}{% if href %}<p><a class="c-text-link" href="{{ href }}" target="_blank" rel="noopener noreferrer">{{ media.caption|default:"Videoni ochish" }} {% include "frontend_v1/icon.html" with name="arrow" %}</a></p>{% endif %}{% endwith %}{% endif %}{% endfor %}</div></section>{% endif %}
+    </div>
+  </div>
+
+  <section class="c-card p-public-detail__next" id="qabul" aria-label="Qabul ma’lumotlari">
+    <h2>Qabul ma’lumotlari</h2>
+    <p>{{ university.get_admission_status_display }}{% if university.admission_deadline %} · {{ university.admission_deadline|date:"d.m.Y" }} gacha{% endif %}</p>
+    {% if university.academic_year %}<p>{{ university.academic_year }}</p>{% endif %}
+    {% if university.last_verified_on %}<p class="c-caption">Tekshirilgan: {{ university.last_verified_on|date:"d.m.Y" }}</p>{% endif %}
+    {% with href=university.source_url|public_url %}{% if href %}<a class="c-text-link" href="{{ href }}" target="_blank" rel="noopener noreferrer">Rasmiy manba {% include "frontend_v1/icon.html" with name="arrow" %}</a>{% endif %}{% endwith %}
+    {% with href=university.official_website|public_url %}{% if href %}<a class="c-text-link" href="{{ href }}" target="_blank" rel="noopener noreferrer">Universitet sayti {% include "frontend_v1/icon.html" with name="arrow" %}</a>{% endif %}{% endwith %}
+    {% if university.application_help_enabled %}<h2>Hujjat topshirish bo‘yicha savol</h2>{% if site_settings.public_contact_phone or site_settings.public_contact_email %}<p class="c-muted">Savolingizni platformaga yuboring:</p><p data-sit-help-contact>{% if site_settings.public_contact_phone %}<a class="c-text-link" href="tel:{{ site_settings.public_contact_phone|cut:' ' }}">{{ site_settings.public_contact_phone }}</a>{% endif %}{% if site_settings.public_contact_email %} <a class="c-text-link" href="mailto:{{ site_settings.public_contact_email }}">{{ site_settings.public_contact_email }}</a>{% endif %}</p>{% else %}<p class="c-muted" data-sit-help-unavailable>Onlayn ariza hozircha qabul qilinmaydi. Talab va hujjatlarni shu sahifadan hamda rasmiy manbadan tekshiring.</p>{% endif %}{% endif %}
+  </section>
+</section>
+{% endblock %}

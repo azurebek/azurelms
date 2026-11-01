@@ -31,6 +31,10 @@ PORTED = {
     "subscriptions/pricing.html",
     "blog/post_list.html",
     "blog/post_detail.html",
+    "sit/home.html",
+    "sit/university_list.html",
+    "sit/university_detail.html",
+    "sit/knowledge_detail.html",
 }
 PNG = (b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89"
        b"\x00\x00\x00\rIDATx\x9cc\xf8\x0f\x00\x00\x01\x01\x00\x05\x18\xd8N\x00\x00\x00\x00IEND\xaeB`\x82")
@@ -506,4 +510,209 @@ class EditorialJournalTests(TestCase):
                 self.assertEqual(response.status_code, 200)
                 counts[(name, editorial)] = len(queries)
         for name in ("list", "detail"):
+            self.assertEqual(counts[(name, True)], counts[(name, False)], (name, counts))
+
+
+class EditorialSitTests(TestCase):
+    """PE6: SIT home, katalog, universitet va qo'llanma editorial ko'rinishi."""
+
+    def setUp(self):
+        from datetime import date
+
+        from sit.models import (
+            Announcement,
+            KnowledgeArticle,
+            University,
+            UniversityDocument,
+            UniversityFaculty,
+            UniversityPreparationCourse,
+            UniversityProgram,
+            UniversityRequirement,
+            UniversityServiceItem,
+        )
+
+        set_flags(v1=True, editorial=True)
+        self.university = University.objects.create(
+            name="EDITORIAL-UNIVERSITET",
+            short_name="EDU",
+            city="Istanbul",
+            location_detail="Yevropa tomoni",
+            university_type=University.UniversityType.PUBLIC,
+            admission_status=University.AdmissionStatus.OPEN,
+            admission_deadline=date(2027, 6, 30),
+            academic_year="2027/2028",
+            description="Owner yozgan universitet tavsifi.",
+            tuition_from=1200,
+            official_website="https://example.edu.tr/",
+            source_url="https://example.edu.tr/admission",
+            last_verified_on=date(2026, 10, 31),
+            is_featured=True,
+            is_published=True,
+        )
+        faculty = UniversityFaculty.objects.create(university=self.university, name="Muhandislik")
+        UniversityProgram.objects.create(
+            faculty=faculty,
+            name="Dasturiy injiniring",
+            degree_level=UniversityProgram.DegreeLevel.BACHELOR,
+            language=UniversityProgram.Language.TURKISH,
+            duration="4 yil",
+            tuition_fee=1500,
+        )
+        UniversityPreparationCourse.objects.create(
+            university=self.university, language="Turk tili", tuition_fee=900
+        )
+        UniversityRequirement.objects.create(university=self.university, text="OWNER-TALAB")
+        UniversityDocument.objects.create(university=self.university, text="OWNER-HUJJAT")
+        UniversityServiceItem.objects.create(university=self.university, text="OWNER-XIZMAT")
+        Announcement.objects.create(
+            title="OWNER-ELON",
+            university=self.university,
+            published_on=date(2026, 10, 31),
+            show_on_home=True,
+            is_published=True,
+        )
+        self.guide = KnowledgeArticle.objects.create(
+            title="EDITORIAL-QOLLANMA",
+            category="Qabul",
+            excerpt="Owner yozgan qo‘llanma tavsifi.",
+            body=(
+                '<h2 id="owner" onclick="INJECTION()">Qabul <em>shartlari</em></h2>'
+                '<p>OWNER-GUIDE-BODY</p><h2>Qabul shartlari</h2><script>INJECTION()</script>'
+            ),
+            is_featured=True,
+            is_published=True,
+            published_on=date(2026, 10, 31),
+            source_url="https://example.gov.tr/guide",
+            last_verified_on=date(2026, 10, 31),
+        )
+
+    def html(self, url, data=None):
+        response = self.client.get(url, data or {})
+        self.assertEqual(response.status_code, 200)
+        return response, response.content.decode()
+
+    def test_four_pages_use_editorial_templates_and_canonical_content(self):
+        pages = (
+            (reverse("sit:home"), "frontend_v1/editorial/sit/home.html", "p-public-feature"),
+            (reverse("sit:university_list"), "frontend_v1/editorial/sit/university_list.html", "p-public-facets"),
+            (self.university.get_absolute_url(), "frontend_v1/editorial/sit/university_detail.html", "p-public-offer-summary"),
+            (self.guide.get_absolute_url(), "frontend_v1/editorial/sit/knowledge_detail.html", "p-public-doc"),
+        )
+        for url, template, marker in pages:
+            with self.subTest(url=url):
+                response, html = self.html(url)
+                self.assertTemplateUsed(response, template)
+                self.assertIn(marker, html)
+                self.assertNotIn("AI tutor", html)
+                self.assertNotIn("Shaxsiy ustoz", html)
+
+        _, home = self.html(reverse("sit:home"))
+        for expected in ("EDITORIAL-UNIVERSITET", "OWNER-ELON", "EDITORIAL-QOLLANMA"):
+            self.assertIn(expected, home)
+
+        _, listing = self.html(reverse("sit:university_list"))
+        for name in ("q", "type", "city", "language", "level", "price", "status"):
+            self.assertIn(f'name="{name}"', listing)
+        self.assertIn('role="status"', listing)
+
+        _, detail = self.html(self.university.get_absolute_url())
+        for expected in ("Dasturiy injiniring", "OWNER-TALAB", "OWNER-HUJJAT", "OWNER-XIZMAT"):
+            self.assertIn(expected, detail)
+        self.assertLess(detail.index("p-public-offer-summary"), detail.index('id="qabul"'))
+        self.assertIn("data-sit-help-unavailable", detail)
+        self.assertNotIn("5 000", detail)
+
+    def test_guide_toc_is_sanitized_unique_and_points_at_real_fragments(self):
+        _, html = self.html(self.guide.get_absolute_url())
+
+        for anchor in ("guide-qabul-shartlari", "guide-qabul-shartlari-2"):
+            self.assertIn(f'href="#{anchor}"', html)
+            self.assertIn(f'id="{anchor}"', html)
+        self.assertNotIn('id="owner"', html)
+        self.assertNotIn("onclick", html)
+        self.assertNotIn("INJECTION", html)
+        self.assertIn("OWNER-GUIDE-BODY", html)
+
+    def test_uploaded_covers_are_lazy_on_cards_but_not_on_detail_pages(self):
+        import tempfile
+
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        with self.settings(MEDIA_ROOT=directory.name):
+            self.university.cover_image = SimpleUploadedFile("university.png", real_png(), content_type="image/png")
+            self.university.save()
+            self.guide.cover_image = SimpleUploadedFile("guide.png", real_png(), content_type="image/png")
+            self.guide.save()
+            _, listing = self.html(reverse("sit:university_list"))
+            _, home = self.html(reverse("sit:home"))
+            _, university_detail = self.html(self.university.get_absolute_url())
+            _, guide_detail = self.html(self.guide.get_absolute_url())
+
+        for html, url in ((listing, self.university.cover_image.url), (home, self.guide.cover_image.url)):
+            image = html[html.index(url):html.index(url) + 180]
+            self.assertIn('loading="lazy"', image)
+            self.assertIn('alt=""', html[html.rfind("<img", 0, html.index(url)):html.index(url) + 180])
+        for html, url in ((university_detail, self.university.cover_image.url), (guide_detail, self.guide.cover_image.url)):
+            image = html[html.index(url):html.index(url) + 180]
+            self.assertNotIn('loading="lazy"', image)
+
+    def test_preview_is_private_unindexed_and_stays_in_editorial_frame(self):
+        from datetime import date
+
+        from sit.models import KnowledgeArticle, University
+
+        staff = get_user_model().objects.create_user(
+            "sit_editorial_staff", email="sit-staff@example.test", password="x", is_staff=True
+        )
+        draft_university = University.objects.create(
+            name="QORALAMA-UNIVERSITET",
+            short_name="QU",
+            city="Ankara",
+            source_url="https://example.edu.tr/draft",
+            last_verified_on=date(2026, 10, 31),
+        )
+        draft_guide = KnowledgeArticle.objects.create(
+            title="QORALAMA-QOLLANMA",
+            category="Viza",
+            body="<h2>Qoralama bo‘lim</h2><p>Matn</p>",
+            source_url="https://example.gov.tr/draft",
+            last_verified_on=date(2026, 10, 31),
+        )
+        self.client.force_login(staff)
+        for item in (draft_university, draft_guide):
+            response, html = self.html(item.get_absolute_url(), {"preview": "1"})
+            with self.subTest(item=item):
+                self.assertIn("Ko‘rib chiqish", html)
+                self.assertIn('<meta name="robots" content="noindex, nofollow">', html)
+                self.assertIn("no-store", response["Cache-Control"])
+                self.assertIn(EDITORIAL_BASE, [template.name for template in response.templates])
+
+    def test_truthful_empty_states_remain_visible(self):
+        from sit.models import KnowledgeArticle, University
+
+        University.objects.update(is_published=False)
+        KnowledgeArticle.objects.update(is_published=False)
+        _, home = self.html(reverse("sit:home"))
+        _, listing = self.html(reverse("sit:university_list"))
+        self.assertIn("Hozircha ochiq qabuldagi universitetlar yo‘q", home)
+        self.assertIn("Hozircha qo‘llanmalar e’lon qilinmagan", home)
+        self.assertIn("Natija topilmadi", listing)
+
+    def test_editorial_templates_add_no_queries_to_the_v1_sit_contract(self):
+        urls = (
+            ("home", reverse("sit:home")),
+            ("list", reverse("sit:university_list")),
+            ("university", self.university.get_absolute_url()),
+            ("guide", self.guide.get_absolute_url()),
+        )
+        counts = {}
+        for editorial in (False, True):
+            set_flags(v1=True, editorial=editorial)
+            for name, url in urls:
+                self.client.get(url)
+                with CaptureQueriesContext(connection) as queries:
+                    response = self.client.get(url)
+                self.assertEqual(response.status_code, 200)
+                counts[(name, editorial)] = len(queries)
+        for name, _ in urls:
             self.assertEqual(counts[(name, True)], counts[(name, False)], (name, counts))

@@ -1,6 +1,6 @@
 """PUB1.6b — SIT umumiy ochiq infratuzilmaga bitta adapter orqali ulanadi.
 
-Asosiy da'volar, ikkala rendererda (legacy va V1):
+Asosiy da'volar, uchala rendererda (legacy, V1 va editorial):
 * katalog, bosh sahifa, sitemap faqat `sit.public` effective selectorlaridan o'qiydi —
   ikkinchi "nashr etilgan" qoidasi yo'q; SIT route'lari registr, sitemap va meta'da bir martadan;
 * eskirgan (tekshirilgan sanasi eski) universitet yashirilmaydi — dolzarblik haqiqati SIT-01'da;
@@ -31,7 +31,7 @@ from sit import public
 from sit.models import Announcement, KnowledgeArticle, University, UniversityFaculty, UniversityProgram
 from users.models import CustomUser
 
-RENDERERS = (("legacy", False), ("v1", True))
+RENDERERS = (("legacy", False, False), ("v1", True, False), ("editorial", True, True))
 SIT_ROUTES = ("sit:home", "sit:university_list", "sit:university_detail", "sit:knowledge_detail")
 
 
@@ -47,8 +47,9 @@ class SitWorld(TestCase):
                                          duration="4 yil", tuition_fee=1200)
         return university
 
-    def renderer(self, v1):
+    def renderer(self, v1, editorial=False):
         FeatureFlag.objects.update_or_create(slug="frontend_v1_public", defaults={"enabled": v1})
+        FeatureFlag.objects.update_or_create(slug="public_editorial_v1", defaults={"enabled": editorial})
 
 
 class SingleAdapterTests(SitWorld):
@@ -67,8 +68,8 @@ class SingleAdapterTests(SitWorld):
         self.university("Yagona universitet")
         with mock.patch.object(public, "effective_universities", return_value=University.objects.none()):
             self.assertFalse([e for e in sitemap_entries() if e.route_name == "sit:university_detail"])
-            for name, v1 in RENDERERS:
-                self.renderer(v1)
+            for name, v1, editorial in RENDERERS:
+                self.renderer(v1, editorial)
                 with self.subTest(renderer=name):
                     self.assertNotContains(self.client.get(reverse("sit:university_list")), "Yagona universitet")
                     self.assertEqual(self.client.get(reverse("sit:home")).context["portal_stats"]["universities"], 0)
@@ -85,16 +86,16 @@ class PublicationStateTests(SitWorld):
 
     def test_stale_stays_public_and_says_when_it_was_checked(self):
         self.assertIn(self.stale, public.effective_universities())
-        for name, v1 in RENDERERS:
-            self.renderer(v1)
+        for name, v1, editorial in RENDERERS:
+            self.renderer(v1, editorial)
             with self.subTest(renderer=name):
                 self.assertContains(self.client.get(reverse("sit:university_list")), "Eski tekshirilgan")
                 self.assertContains(self.client.get(self.stale.get_absolute_url()), "01.01.2020")
 
     def test_unpublished_never_leaks(self):
         self.assertNotIn(self.draft.get_absolute_url(), "".join(entry.loc for entry in sitemap_entries()))
-        for name, v1 in RENDERERS:
-            self.renderer(v1)
+        for name, v1, editorial in RENDERERS:
+            self.renderer(v1, editorial)
             with self.subTest(renderer=name):
                 self.assertNotContains(self.client.get(reverse("sit:home")), "Yashirin qoralama")
                 self.assertNotContains(self.client.get(reverse("sit:home")), "Qoralama e'loni")
@@ -105,8 +106,8 @@ class PublicationStateTests(SitWorld):
         self.client.force_login(self.learner)
         self.assertEqual(self.client.get(self.draft.get_absolute_url(), {"preview": "1"}).status_code, 404)
         self.client.force_login(self.staff)
-        for name, v1 in RENDERERS:
-            self.renderer(v1)
+        for name, v1, editorial in RENDERERS:
+            self.renderer(v1, editorial)
             with self.subTest(renderer=name):
                 response = self.client.get(self.draft.get_absolute_url(), {"preview": "1"})
                 self.assertEqual(response.status_code, 200)
@@ -123,8 +124,8 @@ class CatalogNavigationTests(SitWorld):
     def test_links_are_normalized_and_back_returns_to_the_same_page(self):
         expected = "/sit/universities/?q=Universitet&city=Istanbul&page=2"
         self.assertEqual(public.catalog_url({"q": "Universitet", "city": "Istanbul", "status": "open"}, page=2), expected)
-        for name, v1 in RENDERERS:
-            self.renderer(v1)
+        for name, v1, editorial in RENDERERS:
+            self.renderer(v1, editorial)
             with self.subTest(renderer=name):
                 page = self.client.get(reverse("sit:university_list"),
                                        {"q": "Universitet", "city": "Istanbul", "page": "2", "utm_source": "x"})
@@ -144,8 +145,8 @@ class CatalogNavigationTests(SitWorld):
                 self.assertNotContains(hostile, 'href="https://evil.example')
 
     def test_missing_pages_are_404_and_inputs_are_bounded(self):
-        for name, v1 in RENDERERS:
-            self.renderer(v1)
+        for name, v1, editorial in RENDERERS:
+            self.renderer(v1, editorial)
             with self.subTest(renderer=name):
                 for page in ("99", "abc"):
                     self.assertEqual(self.client.get(reverse("sit:university_list"), {"page": page}).status_code, 404)
@@ -161,8 +162,8 @@ class CatalogNavigationTests(SitWorld):
                 self.assertEqual(self.client.get(reverse("sit:university_list")).status_code, 200)
             return len(queries)
 
-        for name, v1 in RENDERERS:
-            self.renderer(v1)
+        for name, v1, editorial in RENDERERS:
+            self.renderer(v1, editorial)
             with self.subTest(renderer=name):
                 before = count()
                 extra = [self.university(f"Qo'shimcha {index}", order=50 + index) for index in range(6)]
@@ -181,8 +182,8 @@ class TruthfulCtaTests(SitWorld):
         return (reverse("messenger:ai"), reverse("messenger:tutor"), escape(self.target.display_help_fee), "AI maslahatchi")
 
     def test_no_generic_ai_tutor_or_fee_ctas(self):
-        for name, v1 in RENDERERS:
-            self.renderer(v1)
+        for name, v1, editorial in RENDERERS:
+            self.renderer(v1, editorial)
             for url in (reverse("sit:home"), reverse("sit:university_list"), self.target.get_absolute_url()):
                 with self.subTest(renderer=name, url=url):
                     response = self.client.get(url)
@@ -191,8 +192,8 @@ class TruthfulCtaTests(SitWorld):
             self.assertContains(self.client.get(reverse("sit:home")), "Universitetlarni solishtirish")
 
     def test_help_uses_the_configured_contact_or_says_it_is_unavailable(self):
-        for name, v1 in RENDERERS:
-            self.renderer(v1)
+        for name, v1, editorial in RENDERERS:
+            self.renderer(v1, editorial)
             with self.subTest(renderer=name, contact=False):
                 response = self.client.get(self.target.get_absolute_url())
                 self.assertContains(response, "data-sit-help-unavailable")
@@ -200,8 +201,8 @@ class TruthfulCtaTests(SitWorld):
         settings = SiteSettings.load()
         settings.contact_phone, settings.contact_email = "+998 71 200 00 00", "yordam@azurelms.test"
         settings.save()
-        for name, v1 in RENDERERS:
-            self.renderer(v1)
+        for name, v1, editorial in RENDERERS:
+            self.renderer(v1, editorial)
             with self.subTest(renderer=name, contact=True):
                 response = self.client.get(self.target.get_absolute_url())
                 self.assertContains(response, "data-sit-help-contact")
@@ -210,8 +211,8 @@ class TruthfulCtaTests(SitWorld):
 
     def test_hidden_help_shows_nothing(self):
         University.objects.filter(pk=self.target.pk).update(application_help_enabled=False)
-        for name, v1 in RENDERERS:
-            self.renderer(v1)
+        for name, v1, editorial in RENDERERS:
+            self.renderer(v1, editorial)
             with self.subTest(renderer=name):
                 response = self.client.get(self.target.get_absolute_url())
                 self.assertNotContains(response, "data-sit-help-unavailable")

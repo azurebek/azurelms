@@ -29,7 +29,7 @@ from courses.models import Course
 from frontend import public_budgets
 from frontend.public_media import missing_public_media
 from frontend.testing_legal import publish_legal
-from sit.models import University
+from sit.models import KnowledgeArticle, University
 from users.models import CustomUser
 
 CDN_HOSTS = ("fonts.googleapis.com", "fonts.gstatic.com", "cdn.jsdelivr.net")
@@ -43,6 +43,10 @@ class BudgetWorld(TestCase):
         self.course = Course.objects.create(title="Kurs", description="d", level="beginner")
         self.university = University.objects.create(name="Universitet", short_name="U", city="Istanbul", is_published=True,
                                                     source_url="https://example.edu.tr/", last_verified_on=date.today())
+        self.guide = KnowledgeArticle.objects.create(
+            title="Qo'llanma", category="Qabul", body="<h2>Talablar</h2><p>Matn</p>", is_published=True,
+            source_url="https://example.gov.tr/guide", last_verified_on=date.today(),
+        )
         publish_legal("privacy")
 
     def pages(self):
@@ -51,6 +55,7 @@ class BudgetWorld(TestCase):
             "course": reverse("course_detail", args=[self.course.pk]), "pricing": reverse("subscriptions:pricing"),
             "blog": reverse("blog:list"), "post": self.post.get_absolute_url(), "sit": reverse("sit:home"),
             "universities": reverse("sit:university_list"), "university": self.university.get_absolute_url(),
+            "guide": self.guide.get_absolute_url(),
             "privacy": reverse("privacy_policy"),
         }
         auth = {"login": reverse("login"), "reset": reverse("password_reset")}

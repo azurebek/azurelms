@@ -1,0 +1,14 @@
+{% extends "frontend_v1/editorial/base.html" %}{% load public_v1 %}
+{% block content %}
+<a class="c-text-link p-public-back" href="{% url 'sit:home' %}#kb">Qo‘llanmalarga qaytish</a>
+<article class="p-public-stack">
+  <header class="p-public-heading p-public-lede"><p class="c-eyebrow">{{ article.category }}</p><h1>{{ article.title }}</h1>{% if article.excerpt %}<p class="c-lead">{{ article.excerpt }}</p>{% endif %}{% if article.last_verified_on %}<p class="c-caption">Tekshirilgan: {{ article.last_verified_on|date:"d.m.Y" }}</p>{% endif %}</header>
+
+  {% if article_document.toc %}<div class="p-public-doc">
+    <nav class="p-public-doc__toc" aria-label="Mundarija"><p class="c-eyebrow">Mundarija</p>{% for heading in article_document.toc %}<a href="#{{ heading.anchor }}">{{ heading.label }}</a>{% endfor %}</nav>
+    <div class="c-card p-public-legal p-public-rich p-public-stack">{% if article.cover_image %}<div class="p-public-media p-public-cover"><img class="p-public-media__image" src="{{ article.cover_image.url }}" alt="" decoding="async"></div>{% endif %}{{ article_document.html }}</div>
+  </div>{% else %}<div class="c-card p-public-legal p-public-rich p-public-article p-public-stack">{% if article.cover_image %}<div class="p-public-media p-public-cover"><img class="p-public-media__image" src="{{ article.cover_image.url }}" alt="" decoding="async"></div>{% endif %}{{ article_document.html }}</div>{% endif %}
+
+  {% with href=article.source_url|public_url %}{% if href %}<p><a class="c-text-link" href="{{ href }}" rel="noopener noreferrer" target="_blank">Asosiy manba {% include "frontend_v1/icon.html" with name="arrow" %}</a></p>{% endif %}{% endwith %}
+</article>
+{% endblock %}
