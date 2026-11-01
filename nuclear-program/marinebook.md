@@ -16,6 +16,25 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-11-01 [Codex]: PUBLIC-02 / PE6 — editorial Turkiyada o'qish
+
+`public_editorial_v1` yoqilsa SIT bosh sahifasi, universitet katalogi/detail'i va qo'llanma editorial ko'rinishda.
+Canonical SIT adapter/selectorlari, nashr/preview siyosati va rost CTA kontrakti o'zgarmadi; yangi model yoki migration yo'q.
+
+- Branch: `codex/pe6-editorial-sit`. Kod commit: `e39ea71`. Migration yo'q.
+- Qarorlar: `templates/frontend_v1/editorial/sit/` besh shabloni yetti filtr, normallashgan pagination/`return_to`,
+  mobil `.p-public-offer-summary`, cover/fallback/loading va sozlangan aloqa yoki rost unavailable holatini saqlaydi;
+  fee, umumiy AI/tutor CTA yo'q. Qo'llanma TOC'i shared `frontend.public_documents.project_public_document`da
+  **sanitizer-first**: xavfsiz/takrorlanmaydigan fragmentlar, bo'sh heading wrapperisiz. PE7 shu primitivni qayta ishlatadi.
+- Test: PUB1.6b legacy/V1/editorial; rich content/unsafe URL, preview/noindex/no-store, media, bo'sh holat, query pariteti
+  va asset/a11y byudjeti. To'liq `manage.py test` — **3318 OK (skipped=70)**; Node — **198/198**;
+  `check --fail-level WARNING`, `check --deploy`, `makemigrations --check --dry-run`, `collectstatic`, secret scan va
+  `git diff --check` toza. Mustaqil review topgan bo'sh `<h2>` a11y nuqsoni commitdan oldin tuzatildi.
+- Brauzer (WAL-safe baza nusxasi): 1440/1024/768/390/320px yorug'/qorong'i; gorizontal toshish va konsol
+  warning/error 0. Yetti filtr, bo'sh natija, page 2 → detail → back, mobil qabul xulosasi, TOC fragmentlari va mobil
+  menyu tekshirildi; original DB o'zgarmadi.
+- Davom etilishi kerak: PE7 (huquqiy sahifalar).
+
 ## 2026-10-31 [Codex]: PUBLIC-02 / PE5 — editorial Azure Journal
 
 `public_editorial_v1` yoqilsa Azure Journal ro'yxati spotlight + story qatori, maqola esa xavfsiz muallif

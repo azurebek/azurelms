@@ -1,8 +1,7 @@
 # PUBLIC-02 — editorial public dizaynini production'ga ko'chirish rejasi
 
-**Holat — 2026-10-31: owner qarorlari D1–D5 qabul qilingan (§3); PE1 (poydevor), PE2 (umumiy ramka), PE3
-(bosh sahifa, "Biz haqimizda"), PE4 (katalog, kurs, tariflar) va PE5 (Azure Journal) kodda, lokal
-tekshirilgan; PE6–PE10 boshlanmagan.** Manba — owner bilan qurilgan lokal
+**Holat — 2026-11-01: owner qarorlari D1–D5 qabul qilingan (§3); PE1–PE6 kodda va lokal
+tekshirilgan; PE7–PE10 boshlanmagan.** Manba — owner bilan qurilgan lokal
 prototip `playground/Thirteenth Trial/` (2026-10-21…28). `playground/` git'ga kirmaydi: prototip faqat shu
 kompyuterda. Shu sabab birinchi kod kesimi (PE1) uning normativ qismini (CSS qoidalari va tekshiruvi) repo'ga
 olib kiradi; ungacha `playground/Thirteenth Trial/` o'chirilmaydi.
@@ -89,13 +88,13 @@ Owner'ning menyu sozlamasi (kod emas): footer'ga "Tariflar" havolasini `LandingN
 | `src/courses.html`, `src/course.html`, `src/pricing.html` | `editorial/courses/course_list.html`, `course_card.html`, `course_detail.html`, `subscriptions/pricing.html` | PE4 |
 | `src/journal.html`, `src/article.html` | `editorial/blog/post_list.html`, `card.html`, `post_detail.html` (izoh/olqish bilan) | PE5 |
 | `src/sit.html`, `universities.html`, `university.html`, `guide.html` | `editorial/sit/home.html`, `university_list.html`, `card.html`, `university_detail.html`, `knowledge_detail.html` | PE6 |
-| `src/terms.html`, `privacy.html`, `faq.html` (`p-public-doc` mundarija) | `editorial/legal_page.html` + mundarija selectori | PE7 |
+| `src/terms.html`, `privacy.html`, `faq.html` (`p-public-doc` mundarija) | `editorial/legal_page.html` + shared `frontend.public_documents` proyeksiyasi | PE7 |
 | `src/login.html`, `register.html`, `reset.html`, `reset-done.html` | `frontend_v1/login.html`, `auth_base.html` va 6 auth shabloni — ochiq sahifa ramkasida | PE8 |
 | `production-proposed.css` (sidebar logo qatori, topbar logosi, 1024 → 1200px) | `shell.css`, `shell.js`, `platform.html`, `public.css` | PE9 |
 
 ## 6. Kesimlar
 
-Har kesim alohida `claude/` branch va PR; CI uchala job yashil bo'lmaguncha merge yo'q. Flag butun ish davomida
+Har kesim agentning o'z prefiks branchi va PR'ida; CI uchala job yashil bo'lmaguncha merge yo'q. Flag butun ish davomida
 OFF — production ko'rinishi PE10 gacha o'zgarmaydi.
 
 **PE0 — shu reja** (docs-only).
@@ -184,10 +183,24 @@ brauzer sinovida toshish va konsol xatosi yo'q, filtr → maqola → filtrga qay
 (telefonda qabul xulosasi), qo'llanma (`p-public-doc` mundarija bilan).
 *Test:* `sit` testlari, PUB1.6b adapter qoidasi.
 
+**Holat — 2026-11-01: kodda, lokal tekshirilgan** (branch `codex/pe6-editorial-sit`, kod commit `e39ea71`,
+migration yo'q). `templates/frontend_v1/editorial/sit/` ichida home, universitetlar ro'yxati/kartasi, universitet
+detail'i va qo'llanma bor; kanonik `sit.public`/selectorlar, yetti filtr, sahifalash va `return_to` saqlandi.
+Telefonda `.p-public-offer-summary` uzun detaildan oldin qabul holati va `#qabul` havolasini ko'rsatadi. Qabul
+yordami faqat sozlangan aloqa yoki rost unavailable matni; fee, umumiy AI/tutor CTA yo'q. Karta muqovalari lazy,
+detail muqovalari LCP uchun lazy emas; rasm bo'lmasa token-asosli fon. Qo'llanma mundarijasi shared
+`frontend.public_documents.project_public_document`da avval sanitizatsiya qilinib, keyin `h2`larga xavfsiz,
+takrorlanmaydigan ID beradi; bo'sh heading wrapperi a11y uchun olib tashlanadi. Preview/noindex/no-store va V1 bilan
+so'rov soni pariteti testda. Lokal dalil: to'liq Django suite **3318 OK (skipped=70)**, Node **198/198**;
+`check --deploy`, migration drift, asset build, secret scan va diff check toza. Brauzerda 1440/1024/768/390/320px,
+yorug'/qorong'i: overflow va konsol warning/error 0; filtr, bo'sh natija, page 2 → detail → back, mobil qabul
+xulosasi va TOC fragmentlari tekshirildi.
+
 **PE7 — huquqiy sahifalar.** `p-public-doc`: mundarija owner matnidagi h2'lardan **server tomonida**,
-sanitizatsiyadan keyin (`PUBLIC_EDITORIAL_V1` profili o'zgarmaydi; id'lar xavfsiz slug, takrorlanmaydi).
+PE6da kiritilgan shared `project_public_document`ni qayta ishlatib, sanitizatsiyadan keyin
+(`PUBLIC_EDITORIAL_V1` profili o'zgarmaydi; id'lar xavfsiz slug, takrorlanmaydi).
 Nashr qilinmagan holat (503) mundarijasiz. Yorliq D5.
-*Test:* mundarija selectori unit testlari (bo'sh, takror sarlavha, injection), `frontend` legal testlari.
+*Test:* shared mundarija proyeksiyasi unit testlari (bo'sh, takror sarlavha, injection), `frontend` legal testlari.
 
 **PE8 — kirish, ro'yxat, parolni tiklash ochiq sahifa ramkasida.** `login.html` va `auth_base.html` editorial
 ramkada; yon panel `data-surface="inverse"`. Formalar, CSRF, PUB1.4b xato modeli, Telegram paneli, faoliyat
