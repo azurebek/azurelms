@@ -16,6 +16,19 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-11-01 [Codex]: CI PostgreSQL backup klienti server majoriga pinlandi
+
+GitHub `ubuntu-latest` Ubuntu 26 ga ko'chib, integration gate'da PG18 klientini PG16 servisiga uladi;
+dumpdagi `transaction_timeout`ni PG16 tanimagani uchun ikkita restore-drill testi yiqildi. Integration runneri
+Ubuntu 24.04 ga, `pg_dump`/`pg_restore` esa aniq PG16 paket/path'iga pinlandi va majorlar regression testida
+bir-biriga bog'landi; ilova runtime'i, model va migration o'zgarmadi.
+
+- Branch: `codex/ci-pin-postgres-client-16`. Kod commit: `8c25332`.
+- Test: `manage.py test core.test_backup_target core.test_pg_backup` — **33 OK (skipped=11)**;
+  `manage.py check --fail-level WARNING`, CI YAML parse va `git diff --check` toza; mustaqil review topilmasiz.
+- Davom etilishi kerak: required CI yashil bo'lsa bu fixni merge qilish, so'ng PR #248'ni `main` bilan yangilab
+  PostgreSQL gate'ni qayta yugurtirish.
+
 ## 2026-10-31 [Codex]: PUBLIC-02 / PE5 — editorial Azure Journal
 
 `public_editorial_v1` yoqilsa Azure Journal ro'yxati spotlight + story qatori, maqola esa xavfsiz muallif
