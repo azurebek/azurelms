@@ -16,6 +16,18 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-11-01 [Codex]: CI PostgreSQL backup klienti server majoriga pinlandi
+
+GitHub `ubuntu-latest` Ubuntu 26 ga ko'chib, integration gate'da PG18 klientini PG16 servisiga uladi;
+dumpdagi `transaction_timeout`ni PG16 tanimagani uchun ikkita restore-drill testi yiqildi. Integration runneri
+Ubuntu 24.04 ga, `pg_dump`/`pg_restore` esa aniq PG16 paket/path'iga pinlandi va majorlar regression testida
+bir-biriga bog'landi; ilova runtime'i, model va migration o'zgarmadi.
+
+- Branch: `codex/ci-pin-postgres-client-16`. Kod commit: `8c25332`.
+- Test: `manage.py test core.test_backup_target core.test_pg_backup` — **33 OK (skipped=11)**;
+  `manage.py check --fail-level WARNING`, CI YAML parse va `git diff --check` toza; mustaqil review topilmasiz.
+- Yakun: PR #249 required CI yashil holda merge qilindi (`644d7c5`); PE6 PR #248 shu `main` bilan yangilandi.
+
 ## 2026-11-01 [Codex]: PUBLIC-02 / PE6 — editorial Turkiyada o'qish
 
 `public_editorial_v1` yoqilsa SIT bosh sahifasi, universitet katalogi/detail'i va qo'llanma editorial ko'rinishda.
@@ -33,6 +45,8 @@ Canonical SIT adapter/selectorlari, nashr/preview siyosati va rost CTA kontrakti
 - Brauzer (WAL-safe baza nusxasi): 1440/1024/768/390/320px yorug'/qorong'i; gorizontal toshish va konsol
   warning/error 0. Yetti filtr, bo'sh natija, page 2 → detail → back, mobil qabul xulosasi, TOC fragmentlari va mobil
   menyu tekshirildi; original DB o'zgarmadi.
+- Integratsiya: PR #249 sababli `main` yangilanganda chiqqan marinebook docs konflikti ikkala yozuvni saqlab,
+  yangiroq CI qaydini yuqoriga qo'yib yechildi; feature logikasi to'qnashmadi.
 - Davom etilishi kerak: PE7 (huquqiy sahifalar).
 
 ## 2026-10-31 [Codex]: PUBLIC-02 / PE5 — editorial Azure Journal
