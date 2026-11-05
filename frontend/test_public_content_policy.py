@@ -320,21 +320,29 @@ class PublicNavigationTests(TestCase):
 
 
 class SitLinkTests(TestCase):
-    def test_sit_source_links_follow_the_link_policy_on_both_renderers(self):
+    def test_sit_source_links_follow_the_link_policy_on_all_renderers(self):
         flag = FeatureFlag.objects.create(slug="frontend_v1_public", enabled=False)
+        editorial_flag = FeatureFlag.objects.create(slug="public_editorial_v1", enabled=False)
         university = University.objects.create(
             name="Sinov universiteti", short_name="SU", city="Istanbul", is_published=True,
             source_url="https://example.edu.tr/", last_verified_on=datetime.date(2026, 9, 25), admission_status="open",
         )
+        guide = KnowledgeArticle.objects.create(
+            title="Sinov qo'llanmasi", category="Qabul", body="<h2>Talablar</h2>", is_published=True,
+            source_url="https://example.gov.tr/", last_verified_on=datetime.date(2026, 9, 25),
+        )
         # URLField validatsiyasini chetlab o'tgan (admin/ORM) qiymat ham chiqmasligi kerak.
         University.objects.filter(pk=university.pk).update(source_url="javascript:PWNED()", official_website="//evil.test/x")
-        for enabled in (False, True):
+        KnowledgeArticle.objects.filter(pk=guide.pk).update(source_url="javascript:PWNED()")
+        for renderer, enabled, editorial in (("legacy", False, False), ("v1", True, False), ("editorial", True, True)):
             flag.enabled = enabled; flag.save()
-            with self.subTest(v1=enabled):
-                response = self.client.get(reverse("sit:university_detail", args=[university.slug]))
-                self.assertEqual(response.status_code, 200)
-                self.assertNotContains(response, "PWNED")
-                self.assertNotContains(response, "evil.test")
+            editorial_flag.enabled = editorial; editorial_flag.save()
+            for url in (university.get_absolute_url(), guide.get_absolute_url()):
+                with self.subTest(renderer=renderer, url=url):
+                    response = self.client.get(url)
+                    self.assertEqual(response.status_code, 200)
+                    self.assertNotContains(response, "PWNED")
+                    self.assertNotContains(response, "evil.test")
 
 
 class AuditCommandTests(TestCase):

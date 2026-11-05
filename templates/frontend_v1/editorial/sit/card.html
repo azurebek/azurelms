@@ -1,0 +1,16 @@
+<article class="{% if story %}p-public-story{% else %}c-card p-public-info-card{% endif %}">
+  <div class="p-public-media{% if not university.cover_image %} p-public-media--atmos{% if atmos_class %} {{ atmos_class }}{% endif %}{% endif %} {% if story %}p-public-story__media{% else %}p-public-cover{% endif %}">
+    {% if university.cover_image %}<img class="p-public-media__image" src="{{ university.cover_image.url }}" alt="" loading="lazy" decoding="async">{% endif %}
+  </div>
+  {% if story %}
+    <span class="c-badge c-badge--soft">{{ university.city }}</span>
+    <h3><a href="{{ university.get_absolute_url }}{% if sit_return_to %}?return_to={{ sit_return_to|urlencode }}{% endif %}">{{ university.name }}</a></h3>
+    {% if university.description %}<p class="c-muted">{{ university.description|truncatewords:24 }}</p>{% else %}<p class="c-muted">{{ university.get_university_type_display }} · {{ university.get_admission_status_display }}</p>{% endif %}
+  {% else %}
+    <p><span class="c-badge {{ university.admission_badge_class }}">{{ university.get_admission_status_display }}</span></p>
+    <h2>{{ university.name }}</h2>
+    <p class="c-caption">{{ university.city }} · {{ university.get_university_type_display }}</p>
+    <div class="p-public-facts"><span>{{ university.degree_summary }}</span><span>{{ university.language_summary }}</span><span>{{ university.display_tuition_from }}</span></div>
+    <a class="c-text-link" aria-label="{{ university.name }} — batafsil" href="{{ university.get_absolute_url }}{% if sit_return_to %}?return_to={{ sit_return_to|urlencode }}{% endif %}">Batafsil {% include "frontend_v1/icon.html" with name="arrow" %}</a>
+  {% endif %}
+</article>

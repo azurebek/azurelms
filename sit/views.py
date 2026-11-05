@@ -3,6 +3,8 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 
+from frontend.public_content import EDITORIAL, current_renderer
+from frontend.public_documents import project_public_document
 from frontend.public_query import MAX_QUERY_CHARS, pagination_context
 from frontend.public_v1 import render_public, safe_return_to
 
@@ -109,15 +111,20 @@ def university_detail(request, slug):
 
 
 def knowledge_detail(request, slug):
+    renderer = current_renderer()
     include_unpublished = preview_requested(request)
     queryset = KnowledgeArticle.objects.all() if include_unpublished else public.effective_articles()
     article = get_object_or_404(queryset, slug=slug)
+    context = {
+        "active_nav": "knowledge",
+        "article": article,
+        "is_preview": include_unpublished and not article.is_published,
+    }
+    if renderer == EDITORIAL:
+        context["article_document"] = project_public_document(article.body, prefix="guide")
     return render_public(
         request,
         "sit/knowledge_detail.html",
-        {
-            "active_nav": "knowledge",
-            "article": article,
-            "is_preview": include_unpublished and not article.is_published,
-        },
+        context,
+        renderer=renderer,
     )
