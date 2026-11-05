@@ -1,7 +1,7 @@
 # PUBLIC-02 — editorial public dizaynini production'ga ko'chirish rejasi
 
-**Holat — 2026-11-01: owner qarorlari D1–D5 qabul qilingan (§3); PE1–PE6 kodda va lokal
-tekshirilgan; PE7–PE10 boshlanmagan.** Manba — owner bilan qurilgan lokal
+**Holat — 2026-11-05: owner qarorlari D1–D5 qabul qilingan (§3); PE1–PE7 kodda va lokal
+tekshirilgan; PE8–PE10 boshlanmagan.** Manba — owner bilan qurilgan lokal
 prototip `playground/Thirteenth Trial/` (2026-10-21…28). `playground/` git'ga kirmaydi: prototip faqat shu
 kompyuterda. Shu sabab birinchi kod kesimi (PE1) uning normativ qismini (CSS qoidalari va tekshiruvi) repo'ga
 olib kiradi; ungacha `playground/Thirteenth Trial/` o'chirilmaydi.
@@ -201,6 +201,18 @@ PE6da kiritilgan shared `project_public_document`ni qayta ishlatib, sanitizatsiy
 (`PUBLIC_EDITORIAL_V1` profili o'zgarmaydi; id'lar xavfsiz slug, takrorlanmaydi).
 Nashr qilinmagan holat (503) mundarijasiz. Yorliq D5.
 *Test:* shared mundarija proyeksiyasi unit testlari (bo'sh, takror sarlavha, injection), `frontend` legal testlari.
+
+**Holat — 2026-11-05: kodda, lokal tekshirilgan** (branch `codex/pe7-editorial-legal`, kod commit
+`c91cf88`, migration yo'q). `templates/frontend_v1/editorial/legal_page.html` privacy/shartlar uchun faqat
+amaldagi `LegalRevision`, FAQ uchun esa nashrdagi `LegalPage` matnini chizadi. PE6 shared
+`frontend.public_documents.project_public_document` proyeksiyasi sanitizatsiyadan keyin `h2`lardan xavfsiz,
+takrorlanmaydigan fragmentlar yasaydi; `h2` bo'lmasa TOC chizilmaydi. Nashr qilinmagan sahifa halol 503,
+`noindex`/`no-store` va mundarijasiz; GET bazaga yozmaydi. D5 bo'yicha sahifa navigatsiyasi va editorial
+footerning standart `FAQ` yorlig'i “Savol-javob”; owner maxsus yorliq bergan bo'lsa u o'zgarmaydi. V1/legacy
+renderer va query soni paritetda. Lokal dalil: to'liq Django suite **3325 OK (skipped=70)**, Node **198/198**;
+`check --fail-level WARNING`, `check --deploy`, migration drift, asset build, secret scan va diff check toza.
+Brauzerda 1440/1024/768/390/320px, yorug'/qorong'i: overflow va konsol warning/error 0; sticky → stacked TOC,
+fragment nishoni, mobil menyu, FAQ savollar TOC'i va 503 javob/status/headerlari tekshirildi.
 
 **PE8 — kirish, ro'yxat, parolni tiklash ochiq sahifa ramkasida.** `login.html` va `auth_base.html` editorial
 ramkada; yon panel `data-surface="inverse"`. Formalar, CSRF, PUB1.4b xato modeli, Telegram paneli, faoliyat

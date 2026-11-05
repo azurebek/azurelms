@@ -16,6 +16,26 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-11-05 [Codex]: PUBLIC-02 / PE7 — editorial huquqiy sahifalar
+
+`public_editorial_v1` yoqilsa foydalanish shartlari, maxfiylik va savol-javob sahifalari editorial hujjat
+ko'rinishida chiqadi. Canonical huquqiy revision/FAQ manbasi, sanitizer profili, 503 va cache/index siyosati
+o'zgarmadi; yangi model, migration yoki JavaScript qo'shilmadi.
+
+- Branch: `codex/pe7-editorial-legal`. Kod commit: `c91cf88`. Migration yo'q.
+- Qarorlar: yangi `editorial/legal_page.html` PE6dagi shared `project_public_document`ni qayta ishlatadi —
+  sanitizatsiyadan keyingi `h2`lardan xavfsiz/takrorlanmaydigan fragmentlar; `h2` yo'q bo'lsa TOC yo'q. Privacy va
+  shartlar faqat amaldagi `LegalRevision`, FAQ faqat nashrdagi `LegalPage`; nashr yo'q bo'lsa mundarijasiz halol 503.
+  D5 “Savol-javob” sahifa navigatsiyasi va editorial footer defaultida; owner maxsus footer nomi saqlanadi.
+- Test: PE7 regressionlari owner content/sanitizer/injection/duplicate slug/no-h2, 503/noindex/no-store/no-write,
+  D5 va V1 query paritetini qoplaydi. To'liq `manage.py test` — **3325 OK (skipped=70)**; Node — **198/198**;
+  `check --fail-level WARNING`, `check --deploy`, `makemigrations --check --dry-run`, `collectstatic`, secret scan va
+  `git diff --check` toza.
+- Brauzer (alohida temp DB): 1440/1024/768/390/320px yorug'/qorong'i; gorizontal toshish va konsol
+  warning/error 0. Sticky/stacked TOC, fragment nishoni, mobil menyu, FAQ savollar TOC'i hamda nashr qilinmagan
+  sahifaning haqiqiy 503 + `no-store` + `noindex` javobi tekshirildi; original DB o'zgarmadi.
+- Davom etilishi kerak: PE8 (kirish, ro'yxat va parolni tiklash editorial ramkada).
+
 ## 2026-11-01 [Codex]: CI PostgreSQL backup klienti server majoriga pinlandi
 
 GitHub `ubuntu-latest` Ubuntu 26 ga ko'chib, integration gate'da PG18 klientini PG16 servisiga uladi;
