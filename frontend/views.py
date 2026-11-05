@@ -1,6 +1,7 @@
 from django.shortcuts import redirect
 from django.utils.cache import patch_cache_control
-from .public_content import about_projection, current_renderer, home_projection
+from .public_content import EDITORIAL, about_projection, current_renderer, home_projection
+from .public_documents import project_public_document
 from .public_v1 import render_public
 from .models import LegalPage
 
@@ -30,6 +31,8 @@ def legal_page_view(request, page_type):
     # FAQ huquqiy hujjat emas — `LegalPage`da qoladi.
     from . import legal_revisions
 
+    # Renderer bir marta tanlanadi: projection va template ayni flag qaroridan.
+    renderer = current_renderer()
     context = {"active_legal_page": page_type}
     if page_type in legal_revisions.KINDS:
         page = legal_revisions.effective_revision(page_type)
@@ -38,7 +41,9 @@ def legal_page_view(request, page_type):
     else:
         page = LegalPage.published(page_type)
     context.update(legal_page=page, legal_title=page.title if page else LegalPage.UNAVAILABLE_TITLES[page_type])
-    response = render_public(request, "legal_page.html", context)
+    if renderer == EDITORIAL and page is not None:
+        context["legal_document"] = project_public_document(page.content, prefix=f"legal-{page_type}")
+    response = render_public(request, "legal_page.html", context, renderer=renderer)
     if page is None:
         response.status_code = 503
         response["X-Robots-Tag"] = "noindex"

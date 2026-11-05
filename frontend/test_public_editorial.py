@@ -35,6 +35,7 @@ PORTED = {
     "sit/university_list.html",
     "sit/university_detail.html",
     "sit/knowledge_detail.html",
+    "legal_page.html",
 }
 PNG = (b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89"
        b"\x00\x00\x00\rIDATx\x9cc\xf8\x0f\x00\x00\x01\x01\x00\x05\x18\xd8N\x00\x00\x00\x00IEND\xaeB`\x82")
@@ -715,4 +716,126 @@ class EditorialSitTests(TestCase):
                 self.assertEqual(response.status_code, 200)
                 counts[(name, editorial)] = len(queries)
         for name, _ in urls:
+            self.assertEqual(counts[(name, True)], counts[(name, False)], (name, counts))
+
+
+class EditorialLegalTests(TestCase):
+    """PE7: published owner hujjati, safe TOC, D5 yorlig'i va halol 503."""
+
+    def setUp(self):
+        set_flags(v1=True, editorial=True)
+
+    def publish_pages(self, *, content=None):
+        from frontend.testing_legal import publish_legal
+
+        content = content or "<h2>Birinchi bo‘lim</h2><p>Owner matni</p>"
+        publish_legal("privacy", title="Maxfiylik siyosati", content=content)
+        publish_legal("terms", title="Foydalanish shartlari", content=content)
+        LegalPage.objects.create(page_type="faq", title="Savol-javob", content=content)
+
+    def test_all_three_pages_use_the_editorial_document_template_and_d5_label(self):
+        self.publish_pages()
+        for name in ("privacy_policy", "terms_of_service", "faq_page"):
+            with self.subTest(name=name):
+                response = self.client.get(reverse(name))
+                self.assertEqual(response.status_code, 200)
+                self.assertTemplateUsed(response, "frontend_v1/editorial/legal_page.html")
+                self.assertContains(response, ">Savol-javob<")
+                self.assertContains(response, 'aria-label="Mundarija"')
+                self.assertContains(response, 'class="p-public-doc"')
+                footer = response.content.decode().split("data-editorial-footer", 1)[1]
+                self.assertIn(">Savol-javob<", footer)
+                self.assertNotIn(">FAQ<", footer)
+        privacy = self.client.get(reverse("privacy_policy"))
+        self.assertContains(privacy, "Versiya 1.0")
+        faq = self.client.get(reverse("faq_page"))
+        self.assertContains(faq, "Yangilangan:")
+
+    def test_d5_footer_label_does_not_replace_an_owner_label(self):
+        from frontend.models import LandingNavItem
+
+        self.publish_pages()
+        rows = LandingNavItem.objects.filter(
+            placement=LandingNavItem.Placement.FOOTER_LEGAL,
+            key=LandingNavItem.LinkKey.FAQ,
+        )
+        if not rows.update(label="Owner savollari"):
+            LandingNavItem.objects.create(
+                placement=LandingNavItem.Placement.FOOTER_LEGAL,
+                key=LandingNavItem.LinkKey.FAQ,
+                label="Owner savollari",
+                order=1,
+            )
+        response = self.client.get(reverse("faq_page"))
+        footer = response.content.decode().split("data-editorial-footer", 1)[1]
+        self.assertIn(">Owner savollari<", footer)
+        self.assertNotIn(">Savol-javob<", footer)
+
+    def test_toc_is_built_after_sanitizing_and_has_safe_unique_targets(self):
+        from frontend.testing_legal import publish_legal
+
+        publish_legal(
+            "privacy",
+            title="Maxfiylik",
+            content=(
+                '<h2 id="owner" onclick="PWNED()">Bir xil</h2>'
+                "<h2>Bir <em>xil</em></h2><h2>你好</h2>"
+                "<script>PWNED()</script><p style=\"color:red\">Xavfsiz matn</p>"
+            ),
+        )
+        response = self.client.get(reverse("privacy_policy"))
+        html = response.content.decode()
+        anchors = (
+            "legal-privacy-bir-xil",
+            "legal-privacy-bir-xil-2",
+            "legal-privacy-bolim-3",
+        )
+        for anchor in anchors:
+            self.assertIn(f'href="#{anchor}"', html)
+            self.assertIn(f'id="{anchor}"', html)
+        article_start = html.index('<article class="c-card p-public-legal p-public-rich">')
+        article_html = html[article_start:html.index("</article>", article_start)]
+        for forbidden in ('id="owner"', "onclick", "PWNED", "<script", "style="):
+            self.assertNotIn(forbidden, article_html)
+
+    def test_document_without_h2_has_no_toc_but_keeps_owner_content(self):
+        LegalPage.objects.create(
+            page_type="faq",
+            title="Savol-javob",
+            content="<h3>Bitta savol</h3><p>Owner javobi</p>",
+        )
+        response = self.client.get(reverse("faq_page"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Owner javobi")
+        self.assertNotContains(response, 'aria-label="Mundarija"')
+        self.assertNotContains(response, 'class="p-public-doc"')
+
+    def test_unpublished_pages_are_unindexed_no_store_and_have_no_toc(self):
+        for name in ("privacy_policy", "terms_of_service", "faq_page"):
+            with self.subTest(name=name), CaptureQueriesContext(connection) as queries:
+                response = self.client.get(reverse(name))
+            self.assertEqual(response.status_code, 503)
+            self.assertIn("noindex", response["X-Robots-Tag"])
+            self.assertIn("no-store", response["Cache-Control"])
+            self.assertContains(response, "Sahifa hali e’lon qilinmagan", status_code=503)
+            self.assertNotContains(response, 'aria-label="Mundarija"', status_code=503)
+            writes = [
+                query["sql"] for query in queries
+                if query["sql"].lstrip().upper().startswith(("INSERT", "UPDATE", "DELETE"))
+            ]
+            self.assertEqual(writes, [])
+
+    def test_editorial_projection_adds_no_queries_to_the_v1_legal_contract(self):
+        self.publish_pages()
+        routes = ("privacy_policy", "terms_of_service", "faq_page")
+        counts = {}
+        for editorial in (False, True):
+            set_flags(v1=True, editorial=editorial)
+            for name in routes:
+                self.client.get(reverse(name))
+                with CaptureQueriesContext(connection) as queries:
+                    response = self.client.get(reverse(name))
+                self.assertEqual(response.status_code, 200)
+                counts[(name, editorial)] = len(queries)
+        for name in routes:
             self.assertEqual(counts[(name, True)], counts[(name, False)], (name, counts))

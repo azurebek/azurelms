@@ -1,0 +1,17 @@
+{% extends "frontend_v1/editorial/base.html" %}
+{% block content %}
+<section class="p-public-stack" aria-labelledby="legal-title">
+  <header class="p-public-heading"><p class="c-eyebrow">MA’LUMOT</p><h1 id="legal-title">{{ legal_title }}</h1>{% if legal_version %}<p class="c-caption" data-legal-version>Versiya {{ legal_version }} · {{ legal_effective_at|date:"d.m.Y" }} dan amal qiladi</p>{% elif legal_page %}<p class="c-caption">Yangilangan: {{ legal_page.updated_at|date:"d.m.Y" }}</p>{% endif %}</header>
+
+  <nav class="p-public-legal-nav" aria-label="Ma’lumot sahifalari"><a href="{% url 'terms_of_service' %}"{% if active_legal_page == 'terms' %} aria-current="page"{% endif %}>Shartlar</a><a href="{% url 'privacy_policy' %}"{% if active_legal_page == 'privacy' %} aria-current="page"{% endif %}>Maxfiylik</a><a href="{% url 'faq_page' %}"{% if active_legal_page == 'faq' %} aria-current="page"{% endif %}>Savol-javob</a></nav>
+
+  {% if legal_page %}
+    {% if legal_document.toc %}<div class="p-public-doc">
+      <nav class="p-public-doc__toc" aria-label="Mundarija"><p class="c-eyebrow">{% if active_legal_page == 'faq' %}SAVOLLAR{% else %}MUNDARIJA{% endif %}</p>{% for heading in legal_document.toc %}<a href="#{{ heading.anchor }}">{{ heading.label }}</a>{% endfor %}</nav>
+      <article class="c-card p-public-legal p-public-rich">{{ legal_document.html }}</article>
+    </div>{% else %}<article class="c-card p-public-legal p-public-rich">{{ legal_document.html }}</article>{% endif %}
+  {% else %}
+    <div class="c-card c-empty" data-legal-unavailable><h2>Sahifa hali e’lon qilinmagan</h2><p>Matn tayyor bo‘lgach shu yerda chiqadi.</p></div>
+  {% endif %}
+</section>
+{% endblock %}
