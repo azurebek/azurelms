@@ -42,8 +42,15 @@ def browser_origin(response):
 
 
 def renderers():
-    for enabled, name in ((False, "legacy"), (True, "v1")):
-        FeatureFlag.objects.update_or_create(slug="frontend_v1_auth", defaults={"enabled": enabled})
+    states = (
+        (False, False, False, "legacy"),
+        (True, True, False, "v1"),
+        (True, True, True, "editorial"),
+    )
+    for auth, public, editorial, name in states:
+        FeatureFlag.objects.update_or_create(slug="frontend_v1_auth", defaults={"enabled": auth})
+        FeatureFlag.objects.update_or_create(slug="frontend_v1_public", defaults={"enabled": public})
+        FeatureFlag.objects.update_or_create(slug="public_editorial_v1", defaults={"enabled": editorial})
         yield name
 
 

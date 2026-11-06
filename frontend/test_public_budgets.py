@@ -58,7 +58,14 @@ class BudgetWorld(TestCase):
             "guide": self.guide.get_absolute_url(),
             "privacy": reverse("privacy_policy"),
         }
-        auth = {"login": reverse("login"), "reset": reverse("password_reset")}
+        auth = {
+            "login": reverse("login"),
+            "register": reverse("register"),
+            "reset": reverse("password_reset"),
+            "reset_done": reverse("password_reset_done"),
+            "reset_confirm": reverse("password_reset_confirm", args=("bad", "bad")),
+            "reset_complete": reverse("password_reset_complete"),
+        }
         return [("public", name, url) for name, url in public.items()] + [("auth", name, url) for name, url in auth.items()]
 
     def renderer(self, v1, editorial=False):

@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.utils.cache import patch_cache_control
 from django.utils.functional import cached_property
 
-from core.flags import flag_enabled
+from core.flags import flag_enabled, flags_enabled
 
 
 class FrontendV1Mixin:
@@ -88,8 +88,32 @@ class FrontendLoginView(FrontendV1Mixin, LoginView):
     frontend_v1_title = "Hisobga kirish"
 
     @cached_property
+    def login_renderer_flags(self):
+        """Login va PUBLIC-02 ramkasi uchun bitta izchil flag snapshot'i."""
+        return flags_enabled(
+            "frontend_v1_learning",
+            "frontend_v1_auth",
+            "frontend_v1_public",
+            "public_editorial_v1",
+        )
+
+    @cached_property
     def frontend_v1_enabled(self):
-        return flag_enabled('frontend_v1_learning') or flag_enabled('frontend_v1_auth')
+        return self.login_renderer_flags["frontend_v1_learning"] or self.login_renderer_flags["frontend_v1_auth"]
+
+    @cached_property
+    def auth_editorial_enabled(self):
+        flags = self.login_renderer_flags
+        return (
+            self.frontend_v1_enabled
+            and flags["frontend_v1_public"]
+            and flags["public_editorial_v1"]
+        )
+
+    def get_template_names(self):
+        if self.auth_editorial_enabled:
+            return ["frontend_v1/editorial/login.html"]
+        return super().get_template_names()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -100,6 +124,16 @@ class FrontendLoginView(FrontendV1Mixin, LoginView):
         from frontend import public_intent
 
         context["auth_intent"] = public_intent.describe(context.get("next", ""))
+        if self.auth_editorial_enabled:
+            context.update(
+                auth_intro="O‘qishni qolgan joyingizdan davom ettiring.",
+                auth_aside_title="Kirgandan keyin",
+                auth_aside_items=(
+                    "Kursingiz va keyingi darsingiz bir joyda",
+                    "Mashqlar, testlar va ustoz izohlari",
+                    "Yorug‘ yoki qorong‘i mavzu — tanlovingiz saqlanadi",
+                ),
+            )
         return context
 
     def get_form(self, form_class=None):

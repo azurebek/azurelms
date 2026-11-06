@@ -1,0 +1,15 @@
+{% extends "frontend_v1/editorial/auth_base.html" %}
+{% load static auth_forms %}
+{% block auth_script %}<script defer src="{% static 'frontend_v1/js/login.js' %}"></script>{% endblock %}
+{% block auth_body %}
+<form method="post" action="{% url 'login' %}" class="v1-login-form" data-auth-validate>
+  {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+  <div class="p-auth-fields">
+    <div><label class="c-field__label" for="{{ form.username.id_for_label }}">Email yoki username</label>{{ form.username }}{{ form.username.errors }}</div>
+    <div><label class="c-field__label" for="{{ form.password.id_for_label }}">Parol</label><div class="p-auth-input">{{ form.password }}<button class="c-button c-button--secondary p-auth-visibility" type="button" aria-controls="{{ form.password.id_for_label }}" aria-pressed="false" data-password-toggle>Ko‘rsatish</button></div>{{ form.password.errors }}</div>
+    <button class="c-button c-button--primary p-auth-submit" type="submit">Kirish{% include "frontend_v1/icon.html" with name="arrow" %}</button>
+  </div>
+</form>
+<div class="p-auth-links"><a class="c-text-link" href="{% url 'password_reset' %}">Parolni unutdingizmi?</a>{% if public_registration_open %}<a class="c-text-link" href="{% url 'register' %}{% if next %}?next={{ next|urlencode:'' }}{% endif %}">Yangi hisob ochish</a>{% endif %}</div>
+{% include "frontend_v1/telegram_auth.html" %}
+{% endblock %}

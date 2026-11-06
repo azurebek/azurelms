@@ -28,16 +28,18 @@ APP_BUNDLE = ("frontend_v1/css/auth.css", "frontend_v1/css/learning.css", "front
 
 # Siqilgan (gzip -9) bayt, sahifa turi bo'yicha eng og'ir sahifa. 2026-10-20 o'lchovi:
 # legacy ochiq 20 221 / 2 858, legacy kirish 16 980 / 7 663, V1 ochiq 8 210 / 2 313
-# (ilova bundle'isiz; avval ~11 000 CSS), V1 kirish 8 273 / 7 345.
+# (ilova bundle'isiz; avval ~11 000 CSS), V1 kirish 8 273 / 7 345. PE8 editorial auth:
+# 13 791 CSS / 8 245 JS (register — auth-form + Telegram); limitlar ~10% zaxira bilan.
 BUDGETS = {
     ("legacy", "public"): {"css": 22_500, "js": 3_200},
     ("legacy", "auth"): {"css": 19_000, "js": 8_500},
     ("v1", "public"): {"css": 9_100, "js": 2_600},
-    ("v1", "auth"): {"css": 9_200, "js": 8_200},
+    # Register ham PE8 dan byudjet to'plamida: 8 245 JS (auth-form + Telegram), ~10% zaxira.
+    ("v1", "auth"): {"css": 9_200, "js": 9_100},
     # PUBLIC-02 editorial ramka (2026-10-31 o'lchovi + ~10%): V1 ochiq + `public-editorial.css` (~3.5 KB).
-    # Kirish sahifalari PE8 gacha V1 ramkasida — V1 kirish byudjeti bilan bir xil. PE10 da qayta o'lchanadi.
     ("editorial", "public"): {"css": 13_800, "js": 2_600},
-    ("editorial", "auth"): {"css": 9_200, "js": 8_200},
+    # PE8 (2026-11-06): public ramka + auth.css; learning.css/shell.js yuklanmaydi.
+    ("editorial", "auth"): {"css": 15_200, "js": 9_100},
 }
 
 

@@ -63,6 +63,12 @@ class RegisterView(AuthV1Mixin, CreateView):
     frontend_v1_template = 'frontend_v1/auth_register.html'
     frontend_v1_title = 'Hisob yarating'
     auth_intro = 'Ma’lumotlaringizni kiriting. Keyingi tanishuv bosqichini o‘tkazib yuborish mumkin.'
+    auth_aside_title = 'Ro‘yxatdan keyin'
+    auth_aside_items = (
+        'Qisqa tanishuv: maqsadingiz va darajangiz',
+        'Kursni tanlab, guruhga yozilasiz',
+        'Darslar, mashqlar va ustoz izohlari bitta o‘quv maydonida',
+    )
     success_url = reverse_lazy('onboarding_choice')
 
     def dispatch(self, request, *args, **kwargs):
@@ -79,6 +85,12 @@ class RegisterView(AuthV1Mixin, CreateView):
                 self.frontend_v1_template = 'frontend_v1/auth_register_closed.html'
                 self.frontend_v1_title = 'Ro‘yxatdan o‘tish yopiq'
                 self.auth_intro = 'Hozircha yangi hisob ochilmaydi. Mavjud hisob bilan kirish mumkin.'
+                self.auth_aside_title = 'Hozir nima qilish mumkin'
+                self.auth_aside_items = (
+                    'Mavjud hisobingiz bilan kirishingiz mumkin',
+                    'Kurslar va tariflarni ochiq ko‘rishingiz mumkin',
+                    'Yangi hisoblar ochilganda shu sahifa yana ishlaydi',
+                )
                 return self.render_to_response(self.get_context_data(form=None))
             # Kirish havolasi kursga qaytish niyatini (`next`) yo'qotmaydi (PUB1.3d).
             return render(request, 'registration/register_closed.html', {"next": _safe_next(request, "")}, status=200)
@@ -156,6 +168,12 @@ class OnboardingChoiceView(LoginRequiredMixin, AuthV1Mixin, TemplateView):
     frontend_v1_template = 'frontend_v1/auth_onboarding.html'
     frontend_v1_title = 'Xush kelibsiz!'
     auth_intro = 'Maqsadingiz va til darajangiz haqida aytib berishingiz mumkin. Bu bosqich majburiy emas.'
+    auth_aside_title = 'Tanlov sizda'
+    auth_aside_items = (
+        'Azure AI bilan qisqa tanishuvdan o‘ting',
+        'Yoki bu bosqichni hozircha o‘tkazib yuboring',
+        'Keyin o‘quv maydonida davom eting',
+    )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
