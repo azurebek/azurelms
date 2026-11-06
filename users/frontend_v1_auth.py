@@ -4,8 +4,10 @@ import logging
 from django.conf import settings
 from django.contrib.auth import views as auth_views
 from django.http import HttpResponseRedirect
+from django.utils.functional import cached_property
 
 from core.email_delivery import RESET_UNAVAILABLE_MESSAGE, reset_delivery_available
+from core.flags import flags_enabled
 from core.frontend_v1 import FrontendV1Mixin
 from .forms import UzbekPasswordResetForm, UzbekSetPasswordForm
 
@@ -37,11 +39,41 @@ class AfterResponseRedirect(HttpResponseRedirect):
 class AuthV1Mixin(FrontendV1Mixin):
     frontend_v1_flag = 'frontend_v1_auth'
     auth_intro = ''
+    auth_aside_title = ''
+    auth_aside_items = ()
+    auth_aside_note = ''
+    auth_aside_ordered = False
+
+    @cached_property
+    def auth_renderer_flags(self):
+        """Auth V1 va editorial ramka ayni DB snapshot'idan tanlansin."""
+        return flags_enabled('frontend_v1_auth', 'frontend_v1_public', 'public_editorial_v1')
+
+    @cached_property
+    def frontend_v1_enabled(self):
+        return self.auth_renderer_flags['frontend_v1_auth']
+
+    @cached_property
+    def auth_editorial_enabled(self):
+        flags = self.auth_renderer_flags
+        return (
+            flags['frontend_v1_auth']
+            and flags['frontend_v1_public']
+            and flags['public_editorial_v1']
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.frontend_v1_enabled:
             context['auth_intro'] = self.auth_intro
+        if self.auth_editorial_enabled:
+            context.update(
+                auth_base_template='frontend_v1/editorial/auth_base.html',
+                auth_aside_title=self.auth_aside_title,
+                auth_aside_items=self.auth_aside_items,
+                auth_aside_note=self.auth_aside_note,
+                auth_aside_ordered=self.auth_aside_ordered,
+            )
         return context
 
     def get_form(self, form_class=None):
@@ -74,6 +106,17 @@ class PasswordResetView(AuthV1Mixin, auth_views.PasswordResetView):
     frontend_v1_template = 'frontend_v1/auth_reset.html'
     frontend_v1_title = 'Parolni tiklash'
     auth_intro = 'Hisobingiz emailini kiriting. Tiklash ko‘rsatmasi shu manzilga yuborilishi mumkin.'
+    auth_aside_title = 'Tiklash qanday ishlaydi'
+    auth_aside_items = (
+        'Email faol hisobga tegishli bo‘lsa, unga havola keladi',
+        'Havolani ochib, yangi parolni ikki marta kiritasiz',
+        'Yangi parol bilan darhol kirasiz',
+    )
+    auth_aside_note = (
+        'Telegram orqali kirgan bo‘lsangiz, parol shart emas — kirish sahifasida '
+        'Telegram tugmasini bosing.'
+    )
+    auth_aside_ordered = True
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -83,6 +126,19 @@ class PasswordResetView(AuthV1Mixin, auth_views.PasswordResetView):
             context['reset_unavailable_message'] = RESET_UNAVAILABLE_MESSAGE
             if self.frontend_v1_enabled:
                 context['auth_intro'] = ''
+            if self.auth_editorial_enabled:
+                # Email ishlamayotganda odatiy "havola keladi" paneli yolg'on
+                # bo'lardi; faqat hozir mavjud xavfsiz yo'llarni ko'rsatamiz.
+                context.update(
+                    auth_aside_title='Hozirgi variantlar',
+                    auth_aside_items=(
+                        'Telegrami ulangan hisob bilan Telegram orqali kiring',
+                        'Yordam uchun administrator bilan bog‘laning',
+                        'Parolingizni hech kimga yubormang',
+                    ),
+                    auth_aside_note='',
+                    auth_aside_ordered=False,
+                )
         return context
 
     def form_valid(self, form):
@@ -128,6 +184,12 @@ class PasswordResetDoneView(AuthV1Mixin, auth_views.PasswordResetDoneView):
     frontend_v1_template = 'frontend_v1/auth_reset_done.html'
     frontend_v1_title = 'Emailingizni tekshiring'
     auth_intro = 'Agar email faol hisobga tegishli bo‘lsa, tiklash ko‘rsatmasi yuboriladi.'
+    auth_aside_title = 'Xat kelmasa'
+    auth_aside_items = (
+        'Email to‘g‘ri yozilganini tekshiring',
+        'Spam va “Aksiyalar” papkasiga qarang',
+        'Bir necha daqiqadan keyin qayta so‘rang',
+    )
 
 
 class PasswordResetConfirmView(AuthV1Mixin, auth_views.PasswordResetConfirmView):
@@ -135,6 +197,12 @@ class PasswordResetConfirmView(AuthV1Mixin, auth_views.PasswordResetConfirmView)
     frontend_v1_template = 'frontend_v1/auth_reset_confirm.html'
     frontend_v1_title = 'Yangi parol'
     auth_intro = 'Yangi parolingizni ikki marta kiriting.'
+    auth_aside_title = 'Yangi parol'
+    auth_aside_items = (
+        'Boshqa hisoblarda ishlatmaydigan parol tanlang',
+        'Yangi parolni ikki marta bir xil kiriting',
+        'Saqlagach, yangi parol bilan hisobga kiring',
+    )
 
     def dispatch(self, *args, **kwargs):
         # Tokenli havoladan boshqa saytga Referer sifatida token ketmasin (PUB1.0f).
@@ -159,12 +227,27 @@ class PasswordResetConfirmView(AuthV1Mixin, auth_views.PasswordResetConfirmView)
         context = super().get_context_data(**kwargs)
         if self.frontend_v1_enabled and not self.validlink:
             context.update(frontend_v1_title='Havola yaroqsiz', auth_intro='Havola ishlatilgan, muddati tugagan yoki noto‘g‘ri.')
+            if self.auth_editorial_enabled:
+                context.update(
+                    auth_aside_title='Yangi havola kerak',
+                    auth_aside_items=(
+                        'Tiklashni email manzilingiz bilan qayta boshlang',
+                        'Faqat eng so‘nggi kelgan havolani oching',
+                        'Havolani boshqa odamga yubormang',
+                    ),
+                )
         return context
 
 
 class PasswordResetCompleteView(AuthV1Mixin, auth_views.PasswordResetCompleteView):
     frontend_v1_template = 'frontend_v1/auth_reset_complete.html'
     frontend_v1_title = 'Hisobga kirish'
+    auth_aside_title = 'Keyingi qadam'
+    auth_aside_items = (
+        'Hisobga kirish sahifasiga o‘ting',
+        'Yangi parolingizni kiriting',
+        'Kurslaringizga qayting',
+    )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

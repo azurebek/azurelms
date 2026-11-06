@@ -91,7 +91,8 @@
 /* 9. Kirish sahifasi ochiq sahifa ramkasida (alohida dizayn emas): forma + inverse yon panel. */
 .p-public-auth { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--az-space-6); width: min(100%, calc(var(--az-dialog) * 2 + var(--az-space-6))); margin-inline: auto; }
 .p-public-auth__aside { display: flex; flex-direction: column; align-items: flex-start; gap: var(--az-space-4); padding: var(--az-space-10); border-radius: var(--az-radius-tile) var(--az-radius-tile) var(--az-radius-shape) var(--az-radius-tile); }
-.p-public-auth__mark { width: var(--az-space-16); height: auto; margin-bottom: auto; }
+.p-public-auth__mark { display: grid; place-items: center; width: var(--az-space-16); aspect-ratio: 1; margin-bottom: auto; overflow: hidden; border-radius: var(--az-radius-tile); background: var(--az-action); color: var(--az-on-action); font-size: var(--az-text-2xl); font-weight: var(--az-weight-bold); }
+.p-public-auth__mark-image { width: 100%; height: 100%; object-fit: contain; }
 .p-public-divider { display: flex; align-items: center; gap: var(--az-space-3); margin-block: var(--az-space-5); color: var(--az-muted); font-size: var(--az-text-xs); }
 .p-public-divider::before, .p-public-divider::after { content: ""; flex: 1; border-top: 1px solid var(--az-border); }
 

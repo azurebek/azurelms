@@ -1,4 +1,4 @@
-{% extends "frontend_v1/auth_base.html" %}
+{% extends auth_base_template|default:"frontend_v1/auth_base.html" %}
 {% load static activity_notice %}
 {% block extra_head %}{{ block.super }}<script defer src="{% static 'frontend_v1/js/login.js' %}"></script>{% endblock %}
 {% block auth_content %}

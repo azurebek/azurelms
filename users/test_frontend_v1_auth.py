@@ -6,7 +6,9 @@ from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
+from django.db import connection
 from django.test import Client, TestCase, override_settings
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
@@ -37,6 +39,10 @@ class AuthV1Tests(TestCase):
         user = user or self.user
         return reverse('password_reset_confirm', args=[
             urlsafe_base64_encode(force_bytes(user.pk)), default_token_generator.make_token(user)])
+
+    def enable_editorial(self):
+        set_flag('frontend_v1_public', enabled=True, reason='Editorial auth regression')
+        set_flag('public_editorial_v1', enabled=True, reason='Editorial auth regression')
 
     def test_default_off_and_all_six_routes_on_off(self):
         self.assertFalse(flag_by_slug('frontend_v1_auth').default)
@@ -70,6 +76,108 @@ class AuthV1Tests(TestCase):
             set_flag('frontend_v1_learning', enabled=learning, reason='Learning independence')
             self.assertTemplateUsed(self.client.get(reverse('login')),
                                     'frontend_v1/login.html' if auth or learning else 'registration/login.html')
+
+    def test_editorial_frame_ports_login_and_every_auth_route(self):
+        self.enable_editorial()
+        paths = [
+            ('login', (), 'frontend_v1/editorial/login.html', 'Kirgandan keyin'),
+            ('register', (), 'frontend_v1/auth_register.html', 'Ro‘yxatdan keyin'),
+            ('onboarding_choice', (), 'frontend_v1/auth_onboarding.html', 'Tanlov sizda'),
+            ('password_reset', (), 'frontend_v1/auth_reset.html', 'Tiklash qanday ishlaydi'),
+            ('password_reset_done', (), 'frontend_v1/auth_reset_done.html', 'Xat kelmasa'),
+            ('password_reset_confirm', ('bad', 'bad'), 'frontend_v1/auth_reset_confirm.html', 'Yangi havola kerak'),
+            ('password_reset_complete', (), 'frontend_v1/auth_reset_complete.html', 'Keyingi qadam'),
+        ]
+        for name, args, template, aside_title in paths:
+            with self.subTest(route=name):
+                self.client.logout()
+                if name == 'onboarding_choice':
+                    self.client.force_login(self.user)
+                response = self.client.get(reverse(name, args=args))
+                self.assertEqual(response.status_code, 200)
+                self.assertTemplateUsed(response, template)
+                self.assertTemplateUsed(response, 'frontend_v1/editorial/auth_base.html')
+                self.assertTemplateUsed(response, 'frontend_v1/editorial/base.html')
+                self.assertContains(response, 'class="s-editorial"')
+                self.assertContains(response, 'class="p-public-auth"')
+                self.assertContains(response, 'data-surface="inverse"')
+                self.assertContains(response, f'<h2 id="auth-aside-title">{aside_title}</h2>', html=True)
+                self.assertContains(response, 'data-editorial-footer')
+                self.assertContains(response, '/static/frontend_v1/css/public-editorial.css')
+                self.assertContains(response, '/static/frontend_v1/css/auth.css')
+                self.assertNotContains(response, '/static/frontend_v1/css/learning.css')
+                self.assertNotContains(response, '/static/frontend_v1/js/shell.js')
+                self.assertIn('no-store', response['Cache-Control'])
+
+    def test_editorial_requires_the_underlying_v1_and_public_flags(self):
+        set_flag('frontend_v1_public', enabled=True, reason='Editorial matrix')
+        set_flag('public_editorial_v1', enabled=True, reason='Editorial matrix')
+        set_flag('frontend_v1_auth', enabled=False, reason='Editorial matrix')
+        set_flag('frontend_v1_learning', enabled=False, reason='Editorial matrix')
+        self.assertTemplateUsed(self.client.get(reverse('login')), 'registration/login.html')
+        self.assertTemplateUsed(self.client.get(reverse('register')), 'registration/register.html')
+
+        set_flag('frontend_v1_learning', enabled=True, reason='Editorial matrix')
+        self.assertTemplateUsed(self.client.get(reverse('login')), 'frontend_v1/editorial/login.html')
+        self.assertTemplateUsed(self.client.get(reverse('register')), 'registration/register.html')
+
+        set_flag('frontend_v1_auth', enabled=True, reason='Editorial matrix')
+        set_flag('frontend_v1_public', enabled=False, reason='Editorial matrix')
+        response = self.client.get(reverse('register'))
+        self.assertTemplateUsed(response, 'frontend_v1/auth_base.html')
+        self.assertNotContains(response, 'frontend_v1/css/public-editorial.css')
+
+    def test_editorial_preserves_forms_csrf_errors_telegram_notices_and_unavailable_state(self):
+        self.enable_editorial()
+        login = self.client.get(reverse('login'), {'next': NEXT})
+        self.assertContains(login, 'action="/users/login/"')
+        self.assertContains(login, 'name="csrfmiddlewaretoken"')
+        self.assertContains(login, f'name="next" value="{NEXT.replace("&", "&amp;")}"')
+        self.assertContains(login, 'data-telegram-auth')
+        self.assertContains(login, '/static/frontend_v1/js/login.js')
+        self.assertNotContains(login, '/static/frontend_v1/js/auth-form.js')
+        rejected = self.client.post(reverse('login'), {'username': 'auth-existing', 'password': 'wrong'})
+        self.assertContains(rejected, 'data-form-errors')
+        self.assertContains(rejected, 'Email yoki username va parol mos kelmadi')
+
+        register = self.client.get(reverse('register'), {'next': NEXT})
+        self.assertContains(register, 'action="/users/register/"')
+        self.assertContains(register, 'data-activity-notice="register"')
+        self.assertContains(register, 'data-telegram-auth')
+        self.assertContains(register, '/static/frontend_v1/js/auth-form.js')
+        self.assertContains(register, '/static/frontend_v1/js/login.js')
+        reset = self.client.get(reverse('password_reset'))
+        self.assertContains(reset, 'data-activity-notice="password_reset"')
+
+        with patch('users.frontend_v1_auth.reset_delivery_available', return_value=False):
+            unavailable = self.client.get(reverse('password_reset'))
+        self.assertContains(unavailable, 'data-reset-unavailable')
+        self.assertContains(unavailable, 'Parolni email orqali tiklash hozircha ishlamayapti')
+        self.assertContains(unavailable, 'data-surface="inverse"')
+        self.assertContains(unavailable, 'Hozirgi variantlar')
+        self.assertNotContains(unavailable, 'unga havola keladi')
+        self.assertNotContains(unavailable, 'name="email"')
+
+        set_flag('public_registration', enabled=False, reason='Editorial closed registration')
+        closed = self.client.get(reverse('register'), {'next': NEXT})
+        self.assertTemplateUsed(closed, 'frontend_v1/auth_register_closed.html')
+        self.assertTemplateUsed(closed, 'frontend_v1/editorial/auth_base.html')
+        self.assertContains(closed, 'Hozir nima qilish mumkin')
+        self.assertNotContains(closed, 'name="password1"')
+
+    def test_editorial_auth_frame_adds_no_queries_to_v1(self):
+        set_flag('frontend_v1_public', enabled=True, reason='Auth query parity')
+        counts = {}
+        for editorial in (False, True):
+            set_flag('public_editorial_v1', enabled=editorial, reason='Auth query parity')
+            for name in ('login', 'register', 'password_reset'):
+                self.client.get(reverse(name))
+                with CaptureQueriesContext(connection) as queries:
+                    response = self.client.get(reverse(name))
+                self.assertEqual(response.status_code, 200)
+                counts[(name, editorial)] = len(queries)
+        for name in ('login', 'register', 'password_reset'):
+            self.assertEqual(counts[(name, True)], counts[(name, False)], (name, counts))
 
     def test_register_native_success_canonical_identity_and_safe_next(self):
         response = self.client.post(reverse('register'), self.register_payload(

@@ -21,6 +21,15 @@
 /* Huquqiy havolalar ham barmoq bilan bosiladigan nishon (44px, PUB1.4b). */
 .s-auth-footer a { display: inline-flex; align-items: center; min-height: var(--az-control); padding-inline: var(--az-space-1); }
 .p-auth-card .errorlist { list-style: none; padding: 0; margin: var(--az-space-2) 0 0; color: var(--az-danger, #b42318); font-size: var(--az-text-sm); }
+.v1-login-form { margin-top: var(--az-space-6); }
+.v1-login-form .errorlist { list-style: none; color: var(--az-danger); font-size: var(--az-text-sm); margin-top: var(--az-space-2); }
+.v1-telegram { display: grid; gap: var(--az-space-3); padding-top: var(--az-space-5); margin-top: var(--az-space-5); border-top: 1px solid var(--az-border); }
+.v1-telegram__wait { display: grid; gap: var(--az-space-3); padding: var(--az-space-4); border: 1px solid var(--az-border); border-radius: var(--az-radius, 12px); }
+.v1-telegram__code { font-family: var(--az-font-mono, ui-monospace, monospace); font-size: var(--az-text-lg, 1.125rem); letter-spacing: .18em; }
+.v1-telegram__steps { margin: 0; padding-inline-start: var(--az-space-5); display: grid; gap: var(--az-space-1); }
+.v1-telegram__actions { display: flex; flex-wrap: wrap; gap: var(--az-space-2); }
+.v1-telegram__qr { display: grid; justify-items: start; gap: var(--az-space-2); margin: 0; }
+.v1-telegram__qr img { width: 164px; height: 164px; padding: 4px; background: #fff; border: 1px solid var(--az-border); border-radius: 8px; }
 @media (width < 640px) {
   .s-auth-header { padding-inline: var(--az-space-4); }
   .s-auth-main { padding-top: var(--az-space-4); }
@@ -28,4 +37,6 @@
   .p-auth-input { flex-wrap: wrap; }
   .p-auth-input input { flex-basis: 100%; }
   .p-auth-visibility { margin-left: auto; }
+  /* Telefonda o'z ekranini skanerlab bo'lmaydi — havola tugmasi yetarli. */
+  .v1-telegram__qr { display: none; }
 }
