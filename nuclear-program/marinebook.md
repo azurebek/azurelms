@@ -16,6 +16,26 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-11-06 [Codex]: PUBLIC-02 / PE8 — editorial auth sahifalari
+
+`public_editorial_v1` yoqilsa login, ro'yxatdan o'tish, onboarding va parolni tiklash oqimi public editorial
+header/footer hamda inverse yon panel ichida chiqadi. Canonical auth form/action, CSRF, `next`, server xatolari,
+Telegram, faoliyat eslatmalari va delivery/registration siyosati o'zgarmadi; yangi model yoki migration yo'q.
+
+- Branch: `codex/pe8-editorial-auth`. Kod commit: `68dea9f`. Migration yo'q.
+- Qarorlar: `editorial/auth_base.html` mavjud auth body'larini qayta ishlatadi, login alohida editorial shablonda;
+  barcha uch renderer flag matritsasida qulflangan. Email delivery unavailable bo'lsa inverse panel havola kelishini
+  va'da qilmaydi. Auth CSS `learning.css`dan `auth.css`ga ajratildi; editorial auth `learning.css`/`shell.js`siz.
+  Barcha auth route'lari byudjetda: maksimum 13 791 CSS / 8 245 JS gzip, limit 15 200 / 9 100.
+- Test: form/CSRF/xato fokusi/Telegram/activity notice/reset unavailable/registration closed/query pariteti va
+  legacy/V1/editorial origin/byudjet regressionlari. To'liq `manage.py test --keepdb` — **3329 OK (skipped=70)**;
+  `node --test tests/frontend_v1/*.test.mjs` — **198/198**; `check --fail-level WARNING`, `check --deploy`,
+  `makemigrations --check --dry-run`, `collectstatic`, secret scan va staged diff check toza.
+- Brauzer: 1440/1024/768/390/320px, yorug'/qorong'i; gorizontal toshish va konsol warning/error 0. Mobil menyu
+  va footer, parol ko'rsatish, noto'g'ri login fokusi, login/register/reset hamda done/invalid/complete holatlari
+  tekshirildi.
+- Davom etilishi kerak: PE9 (o'quv maydoni header/logo uzluksizligi va 1200px breakpoint).
+
 ## 2026-11-05 [Codex]: PUBLIC-02 / PE7 — editorial huquqiy sahifalar
 
 `public_editorial_v1` yoqilsa foydalanish shartlari, maxfiylik va savol-javob sahifalari editorial hujjat

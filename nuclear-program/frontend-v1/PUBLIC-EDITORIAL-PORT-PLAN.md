@@ -1,7 +1,7 @@
 # PUBLIC-02 — editorial public dizaynini production'ga ko'chirish rejasi
 
-**Holat — 2026-11-05: owner qarorlari D1–D5 qabul qilingan (§3); PE1–PE7 kodda va lokal
-tekshirilgan; PE8–PE10 boshlanmagan.** Manba — owner bilan qurilgan lokal
+**Holat — 2026-11-06: owner qarorlari D1–D5 qabul qilingan (§3); PE1–PE8 kodda va lokal
+tekshirilgan; PE9–PE10 boshlanmagan.** Manba — owner bilan qurilgan lokal
 prototip `playground/Thirteenth Trial/` (2026-10-21…28). `playground/` git'ga kirmaydi: prototip faqat shu
 kompyuterda. Shu sabab birinchi kod kesimi (PE1) uning normativ qismini (CSS qoidalari va tekshiruvi) repo'ga
 olib kiradi; ungacha `playground/Thirteenth Trial/` o'chirilmaydi.
@@ -218,6 +218,20 @@ fragment nishoni, mobil menyu, FAQ savollar TOC'i va 503 javob/status/headerlari
 ramkada; yon panel `data-surface="inverse"`. Formalar, CSRF, PUB1.4b xato modeli, Telegram paneli, faoliyat
 eslatmalari va `reset_unavailable` (PUB1.0f) o'zgarmaydi.
 *Test:* `users` auth testlari, `test_form_origin`, `login.test.mjs`, `auth-validation.test.mjs`, auth byudjeti.
+
+**Holat — 2026-11-06: kodda, lokal tekshirilgan** (branch `codex/pe8-editorial-auth`, kod commit
+`68dea9f`, migration yo'q). `frontend_v1/editorial/auth_base.html` public header/footer va inverse yon panel
+ichida mavjud auth body'larini chizadi; login uchun alohida editorial shablon bor. Login V1 auth yoki learning
+rendereri yoqilganda, qolgan auth route'lari esa `frontend_v1_auth` bilan ishlaydi; har ikkisi uchun
+`frontend_v1_public` + `public_editorial_v1` ham talab qilinadi. OFF kombinatsiyalarda legacy/V1 chiqishi saqlandi.
+Canonical form actionlari, CSRF, `next`, server xatolari, Telegram, faoliyat eslatmalari va ro'yxat yopiq holati
+o'zgarmadi. Email delivery ishlamasa yon panel kelmaydigan havolani va'da qilmaydi. Auth klasslari
+`learning.css`dan `auth.css`ga ko'chirildi; editorial auth `learning.css` va `shell.js`ni yuklamaydi. Byudjet barcha
+auth route'larini qoplaydi: editorial maksimum **13 791 CSS / 8 245 JS gzip**, limit **15 200 / 9 100**.
+Lokal dalil: to'liq Django suite **3329 OK (skipped=70)**, Node **198/198**; `check --fail-level WARNING`,
+`check --deploy`, migration drift, `collectstatic`, secret scan va staged diff check toza. Brauzerda
+1440/1024/768/390/320px, yorug'/qorong'i: gorizontal toshish va konsol warning/error 0; mobil menyu/footer,
+parol ko'rsatish, xato fokusi, login/register/reset va reset natija holatlari tekshirildi.
 
 **PE9 — o'quv maydoni uzluksizligi.** Sidebar logo qatori header balandligida, tor ekranda logo topbar'da,
 sidebar 1024 → 1200px (`shell.css` + `shell.js` `matchMedia`) — owner qarori 2026-10-25 (b-variant).
