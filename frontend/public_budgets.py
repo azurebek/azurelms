@@ -33,13 +33,20 @@ APP_BUNDLE = ("frontend_v1/css/auth.css", "frontend_v1/css/learning.css", "front
 BUDGETS = {
     ("legacy", "public"): {"css": 22_500, "js": 3_200},
     ("legacy", "auth"): {"css": 19_000, "js": 8_500},
-    ("v1", "public"): {"css": 9_100, "js": 2_600},
+    # DESIGN-02 S1 (2026-11-08): Figtree 400/500/600 self-hosted `@font-face`lari
+    # tokens.css'ga qo'shildi; ochiq V1 yig'indisi 9 258 bayt. Font binarlari
+    # alohida S1 testi bilan 71 KB chegarada turadi.
+    ("v1", "public"): {"css": 9_300, "js": 2_600},
     # Register ham PE8 dan byudjet to'plamida: 8 245 JS (auth-form + Telegram), ~10% zaxira.
     ("v1", "auth"): {"css": 9_200, "js": 9_100},
     # PUBLIC-02 editorial ramka (2026-10-31 o'lchovi + ~10%): V1 ochiq + `public-editorial.css` (~3.5 KB).
     ("editorial", "public"): {"css": 13_800, "js": 2_600},
     # PE8 (2026-11-06): public ramka + auth.css; learning.css/shell.js yuklanmaydi.
     ("editorial", "auth"): {"css": 15_200, "js": 9_100},
+    # DESIGN-02 S1: editorial fallback + token-only calm.css. O'lchovlar:
+    # public 13 442 CSS, auth 14 531 CSS; keyingi o'sish jim o'tmasligi uchun tor limit.
+    ("calm", "public"): {"css": 13_500, "js": 2_600},
+    ("calm", "auth"): {"css": 14_600, "js": 9_100},
 }
 
 

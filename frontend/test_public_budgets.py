@@ -68,16 +68,23 @@ class BudgetWorld(TestCase):
         }
         return [("public", name, url) for name, url in public.items()] + [("auth", name, url) for name, url in auth.items()]
 
-    def renderer(self, v1, editorial=False):
+    def renderer(self, v1, editorial=False, calm=False):
         for slug in ("frontend_v1_public", "frontend_v1_auth"):
             FeatureFlag.objects.update_or_create(slug=slug, defaults={"enabled": v1})
         FeatureFlag.objects.update_or_create(slug="public_editorial_v1", defaults={"enabled": editorial})
+        FeatureFlag.objects.update_or_create(slug="platform_calm_v1", defaults={"enabled": calm})
 
 
 class AssetBudgetTests(BudgetWorld):
     def test_every_page_stays_local_resolvable_and_within_budget(self):
-        for renderer, v1, editorial in (("legacy", False, False), ("v1", True, False), ("editorial", True, True)):
-            self.renderer(v1, editorial)
+        renderers = (
+            ("legacy", False, False, False),
+            ("v1", True, False, False),
+            ("editorial", True, True, False),
+            ("calm", True, True, True),
+        )
+        for renderer, v1, editorial, calm in renderers:
+            self.renderer(v1, editorial, calm)
             for kind, name, url in self.pages():
                 with self.subTest(renderer=renderer, page=name):
                     response = self.client.get(url)

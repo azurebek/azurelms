@@ -29,6 +29,7 @@ LEGACY = "legacy"
 V1 = "v1"
 # PUBLIC-02: V1 ma'lumoti, editorial ramka/shablon. Proyeksiyalar uni V1 kabi o'qiydi (faqat LEGACY farq qiladi).
 EDITORIAL = "editorial"
+CALM = "calm"
 HOME_COURSE_LIMIT = 3
 TESTIMONIAL_LIMIT = 3
 # Editorial bosh sahifa bandlari: Journal (1 tanlangan + 3), Turkiyada o'qish (3 universitet).
@@ -39,12 +40,14 @@ HOME_SIT_LIMIT = 3
 def current_renderer():
     """`render_public` bilan ayni qaror: qaysi shablon chiziladi.
 
-    Ikkala flag bitta so'rovda o'qiladi — editorial qarori ochiq sahifalarning qulflangan so'rov byudjetiga
+    Uchala flag bitta so'rovda o'qiladi — renderer qarori ochiq sahifalarning qulflangan so'rov byudjetiga
     yangi so'rov qo'shmaydi. Editorial faqat V1 ustida ishlaydi: `frontend_v1_public` o'chiq bo'lsa legacy.
     """
-    flags = flags_enabled("frontend_v1_public", "public_editorial_v1")
+    flags = flags_enabled("frontend_v1_public", "public_editorial_v1", "platform_calm_v1")
     if not flags["frontend_v1_public"]:
         return LEGACY
+    if flags["platform_calm_v1"]:
+        return CALM
     return EDITORIAL if flags["public_editorial_v1"] else V1
 
 
@@ -111,7 +114,7 @@ def home_projection(renderer=None):
             popular_courses=home_courses(),
             testimonials=public_testimonials(TESTIMONIAL_LIMIT),
         )
-    if renderer == EDITORIAL:
+    if renderer in (EDITORIAL, CALM):
         # Editorial bosh sahifaning qo'shimcha bandlari — faqat o'z domen adapterlaridan (yangi qoida yo'q).
         from blog.listing import latest_posts
         from sit.selectors import featured_open_universities
@@ -143,6 +146,6 @@ def about_projection(renderer=None):
             team_members=team[1:],
             testimonials=public_testimonials(TESTIMONIAL_LIMIT),
         )
-    if renderer == EDITORIAL:
+    if renderer in (EDITORIAL, CALM):
         data["course_levels"] = course_levels()
     return data

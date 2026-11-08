@@ -27,6 +27,15 @@ test('all canonical fields and built-in styles remain valid without filling inhe
   for (const preset of catalog.presets) assert.equal(inspectDesign(catalog,builtin(catalog,preset.id)).errors.length,0,preset.id);
 });
 
+test('calm scale accepts 13/15 while older 14/16 publications remain valid', () => {
+  const older=fresh(); older.values['text-sm']=14; older.values['text-md']=16;
+  assert.equal(validate(catalog,older).values['text-md'],16);
+  const calm=builtin(catalog,'calm');
+  assert.equal(calm.values['text-sm'],13);assert.equal(calm.values['text-md'],15);
+  assert.equal(calm.light.action,'#1d57d8');assert.equal(calm.dark.surface,'#131314');
+  assert.equal(calm.light['warning-soft'],'#fef7e0');assert.equal(calm.dark['warning-soft'],'#3a2f10');
+});
+
 test('a later-added field is optional only in older copies; other missing or inherited keys still fail', () => {
   // Brauzerdagi eski qoralama yoki tarix nusxasida "Urg‘u burchagi" yo‘q — standart qiymat bilan o‘qiladi.
   const older=fresh(); delete older.values['shape-radius'];

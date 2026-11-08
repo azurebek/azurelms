@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.utils.cache import patch_cache_control
 from django.utils.functional import cached_property
 
-from frontend.public_content import EDITORIAL, LEGACY, current_renderer
+from frontend.public_content import CALM, EDITORIAL, LEGACY, current_renderer
 
 
 TITLES = {
@@ -38,12 +38,22 @@ def safe_return_to(request, fallback):
 
 # PUBLIC-02 ramkasi: sahifa shablonlari `{% extends public_frame|default:... %}` — editorial yoqilsa
 # hali ko'chirilmagan sahifa ham yangi header/footer ichida chiqadi, mazmuni o'zgarmaydi.
-PUBLIC_FRAME = {EDITORIAL: "frontend_v1/editorial/base.html"}
+PUBLIC_FRAME = {
+    EDITORIAL: "frontend_v1/editorial/base.html",
+    # S1 fallback: CALM public ramkasi S8 da kelguncha editorial baza ishlaydi.
+    CALM: "frontend_v1/editorial/base.html",
+}
 DEFAULT_FRAME = "frontend_v1/public/base.html"
 
 
 def public_template_names(template, renderer):
     """Shablon tanlovining yagona nuqtasi: editorial nusxa bo'lsa u, bo'lmasa hozirgi V1 (sahifama-sahifa ko'chish)."""
+    if renderer == CALM:
+        return [
+            "frontend_v1/calm/" + template,
+            "frontend_v1/editorial/" + template,
+            "frontend_v1/public/" + template,
+        ]
     if renderer == EDITORIAL:
         return ["frontend_v1/editorial/" + template, "frontend_v1/public/" + template]
     return ["frontend_v1/public/" + template]
@@ -51,7 +61,8 @@ def public_template_names(template, renderer):
 
 def public_context(request, template, context, renderer=None):
     result = dict(context, frontend_v1_title=TITLES[template],
-                  public_frame=PUBLIC_FRAME.get(renderer, DEFAULT_FRAME))
+                  public_frame=PUBLIC_FRAME.get(renderer, DEFAULT_FRAME),
+                  platform_calm_v1=renderer == CALM)
     for key, attribute in (("course", "title"), ("post", "title"), ("legal_page", "title"), ("university", "name"), ("article", "title")):
         if result.get(key) is not None:
             result["frontend_v1_title"] = getattr(result[key], attribute)

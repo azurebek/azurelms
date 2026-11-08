@@ -8,7 +8,7 @@ from django.utils.functional import cached_property
 
 from core.email_delivery import RESET_UNAVAILABLE_MESSAGE, reset_delivery_available
 from core.flags import flags_enabled
-from core.frontend_v1 import FrontendV1Mixin
+from core.frontend_v1 import FrontendV1Mixin, PLATFORM_CALM_FLAG
 from .forms import UzbekPasswordResetForm, UzbekSetPasswordForm
 
 logger = logging.getLogger(__name__)
@@ -47,7 +47,11 @@ class AuthV1Mixin(FrontendV1Mixin):
     @cached_property
     def auth_renderer_flags(self):
         """Auth V1 va editorial ramka ayni DB snapshot'idan tanlansin."""
-        return flags_enabled('frontend_v1_auth', 'frontend_v1_public', 'public_editorial_v1')
+        return flags_enabled('frontend_v1_auth', 'frontend_v1_public', 'public_editorial_v1', PLATFORM_CALM_FLAG)
+
+    @property
+    def frontend_renderer_flags(self):
+        return self.auth_renderer_flags
 
     @cached_property
     def frontend_v1_enabled(self):
@@ -59,7 +63,7 @@ class AuthV1Mixin(FrontendV1Mixin):
         return (
             flags['frontend_v1_auth']
             and flags['frontend_v1_public']
-            and flags['public_editorial_v1']
+            and (flags['public_editorial_v1'] or flags[PLATFORM_CALM_FLAG])
         )
 
     def get_context_data(self, **kwargs):

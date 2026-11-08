@@ -9,24 +9,46 @@ from django.utils.functional import cached_property
 from core.flags import flag_enabled, flags_enabled
 
 
+PLATFORM_CALM_FLAG = "platform_calm_v1"
+
+
+def calm_template_names(template, *, enabled):
+    """CALM nusxasi bo'lsa uni, bo'lmasa ayni mavjud V1 shablonini tanlang."""
+    if not enabled:
+        return [template]
+    prefix = "frontend_v1/"
+    relative = template[len(prefix):] if template.startswith(prefix) else template
+    return [f"{prefix}calm/{relative}", template]
+
+
 class FrontendV1Mixin:
     frontend_v1_template = None
     frontend_v1_title = ""
     frontend_v1_flag = "frontend_v1_learning"
 
     @cached_property
+    def frontend_renderer_flags(self):
+        # Renderer va CALM qatlami bitta DB snapshot'i va bitta so'rovdan.
+        return flags_enabled(self.frontend_v1_flag, PLATFORM_CALM_FLAG)
+
+    @cached_property
     def frontend_v1_enabled(self):
-        return flag_enabled(self.frontend_v1_flag)
+        return self.frontend_renderer_flags[self.frontend_v1_flag]
+
+    @property
+    def platform_calm_enabled(self):
+        return self.frontend_renderer_flags[PLATFORM_CALM_FLAG]
 
     def get_template_names(self):
         if self.frontend_v1_enabled:
-            return [self.frontend_v1_template]
+            return calm_template_names(self.frontend_v1_template, enabled=self.platform_calm_enabled)
         return super().get_template_names()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.frontend_v1_enabled:
             context["frontend_v1_title"] = self.frontend_v1_title
+            context["platform_calm_v1"] = self.platform_calm_enabled
             context["frontend_v1_records_ready"] = flag_enabled("frontend_v1_records")
             context["frontend_v1_checkout_ready"] = flag_enabled("frontend_v1_checkout")
             context["frontend_v1_exam_attempt_ready"] = flag_enabled("frontend_v1_exam_attempt")
@@ -95,7 +117,12 @@ class FrontendLoginView(FrontendV1Mixin, LoginView):
             "frontend_v1_auth",
             "frontend_v1_public",
             "public_editorial_v1",
+            PLATFORM_CALM_FLAG,
         )
+
+    @property
+    def frontend_renderer_flags(self):
+        return self.login_renderer_flags
 
     @cached_property
     def frontend_v1_enabled(self):
@@ -107,11 +134,13 @@ class FrontendLoginView(FrontendV1Mixin, LoginView):
         return (
             self.frontend_v1_enabled
             and flags["frontend_v1_public"]
-            and flags["public_editorial_v1"]
+            and (flags["public_editorial_v1"] or flags[PLATFORM_CALM_FLAG])
         )
 
     def get_template_names(self):
         if self.auth_editorial_enabled:
+            if self.platform_calm_enabled:
+                return ["frontend_v1/calm/login.html", "frontend_v1/editorial/login.html", self.frontend_v1_template]
             return ["frontend_v1/editorial/login.html"]
         return super().get_template_names()
 
@@ -235,13 +264,19 @@ def teacher_v1_navigation(active_nav):
     )
 
 
-def render_teacher_v1(request, legacy_template, context, *, enabled=None, status=200):
+def render_teacher_v1(request, legacy_template, context, *, enabled=None, calm_enabled=None, status=200):
     """Select presentation only; caller has already applied the teacher scope."""
     if enabled is None:
-        enabled = flag_enabled("frontend_v1_teacher")
+        renderer_flags = flags_enabled("frontend_v1_teacher", PLATFORM_CALM_FLAG)
+        enabled = renderer_flags["frontend_v1_teacher"]
+        calm_enabled = renderer_flags[PLATFORM_CALM_FLAG]
     if not enabled:
         return render(request, legacy_template, context, status=status)
+    if calm_enabled is None:
+        calm_enabled = flag_enabled(PLATFORM_CALM_FLAG)
     context.update(teacher_v1_navigation(context["active_nav"]))
-    response = render(request, f"frontend_v1/{legacy_template}", context, status=status)
+    context["platform_calm_v1"] = calm_enabled
+    template = f"frontend_v1/{legacy_template}"
+    response = render(request, calm_template_names(template, enabled=calm_enabled), context, status=status)
     patch_cache_control(response, private=True, no_store=True)
     return response

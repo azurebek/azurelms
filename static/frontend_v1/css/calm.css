@@ -1,0 +1,55 @@
+/* DESIGN-02 S1: only token projection. Page/component structure arrives in S2–S9. */
+.s-calm {
+  --az-canvas: #ffffff;
+  --az-surface: #ffffff;
+  --az-side: #f7f9fa;
+  --az-soft: #f1f3f4;
+  --az-hero: #e8f0fe;
+  --az-text: #1f1f1f;
+  --az-muted: #444746;
+  --az-faint: #5f6368;
+  --az-border: #c4c7c5;
+  --az-action-border: #1d57d8;
+  --az-action: #1d57d8;
+  --az-action-hover: #17459f;
+  --az-on-action: #ffffff;
+  --az-action-soft: #e8f0fe;
+  --az-success: #137333;
+  --az-success-soft: #e6f4ea;
+  --az-danger: #b3261e;
+  --az-danger-soft: #fce8e6;
+  --az-warning: #8f4e00;
+  --az-focus: #1d57d8;
+  --az-font: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --az-text-sm: .8125rem;
+  --az-text-md: .9375rem;
+  --az-text-2xl: 1.625rem;
+  --az-weight-medium: 500;
+  --az-weight-bold: 600;
+  --az-radius: .75rem;
+  --az-radius-lg: 1rem;
+  --az-sidebar: 14.5rem;
+}
+
+.s-calm[data-theme="dark"] {
+  --az-canvas: #131314;
+  --az-surface: #131314;
+  --az-side: #1b1c1e;
+  --az-soft: #26282b;
+  --az-hero: #1e2f4d;
+  --az-text: #e3e3e3;
+  --az-muted: #c4c7c5;
+  --az-faint: #9aa0a6;
+  --az-border: #474a4d;
+  --az-action-border: #8ab4f8;
+  --az-action: #8ab4f8;
+  --az-action-hover: #aecbfa;
+  --az-on-action: #0b1d3f;
+  --az-action-soft: #1e2f4d;
+  --az-success: #81c995;
+  --az-success-soft: #203c32;
+  --az-danger: #f28b82;
+  --az-danger-soft: #3b1d1b;
+  --az-warning: #fdd663;
+  --az-focus: #8ab4f8;
+}

@@ -32,6 +32,17 @@ def defaults():
     return value
 
 
+def builtin(preset_id):
+    """Build and validate a catalog preset without mutating catalog/default values."""
+    preset = next((item for item in CATALOG["presets"] if item["id"] == preset_id), None)
+    if preset is None:
+        raise DesignValidationError("Variant topilmadi.")
+    value = defaults()
+    for section in ("light", "dark", "values"):
+        value[section].update(deepcopy(preset.get(section, {})))
+    return validate(value)
+
+
 def contrast(foreground, background):
     def luminance(color):
         channels = [int(color[index:index + 2], 16) / 255 for index in (1, 3, 5)]

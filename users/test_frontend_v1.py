@@ -67,6 +67,28 @@ class FrontendV1Tests(TestCase):
         self.assertEqual(self.enrollment.status, "active")
         self.assertEqual(LessonProgress.objects.filter(enrollment=self.enrollment).count(), 1)
 
+    def test_calm_flag_falls_back_to_v1_and_off_keeps_identical_renderer_bytes(self):
+        import re
+
+        def stable_html(response):
+            # Django masks the same CSRF secret differently on every render.
+            return re.sub(rb'(name="csrfmiddlewaretoken" value=")[^"]+', rb'\1<MASK>', response.content)
+
+        self.sign_in()
+        set_flag("platform_calm_v1", enabled=False, reason="Explicit OFF parity")
+        explicit_off = self.client.get(reverse("dashboard"))
+        self.assertTemplateUsed(explicit_off, "frontend_v1/dashboard.html")
+        self.assertNotContains(explicit_off, "frontend_v1/css/calm.css")
+        from aicontrol.models import FeatureFlag
+        FeatureFlag.objects.filter(slug="platform_calm_v1").delete()
+        default_off = self.client.get(reverse("dashboard"))
+        self.assertEqual(stable_html(default_off), stable_html(explicit_off))
+        set_flag("platform_calm_v1", enabled=True, reason="CALM foundation regression")
+        calm = self.client.get(reverse("dashboard"))
+        self.assertTemplateUsed(calm, "frontend_v1/dashboard.html")
+        self.assertContains(calm, 'class="s-calm "')
+        self.assertContains(calm, "/static/frontend_v1/css/calm.css")
+
     def test_unauthenticated_requests_still_require_login_with_next(self):
         self.enable()
         for name in ("dashboard", "my_courses"):

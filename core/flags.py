@@ -174,6 +174,22 @@ FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
         ),
     ),
     FlagDefinition(
+        slug="platform_calm_v1",
+        label="Platforma — sokin dizayn",
+        description=(
+            "DESIGN-02: o‘quvchi, ustoz, boshqaruv, ochiq va kirish sahifalarini bitta sokin "
+            "dizayn tizimiga bosqichma-bosqich o‘tkazadi. Faqat taqdimot qatlami; ruxsat, kontekst "
+            "va yozish qoidalari o‘zgarmaydi."
+        ),
+        default=False,
+        category="Frontend",
+        runbook=(
+            "OFF — legacy, V1 va editorial rendererlar bayt darajasida avvalgi chiqishni beradi. "
+            "ON — tayyor CALM shabloni tanlanadi, tayyor bo‘lmagan sahifa editorial/V1 ko‘rinishga "
+            "qaytadi. S10 va owner qabuligacha production'da yoqilmaydi."
+        ),
+    ),
+    FlagDefinition(
         slug="certificate_legacy_public_view",
         label="Eski sertifikat havolasi — o'tish davri",
         description=(
