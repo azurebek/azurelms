@@ -16,6 +16,29 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-11-08 [Claude]: DASH1.0a — boshqaruv ruxsatlari va PII containment
+
+Oddiy `is_staff` (kurs ustozi ham) endi global statistika, tushum, o'quvchilar ro'yxati (email/telefon), boshqa
+o'quvchining chek fayli, chek qarori va bot admin buyruqlarini olmaydi. Veb, `cohorts/receipt_service.py`, private
+media va Telegram bot bitta `core/backoffice_capabilities.py` qoidasini so'raydi: default-deny, owner = faol
+superuser, qolgan xodim faqat aniq berilgan Permission bilan. `/backoffice/chats/` hamma uchun (owner ham) 403.
+
+- Branch: `claude/dash10a-capability-containment`. Kod commit: `d139d75` (owner 2026-11-08 commit va PR'ga ruxsat berdi).
+  Migration `core/0013_backoffice_capability` (jadvalsiz `managed=False`, faqat beshta Permission).
+- Qarorlar: `course_scoped_teaching` alohida Permission emas — kurs biriktirilishi va `teacher_course_queryset`;
+  mavjud staffga avtomatik grant yo'q; botda "admin" roli faqat global capability bilan, har handler/servis o'zi
+  tekshiradi, AI buyruqlari faqat owner. Menyu, logo, user menu, support kartasi, search va "orqaga" havolalari
+  ruxsatsiz xodimni 403 sahifaga olib bormaydi. Grant: `manage.py backoffice_capability grant|revoke|list`
+  (Django admin default o'chiq), audit `backoffice.capability.*`, `source=cli`.
+- Test: yangi `core/test_backoffice_capabilities.py` (matritsa, veb/chek/fayl/bot, buyruq, 73 route inventory,
+  unclassified=0); eski testlar yangi qoidaga moslandi (ruxsatsiz holat endi alohida tekshiriladi). To'liq
+  `manage.py test` — **3358, 1 fail**: `public_route_snapshot.json`da kirgan o'quvchi uchun `backoffice_receipts`
+  va `backoffice_chats` `302>login` → `403` (ataylab; snapshot yangilandi, modul 10/10 OK). Shundan keyingi
+  dashboard helper refaktori ta'sirlangan 8 modulda — **126 OK**. `check --fail-level WARNING`,
+  `makemigrations --check --dry-run`, `git diff --check` toza.
+- Davom etilishi kerak: owner-only legacy route'lardagi `user_passes_test` 302 → 403 (login aylanmasi), keyin
+  DASH1.0b. Hujjat: `DASHBOARD-REFORM-PLAN.md` DASH1.0a holati, `05-launch-ops.md` §3.
+
 ## 2026-11-06 [Codex]: PUBLIC-02 / PE8 — editorial auth sahifalari
 
 `public_editorial_v1` yoqilsa login, ro'yxatdan o'tish, onboarding va parolni tiklash oqimi public editorial

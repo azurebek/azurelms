@@ -1149,7 +1149,7 @@ ko‘rmaydi; teacher faqat o‘z course scope’idagi ruxsatli ishga kiradi.
   Chat metadata UI MSG1.0d selectoriga bog‘liq, ammo containment uni kutmaydi:
   selector/MSG-D13 yo‘q bo‘lsa deny/body access0.
 - **Holat (2026-11-08): IMPLEMENTED/TESTED — branch
-  `claude/dash10a-capability-containment`, owner commit/PR tasdig‘ini kutadi.**
+  `claude/dash10a-capability-containment`, kod commit `d139d75`; PR review/merge kutadi.**
   Owner 2026-11-08da “avval yop” deb boshladi. Qarorlar:
   - beshta capability Django Permission sifatida jadvalsiz `core.BackofficeCapability`
     (migration `0013`, `managed=False`) nomidan; owner mapping = faol superuser;
