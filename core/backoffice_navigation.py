@@ -58,15 +58,48 @@ def section_for(request):
     return None
 
 
+def can_open_legacy_dashboard(user):
+    """Eski bosh sahifa statistika, tushum va oxirgi foydalanuvchilarni birga ko'rsatadi."""
+    from core.backoffice_capabilities import (
+        FINANCE_RECEIPT_REVIEW, LEARNER_PII_VIEW, PLATFORM_STATS_VIEW, has_capability,
+    )
+    return all(has_capability(user, capability) for capability in (
+        PLATFORM_STATS_VIEW, FINANCE_RECEIPT_REVIEW, LEARNER_PII_VIEW))
+
+
+def _home_route(request, enabled):
+    # Ruxsati yo'q xodim (kurs ustozi) 403 ga emas, o'z bosh sahifasiga boradi (DASH1.0a).
+    if enabled['backoffice_course_workspace']:
+        return 'backoffice_workspace_home'
+    return 'backoffice_dashboard' if can_open_legacy_dashboard(request.user) else 'teacher_dashboard'
+
+
+def _students_route(request, enabled):
+    # Global o'quvchilar ro'yxati learner PII; ruxsati yo'q ustoz o'z o'quvchilariga boradi.
+    from core.backoffice_capabilities import LEARNER_PII_VIEW, has_capability
+
+    if enabled['backoffice_student_support']:
+        return 'backoffice_workspace_students'
+    return 'backoffice_users' if has_capability(request.user, LEARNER_PII_VIEW) else 'teacher_students'
+
+
+def _can_review_receipts(user):
+    from core.backoffice_capabilities import FINANCE_RECEIPT_REVIEW, has_capability
+
+    return has_capability(user, FINANCE_RECEIPT_REVIEW)
+
+
 def navigation(request, active):
     enabled = flags(request)
     rows = [
-        ('home', 'backoffice_workspace_home' if enabled['backoffice_course_workspace'] else 'backoffice_dashboard'),
+        ('home', _home_route(request, enabled)),
         ('courses', 'backoffice_workspace_courses' if enabled['backoffice_course_workspace'] else 'backoffice_courses'),
-        ('students', 'backoffice_workspace_students' if enabled['backoffice_student_support'] else 'backoffice_users'),
+        ('students', _students_route(request, enabled)),
     ]
     if enabled[FLAG]:
-        rows += [('design', 'backoffice_workspace_site'), ('payments', 'backoffice_workspace_payments')]
+        rows += [('design', 'backoffice_workspace_site')]
+        if request.user.is_superuser or _can_review_receipts(request.user):
+            rows += [('payments', 'backoffice_workspace_payments')]
         if request.user.is_superuser:
             rows += [('settings', 'backoffice_workspace_settings')]
     elif request.user.is_superuser:
@@ -84,8 +117,8 @@ def section_links(request, section):
                 ('Guruhlar', 'backoffice_workspace_groups'), ('Materiallar', 'library_backoffice:resources'),
                 ('Imtihonlar', 'backoffice_exams'), ('Tekshiruv', 'teacher_grading')]
     elif section == 'students':
-        rows = [('O‘quvchilar', 'backoffice_workspace_students' if enabled['backoffice_student_support'] else 'backoffice_users'),
-                ('Suhbatlar', 'backoffice_chats')]
+        # "Suhbatlar" (backoffice_chats) yopiq: Messenger selectorisiz hech kimga ochilmaydi (DASH1.0a).
+        rows = [('O‘quvchilar', _students_route(request, enabled))]
     elif section == 'design':
         if owner:
             if enabled['backoffice_design_workspace']:
@@ -95,7 +128,7 @@ def section_links(request, section):
         if owner:
             rows += [('Turkiyada o‘qish', 'sit_backoffice:dashboard')]
     elif section == 'payments':
-        rows = [('Cheklar', 'backoffice_receipts')]
+        rows = [('Cheklar', 'backoffice_receipts')] if _can_review_receipts(request.user) else []
         if owner:
             rows += [('Tariflar', 'backoffice_workspace_plans')]
     elif section == 'settings' and owner:
@@ -132,7 +165,7 @@ def workspace_context(request):
         if enabled[FLAG]:
             route = 'backoffice_workspace_groups'
             if match.url_name == 'teacher_students':
-                route = 'backoffice_workspace_students' if enabled['backoffice_student_support'] else 'backoffice_users'
+                route = _students_route(request, enabled)
             return {'backoffice_return_url': reverse(route)}
         return {}
     section = section_for(request)

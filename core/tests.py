@@ -23,7 +23,16 @@ class BackofficeDashboardTests(TestCase):
             password="pass-12345",
         )
 
-    def test_staff_user_can_open_backoffice_dashboard(self):
+    def test_plain_staff_cannot_open_global_backoffice_dashboard(self):
+        """Eski bosh sahifa global statistika, tushum va PII ko'rsatadi (DASH1.0a)."""
+        self.client.force_login(self.staff_user)
+
+        self.assertEqual(self.client.get(reverse("backoffice_dashboard")).status_code, 403)
+
+    def test_capable_staff_user_can_open_backoffice_dashboard(self):
+        from core.capability_fixtures import grant_capabilities
+
+        grant_capabilities(self.staff_user, "platform_stats_view", "finance_receipt_review", "learner_pii_view")
         self.client.force_login(self.staff_user)
 
         response = self.client.get(reverse("backoffice_dashboard"))
@@ -79,8 +88,6 @@ class BackofficeDashboardTests(TestCase):
 
         # Markerlar yangi AdminShell sahifa sarlavhalariga mos
         checks = (
-            (reverse("backoffice_users"), "Foydalanuvchilar"),
-            (reverse("backoffice_chats"), "Suhbatlar"),
             (reverse("backoffice_course_create"), "Yangi kurs"),
             (reverse("backoffice_course_edit", kwargs={"course_id": course.pk}), course.title),
             (reverse("backoffice_lessons"), "Dars muharriri"),
@@ -97,6 +104,19 @@ class BackofficeDashboardTests(TestCase):
 
         owner_only = self.client.get(reverse("backoffice_ai_control"))
         self.assertEqual(owner_only.status_code, 302)
+
+        # Global ro'yxat va suhbatlar oddiy xodimga yopiq (DASH1.0a).
+        for url in (reverse("backoffice_users"), reverse("backoffice_chats")):
+            with self.subTest(url=url, granted=False):
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, 403)
+                self.assertNotContains(response, "Monitoring uchun test xabar", status_code=403)
+
+        from core.capability_fixtures import grant_capabilities
+        grant_capabilities(self.staff_user, "learner_pii_view")
+        self.assertContains(self.client.get(reverse("backoffice_users")), "Foydalanuvchilar")
+        # "Suhbatlar" Messenger selectorisiz hech kimga ochilmaydi.
+        self.assertEqual(self.client.get(reverse("backoffice_chats")).status_code, 403)
 
 
 class TeacherPanelTests(TestCase):

@@ -74,8 +74,13 @@ def get_user_role(telegram_id):
     user = CustomUser.objects.filter(telegram_id=telegram_id).first()
     if not user:
         return "Mehmon"
-    if is_active_staff(user):
+    from core.backoffice_capabilities import has_any_global_capability
+    from courses.models import Course
+
+    if has_any_global_capability(user):
         return "Admin"
+    if user.is_active and Course.objects.filter(instructor=user).exists():
+        return "O'qituvchi"
     is_student = Enrollment.objects.filter(enrollment_active_access_q(), student=user).exists()
     if is_student:
         return "Talaba"
@@ -2042,8 +2047,23 @@ def parse_start_payload(payload):
 
 # ================================================================ F6: Admin kengaytmasi
 
-def _require_admin(actor):
-    return is_active_staff(actor)
+def _require_capability(actor, *capabilities):
+    """Bot admin xizmati o'z capability'sini so'raydi (DASH1.0a).
+
+    Ilgari har qanday faol staff (`is_active_staff`) yetarli edi. Handler ham
+    tekshiradi, lekin yozuvchi xizmat ham o'zi tekshiradi: boshqa adapter uni
+    chaqirsa ham ruxsat bir xil qoladi.
+    """
+    from core.backoffice_capabilities import has_capability
+
+    return bool(actor) and all(has_capability(actor, capability) for capability in capabilities)
+
+
+def _require_platform_owner(actor):
+    """AI nazorati: veb Control Center bilan bir xil — faqat faol superuser."""
+    from core.access import is_control_center_owner
+
+    return bool(actor) and is_control_center_owner(actor)
 
 
 def admin_search_users(query, limit=5):
@@ -2104,7 +2124,7 @@ def admin_user_card(user):
 
 def admin_toggle_user_active(user_id, actor):
     """Bloklash/faollashtirish. Himoya: o'zini va staff'ni bloklab bo'lmaydi."""
-    if not _require_admin(actor):
+    if not _require_capability(actor, "learner_pii_view", "ops_global_view"):
         return ActionResult(ok=False, code="forbidden", message="Ruxsat yo'q.")
     user = CustomUser.objects.filter(id=user_id).first()
     if not user:
@@ -2128,7 +2148,7 @@ def create_broadcast_draft(actor, text):
     from bot.models import BotBroadcastDraft
 
     text = (text or "").strip()
-    if not _require_admin(actor):
+    if not _require_capability(actor, "ops_global_view"):
         return None, "Ruxsat yo'q."
     if len(text) < 5:
         return None, "Matn juda qisqa. Foydalanish: /broadcast E'lon matni..."
@@ -2183,7 +2203,7 @@ def execute_broadcast(draft_id, target, actor):
     from bot.models import BotBroadcastDraft
     from users.models import NotificationBroadcast
 
-    if not _require_admin(actor):
+    if not _require_capability(actor, "ops_global_view"):
         return ActionResult(ok=False, code="forbidden", message="Ruxsat yo'q.")
     draft = BotBroadcastDraft.objects.filter(id=draft_id, admin=actor).first()
     if not draft:
@@ -2280,7 +2300,7 @@ def ai_control_overview():
 def ai_toggle_enforcement(actor):
     from aicontrol.models import AISettings
 
-    if not _require_admin(actor):
+    if not _require_platform_owner(actor):
         return ActionResult(ok=False, code="forbidden", message="Ruxsat yo'q.")
     s = AISettings.load()
     s.enforcement_enabled = not s.enforcement_enabled
@@ -2293,7 +2313,7 @@ def ai_toggle_enforcement(actor):
 def ai_set_global_limits(actor, limit_5h, limit_weekly):
     from aicontrol.models import AISettings
 
-    if not _require_admin(actor):
+    if not _require_platform_owner(actor):
         return ActionResult(ok=False, code="forbidden", message="Ruxsat yo'q.")
     try:
         limit_5h, limit_weekly = int(limit_5h), int(limit_weekly)
@@ -2348,7 +2368,7 @@ def ai_set_plan_policy(actor, plan_id, limit_5h, limit_weekly):
     from aicontrol.models import AIPlanPolicy
     from subscriptions.models import Plan
 
-    if not _require_admin(actor):
+    if not _require_platform_owner(actor):
         return ActionResult(ok=False, code="forbidden", message="Ruxsat yo'q.")
     plan = Plan.objects.filter(id=plan_id).first()
     if not plan:
@@ -2383,7 +2403,7 @@ def ai_disable_plan_policy(actor, plan_id):
     """Tarif siyosatini o'chirish — tarif global defaultga qaytadi."""
     from aicontrol.models import AIPlanPolicy
 
-    if not _require_admin(actor):
+    if not _require_platform_owner(actor):
         return ActionResult(ok=False, code="forbidden", message="Ruxsat yo'q.")
     policy = AIPlanPolicy.objects.filter(plan_id=plan_id).select_related("plan").first()
     if not policy:
@@ -2446,7 +2466,7 @@ def ai_execute_action(actor, kind, amount, scope_type, scope_id, window):
     """Reset/bonus'ni qo'llash — mavjud apply_reset_event servisi orqali (audit bilan)."""
     from aicontrol.service import apply_reset_event
 
-    if not _require_admin(actor):
+    if not _require_platform_owner(actor):
         return ActionResult(ok=False, code="forbidden", message="Ruxsat yo'q.")
     if kind == "b" and int(amount or 0) <= 0:
         return ActionResult(ok=False, code="bad_amount", message="Bonus miqdori noto'g'ri.")
@@ -2483,7 +2503,7 @@ def ai_user_status(user):
 def ai_toggle_user_block(user_id, actor):
     from aicontrol.service import get_allowance
 
-    if not _require_admin(actor):
+    if not _require_platform_owner(actor):
         return ActionResult(ok=False, code="forbidden", message="Ruxsat yo'q.")
     user = CustomUser.objects.filter(id=user_id).first()
     if not user:

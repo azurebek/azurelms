@@ -150,7 +150,17 @@ class PrivateMediaAccessTests(TestCase):
             with self.subTest(resurs=label):
                 self.assertEqual(self.client.get(self.urls[label]).status_code, 200)
 
-    def test_staff_can_read_payment_receipt(self):
+    def test_plain_staff_cannot_read_foreign_payment_receipt(self):
+        """Boshqa o'quvchining cheki oddiy xodimga (kurs ustoziga ham) yopiq (DASH1.0a)."""
+        for actor in (self.unassigned_staff, self.teacher):
+            with self.subTest(actor=actor.username):
+                self.client.force_login(actor)
+                self.assertEqual(self.client.get(self.urls["receipt"]).status_code, 404)
+
+    def test_finance_file_capability_can_read_foreign_payment_receipt(self):
+        from core.capability_fixtures import grant_capabilities
+
+        grant_capabilities(self.unassigned_staff, "finance_cross_user_receipt_file_view")
         self.client.force_login(self.unassigned_staff)
         self.assertEqual(self.client.get(self.urls["receipt"]).status_code, 200)
 

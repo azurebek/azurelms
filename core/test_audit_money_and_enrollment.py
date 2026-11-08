@@ -39,6 +39,9 @@ class ReceiptDecisionIsAuditedTests(TestCase):
         )
         self.owner.telegram_id = 880000001
         self.owner.save(update_fields=["telegram_id"])
+        # Chek qarori moliya ruxsatini so'raydi (DASH1.0a).
+        from core.capability_fixtures import grant_capabilities
+        grant_capabilities(self.owner, "finance_receipt_review")
         self.student = User.objects.create_user(
             username="receipt-student", email="receipt-student@example.com", password="x"
         )

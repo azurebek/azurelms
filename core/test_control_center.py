@@ -61,8 +61,13 @@ class ControlCenterViewTests(TestCase):
         owner_response = self.client.get(reverse("backoffice_control"))
         self.assertContains(owner_response, "Control Center")
 
+        # Eski bosh sahifa endi aniq ruxsat so'raydi (DASH1.0a). Hamma ruxsati
+        # bor xodim ham Control Center havolasini ko'rmaydi: u faqat egaga.
+        from core.capability_fixtures import grant_all_capabilities
+        grant_all_capabilities(self.staff)
         self.client.force_login(self.staff)
         staff_response = self.client.get(reverse("backoffice_dashboard"))
+        self.assertEqual(staff_response.status_code, 200)
         self.assertNotContains(staff_response, reverse("backoffice_control"))
 
 

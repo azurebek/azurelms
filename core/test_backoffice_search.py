@@ -151,7 +151,13 @@ class BackofficeSearchTests(TestCase):
             self.assertEqual(context['rows'], [])
             self.assertNotIn(kind, [tab['key'] for tab in context['tabs']])
         self.assertIn(reverse('backoffice_courses'), [row['url'] for row in self.context('Kurslar')['rows']])
-        self.assertIn(reverse('backoffice_users'), [row['url'] for row in self.context('O‘quvchilar')['rows']])
+        # Global ro'yxat aniq ruxsat so'raydi (DASH1.0a): ruxsatsiz ustoz o'z
+        # o'quvchilariga, egasi global ro'yxatga boradi.
+        teacher_rows = [row['url'] for row in self.context('O‘quvchilar')['rows']]
+        self.assertIn(reverse('teacher_students'), teacher_rows)
+        self.assertNotIn(reverse('backoffice_users'), teacher_rows)
+        self.assertIn(reverse('backoffice_users'),
+                      [row['url'] for row in self.context('O‘quvchilar', actor=self.owner)['rows']])
 
     def test_pagination_crosses_type_boundaries_without_duplicate_or_dropped_rows(self):
         for index in range(14):
@@ -167,6 +173,9 @@ class BackofficeSearchTests(TestCase):
         self.assertEqual(self.context('Needle', page='999')['page_obj'].number, 2)
 
     def test_student_query_count_stays_fixed_as_result_and_enrollment_counts_grow(self):
+        # Menyu ruxsatlarni tekshiradi (DASH1.0a) va Django ularni foydalanuvchi
+        # obyektida keshlaydi; o'lchov natija hajmini solishtirsin, keshni emas.
+        self.context('Madina', kind='student')
         with CaptureQueriesContext(connection) as small_queries:
             small = self.context('Madina', kind='student')
         for index in range(20):

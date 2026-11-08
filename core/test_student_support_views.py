@@ -166,6 +166,10 @@ class StudentSupportViewsTests(TestCase):
         historical_receipt = PaymentReceipt.objects.create(
             enrollment=self.enrollment, amount=1000, receipt_image='receipts/historical-synthetic.png')
 
+        # Chek qarori moliya ruxsatini so'raydi (DASH1.0a); ruxsatsiz holat
+        # test_student_support_handoffs'da alohida tekshiriladi.
+        from core.capability_fixtures import grant_capabilities
+        grant_capabilities(self.teacher, 'finance_receipt_review')
         for actor in (self.teacher, self.owner):
             with self.subTest(actor=actor.pk):
                 self.client.force_login(actor)
@@ -198,6 +202,10 @@ class StudentSupportViewsTests(TestCase):
         historical_receipt = PaymentReceipt.objects.create(
             enrollment=self.enrollment, amount=1000, receipt_image='receipts/historical-synthetic.png')
 
+        # Chek qarori moliya ruxsatini so'raydi (DASH1.0a); ruxsatsiz holat
+        # test_student_support_handoffs'da alohida tekshiriladi.
+        from core.capability_fixtures import grant_capabilities
+        grant_capabilities(self.teacher, 'finance_receipt_review')
         for actor in (self.teacher, self.owner):
             with self.subTest(actor=actor.pk):
                 self.client.force_login(actor)
@@ -229,6 +237,11 @@ class StudentSupportViewsTests(TestCase):
         nav = {item['label']: item for item in page.context['workspace_nav']}
         self.assertTrue(nav['O‘quvchilar']['active'])
         self.assertEqual(nav['Kurslar']['url'], reverse('backoffice_courses'))
+        # Ruxsatsiz ustozning "uy"i 403 beradigan eski bosh sahifa emas, o'z paneli (DASH1.0a).
+        self.assertContains(page, 'class="ws-brand" href="' + reverse('teacher_dashboard') + '"')
+        from core.capability_fixtures import grant_capabilities
+        grant_capabilities(self.teacher, 'platform_stats_view', 'finance_receipt_review', 'learner_pii_view')
+        page = self.client.get(self.url())
         self.assertContains(page, 'class="ws-brand" href="' + reverse('backoffice_dashboard') + '"')
         set_flag('backoffice_course_workspace', enabled=True, reason='Both workspaces')
         home = self.client.get(reverse('backoffice_workspace_home'))
@@ -237,6 +250,10 @@ class StudentSupportViewsTests(TestCase):
     def test_legacy_student_entry_redirects_but_staff_directory_remains(self):
         self.assertRedirects(self.client.get(reverse('backoffice_users'), {'role': 'students', 'q': 'Madina'}),
                              reverse('backoffice_workspace_students') + '?q=Madina')
+        # Global ro'yxat (email, telefon) aniq ruxsat so'raydi (DASH1.0a).
+        self.assertEqual(self.client.get(reverse('backoffice_users'), {'role': 'teachers'}).status_code, 403)
+        from core.capability_fixtures import grant_capabilities
+        grant_capabilities(self.teacher, 'learner_pii_view')
         self.assertEqual(self.client.get(reverse('backoffice_users'), {'role': 'teachers'}).status_code, 200)
 
     def test_guest_student_and_deactivated_staff_are_denied(self):
