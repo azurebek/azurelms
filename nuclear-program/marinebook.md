@@ -32,7 +32,8 @@ hujjati owner'ning shaxsiy artefaktlari, git'dan tashqarida — normativ qismi h
   oralig'i da'volari 2026-11-08 kodiga solishtirildi. Django/Node testlari yugurilmadi (docs-only).
 - Owner qarori (2026-11-08): DESIGN-02 bitta branchda (`claude/design-02-plan`, PR #253) qoladi va S10 dan keyin
   bitta merge bilan qo'shiladi; bosqichlar shu branchda commit, ko'rik lokal serverda (rejaning §6).
-- Davom etilishi kerak: S1 — shu branchda (flag, tanlov funksiyasi, "Sokin" varianti va matn
+- Davom etilishi kerak: S1 — Claude S0 da to'xtadi; keyingi agent o'z prefiksidagi bitta branchda, rejaning §10 dagi
+  tartibda (eskiz nusxasi `playground/DESIGN-02 eskiz/`; flag, tanlov funksiyasi, "Sokin" varianti va matn
   oralig'i, Figtree, `calm.css`, `calm.test.mjs`); D8 owner ko'rigidan keyin.
 
 ## 2026-11-08 [Claude]: DASH1.0a — boshqaruv ruxsatlari va PII containment
