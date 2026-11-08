@@ -176,8 +176,9 @@ matn a11y probe va haqiqiy telefonda alohida tekshiriladi. `#188038` och yashil 
 O'n bitta bosqich: S0–S1 asos, S2 shell, S3–S9 sahifa guruhlari, S10 yoqish va tozalash. S0–S2 ketma-ket; S3–S9
 bir-birini kutmaydi, har biri o'z darvozasi ochilganda boshlanadi; S10 hammasi qabul qilingach.
 
-**Owner qarori — 2026-11-08: bitta branch, oxirida bitta merge.** DESIGN-02 butunlay `claude/design-02-plan`
-branchida va [PR #253](https://github.com/azurebek/azurelms/pull/253)da yuradi; har bosqich shu branchda alohida,
+**Owner qarori — 2026-11-08: bitta branch, oxirida bitta merge.** DESIGN-02 bitta branchda yuradi: S0
+`claude/design-02-plan` / [PR #253](https://github.com/azurebek/azurelms/pull/253); S1 dan davom ettiruvchi agent
+o'z prefiksidagi bitta branchda (§10 ga qarang). Har bosqich shu branchda alohida,
 testdan o'tgan commit(lar). `main`ga oraliq merge yo'q — PR S10 va owner qabulidan keyin bitta merge bilan
 qo'shiladi (rules §9 gate'lari o'sha merge'ga qo'llanadi: uchala check yashil, review thread'lar resolve, branch
 `main` bilan yangilangan). Shu sabab:
@@ -281,6 +282,26 @@ serverda owner qabulidan o'tgach alohida kichik PR bilan olib tashlanadi — aks
 - [x] DASH1.0a `main`ga qo'shildi (PR #252, `6dff8c4`, 2026-11-08) — D5 darvozasi.
 - [x] S0: shu reja, README, PORT-LEDGER, PUBLIC-02 va marinebook yozuvi — branch `claude/design-02-plan`.
 - [ ] Owner eskizdagi qorong'i rejimni ko'radi (D8) — S1 darvozasi.
-- [ ] S1 — shu branchda (`claude/design-02-plan`): flag, `calm_template_names`, `CALM` renderer qiymati, "Sokin"
-  varianti va matn oralig'i, Figtree, `calm.css` va `calm.test.mjs`. Tugash mezoni: flag OFF'da hech bir sahifa
-  baytda o'zgarmaydi.
+- [ ] S1: flag, `calm_template_names`, `CALM` renderer qiymati, "Sokin" varianti va matn oralig'i, Figtree,
+  `calm.css` va `calm.test.mjs`. Tugash mezoni: flag OFF'da hech bir sahifa baytda o'zgarmaydi.
+
+### Davom ettiruvchi agent uchun (2026-11-08, Claude → Codex)
+
+Claude sessiyasi S0 da to'xtadi; ishni boshqa agent (Codex) davom ettiradi. Rules §2/§3 bo'yicha u
+`claude/design-02-plan`ga push qilmaydi — o'z prefiksida bitta branch ochadi va §6 dagi "bitta merge" qoidasi
+o'sha branchga o'tadi:
+
+1. **Branch.** PR #253 merge bo'lgan bo'lsa: `git fetch origin && git switch -c codex/design-02 origin/main`.
+   Merge bo'lmagan bo'lsa: `git switch -c codex/design-02 origin/claude/design-02-plan`, o'z draft PR'ini ochadi va
+   owner'dan PR #253 ni yopishni so'raydi (ikki parallel PR qolmasin).
+2. **Manba.** Eskiz va qoidalar hujjatining lokal nusxasi — `playground/DESIGN-02 eskiz/` (git'ga kirmaydi; o'sha
+   papkadagi `README.md`ni o'qing). Sahifa tokenlari har `*.dc.html` `<head>`ida; qoidalar `DIZAYN-QOIDALARI.md`da.
+   To'liq ko'rinish owner'ning shaxsiy artefaktida — kerak bo'lsa owner'dan skrinshot so'rang.
+3. **S1 dan oldin owner'dan:** (a) D8 — eskizdagi qorong'i rejim ko'rigi (yoki "eskizdagi ranglar bilan boshla"
+   ruxsati); (b) Figtree woff2 fayllarini rasmiy manbadan (OFL) yuklab olishga ruxsat.
+4. **S1 tartibi:** flag registr yozuvi (`core/flags.py`, default OFF) → `calm_template_names` va `CALM` renderer
+   (OFF'da `frontend/public_route_snapshot.json` va renderer testlari o'zgarmasin) → `design_catalog.json` "Sokin"
+   preset + `text-md`/`text-sm` minimumi 15/13 (`design_schema.py` va `design-model.mjs` birga, eski nashrlar testi)
+   → `tokens.css` `@font-face` (flag ON'da) → `static/frontend_v1/css/calm.css` + `tests/frontend_v1/calm.test.mjs`.
+5. **Har bosqich:** `main`ni merge qilib yangilash, §8 tekshiruvlari, testdan o'tgan commit, marinebook yozuvi
+   (hash bilan), lokal serverda owner ko'rigi. `main`ga merge faqat S10 va owner qabulidan keyin, bir marta.
