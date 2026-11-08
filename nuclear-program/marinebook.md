@@ -30,7 +30,9 @@ hujjati owner'ning shaxsiy artefaktlari, git'dan tashqarida — normativ qismi h
   README, frontend indeksi, PORT-LEDGER va DASHBOARD rejasi DASH1.0a merge holatiga moslandi.
 - Tekshiruv: `git diff --check` toza; nisbiy havolalar skripti — 0 buzilgan. Rejadagi fayl, token, menyu va katalog
   oralig'i da'volari 2026-11-08 kodiga solishtirildi. Django/Node testlari yugurilmadi (docs-only).
-- Davom etilishi kerak: S1 — `claude/design-02-s1-foundation` (flag, tanlov funksiyasi, "Sokin" varianti va matn
+- Owner qarori (2026-11-08): DESIGN-02 bitta branchda (`claude/design-02-plan`, PR #253) qoladi va S10 dan keyin
+  bitta merge bilan qo'shiladi; bosqichlar shu branchda commit, ko'rik lokal serverda (rejaning §6).
+- Davom etilishi kerak: S1 — shu branchda (flag, tanlov funksiyasi, "Sokin" varianti va matn
   oralig'i, Figtree, `calm.css`, `calm.test.mjs`); D8 owner ko'rigidan keyin.
 
 ## 2026-11-08 [Claude]: DASH1.0a — boshqaruv ruxsatlari va PII containment

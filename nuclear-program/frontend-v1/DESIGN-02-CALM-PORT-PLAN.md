@@ -173,14 +173,26 @@ matn a11y probe va haqiqiy telefonda alohida tekshiriladi. `#188038` och yashil 
 
 ## 6. Bosqichlar
 
-O'n bitta bosqich: S0–S1 asos, S2 shell, S3–S9 sahifa guruhlari, S10 yoqish va tozalash. Har bosqich 2–5 ta kichik
-PR; bitta PR bitta sahifa yoki bitta komponent. Flag S10 gacha OFF — har PR production'ni o'zgartirmasdan merge
-qilinadi. S0–S2 ketma-ket; S3–S9 bir-birini kutmaydi, har biri o'z darvozasi ochilganda boshlanadi; S10 hammasi
-qabul qilingach.
+O'n bitta bosqich: S0–S1 asos, S2 shell, S3–S9 sahifa guruhlari, S10 yoqish va tozalash. S0–S2 ketma-ket; S3–S9
+bir-birini kutmaydi, har biri o'z darvozasi ochilganda boshlanadi; S10 hammasi qabul qilingach.
+
+**Owner qarori — 2026-11-08: bitta branch, oxirida bitta merge.** DESIGN-02 butunlay `claude/design-02-plan`
+branchida va [PR #253](https://github.com/azurebek/azurelms/pull/253)da yuradi; har bosqich shu branchda alohida,
+testdan o'tgan commit(lar). `main`ga oraliq merge yo'q — PR S10 va owner qabulidan keyin bitta merge bilan
+qo'shiladi (rules §9 gate'lari o'sha merge'ga qo'llanadi: uchala check yashil, review thread'lar resolve, branch
+`main` bilan yangilangan). Shu sabab:
+
+- har bosqich oxirida owner ko'rigi lokal serverda shu branchdan o'tadi;
+- branch `main` bilan har bosqich boshida va konflikt chiqqanda **merge** orqali yangilanadi (rebase va force-push
+  yo'q), konflikt rules §13 bo'yicha yechiladi va marinebook'da qayd etiladi;
+- har push'da CI to'liq yuguradi — qizil holat keyingi bosqichga o'tishdan oldin tuzatiladi;
+- marinebook'ga har bosqich commit hash'i bilan yoziladi, merge natijasi faqat oxirida;
+- flag S10 gacha OFF bo'lgani uchun branch istalgan bosqichda production'ni o'zgartirmasdan merge qilinishi mumkin
+  edi — oraliq merge kerak bo'lib qolsa (masalan uzoq konflikt), owner bilan alohida kelishiladi.
 
 | Bosqich | Eskiz sahifalari | Real shablonlar | Darvoza | Tekshiruv |
 |---|---|---|---|---|
-| S0 Reja | — | shu hujjat; [README](../README.md), [PORT-LEDGER](PORT-LEDGER.md), [PUBLIC-02](PUBLIC-EDITORIAL-PORT-PLAN.md) yozuvi | D1–D4 | `git diff --check`; docs-only PR |
+| S0 Reja | — | shu hujjat; [README](../README.md), [PORT-LEDGER](PORT-LEDGER.md), [PUBLIC-02](PUBLIC-EDITORIAL-PORT-PLAN.md) yozuvi | D1–D4 | `git diff --check`; docs-only commit `bd383ec` |
 | S1 Poydevor | Tokenlar va komponentlar | `core/flags.py`, `calm_template_names`, `CALM` renderer qiymati, `css/calm.css`, `calm.test.mjs`, Figtree, `design_catalog.json` ("Sokin", matn oralig'i), qorong'i tokenlar | S0, D8 | Flag OFF'da `public_route_snapshot.json` va renderer chiqishi baytda bir xil; ustaxona testlari va eski nashrlar; glif sinovi; `node --test`, `manage.py check` |
 | S2 Shell va menyu | Yon menyu, pastki menyu, akkaunt/bildirishnoma oynalari, mini rejim | `platform.html`, `nav.html`, `account.html`, `shell.css`, `shell.js`, `core/frontend_v1.py` menyusi | S1 | `users.test_frontend_v1`, shell Node testi, a11y probe, 320/390px |
 | S3 O'quvchining kundalik yo'li | Bosh sahifa, yangi foydalanuvchi, Darslarim, Dars, Mashqlar, Kutubxona, Xabarlar, Azure AI, Bildirishnomalar | `dashboard.html`, `courses.html`, `lesson.html`, `practice_*.html`, `library/`, `messenger.html`, `ai_messenger.html`, `records/notifications.html` | S2 | Renderer testlari flag ON va OFF; so'rov byudjeti |
@@ -190,7 +202,7 @@ qabul qilingach.
 | S7 Boshqaruv | Ish stoli, Qidiruv, Kurs/Dars/Topshiriq/Test/Imtihon muharrirlari, Materiallar, O'quvchilar, O'quvchi kartasi, Guruhlar, Cheklar, Tariflar, Xabarlar, Sozlamalar, AI, Xodimlar, Platforma holati, Sayt, Brend, Dizayn ustaxonasi, Kontent, Turkiyada o'qish muharriri, Da'volar dalili | `backoffice/workspace/` (home, search, course*, materials, students, student*, groups, plans, design), `backoffice/` (receipts, runtime_settings, feature_flags, ai_control, users, control_center, landing_editor, brand_control, legal_*, sit_*, claim_evidence, exam_form) | S2; B3 bilan bir faylga bir vaqtda emas | `backoffice-workspace`, `backoffice-design` Node testlari; `core.test_backoffice_capabilities` va ruxsat testlari o'zgarmaydi |
 | S8 Ochiq sayt va kirish | Landing, katalog, kurs, Biz haqimizda, huquqiy hujjatlar, Blog, maqola, Turkiyada o'qish (3), sertifikat tekshiruvi, kirish va ro'yxat, AI tanishuv | `frontend_v1/editorial/` (base, index, about, courses, blog, sit, legal_page), `login.html`, `auth_*.html`, `auth_onboarding.html`, sertifikat tekshiruvi | S2 | `frontend.test_public_*` CALM bilan; so'rov byudjetlari, a11y probe; sitemap, meta va cache o'zgarmaydi |
 | S9 Mini-ilova | Telegram mini-ilova | D7 bo'yicha mini rejim; `templates/bot/miniapp_*.html` | D7, DASH1.0d | Telegram ichida haqiqiy qurilmada |
-| S10 Yoqish va tozalash | Hammasi | Flag, `tokens.css` va katalog standartlari, `templates/errors/`, eski V1 va editorial shablonlari | S3–S9 owner qabuli | Lokal DB nusxasida hammasi; owner ko'rigi, a11y, byudjet, 320/390px, haqiqiy telefon; keyin alohida PR eskilarini olib tashlaydi |
+| S10 Yoqish va tozalash | Hammasi | Flag, `tokens.css` va katalog standartlari, `templates/errors/`, eski V1 va editorial shablonlari | S3–S9 owner qabuli | Lokal DB nusxasida hammasi; owner ko'rigi, a11y, byudjet, 320/390px, haqiqiy telefon. Eski shablonlarni olib tashlash bu bosqichga kirmaydi (§8) |
 
 `/backoffice/chats/` S7 ga kirmaydi: DASH1.0a dan beri u Messenger-owned metadata selector (MSG1.0d) kelguncha hamma
 uchun 403; eskizdagi "Xabarlar" bo'limi o'sha selector bilan keladi.
@@ -225,10 +237,10 @@ da'vo" qoidasining ichki sahifalardagi davomi.
 ## 8. Sinov va chiqarish
 
 Port bazadagi ma'lumotni o'zgartirmaydi va migration qo'shmaydi. S10 gacha qaytarish bitta harakat: flag
-o'chiriladi va hamma sahifa darhol eskisiga qaytadi. S10 dagi standart token almashuvi alohida PR; uni revert va
-ustaxonada oldingi nashrga qaytish orqaga oladi.
+o'chiriladi va hamma sahifa darhol eskisiga qaytadi. S10 dagi standart token almashuvi alohida commit; merge'dan keyin uni revert qilish
+va ustaxonada oldingi nashrga qaytish orqaga oladi.
 
-**Har PR'da:**
+**Har bosqich commitida (CI esa har push'da):**
 
 1. `manage.py check` va o'zgargan app testlari (`.env.local`siz — [AGENTS.md](../../AGENTS.md)).
 2. `node --test tests/frontend_v1/*.test.mjs`, shu jumladan `calm.test.mjs`.
@@ -241,8 +253,9 @@ ustaxonada oldingi nashrga qaytish orqaga oladi.
 Qabul qilinmagan izohlar o'sha bosqichda tuzatiladi.
 
 **Yoqish (S10):** lokal DB nusxasida hamma sahifa flag bilan; owner qabuli; haqiqiy telefon va ekran o'quvchi
-(PUBLIC-01 dan beri ochiq bandlar). Serverda yoqish alohida reliz ishi, bu rejaga kirmaydi. Owner qabulidan keyin
-alohida PR eski V1 va editorial shablonlarini, `s-calm` cheklovini va flagni olib tashlaydi.
+(PUBLIC-01 dan beri ochiq bandlar). Serverda yoqish alohida reliz ishi, bu rejaga kirmaydi. Eski V1 va editorial
+shablonlari, `s-calm` cheklovi va flag bitta merge'dan keyin ham zaxira yo'l bo'lib qoladi: ular yangi ko'rinish
+serverda owner qabulidan o'tgach alohida kichik PR bilan olib tashlanadi — aks holda qaytarish yo'li yo'qoladi.
 
 ## 9. Riskler
 
@@ -268,6 +281,6 @@ alohida PR eski V1 va editorial shablonlarini, `s-calm` cheklovini va flagni oli
 - [x] DASH1.0a `main`ga qo'shildi (PR #252, `6dff8c4`, 2026-11-08) — D5 darvozasi.
 - [x] S0: shu reja, README, PORT-LEDGER, PUBLIC-02 va marinebook yozuvi — branch `claude/design-02-plan`.
 - [ ] Owner eskizdagi qorong'i rejimni ko'radi (D8) — S1 darvozasi.
-- [ ] S1 — branch `claude/design-02-s1-foundation`: flag, `calm_template_names`, `CALM` renderer qiymati, "Sokin"
+- [ ] S1 — shu branchda (`claude/design-02-plan`): flag, `calm_template_names`, `CALM` renderer qiymati, "Sokin"
   varianti va matn oralig'i, Figtree, `calm.css` va `calm.test.mjs`. Tugash mezoni: flag OFF'da hech bir sahifa
   baytda o'zgarmaydi.
