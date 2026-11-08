@@ -1,8 +1,14 @@
 # Frontend V1 — bajarish va qabul jurnali
 
+**2026-11-08 DESIGN-02 S1 (owner ko'rigi kutilmoqda):** `codex/design-02` / `0439027` da default-OFF
+`platform_calm_v1`, ichki va public CALM fallback zanjiri, ustaxonaning yorug'/qorong'i "Sokin" varianti,
+15/13px oralig'i, rasmiy OFL Figtree 400/500/600 va token-only `calm.css` qo'shildi. Flag OFF renderer baytlari va
+public route snapshot o'zgarmaydi; to'liq Django 3368 OK (70 skip), Node 203/203. Lokal vizual qabul tugamaguncha
+S1 yopilmaydi; `main`ga oraliq merge yo'q.
+
 **2026-11-08 DESIGN-02 S0:** [DESIGN-02 port rejasi](DESIGN-02-CALM-PORT-PLAN.md) yozildi. Owner 2026-11-07 da
 eskiz dizayn tizimini production dizayn tizimi qildi; PUBLIC-02 PE1–PE8 kodda qoladi, PE9–PE10 to'xtatildi.
-Docs-only: runtime, shablon, DB va AWS o'zgarmadi; flag `platform_calm_v1` hali registrda yo'q. Keyingi kesim S1.
+Docs-only edi: runtime, shablon, DB va AWS o'zgarmagan; keyingi S1 holati yuqoridagi yozuvda.
 
 **2026-11-08 DASH1.0a:** [PR #252](https://github.com/azurebek/azurelms/pull/252) (`6dff8c4`) global
 dashboard/users/chats, chek qarori, begona chek fayli va bot admin yuzalarini aniq ruxsatga bog'ladi. I1/I2

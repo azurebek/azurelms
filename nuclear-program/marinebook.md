@@ -16,6 +16,25 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-11-08 [Codex]: DESIGN-02 / S1 — sokin poydevor owner ko'rigiga tayyor
+
+Default-OFF `platform_calm_v1` flagi ichki, auth, sertifikat, backoffice va public renderer tanlovlariga bitta
+snapshot bilan qo'shildi; CALM nusxasi hali yo'q sahifa editorial/V1 ko'rinishiga xavfsiz qaytadi. Ustaxonaga
+yorug'/qorong'i "Sokin" varianti va 15/13px oralig'i, repoga esa rasmiy OFL Figtree 400/500/600, litsenziya,
+manba-hash dalili va faqat flag ON'da ulanadigan token-only `calm.css` kirdi. Migration va canonical state yo'q.
+
+- Branch: `codex/design-02`; draft PR #254. Kod commit: `0439027`. PR #253 owner tomonidan yopilishi kerak;
+  Claude branchiga push qilinmadi, `main`ga oraliq merge yo'q.
+- Rollback: flag default OFF. OFF holat explicit/default renderer bayt pariteti va
+  `frontend/public_route_snapshot.json` o'zgarmasligi testda; CALM zanjiri va fallback ON holatda alohida testda.
+- Figtree: upstream `erikdkennedy/figtree@032dfa7`; 400/500/600 jami 70 428 bayt, SHA-256 pin, OFL. Turkcha
+  gliflar va UI'dagi U+2018/U+2019 bor; upstreamda yo'q U+02BB/U+02BC system fallback/search normalization bilan.
+- Test: `manage.py test` — **3368 OK (70 skip)**; `node --test tests/frontend_v1/*.test.mjs` — **203/203**;
+  `manage.py check`, public route audit va `git diff --check` toza. CALM public/auth CSS gzip 13 442/14 531,
+  limit 13 500/14 600; V1 Figtree deklaratsiyasidan keyin 9 258/9 300.
+- Davom etilishi kerak: lokal serverda owner yorug'/qorong'i token proyeksiyasini ko'radi; qabuldan keyin S1
+  hujjatda yopilib S2 shell/menyu boshlanadi. S10 va owner umumiy qabuligacha `main`ga merge qilinmaydi.
+
 ## 2026-11-08 [Claude]: DESIGN-02 / S0 — yangi dizayn tizimi port rejasi
 
 Owner 2026-11-07 da o'zi bilan qurilgan eskiz dizayn tizimini butun platformaning yangi dizayn tizimi qildi

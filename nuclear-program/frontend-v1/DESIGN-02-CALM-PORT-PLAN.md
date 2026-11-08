@@ -79,7 +79,7 @@ SEO va a11y qoidalari yangi ochiq shablonlarga meros o'tadi; faqat ko'rinish alm
 | D5 | Navbat | DASH1.0a (stop-ship) dan keyin; PE9 endi kerak emas; B3 va CLASSBOOK-01 bilan fayllar bo'yicha kelishiladi | Hamma bosqichlar | DASH1.0a 2026-11-08 da [PR #252](https://github.com/azurebek/azurelms/pull/252) bilan `main`ga qo'shildi; owner shu kuni "boshla" dedi — S0 boshlandi |
 | D6 | Tariflar | Narx ma'lumot, kod emas: admin paneldagi Tariflar (`backoffice_workspace_plans` → `backoffice_plan_edit`) narx, tarkib, sig'im va sotuvni o'zgartiradi; sahifalar bazadan o'qiydi | Port narxlarni kutmaydi | Boshqacha hal qilindi (owner, 2026-11-08) |
 | D7 | Mini-ilova | **Owner:** eskizdagidek — Telegram ichida kichik bosh sahifa, bo'limlar saytning o'z sahifalarini menyusiz (`tgmini` ramkasi) ochadi; `templates/bot/miniapp_*.html` keyin olib tashlanadi | S9, DASHBOARD-01 Mini App bosqichi (DASH1.0d) | Qabul qilindi (2026-11-08) |
-| D8 | Qorong'i rejim: kodda bor, eskizda avval yo'q edi | O'chirilmaydi. Qorong'i variant eskizga chizildi (har rang token, yorug' qiymatlar o'zgarmagan) | Har sahifa; ustaxonaning qorong'i standartlari | Owner ko'rigini kutmoqda; S1 darvozasi |
+| D8 | Qorong'i rejim: kodda bor, eskizda avval yo'q edi | O'chirilmaydi. Qorong'i variant eskizga chizildi (har rang token, yorug' qiymatlar o'zgarmagan) | Har sahifa; ustaxonaning qorong'i standartlari | Qabul qilindi: owner eskiz palitrasi bilan boshlashga ruxsat berdi (2026-11-08) |
 
 Qoidalar hujjatidagi ochiq savollar portni to'xtatmaydi, faqat o'z qismini:
 
@@ -281,9 +281,9 @@ serverda owner qabulidan o'tgach alohida kichik PR bilan olib tashlanadi — aks
 - [x] D1–D4: owner eskiz dizayn tizimini tanladi (2026-11-07).
 - [x] DASH1.0a `main`ga qo'shildi (PR #252, `6dff8c4`, 2026-11-08) — D5 darvozasi.
 - [x] S0: shu reja, README, PORT-LEDGER, PUBLIC-02 va marinebook yozuvi — branch `claude/design-02-plan`.
-- [ ] Owner eskizdagi qorong'i rejimni ko'radi (D8) — S1 darvozasi.
+- [x] Owner eskizdagi qorong'i palitra bilan boshlashga ruxsat berdi (D8, 2026-11-08).
 - [ ] S1: flag, `calm_template_names`, `CALM` renderer qiymati, "Sokin" varianti va matn oralig'i, Figtree,
-  `calm.css` va `calm.test.mjs`. Tugash mezoni: flag OFF'da hech bir sahifa baytda o'zgarmaydi.
+  `calm.css` va `calm.test.mjs`. Kod/test commit `0439027`; tugash mezoni va lokal owner ko'rigi kutilmoqda.
 
 ### Davom ettiruvchi agent uchun (2026-11-08, Claude → Codex)
 
