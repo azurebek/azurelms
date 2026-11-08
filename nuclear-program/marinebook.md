@@ -16,6 +16,23 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-11-08 [Claude]: DESIGN-02 / S0 — yangi dizayn tizimi port rejasi
+
+Owner 2026-11-07 da o'zi bilan qurilgan eskiz dizayn tizimini butun platformaning yangi dizayn tizimi qildi
+(tokenlar, Figtree, 900/560px, komponentlar, rolga qarab menyu, ichki sahifalar va ochiq sayt). Reja repo'ga
+kirdi: qarorlar D1–D8, admission, arxitektura (flag `platform_calm_v1`, `calm_template_names`, `CALM` renderer,
+ustaxona "Sokin" varianti), tokenlar xaritasi, S0–S10 bosqichlar, domen chegaralari va rollback. Eskiz va qoidalar
+hujjati owner'ning shaxsiy artefaktlari, git'dan tashqarida — normativ qismi hujjatning o'zida.
+
+- Branch: `claude/design-02-plan`. Commit: `bd383ec` (docs-only; runtime, shablon, DB, flag o'zgarmadi).
+- Qarorlar: PUBLIC-02 PE9–PE10 to'xtatildi, PE1–PE8 kontekst/so'rov/test ishi DESIGN-02 S8 ga meros; D5 — DASH1.0a
+  merge bo'lgach owner "boshla" dedi (2026-11-08). Ochiq: D8 (qorong'i rejim eskizi owner ko'rigida) — S1 darvozasi.
+  README, frontend indeksi, PORT-LEDGER va DASHBOARD rejasi DASH1.0a merge holatiga moslandi.
+- Tekshiruv: `git diff --check` toza; nisbiy havolalar skripti — 0 buzilgan. Rejadagi fayl, token, menyu va katalog
+  oralig'i da'volari 2026-11-08 kodiga solishtirildi. Django/Node testlari yugurilmadi (docs-only).
+- Davom etilishi kerak: S1 — `claude/design-02-s1-foundation` (flag, tanlov funksiyasi, "Sokin" varianti va matn
+  oralig'i, Figtree, `calm.css`, `calm.test.mjs`); D8 owner ko'rigidan keyin.
+
 ## 2026-11-08 [Claude]: DASH1.0a — boshqaruv ruxsatlari va PII containment
 
 Oddiy `is_staff` (kurs ustozi ham) endi global statistika, tushum, o'quvchilar ro'yxati (email/telefon), boshqa
@@ -38,6 +55,13 @@ superuser, qolgan xodim faqat aniq berilgan Permission bilan. `/backoffice/chats
   `makemigrations --check --dry-run`, `git diff --check` toza.
 - Davom etilishi kerak: owner-only legacy route'lardagi `user_passes_test` 302 → 403 (login aylanmasi), keyin
   DASH1.0b. Hujjat: `DASHBOARD-REFORM-PLAN.md` DASH1.0a holati, `05-launch-ops.md` §3.
+- Merge (2026-11-08): Codex review topilmasi to'g'ri edi — guruh orqali berilgan ruxsatni `revoke` "olindi" deb
+  ko'rsatardi; `8d4b8b7` da tuzatildi (amaldagi ruxsat qayta o'qiladi, guruh nomi bilan xato, audit
+  `still_effective`; `core.test_backoffice_capabilities` 26/26), thread'ga javob yozilib resolve qilindi.
+  Uchala required check yashil, [PR #252](https://github.com/azurebek/azurelms/pull/252) `6dff8c4` bilan merge.
+  Shu uch commit muallifi repo-local identity sabab `Codex` bo'lib qolgan (`Co-Authored-By: Claude` trailer bor);
+  keyingi commitlar `-c user.name=Claude` bilan. Merge bo'lgan branchni o'chirishga sessiya ruxsati berilmadi —
+  `claude/dash10a-capability-containment` remote'da qoldi.
 
 ## 2026-11-06 [Codex]: PUBLIC-02 / PE8 — editorial auth sahifalari
 
