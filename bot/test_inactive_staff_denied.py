@@ -2,11 +2,12 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from bot.middleware import resolve_identity
+from core.capability_fixtures import grant_all_capabilities
 from bot.services import (
     can_manage_cohort,
     get_user_role,
     is_active_staff,
-    _require_admin,
+    _require_capability,
     verify_receipt,
     reject_receipt,
 )
@@ -39,15 +40,20 @@ class InactiveStaffDeniedTests(TestCase):
             is_active=False,
             telegram_id=102,
         )
+        # Bot "Admin" roli endi aniq capability so'raydi (DASH1.0a); bu test
+        # faqat `is_active` ni izolyatsiya qiladi, shuning uchun ikkalasi ham
+        # bir xil ruxsatga ega.
+        grant_all_capabilities(self.active_admin)
+        grant_all_capabilities(self.blocked_admin)
 
     def test_is_active_staff_helper(self):
         self.assertTrue(is_active_staff(self.active_admin))
         self.assertFalse(is_active_staff(self.blocked_admin))
         self.assertFalse(is_active_staff(None))
 
-    def test_require_admin_denies_blocked_staff(self):
-        self.assertTrue(_require_admin(self.active_admin))
-        self.assertFalse(_require_admin(self.blocked_admin))
+    def test_require_capability_denies_blocked_staff(self):
+        self.assertTrue(_require_capability(self.active_admin, "ops_global_view"))
+        self.assertFalse(_require_capability(self.blocked_admin, "ops_global_view"))
 
     def test_role_label_is_not_admin_for_blocked_staff(self):
         self.assertEqual(get_user_role(101), "Admin")

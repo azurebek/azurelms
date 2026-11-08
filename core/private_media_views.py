@@ -134,15 +134,22 @@ def _is_owner(user):
 
 
 def receipt_file(request, receipt_id):
-    """To'lov cheki: faqat chek egasi va staff/owner."""
+    """To'lov cheki: chek egasi o'zinikini; boshqa odamniki faqat moliya ruxsati bilan.
+
+    Egasi uchun bu ownership tekshiruvi, capability emas. Boshqa o'quvchining
+    chekini oddiy xodim (kurs ustozi ham) ochmaydi — faqat superuser yoki
+    `finance_cross_user_receipt_file_view` berilgan xodim (DASH1.0a).
+    """
     from cohorts.models import PaymentReceipt
+    from core.backoffice_capabilities import FINANCE_CROSS_USER_RECEIPT_FILE_VIEW, has_capability
 
     user = request.user
     _require(user.is_authenticated and user.is_active)
     receipt = PaymentReceipt.objects.filter(pk=receipt_id).select_related("enrollment").first()
     _require(receipt is not None)
     _require(
-        receipt.enrollment.student_id == user.id or user.is_staff or user.is_superuser,
+        receipt.enrollment.student_id == user.id
+        or has_capability(user, FINANCE_CROSS_USER_RECEIPT_FILE_VIEW),
         request=request,
         target=receipt,
     )

@@ -1148,6 +1148,34 @@ ko‘rmaydi; teacher faqat o‘z course scope’idagi ruxsatli ishga kiradi.
 - **Dependency:** owner DASH-D8 capability nomlari va initial assignee ro‘yxati.
   Chat metadata UI MSG1.0d selectoriga bog‘liq, ammo containment uni kutmaydi:
   selector/MSG-D13 yo‘q bo‘lsa deny/body access0.
+- **Holat (2026-11-08): IMPLEMENTED/TESTED — branch
+  `claude/dash10a-capability-containment`, kod commit `d139d75`; PR review/merge kutadi.**
+  Owner 2026-11-08da “avval yop” deb boshladi. Qarorlar:
+  - beshta capability Django Permission sifatida jadvalsiz `core.BackofficeCapability`
+    (migration `0013`, `managed=False`) nomidan; owner mapping = faol superuser;
+    mavjud staffga avtomatik grant yo‘q;
+  - `course_scoped_teaching` alohida Permission emas: kurs biriktirilishi
+    (`Course.instructor`) va `teacher_course_queryset` scope’ining o‘zi. Aks holda
+    har mavjud ustoz grantsiz o‘z kursidan ayrilardi (DASH-D8 javobiga zid);
+  - dashboard uchala `platform_stats_view`+`finance_receipt_review`+`learner_pii_view`ni
+    so‘raydi; receipts va canonical verify/reject — `finance_receipt_review`; users —
+    `learner_pii_view` (eski `?role=students` yo‘naltirishi scoped support ro‘yxatiga
+    capabilitysiz qoladi); foreign chek fayli — `finance_cross_user_receipt_file_view`,
+    egasi ownership bilan; `/backoffice/chats/` hamma, jumladan superuser uchun 403;
+  - Bot: “admin” roli faqat biror global capability bilan; har handler va servis o‘z
+    capability’sini tekshiradi; AI buyruqlari Control Center bilan bir xil — faqat owner;
+  - menyu, logo, user menu, support kartasi, search section va exam/lesson “orqaga”
+    havolalari ruxsatsiz xodimni 403 sahifaga yubormaydi;
+  - grant yo‘li: `manage.py backoffice_capability grant|revoke|list` (Django admin
+    default o‘chiq), audit `backoffice.capability.*`, `source=cli`.
+  Route inventory: `core/test_backoffice_capabilities.py::ROUTE_POLICY` 73 ta
+  `/backoffice/` route’ni tasniflaydi, unclassified=0; argumentsiz har route ruxsatsiz
+  xodim uchun ikki rollout holatida GET qilinadi: owner/capability/closed route 200
+  bermaydi, begona o‘quvchi email/telefoni hech bir javobda yo‘q. Ochiq qoldiq: ba’zi
+  owner-only legacy route’lar (masalan `backoffice_ai_control`) ruxsatsiz xodimga hali
+  `user_passes_test` sabab login sahifasiga 302 beradi — PII ochmaydi, ammo exit’dagi
+  “login loop emas” bandiga to‘liq mos emas; keyingi kesimda 403 ga o‘tkaziladi.
+  Test: to‘liq suite 3358 (yagona fail — ataylab o‘zgargan route snapshot, yangilandi).
 
 #### DASH1.0b — authenticated private response va frame boundary
 

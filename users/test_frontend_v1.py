@@ -160,6 +160,13 @@ class FrontendV1Tests(TestCase):
             self.assertNotContains(response, f'href="{reverse(name)}"')
         self.client.force_login(self.teacher)
         response = self.client.get(reverse("dashboard"))
+        self.assertContains(response, f'href="{reverse("teacher_dashboard")}"')
+        # Eski admin bosh sahifasi aniq ruxsat so'raydi (DASH1.0a): ruxsatsiz
+        # xodimga 403 ga olib boradigan havola ko'rsatilmaydi.
+        self.assertNotContains(response, f'href="{reverse("backoffice_dashboard")}"')
+        from core.capability_fixtures import grant_capabilities
+        grant_capabilities(self.teacher, "platform_stats_view", "finance_receipt_review", "learner_pii_view")
+        response = self.client.get(reverse("dashboard"))
         for name in ("teacher_dashboard", "backoffice_dashboard"):
             self.assertContains(response, f'href="{reverse(name)}"')
 

@@ -229,7 +229,7 @@
   "name": "backoffice_chats",
   "class": "private",
   "anonymous": "302>login",
-  "authenticated": "302>login",
+  "authenticated": "403",
   "deactivated": "302>login",
   "head": "302>login",
   "post": "302>login"
@@ -454,7 +454,7 @@
   "name": "backoffice_receipts",
   "class": "private",
   "anonymous": "302>login",
-  "authenticated": "302>login",
+  "authenticated": "403",
   "deactivated": "302>login",
   "head": "302>login",
   "post": "302>login"

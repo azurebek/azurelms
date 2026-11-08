@@ -22,6 +22,29 @@ from core.operational_settings import ORDERED_PAIRS
 from core.design_models import DesignDraft, DesignOperation, DesignPreset, DesignState, DesignVersion  # noqa: F401
 
 
+class BackofficeCapability(models.Model):
+    """Faqat permission egasi: jadvali yo'q (DASH1.0a).
+
+    Global ops, moliya va learner PII ruxsatlari Django Permission sifatida shu
+    model nomidan yaratiladi va owner ularni Group orqali beradi. Ro'yxat
+    `core/backoffice_capabilities.py::CAPABILITIES` bilan bir xil bo'lishi test
+    bilan tekshiriladi.
+    """
+
+    class Meta:
+        managed = False
+        default_permissions = ()
+        verbose_name = "Boshqaruv ruxsati"
+        verbose_name_plural = "Boshqaruv ruxsatlari"
+        permissions = [
+            ("ops_global_view", "Global operatsion ko'rinish (e'lon yuborish, hisob holati)"),
+            ("platform_stats_view", "Platforma statistikasini ko'rish"),
+            ("finance_receipt_review", "To'lov cheklarini ko'rish va tasdiqlash/rad etish"),
+            ("finance_cross_user_receipt_file_view", "Boshqa o'quvchining chek faylini ochish"),
+            ("learner_pii_view", "O'quvchilarning shaxsiy ma'lumotini ko'rish"),
+        ]
+
+
 class SeededRecord(models.Model):
     """Namuna kontent seeder **o'zi yaratgan** yozuvning izi.
 

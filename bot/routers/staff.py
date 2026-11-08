@@ -2,6 +2,10 @@
 
 O'qituvchi (teacher/admin): /guruhlarim, /baholash
 Admin: /stat, /cheklar (chek rasmi + ✅ Tasdiqlash / ❌ Rad etish tugmalari)
+
+Har admin buyrug'i o'z capability'sini tekshiradi; "admin" roli yolg'iz ruxsat
+bermaydi (DASH1.0a). AI nazorati veb-dagi Control Center bilan bir xil: faqat
+platforma egasi (superuser).
 """
 
 import html
@@ -12,6 +16,15 @@ from aiogram.types import FSInputFile, InlineKeyboardButton, InlineKeyboardMarku
 from asgiref.sync import sync_to_async
 
 from bot.keyboards import BTN_GRADING, BTN_GROUPS, BTN_RECEIPTS, BTN_STATS
+from core.access import is_control_center_owner
+from core.backoffice_capabilities import (
+    FINANCE_CROSS_USER_RECEIPT_FILE_VIEW,
+    FINANCE_RECEIPT_REVIEW,
+    LEARNER_PII_VIEW,
+    OPS_GLOBAL_VIEW,
+    PLATFORM_STATS_VIEW,
+    has_capability,
+)
 from bot.services import (
     admin_ai_usage,
     admin_search_users,
@@ -43,6 +56,20 @@ router.message.filter(F.chat.type == "private")
 
 HTML_MODE = "HTML"
 STAFF_ROLES = {"teacher", "admin"}
+
+
+async def _can(lms_user, *capabilities):
+    """Buyruq so'ragan barcha capability bormi (DASH1.0a)."""
+    if lms_user is None:
+        return False
+    return await sync_to_async(
+        lambda: all(has_capability(lms_user, capability) for capability in capabilities)
+    )()
+
+
+def _is_platform_owner(lms_user):
+    """AI nazorati: veb Control Center bilan bir xil qoida (faqat superuser)."""
+    return bool(lms_user is not None and is_control_center_owner(lms_user))
 
 
 def _fmt_sum(value):
@@ -101,8 +128,8 @@ async def cmd_grading(message: types.Message, lms_user, lms_role):
 
 @router.message(Command("stat"))
 @router.message(F.text == BTN_STATS)
-async def cmd_stats(message: types.Message, lms_role):
-    if lms_role != "admin":
+async def cmd_stats(message: types.Message, lms_user, lms_role):
+    if not await _can(lms_user, PLATFORM_STATS_VIEW):
         await message.answer("Bu buyruq administratorlar uchun.")
         return
     s = await sync_to_async(admin_stats)()
@@ -132,8 +159,8 @@ def _receipt_markup(receipt_id):
 
 @router.message(Command("cheklar"))
 @router.message(F.text == BTN_RECEIPTS)
-async def cmd_receipts(message: types.Message, lms_role):
-    if lms_role != "admin":
+async def cmd_receipts(message: types.Message, lms_user, lms_role):
+    if not await _can(lms_user, FINANCE_RECEIPT_REVIEW, FINANCE_CROSS_USER_RECEIPT_FILE_VIEW):
         await message.answer("Bu buyruq administratorlar uchun.")
         return
     items = await sync_to_async(pending_receipts)()
@@ -204,8 +231,8 @@ def _user_card_markup(card):
 
 
 @router.message(Command("qidiruv"))
-async def cmd_search(message: types.Message, command: CommandObject, lms_role):
-    if lms_role != "admin":
+async def cmd_search(message: types.Message, command: CommandObject, lms_user, lms_role):
+    if not await _can(lms_user, LEARNER_PII_VIEW):
         await message.answer("Bu buyruq administratorlar uchun.")
         return
     query = (command.args or "").strip()
@@ -224,7 +251,7 @@ async def cmd_search(message: types.Message, command: CommandObject, lms_role):
 
 @router.callback_query(F.data.startswith("adm:u:toggle:"))
 async def cb_user_toggle(callback: types.CallbackQuery, lms_user, lms_role):
-    if lms_role != "admin":
+    if not await _can(lms_user, LEARNER_PII_VIEW, OPS_GLOBAL_VIEW):
         await callback.answer("Ruxsat yo'q.", show_alert=True)
         return
     user_id = callback.data.split(":")[3]
@@ -246,7 +273,7 @@ async def cb_user_toggle(callback: types.CallbackQuery, lms_user, lms_role):
 
 @router.message(Command("broadcast", "elon"))
 async def cmd_broadcast(message: types.Message, command: CommandObject, lms_user, lms_role):
-    if lms_role != "admin":
+    if not await _can(lms_user, OPS_GLOBAL_VIEW):
         await message.answer("Bu buyruq administratorlar uchun.")
         return
     draft, error = await sync_to_async(create_broadcast_draft)(lms_user, command.args or "")
@@ -281,7 +308,7 @@ async def cmd_broadcast(message: types.Message, command: CommandObject, lms_user
 
 @router.callback_query(F.data.startswith("adm:bc:"))
 async def cb_broadcast(callback: types.CallbackQuery, lms_user, lms_role):
-    if lms_role != "admin":
+    if not await _can(lms_user, OPS_GLOBAL_VIEW):
         await callback.answer("Ruxsat yo'q.", show_alert=True)
         return
     parts = callback.data.split(":")  # adm:bc:<op>:<draft_id>[:<target>]
@@ -330,8 +357,8 @@ async def cb_broadcast(callback: types.CallbackQuery, lms_user, lms_role):
 # ---------------------------------------------------------------- AI nazorat (F7)
 
 @router.message(Command("ai_sozlama"))
-async def cmd_ai_settings(message: types.Message, lms_role):
-    if lms_role != "admin":
+async def cmd_ai_settings(message: types.Message, lms_user, lms_role):
+    if not _is_platform_owner(lms_user):
         await message.answer("Bu buyruq administratorlar uchun.")
         return
     s = await sync_to_async(ai_control_overview)()
@@ -368,7 +395,7 @@ async def cmd_ai_settings(message: types.Message, lms_role):
 
 @router.message(Command("ai_limit"))
 async def cmd_ai_limit(message: types.Message, command: CommandObject, lms_user, lms_role):
-    if lms_role != "admin":
+    if not _is_platform_owner(lms_user):
         await message.answer("Bu buyruq administratorlar uchun.")
         return
     parts = (command.args or "").split()
@@ -401,7 +428,7 @@ async def _send_ai_scope_menu(message, kind, amount):
 
 @router.message(Command("ai_tarif"))
 async def cmd_ai_plan_policy(message: types.Message, command: CommandObject, lms_user, lms_role):
-    if lms_role != "admin":
+    if not _is_platform_owner(lms_user):
         await message.answer("Bu buyruq administratorlar uchun.")
         return
     parts = (command.args or "").split()
@@ -448,16 +475,16 @@ async def cmd_ai_plan_policy(message: types.Message, command: CommandObject, lms
 
 
 @router.message(Command("ai_reset"))
-async def cmd_ai_reset(message: types.Message, lms_role):
-    if lms_role != "admin":
+async def cmd_ai_reset(message: types.Message, lms_user, lms_role):
+    if not _is_platform_owner(lms_user):
         await message.answer("Bu buyruq administratorlar uchun.")
         return
     await _send_ai_scope_menu(message, "r", 0)
 
 
 @router.message(Command("ai_bonus"))
-async def cmd_ai_bonus(message: types.Message, command: CommandObject, lms_role):
-    if lms_role != "admin":
+async def cmd_ai_bonus(message: types.Message, command: CommandObject, lms_user, lms_role):
+    if not _is_platform_owner(lms_user):
         await message.answer("Bu buyruq administratorlar uchun.")
         return
     arg = (command.args or "").strip()
@@ -469,7 +496,7 @@ async def cmd_ai_bonus(message: types.Message, command: CommandObject, lms_role)
 
 @router.callback_query(F.data.startswith("adm:ai:"))
 async def cb_ai_control(callback: types.CallbackQuery, lms_user, lms_role):
-    if lms_role != "admin":
+    if not _is_platform_owner(lms_user):
         await callback.answer("Ruxsat yo'q.", show_alert=True)
         return
     parts = callback.data.split(":")
@@ -540,8 +567,8 @@ async def cb_ai_control(callback: types.CallbackQuery, lms_user, lms_role):
 # ---------------------------------------------------------------- AI stat
 
 @router.message(Command("ai_stat"))
-async def cmd_ai_stat(message: types.Message, lms_role):
-    if lms_role != "admin":
+async def cmd_ai_stat(message: types.Message, lms_user, lms_role):
+    if not _is_platform_owner(lms_user):
         await message.answer("Bu buyruq administratorlar uchun.")
         return
     usage = await sync_to_async(admin_ai_usage)()
@@ -560,7 +587,7 @@ async def cmd_ai_stat(message: types.Message, lms_role):
 
 @router.callback_query(F.data.startswith("adm:rcpt:"))
 async def cb_receipt_action(callback: types.CallbackQuery, lms_user, lms_role):
-    if lms_role != "admin":
+    if not await _can(lms_user, FINANCE_RECEIPT_REVIEW):
         await callback.answer("Ruxsat yo'q.", show_alert=True)
         return
     parts = callback.data.split(":")

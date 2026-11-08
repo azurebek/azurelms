@@ -8,6 +8,7 @@ from django.urls import reverse
 
 from aicontrol.models import SystemAuditEvent
 from cohorts.models import Cohort, Enrollment, PaymentReceipt
+from core.capability_fixtures import grant_capabilities
 from core.flags import set_flag
 from courses.models import Assignment, AssignmentSubmission, Course, Lesson, LessonProgress, Module
 
@@ -69,6 +70,9 @@ class StudentSupportHandoffTests(TestCase):
 
     def test_receipt_focus_filters_one_enrollment_and_has_scoped_recheck_link(self):
         self.client.force_login(self.teacher)
+        # Chek sahifasi moliya ruxsatini so'raydi (DASH1.0a).
+        self.assertEqual(self.client.get(self.receipts_url()).status_code, 403)
+        grant_capabilities(self.teacher, 'finance_receipt_review')
         response = self.client.get(self.receipts_url())
         self.assertEqual(response.status_code, 200)
         self.assertEqual([row.pk for row in response.context['pending_receipts']], [self.receipt.pk])
@@ -96,6 +100,8 @@ class StudentSupportHandoffTests(TestCase):
         self.assertFalse(difference.is_verified)
 
     def test_targeted_receipt_rejects_foreign_course_or_foreign_enrollment(self):
+        # Moliya ruxsati tanlangan o'quvchi rejimida kurs doirasini kengaytirmaydi.
+        grant_capabilities(self.teacher, 'finance_receipt_review')
         self.client.force_login(self.teacher)
         foreign_url = self.receipts_url(enrollment=self.foreign_enrollment)
         self.assertEqual(self.client.get(foreign_url).status_code, 404)
@@ -133,6 +139,7 @@ class StudentSupportHandoffTests(TestCase):
         module = Module.objects.create(course=self.course, title='Support module')
         lesson = Lesson.objects.create(module=module, title='Support lesson')
         Enrollment.objects.filter(pk=self.enrollment.pk).update(joined_at=self.second_enrollment.joined_at + timedelta(seconds=1))
+        grant_capabilities(self.teacher, 'finance_receipt_review')
         self.client.force_login(self.teacher)
         card = self.client.get(self.support_url() + f'&lesson={lesson.pk}&q=handoff&page=2')
         self.assertEqual(card.context['diagnosis']['code'], 'pending')
@@ -374,8 +381,24 @@ class StudentSupportHandoffTests(TestCase):
                 self.assertIn('private', response['Cache-Control'])
                 self.assertIn('no-store', response['Cache-Control'])
 
-    def test_unfiltered_global_routes_keep_existing_behavior(self):
+    def test_pending_card_hides_receipt_decision_without_finance_capability(self):
+        module = Module.objects.create(course=self.course, title='Support module')
+        lesson = Lesson.objects.create(module=module, title='Support lesson')
+        Enrollment.objects.filter(pk=self.enrollment.pk).update(joined_at=self.second_enrollment.joined_at + timedelta(seconds=1))
         self.client.force_login(self.teacher)
+        card = self.client.get(self.support_url() + f'&lesson={lesson.pk}')
+        self.assertEqual(card.status_code, 200)
+        self.assertEqual(card.context['diagnosis']['code'], 'pending')
+        self.assertEqual(card.context['next_steps'], [])
+        self.assertTrue(card.context['receipt_rows'])
+        self.assertEqual({row['action_url'] for row in card.context['receipt_rows']}, {''})
+        self.assertNotContains(card, reverse('backoffice_receipts'))
+        self.assertIn('ruxsati bor xodim', card.context['support_guidance'])
+
+    def test_unfiltered_global_routes_require_finance_capability(self):
+        self.client.force_login(self.teacher)
+        self.assertEqual(self.client.get(reverse('backoffice_receipts')).status_code, 403)
+        grant_capabilities(self.teacher, 'finance_receipt_review')
         response = self.client.get(reverse('backoffice_receipts'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(set(row.pk for row in response.context['pending_receipts']),

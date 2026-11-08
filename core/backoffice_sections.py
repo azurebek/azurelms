@@ -52,8 +52,14 @@ def hub(request, title, description, cards):
 
 @section_view()
 def payments(request):
-    cards = [card('Chekni tekshirish', 'O‘quvchi yuborgan chekni ko‘ring, to‘lov bo‘yicha qaror bering.',
-                  'backoffice_receipts', 'Cheklarni ochish', primary=True)]
+    from core.backoffice_capabilities import FINANCE_RECEIPT_REVIEW, has_capability
+
+    cards = []
+    # Chek qarori moliya capability'sini so'raydi (DASH1.0a): ruxsati yo'qqa
+    # 403 ga olib boradigan karta ko'rsatilmaydi.
+    if has_capability(request.user, FINANCE_RECEIPT_REVIEW):
+        cards.append(card('Chekni tekshirish', 'O‘quvchi yuborgan chekni ko‘ring, to‘lov bo‘yicha qaror bering.',
+                          'backoffice_receipts', 'Cheklarni ochish', primary=True))
     if request.user.is_superuser:
         cards += [card('Tariflar', 'Narx, tarif tarkibi va sotuv holatini boshqaring.',
                        'backoffice_workspace_plans', 'Tariflarni ko‘rish')]

@@ -158,14 +158,22 @@ class BackofficeCourseListTests(TestCase):
     def test_course_badge_uses_teacher_scope_across_backoffice_pages(self):
         self.client.force_login(self.teacher)
 
-        for url_name in (
-            "backoffice_dashboard",
-            "backoffice_chats",
-            "backoffice_lessons",
-            "backoffice_exams",
-            "backoffice_users",
-        ):
+        for url_name in ("backoffice_lessons", "backoffice_exams"):
             with self.subTest(url_name=url_name):
+                response = self.client.get(reverse(url_name))
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.context["counts"]["courses"], 1)
+
+        # Global sahifalar aniq ruxsat so'raydi (DASH1.0a); "Suhbatlar" hammaga yopiq.
+        for url_name in ("backoffice_dashboard", "backoffice_chats", "backoffice_users"):
+            with self.subTest(url_name=url_name, granted=False):
+                self.assertEqual(self.client.get(reverse(url_name)).status_code, 403)
+
+        # Ruxsat berilsa ham kurs nishoni ustozning o'z doirasida qoladi.
+        from core.capability_fixtures import grant_all_capabilities
+        grant_all_capabilities(self.teacher)
+        for url_name in ("backoffice_dashboard", "backoffice_users"):
+            with self.subTest(url_name=url_name, granted=True):
                 response = self.client.get(reverse(url_name))
                 self.assertEqual(response.status_code, 200)
                 self.assertEqual(response.context["counts"]["courses"], 1)

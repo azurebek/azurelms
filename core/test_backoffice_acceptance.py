@@ -99,8 +99,13 @@ class BackofficeAcceptanceTests(TestCase):
                         entrance = 'backoffice_workspace_students'
                     elif design and actor.is_superuser:
                         entrance = 'backoffice_design'
-                    else:
+                    elif actor.is_superuser:
                         entrance = 'backoffice_receipts'
+                    else:
+                        # Cheklar moliya ruxsatini so'raydi (DASH1.0a); ruxsatsiz
+                        # ustozning eski kirishi — o'z kurslari ro'yxati.
+                        self.assertEqual(self.client.get(reverse('backoffice_receipts')).status_code, 403)
+                        entrance = 'backoffice_courses'
                     response = self.client.get(reverse(entrance))
                     self.assert_links_open(response)
                     links = NavigationLinks(response).links
@@ -117,7 +122,7 @@ class BackofficeAcceptanceTests(TestCase):
                             self.assertNotIn(reverse(route), links)
                     if navigation:
                         self.assertTemplateUsed(response, 'backoffice/workspace/base.html')
-                    elif entrance == 'backoffice_receipts':
+                    elif entrance in ('backoffice_receipts', 'backoffice_courses'):
                         self.assertTemplateUsed(response, 'backoffice/legacy_base.html')
                         self.assertEqual(links, set())
 

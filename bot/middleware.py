@@ -4,9 +4,14 @@ Handler'lar `lms_user` va `lms_role` kwarg'larini qabul qilishi mumkin:
 
     async def handler(message, lms_user, lms_role): ...
 
-Rollar: "admin" (is_staff/superuser), "teacher" (biror kursning instructori),
-"student" (faol enrollment bor), "linked" (bog'langan, lekin rolsiz),
-"guest" (bog'lanmagan).
+Rollar: "admin" (superuser yoki aniq global capability berilgan xodim),
+"teacher" (biror kursning instructori), "student" (faol enrollment bor),
+"linked" (bog'langan, lekin rolsiz), "guest" (bog'lanmagan).
+
+"admin" roli faqat menyu tugmalarini tanlaydi. Har admin buyrug'i o'z
+capability'sini alohida tekshiradi (`bot/routers/staff.py`), ya'ni rol yolg'iz
+ruxsat bermaydi (DASH1.0a). Oddiy `is_staff` bayrog'i endi admin rolini
+bermaydi: kurs ustozi "teacher" bo'lib qoladi.
 """
 
 import asyncio
@@ -20,6 +25,7 @@ from asgiref.sync import sync_to_async
 def resolve_identity(telegram_id):
     """Sync: telegram_id → (user|None, rol)."""
     from cohorts.models import Enrollment, enrollment_active_access_q
+    from core.backoffice_capabilities import has_any_global_capability
     from courses.models import Course
     from users.models import CustomUser
 
@@ -29,7 +35,7 @@ def resolve_identity(telegram_id):
     # O'chirilgan (bloklangan) hisob botda hech qanday huquq olmaydi.
     if not user.is_active:
         return None, "guest"
-    if user.is_staff or user.is_superuser:
+    if has_any_global_capability(user):
         return user, "admin"
     if Course.objects.filter(instructor=user).exists():
         return user, "teacher"

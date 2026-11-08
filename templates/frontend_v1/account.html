@@ -9,7 +9,7 @@
     <a class="c-nav-item" href="{% url 'settings' %}">Sozlamalar</a>
     {% if request.user.is_staff %}
     <a class="c-nav-item" href="{% url 'teacher_dashboard' %}">O‘qituvchi paneli</a>
-    <a class="c-nav-item" href="{% url 'backoffice_dashboard' %}">Admin paneli</a>
+    {% if request.user.is_superuser or perms.core.platform_stats_view and perms.core.finance_receipt_review and perms.core.learner_pii_view %}<a class="c-nav-item" href="{% url 'backoffice_dashboard' %}">Admin paneli</a>{% endif %}
     {% endif %}
     <small class="c-muted">Ayrim bo‘limlar hali avvalgi ko‘rinishda ochiladi.</small>
     <form method="post" action="{% url 'logout' %}" data-v1-logout>{% csrf_token %}<button class="c-button c-button--secondary" type="submit">Hisobdan chiqish</button></form>

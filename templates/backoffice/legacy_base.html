@@ -26,7 +26,7 @@
   <aside class="app-side" data-appside>
     <div class="app-side-inner">
       <div class="app-side-head">
-        <a class="app-logo has-role" href="{% url 'backoffice_dashboard' %}">{% include "components/brand_logo.html" with mark_class="app-logo-mark is-dark" name_class="app-logo-name" %}</a>
+        <a class="app-logo has-role" href="{% if request.user.is_superuser or perms.core.platform_stats_view and perms.core.finance_receipt_review and perms.core.learner_pii_view %}{% url 'backoffice_dashboard' %}{% else %}{% url 'teacher_dashboard' %}{% endif %}">{% include "components/brand_logo.html" with mark_class="app-logo-mark is-dark" name_class="app-logo-name" %}</a>
         <button type="button" class="app-collapse-btn" data-app-collapse aria-label="Yon panelni yig'ish"><i class="bi bi-chevron-double-left"></i></button>
       </div>
       <div class="adm-role"><i class="bi bi-shield-lock-fill"></i> Admin</div>
@@ -37,9 +37,8 @@
           <a class="app-nav-item{% if url_name == 'backoffice_brand' %} active{% endif %}" href="{% url 'backoffice_brand' %}"><i class="bi bi-palette"></i><span class="label">Brend va logolar</span></a>
           <a class="app-nav-item{% if url_name == 'backoffice_landing' %} active{% endif %}" href="{% url 'backoffice_landing' %}"><i class="bi bi-window-fullscreen"></i><span class="label">Bosh sahifa</span></a>
           <a class="app-nav-item{% if bo_active == 'catalog' %} active{% endif %}" href="{% url 'backoffice_catalog' %}"><i class="bi bi-tags"></i><span class="label">Tariflar va guruhlar</span></a>{% endif %}
-          <a class="app-nav-item{% if url_name == 'backoffice_dashboard' %} active{% endif %}" href="{% url 'backoffice_dashboard' %}"><i class="bi bi-grid-1x2"></i><span class="label">Boshqaruv paneli</span>{% if counts.pending_receipts %}<span class="app-nav-badge is-red">{{ counts.pending_receipts }}</span>{% endif %}</a>
-          <a class="app-nav-item{% if url_name == 'backoffice_users' %} active{% endif %}" href="{% url 'backoffice_users' %}"><i class="bi bi-people"></i><span class="label">Foydalanuvchilar</span></a>
-          <a class="app-nav-item{% if url_name == 'backoffice_chats' %} active{% endif %}" href="{% url 'backoffice_chats' %}"><i class="bi bi-chat-dots"></i><span class="label">Suhbatlar</span></a>
+          {% if request.user.is_superuser or perms.core.platform_stats_view and perms.core.finance_receipt_review and perms.core.learner_pii_view %}<a class="app-nav-item{% if url_name == 'backoffice_dashboard' %} active{% endif %}" href="{% url 'backoffice_dashboard' %}"><i class="bi bi-grid-1x2"></i><span class="label">Boshqaruv paneli</span>{% if counts.pending_receipts %}<span class="app-nav-badge is-red">{{ counts.pending_receipts }}</span>{% endif %}</a>{% endif %}
+          {% if request.user.is_superuser or perms.core.learner_pii_view %}<a class="app-nav-item{% if url_name == 'backoffice_users' %} active{% endif %}" href="{% url 'backoffice_users' %}"><i class="bi bi-people"></i><span class="label">Foydalanuvchilar</span></a>{% endif %}
         </div>
         {% if request.user.is_superuser %}<div class="app-nav-group">
           <button type="button" class="app-nav-label" data-app-group><span>AI</span><i class="bi bi-chevron-down"></i></button>

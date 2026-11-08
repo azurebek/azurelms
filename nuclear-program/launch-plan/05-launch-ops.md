@@ -132,11 +132,33 @@ keyinga qoldirgan; native telefon/zoom/AT va production rollout alohida qoladi.
 |---|---:|---:|---:|---:|
 | Control mutation/kill switch/release | Ha | Yo'q | Yo'q | Yo'q |
 | AI global/plan policy | Ha | Yo'q | Yo'q | Enforcement |
-| Receipt qarori, broadcast, user block | Ha | Yo'q | Yo'q | Scoped execution |
+| Receipt qarori, broadcast, user block | Ha | Yo'q (faqat aniq berilgan ruxsat bilan) | Yo'q | Scoped execution |
+| Global statistika, o'quvchilar ro'yxati (PII), boshqa o'quvchining cheki | Ha | Yo'q (faqat aniq berilgan ruxsat bilan) | Yo'q | — |
+| Suhbatlar matni/qidiruvi (`/backoffice/chats/`) | Yo'q | Yo'q | — | — |
 | Attendance/grading | Ha | Faqat biriktirilgan scope | O'z yozuvi | Scoped job |
-| Private media | Boshqaruv scope | Biriktirilgan kurs/cohort | O'z/chat scope | Job scope |
+| Private media | Boshqaruv scope | Biriktirilgan kurs/cohort; chek — faqat `finance_cross_user_receipt_file_view` | O'z/chat scope | Job scope |
 
 Teacher'ga kurs/cohort biriktirilmagan bo'lsa barcha ma'lumot ochilmaydi; default natija bo'sh. Inactive staff har bir adapterda rad qilinadi.
+
+**Boshqaruv ruxsatlari (DASH1.0a, 2026-11-08).** `is_staff` o'zi global yuza ochmaydi: veb, chek xizmati, private
+fayl va Telegram bot bir xil [`core/backoffice_capabilities.py`](../../core/backoffice_capabilities.py) qoidasini so'raydi.
+Ruxsatlar: `platform_stats_view`, `finance_receipt_review`, `finance_cross_user_receipt_file_view`,
+`learner_pii_view`, `ops_global_view`. Owner (superuser) ularning hammasiga ega; kurs ustozi o'z kursi uchun ruxsat
+so'ramaydi; boshqa xodimga avtomatik ruxsat yo'q. Django admin default o'chiq, shuning uchun ruxsat buyruq bilan
+beriladi va har o'zgarish sabab bilan `SystemAuditEvent`ga (`source=cli`) yoziladi:
+
+```bash
+python manage.py backoffice_capability list
+python manage.py backoffice_capability grant <username> finance_receipt_review --reason "Moliya xodimi"
+python manage.py backoffice_capability revoke <username> finance_receipt_review --reason "Lavozim o'zgardi"
+```
+
+Buyruq faqat foydalanuvchiga to'g'ridan-to'g'ri berilgan ruxsatni o'zgartiradi. Django guruhi orqali kelgan ruxsat
+`list`da `(guruh: ...)` bo'lib ko'rinadi; `revoke`dan keyin ham u amal qilsa, buyruq "olindi" demaydi — guruh
+nomini aytib xato bilan tugaydi va bu holat auditga `still_effective` sifatida yoziladi.
+
+Botdagi AI nazorati veb Control Center bilan bir xil: faqat owner. `/backoffice/chats/` Messenger-owned metadata
+selector (MSG1.0d) kelguncha hamma uchun, owner uchun ham yopiq.
 
 `SystemAuditEvent` append-only: vaqt, actor/snapshot, source (`web|bot|worker|release`), action code, target, scope, redacted before/after, request/correlation ID, idempotency key, reason, IP/user-agent, outcome/error va release SHA. UI orqali edit/delete yo'q.
 

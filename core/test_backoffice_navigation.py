@@ -99,13 +99,19 @@ class BackofficeNavigationTests(TestCase):
         self.teacher.save(update_fields=['is_active'])
         self.assertEqual(self.get('backoffice_workspace_groups').status_code, 302)
 
-    def test_staff_menu_keeps_receipts_and_own_blog_but_not_owner_entries(self):
+    def test_staff_menu_keeps_own_blog_but_not_owner_or_finance_entries(self):
         self.client.force_login(self.teacher)
         response = self.get('backoffice_workspace_site')
-        for name in ('blog:studio', 'backoffice_workspace_payments'):
-            self.assertContains(response, reverse(name))
-        for name in ('backoffice_workspace_settings', 'backoffice_brand', 'backoffice_landing', 'sit_backoffice:dashboard', 'backoffice_workspace_plans'):
+        self.assertContains(response, reverse('blog:studio'))
+        for name in ('backoffice_workspace_settings', 'backoffice_brand', 'backoffice_landing', 'sit_backoffice:dashboard',
+                     'backoffice_workspace_plans', 'backoffice_workspace_payments'):
             self.assertNotContains(response, 'href="' + reverse(name) + '"')
+        # Chek tekshirish moliya ruxsati bilan ochiladi (DASH1.0a): ruxsatsiz
+        # ustozga 403 ga olib boradigan havola ko'rsatilmaydi.
+        self.assertNotContains(self.get('backoffice_workspace_payments'), reverse('backoffice_receipts'))
+        from core.capability_fixtures import grant_capabilities
+        grant_capabilities(self.teacher, 'finance_receipt_review')
+        self.assertContains(self.get('backoffice_workspace_site'), reverse('backoffice_workspace_payments'))
         self.assertContains(self.get('backoffice_workspace_payments'), reverse('backoffice_receipts'))
         response = self.get('blog:studio')
         self.assertContains(response, 'Own article')
@@ -137,8 +143,10 @@ class BackofficeNavigationTests(TestCase):
             'settings': ('backoffice_control', 'backoffice_feature_flags', 'backoffice_runtime_settings',
                          'backoffice_ai_control', 'backoffice_ai_cost', 'backoffice_dead_letter'),
             'courses': ('backoffice_exams', 'backoffice_cohort_create', 'library_backoffice:resources'),
-            'students': ('backoffice_users', 'backoffice_chats'),
+            'students': ('backoffice_users',),
         }
+        # Eski "Suhbatlar" sahifasi hammaga, egaga ham, yopiq (DASH1.0a).
+        self.assertEqual(self.get('backoffice_chats').status_code, 403)
         for section, names in sections.items():
             for name in names:
                 with self.subTest(name=name):

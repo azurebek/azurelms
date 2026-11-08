@@ -42,12 +42,17 @@ def _display_name(user):
 
 
 def _actor_may_decide(actor):
-    """Faol staff yoki superuser.
+    """Faol va `finance_receipt_review` capability'si bor actor (DASH1.0a).
 
-    `is_active` ataylab tekshiriladi: bloklangan xodim to'lov qarorini
-    qabul qila olmasligi kerak (A0a).
+    Ilgari har qanday faol staff (kurs ustozi ham) pul qarorini qabul qila
+    olardi. Endi superuser yoki moliya ruxsati aniq berilgan xodim. Tekshiruv
+    adapterda emas, shu yerda: web, bot va kelajakdagi har qanday yuza bir xil
+    qarorni oladi. `is_active` ham shu yerda: bloklangan xodim qaror qabul
+    qila olmaydi (A0a).
     """
-    return bool(actor and actor.is_active and (actor.is_staff or actor.is_superuser))
+    from core.backoffice_capabilities import FINANCE_RECEIPT_REVIEW, has_capability
+
+    return bool(actor and has_capability(actor, FINANCE_RECEIPT_REVIEW))
 
 
 def _decision_receipt(receipt_id, *, lock):

@@ -9,8 +9,9 @@ from core.audit import (
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import get_user_model
+from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError, transaction
-from django.db.models import Count, Max, OuterRef, Q, Subquery, Sum
+from django.db.models import Count, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.timesince import timesince
@@ -19,7 +20,7 @@ from django.utils import timezone
 from blog.models import BlogPost
 from cohorts.models import Cohort, Enrollment, PaymentReceipt, enrollment_active_access_q
 from courses.models import Course, Exam, ExamSection, Lesson, LessonProgress, Module
-from messenger.models import ChatRoom, Message
+from messenger.models import ChatRoom
 from messenger.rag import get_rag_index_status
 from subscriptions.models import PromoCode
 from frontend.models import LandingPage, SiteSettings
@@ -39,6 +40,12 @@ from .access import (
     is_backoffice_user as _is_backoffice_user,
     is_control_center_owner as _is_control_center_owner,
     teacher_course_queryset,
+)
+from .backoffice_capabilities import (
+    FINANCE_RECEIPT_REVIEW,
+    LEARNER_PII_VIEW,
+    capability_required,
+    has_capability,
 )
 
 
@@ -765,7 +772,7 @@ def _private_support_handoff(view):
 
 @_private_support_handoff
 @login_required
-@user_passes_test(_is_backoffice_user)
+@capability_required(FINANCE_RECEIPT_REVIEW)
 def backoffice_receipts(request):
     """To'lov cheklarini web'dan tasdiqlash yoki rad etish.
 
@@ -892,6 +899,14 @@ def backoffice_dashboard(request):
     from core.flags import flag_enabled
     if request.method == 'GET' and flag_enabled('backoffice_course_workspace'):
         return redirect('backoffice_workspace_home')
+    # Eski bosh sahifa global statistika, tushum, kutilayotgan cheklar va oxirgi
+    # ro'yxatdan o'tganlarni birga ko'rsatadi — uchala capability ham kerak.
+    # Oddiy xodim (kurs ustozi ham) bularni ko'rmaydi (DASH1.0a). Menyu ham
+    # shu funksiyaga qarab havola ko'rsatadi.
+    from core.backoffice_navigation import can_open_legacy_dashboard
+
+    if not can_open_legacy_dashboard(request.user):
+        raise PermissionDenied
     today = timezone.localdate()
     week_start = today - timedelta(days=6)
     User = get_user_model()
@@ -959,59 +974,15 @@ def backoffice_dashboard(request):
 
 
 @login_required
-@user_passes_test(_is_backoffice_user)
 def backoffice_chats(request):
-    query = request.GET.get("q", "").strip()
-    room_type = request.GET.get("type", "all")
-    latest_message = Message.objects.filter(room=OuterRef("pk")).order_by("-created_at")
+    """Yopiq (fail-closed) — hamma uchun, jumladan superuser uchun ham (DASH1.0a).
 
-    rooms_qs = (
-        ChatRoom.objects.select_related("cohort", "cohort__course")
-        .prefetch_related("participants")
-        .annotate(
-            message_count=Count("messages", distinct=True),
-            participant_count=Count("participants", distinct=True),
-            last_message_at=Max("messages__created_at"),
-            last_message_text=Subquery(latest_message.values("text")[:1]),
-            last_sender_name=Subquery(
-                latest_message.values("sender__username")[:1],
-            ),
-        )
-    )
-    if room_type in {"ai", "group", "private"}:
-        rooms_qs = rooms_qs.filter(room_type=room_type)
-    if query:
-        rooms_qs = rooms_qs.filter(
-            Q(name__icontains=query)
-            | Q(messages__text__icontains=query)
-            | Q(participants__username__icontains=query)
-            | Q(participants__email__icontains=query)
-            | Q(cohort__name__icontains=query)
-            | Q(cohort__course__title__icontains=query)
-        ).distinct()
-
-    page_obj = Paginator(rooms_qs.order_by("-last_message_at", "-created_at"), 12).get_page(request.GET.get("page"))
-    today = timezone.localdate()
-    context = {
-        **_backoffice_context("chats", request.user),
-        "filters": {"q": query, "type": room_type},
-        "page_obj": page_obj,
-        "room_type_choices": (
-            ("all", "Barcha chatlar"),
-            ("ai", "AI suhbatlar"),
-            ("group", "Guruh chatlari"),
-            ("private", "Tutor/private"),
-        ),
-        "chat_stats": {
-            "total": ChatRoom.objects.count(),
-            "ai": ChatRoom.objects.filter(room_type="ai").count(),
-            "group": ChatRoom.objects.filter(room_type="group").count(),
-            "private": ChatRoom.objects.filter(room_type="private").count(),
-            "messages_today": Message.objects.filter(created_at__date=today).count(),
-            "attachments": Message.objects.filter(attachment__isnull=False).exclude(attachment="").count(),
-        },
-    }
-    return render(request, "backoffice/chats.html", context)
+    Bu sahifa barcha chatlarning oxirgi xabar matnini ko'rsatardi va xabar
+    matni hamda participant emaili bo'yicha qidirardi. Xodimga suhbat
+    metamaʼlumotini ko'rsatish qoidasi Messenger egalik qiladigan selector
+    (MSG1.0d) orqali keladi; u yo'q ekan, sahifa hech kimga ochilmaydi.
+    """
+    raise PermissionDenied
 
 
 @login_required
@@ -1258,7 +1229,10 @@ def backoffice_exam_editor(request, exam_id=None):
     if lesson:
         query["lesson"] = lesson.pk
     list_url = with_return(request, reverse("backoffice_exams") + ("?" + urlencode(query) if query else ""))
-    back_url = reverse("backoffice_dashboard")
+    from core.backoffice_navigation import can_open_legacy_dashboard
+
+    # Ruxsati yo'q ustoz 403 ga emas, o'z bosh sahifasiga qaytadi (DASH1.0a).
+    back_url = reverse("backoffice_dashboard" if can_open_legacy_dashboard(request.user) else "teacher_dashboard")
     if course:
         if flag_enabled("backoffice_course_workspace"):
             back_url = reverse("backoffice_workspace_course", kwargs={"course_id": course.pk})
@@ -1377,9 +1351,14 @@ def backoffice_users(request):
     from core.flags import flag_enabled
     if (request.method == 'GET' and request.GET.get('role') == 'students'
             and request.GET.get('status', 'all') == 'all' and flag_enabled('backoffice_student_support')):
+        # Eski havola o'quvchiga yordam ro'yxatiga o'tadi; u o'z doirasini o'zi
+        # tekshiradi, ya'ni yo'naltirishning o'zi hech narsa ochmaydi.
         from urllib.parse import urlencode
         query = urlencode({key: request.GET[key] for key in ('q', 'page') if request.GET.get(key)})
         return redirect(reverse('backoffice_workspace_students') + ('?' + query if query else ''))
+    # Global foydalanuvchilar ro'yxati — email, telefon, rol (DASH1.0a).
+    if not has_capability(request.user, LEARNER_PII_VIEW):
+        raise PermissionDenied
     User = get_user_model()
     role = request.GET.get("role", "all")
     status = request.GET.get("status", "all")

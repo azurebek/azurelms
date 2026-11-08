@@ -898,6 +898,9 @@ class AdminReceiptActionTests(TestCase):
             username="adm", email="adm@example.com", password="x",
             is_staff=True, telegram_id=6301,
         )
+        # Chek qarori moliya ruxsatini so'raydi (DASH1.0a).
+        from core.capability_fixtures import grant_capabilities
+        grant_capabilities(self.admin, "finance_receipt_review")
         self.student = User.objects.create_user(
             username="adm-student", email="adm-student@example.com", password="x", telegram_id=6302,
         )
@@ -958,6 +961,23 @@ class AdminReceiptActionTests(TestCase):
         result = reject_receipt(self.receipt.id, self.student)
         self.assertFalse(result.ok)
 
+    def test_plain_staff_course_instructor_cannot_decide_receipts(self):
+        """Oddiy `is_staff` (shu kursning ustozi ham) chek qarorini bera olmaydi."""
+        from bot.services import reject_receipt, verify_receipt
+        from cohorts.models import PaymentReceipt
+
+        teacher = User.objects.create_user(
+            username="adm-plain", email="adm-plain@example.com", password="x", is_staff=True,
+        )
+        self.receipt.enrollment.cohort.course.instructor = teacher
+        self.receipt.enrollment.cohort.course.save(update_fields=["instructor"])
+
+        self.assertEqual(verify_receipt(self.receipt.id, teacher).code, "forbidden")
+        self.assertEqual(reject_receipt(self.receipt.id, teacher).code, "forbidden")
+        self.enrollment.refresh_from_db()
+        self.assertEqual(self.enrollment.status, "pending")
+        self.assertTrue(PaymentReceipt.objects.filter(id=self.receipt.id).exists())
+
 
 class StaffServiceTests(TestCase):
     """F4 — o'qituvchi servislari."""
@@ -1014,6 +1034,9 @@ class AdminExpansionTests(TestCase):
             username="f6-admin", email="f6-admin@example.com", password="x",
             is_staff=True, telegram_id=6401,
         )
+        # Bloklash va ommaviy xabar global ruxsat so'raydi (DASH1.0a).
+        from core.capability_fixtures import grant_capabilities
+        grant_capabilities(self.admin, "learner_pii_view", "ops_global_view")
         self.student_tg = User.objects.create_user(
             username="f6-student-tg", email="f6-tg@example.com", password="x",
             telegram_id=6402, first_name="Aziza", phone_number="+998901112233",
@@ -1059,6 +1082,23 @@ class AdminExpansionTests(TestCase):
 
         self.assertFalse(admin_toggle_user_active(self.admin.id, self.admin).ok)  # o'zini
         self.assertFalse(admin_toggle_user_active(self.student_plain.id, self.student_tg).ok)  # oddiy user
+
+    def test_plain_staff_cannot_block_users_or_broadcast(self):
+        """Ruxsatsiz `is_staff` (kurs ustozi ham) global admin amalini bajara olmaydi."""
+        from bot.services import admin_toggle_user_active, create_broadcast_draft
+
+        plain = User.objects.create_user(
+            username="f6-plain-staff", email="f6-plain-staff@example.com", password="x", is_staff=True,
+        )
+        self.cohort.course.instructor = plain
+        self.cohort.course.save(update_fields=["instructor"])
+
+        self.assertFalse(admin_toggle_user_active(self.student_plain.id, plain).ok)
+        self.student_plain.refresh_from_db()
+        self.assertTrue(self.student_plain.is_active)
+        draft, error = create_broadcast_draft(plain, "Ertaga dars soat 19:00 da!")
+        self.assertIsNone(draft)
+        self.assertIsNotNone(error)
 
     def test_broadcast_full_flow(self):
         from bot.models import BotBroadcastDraft, TelegramOutbox
@@ -1430,8 +1470,15 @@ class AiControlTests(TestCase):
     def setUp(self):
         self.admin = User.objects.create_user(
             username="f7-admin", email="f7-admin@example.com", password="x",
-            is_staff=True, telegram_id=6501,
+            is_staff=True, is_superuser=True, telegram_id=6501,
         )
+        # AI nazorati veb Control Center bilan bir xil: faqat platforma egasi
+        # (superuser). Barcha capability berilgan oddiy xodim ham kirmaydi.
+        from core.capability_fixtures import grant_all_capabilities
+        self.capable_staff = grant_all_capabilities(User.objects.create_user(
+            username="f7-staff", email="f7-staff@example.com", password="x",
+            is_staff=True, telegram_id=6503,
+        ))
         self.student = User.objects.create_user(
             username="f7-student", email="f7-student@example.com", password="x", telegram_id=6502,
         )
@@ -1452,6 +1499,8 @@ class AiControlTests(TestCase):
         self.assertEqual(AISettings.load().enforcement_enabled, before)
 
         self.assertFalse(ai_toggle_enforcement(self.student).ok)
+        self.assertFalse(ai_toggle_enforcement(self.capable_staff).ok)
+        self.assertEqual(AISettings.load().enforcement_enabled, before)
 
     def test_set_global_limits_validation(self):
         from aicontrol.models import AISettings
@@ -1801,6 +1850,17 @@ class IdentityResolveTests(TestCase):
             username="id-linked", email="id-linked@example.com",
             password="x", telegram_id=5004,
         )
+        # Oddiy is_staff endi "admin" bermaydi (DASH1.0a): aniq global ruxsat kerak.
+        from core.capability_fixtures import grant_capabilities
+        grant_capabilities(self.staff, "ops_global_view")
+        self.plain_staff = User.objects.create_user(
+            username="id-plain-staff", email="id-plain-staff@example.com",
+            password="x", is_staff=True, telegram_id=5005,
+        )
+        self.owner = User.objects.create_user(
+            username="id-owner", email="id-owner@example.com",
+            password="x", is_staff=True, is_superuser=True, telegram_id=5006,
+        )
         course = Course.objects.create(
             title="Rol kursi", description="t", instructor=self.instructor, level="beginner",
         )
@@ -1816,6 +1876,8 @@ class IdentityResolveTests(TestCase):
         self.assertEqual(resolve_identity(5002)[1], "teacher")
         self.assertEqual(resolve_identity(5003)[1], "student")
         self.assertEqual(resolve_identity(5004)[1], "linked")
+        self.assertEqual(resolve_identity(5005)[1], "linked")
+        self.assertEqual(resolve_identity(5006)[1], "admin")
         user, role = resolve_identity(999999)
         self.assertIsNone(user)
         self.assertEqual(role, "guest")

@@ -15,6 +15,7 @@ from django.views.decorators.http import require_GET
 
 from cohorts.models import Enrollment
 from core.access import teacher_course_queryset
+from core.backoffice_capabilities import FINANCE_RECEIPT_REVIEW, has_capability
 from core.backoffice_workspace import _id, _nav
 from core.flags import flag_enabled
 from core.student_support_service import build_student_support, support_student_queryset
@@ -139,7 +140,9 @@ def _resolution_links(actor, context):
                           'note': 'Ishni tekshirib qaror qiling. Tasdiqlash baho va rag‘batga ta’sir qilishi mumkin.'})
     elif code in {'pending', 'expired', 'frozen', 'no_enrollment'}:
         receipt = context['relevant_pending_receipt']
-        if receipt is not None:
+        # Chek qarori moliya ruxsatini so'raydi (DASH1.0a): ruxsatsiz ustozga
+        # 403 ga olib boradigan qadam ko'rsatilmaydi.
+        if receipt is not None and has_capability(actor, FINANCE_RECEIPT_REVIEW):
             steps.append({'label': 'To‘lov chekini tekshirish',
                           'url': _url('backoffice_receipts', enrollment=receipt.enrollment_id, receipt=receipt.pk,
                                       lesson=lesson.pk if lesson else ''),
@@ -244,11 +247,12 @@ def student(request, student_id):
                                    lesson=lesson.pk if lesson else '')
                               if request.user.is_superuser else '',
         })
+    can_review_receipts = has_capability(request.user, FINANCE_RECEIPT_REVIEW)
     receipt_rows = [{
         'id': receipt.pk, 'submitted_at': receipt.submitted_at, 'label': receipt.enrollment.cohort.name,
         'amount': receipt.amount,
         'action_url': _url('backoffice_receipts', enrollment=receipt.enrollment_id, receipt=receipt.pk,
-                           lesson=lesson.pk if lesson else ''),
+                           lesson=lesson.pk if lesson else '') if can_review_receipts else '',
     } for receipt in context['pending_receipts']]
     context.update(
         display_name=target.get_full_name().strip() or target.username,
@@ -268,6 +272,8 @@ def student(request, student_id):
     if not context['next_steps']:
         if code in {'pending', 'expired', 'frozen', 'no_active_enrollment'} and not context['relevant_pending_receipt']:
             context['support_guidance'] = 'Shu a’zolik uchun tekshirishni kutayotgan chek topilmadi. O‘quvchining to‘lov yoki a’zolik ma’lumotini administrator bilan aniqlashtiring.'
+        elif code in {'pending', 'expired', 'frozen', 'no_enrollment'} and not can_review_receipts:
+            context['support_guidance'] = 'O‘quvchining cheki tekshirishni kutyapti. Chek bo‘yicha qarorni to‘lovlarni tekshirish ruxsati bor xodim beradi.'
         elif code == 'drip' and context['effective_enrollment'] and not context['effective_enrollment'].cohort.is_active:
             context['support_guidance'] = 'Guruh boshqaruvda nofaol. Administrator guruh sozlamalarini tekshirishi kerak.'
         elif code == 'sequence' and context['previous_assignments_missing']:
