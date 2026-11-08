@@ -9,6 +9,12 @@ Django admin default o'chiq (`ENABLE_LEGACY_ADMIN=False`), shuning uchun ruxsat
 shu buyruq orqali beriladi. Platforma egasi (superuser) ruxsatsiz ham hammasini
 ko'radi; kurs ustozi o'z kursi bilan ishlash uchun ruxsat so'ramaydi. Har o'zgarish
 audit ledgeriga sabab bilan yoziladi.
+
+Buyruq faqat foydalanuvchiga **to'g'ridan-to'g'ri** berilgan ruxsatni o'zgartiradi.
+Ruxsat Django guruhi orqali ham kelishi mumkin (`has_capability` uni ham hisoblaydi),
+shuning uchun `list` guruhdan kelganini ham ko'rsatadi, `revoke` esa olishdan keyin
+ham amal qilayotgan ruxsat qolsa, "olindi" demaydi: manbasini aytib xato bilan
+tugaydi.
 """
 
 from django.contrib.auth import get_user_model
@@ -16,13 +22,35 @@ from django.contrib.auth.models import Permission
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
-from core.backoffice_capabilities import CAPABILITIES
+from core.backoffice_capabilities import CAPABILITIES, has_capability
 
 
 def _direct_capabilities(user):
     return sorted(user.user_permissions.filter(
         content_type__app_label="core", codename__in=CAPABILITIES,
     ).values_list("codename", flat=True))
+
+
+def _group_capabilities(user):
+    """codename → shu ruxsatni beradigan guruh nomlari."""
+    result = {}
+    rows = Permission.objects.filter(
+        content_type__app_label="core", codename__in=CAPABILITIES, group__in=user.groups.all(),
+    ).values_list("codename", "group__name")
+    for codename, group in rows:
+        result.setdefault(codename, set()).add(group)
+    return {codename: sorted(groups) for codename, groups in sorted(result.items())}
+
+
+def _describe(user):
+    if user.is_superuser:
+        return "hammasi (platforma egasi)"
+    parts = _direct_capabilities(user)
+    parts += [f"{codename} (guruh: {', '.join(groups)})" for codename, groups in _group_capabilities(user).items()]
+    text = ", ".join(parts) or "yo'q"
+    if parts and not (user.is_active and user.is_staff):
+        text += " — amal qilmaydi: hisob faol xodim emas"
+    return text
 
 
 class Command(BaseCommand):
@@ -52,13 +80,17 @@ class Command(BaseCommand):
     def _list(self, username):
         if username:
             user = self._user(username)
-            owned = "hammasi (platforma egasi)" if user.is_superuser else ", ".join(_direct_capabilities(user)) or "yo'q"
-            self.stdout.write(f"{user.username}: {owned}")
+            self.stdout.write(f"{user.username}: {_describe(user)}")
             return
+        users = get_user_model().objects
         for codename, label in CAPABILITIES.items():
-            holders = get_user_model().objects.filter(
+            direct = users.filter(
                 user_permissions__content_type__app_label="core", user_permissions__codename=codename,
-            ).order_by("username").values_list("username", flat=True)
+            ).values_list("username", flat=True)
+            via_group = users.filter(
+                groups__permissions__content_type__app_label="core", groups__permissions__codename=codename,
+            ).values_list("username", flat=True)
+            holders = sorted(set(direct)) + [f"{name} (guruh)" for name in sorted(set(via_group) - set(direct))]
             self.stdout.write(f"{codename} — {label}: {', '.join(holders) or '—'}")
 
     def _change(self, options):
@@ -75,8 +107,8 @@ class Command(BaseCommand):
         granting = options["action"] == "grant"
         if granting and (not user.is_active or not user.is_staff):
             raise CommandError("Ruxsat faqat faol xodimga (is_staff) beriladi.")
-        if granting and user.is_superuser:
-            raise CommandError("Platforma egasi (superuser) ruxsatsiz ham hammasini ko'radi.")
+        if user.is_superuser:
+            raise CommandError("Platforma egasi (superuser) har doim hammasini ko'radi; bu buyruq unga ta'sir qilmaydi.")
 
         permissions = list(Permission.objects.filter(
             content_type__app_label="core", codename__in=options["capabilities"],
@@ -88,6 +120,12 @@ class Command(BaseCommand):
             else:
                 user.user_permissions.remove(*permissions)
             after = _direct_capabilities(user)
+            via_groups = _group_capabilities(user)
+            # Django ruxsatlarni obyektda keshlaydi: amaldagi holatni yangidan o'qiymiz.
+            fresh = get_user_model().objects.get(pk=user.pk)
+            still_effective = [] if granting else [
+                codename for codename in options["capabilities"] if has_capability(fresh, codename)
+            ]
             record_audit_event(
                 action=f"backoffice.capability.{options['action']}",
                 source=SystemAuditEvent.SOURCE_CLI,
@@ -96,6 +134,18 @@ class Command(BaseCommand):
                 reason=reason,
                 # Audit qiymatlari skalyar saqlanadi; ro'yxat vergul bilan.
                 before={"capabilities": ",".join(before)},
-                after={"capabilities": ",".join(after)},
+                after={
+                    "capabilities": ",".join(after),
+                    "via_groups": ";".join(f"{codename}:{'|'.join(groups)}" for codename, groups in via_groups.items()),
+                    "still_effective": ",".join(still_effective),
+                },
             )
-        self.stdout.write(f"{user.username}: {', '.join(after) or 'ruxsat yo‘q'}")
+        if still_effective:
+            sources = "; ".join(
+                f"{codename} — guruh: {', '.join(via_groups.get(codename, ['?']))}" for codename in still_effective
+            )
+            raise CommandError(
+                f"To'g'ridan-to'g'ri ruxsat olindi, lekin bu ruxsat hali guruh orqali amal qiladi: {sources}. "
+                "To'liq olish uchun xodimni shu guruhdan chiqaring yoki guruhdan ruxsatni olib tashlang."
+            )
+        self.stdout.write(f"{user.username}: {_describe(fresh)}")

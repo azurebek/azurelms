@@ -153,6 +153,10 @@ python manage.py backoffice_capability grant <username> finance_receipt_review -
 python manage.py backoffice_capability revoke <username> finance_receipt_review --reason "Lavozim o'zgardi"
 ```
 
+Buyruq faqat foydalanuvchiga to'g'ridan-to'g'ri berilgan ruxsatni o'zgartiradi. Django guruhi orqali kelgan ruxsat
+`list`da `(guruh: ...)` bo'lib ko'rinadi; `revoke`dan keyin ham u amal qilsa, buyruq "olindi" demaydi — guruh
+nomini aytib xato bilan tugaydi va bu holat auditga `still_effective` sifatida yoziladi.
+
 Botdagi AI nazorati veb Control Center bilan bir xil: faqat owner. `/backoffice/chats/` Messenger-owned metadata
 selector (MSG1.0d) kelguncha hamma uchun, owner uchun ham yopiq.
 

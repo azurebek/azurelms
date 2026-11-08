@@ -407,9 +407,38 @@ class CapabilityCommandTests(TestCase):
         self.assertEqual([event.action for event in events],
                          ["backoffice.capability.grant", "backoffice.capability.revoke"])
         self.assertEqual(events[0].before, {"capabilities": ""})
-        self.assertEqual(events[0].after, {"capabilities": "finance_receipt_review"})
-        self.assertEqual(events[1].after, {"capabilities": ""})
+        self.assertEqual(events[0].after["capabilities"], "finance_receipt_review")
+        self.assertEqual(events[1].after, {"capabilities": "", "via_groups": "", "still_effective": ""})
         self.assertEqual(events[0].source, SystemAuditEvent.SOURCE_CLI)
+
+    def test_revoke_does_not_claim_success_while_a_group_still_grants_it(self):
+        group = Group.objects.create(name="Moliya")
+        group.permissions.add(Permission.objects.get(content_type__app_label="core", codename="finance_receipt_review"))
+        staff = make_user("c-grouped", is_staff=True)
+        staff.groups.add(group)
+        self.run_command("grant", "c-grouped", "finance_receipt_review", "--reason", "Ikki manba")
+        listing = self.run_command("list", "--user", "c-grouped")
+        self.assertIn("finance_receipt_review (guruh: Moliya)", listing)
+        self.assertIn("c-grouped", self.run_command("list"))
+
+        with self.assertRaisesMessage(CommandError, "guruh orqali amal qiladi: finance_receipt_review — guruh: Moliya"):
+            self.run_command("revoke", "c-grouped", "finance_receipt_review", "--reason", "Lavozim o'zgardi")
+        fresh = User.objects.get(pk=staff.pk)
+        self.assertEqual(list(fresh.user_permissions.all()), [])  # to'g'ridan-to'g'ri ruxsat olindi
+        self.assertTrue(has_capability(fresh, "finance_receipt_review"))  # guruh orqali hali bor
+        event = SystemAuditEvent.objects.filter(action="backoffice.capability.revoke").get()
+        self.assertEqual(event.after["still_effective"], "finance_receipt_review")
+        self.assertEqual(event.after["via_groups"], "finance_receipt_review:Moliya")
+
+        staff.groups.remove(group)
+        self.assertIn("c-grouped: yo'q", self.run_command("list", "--user", "c-grouped"))
+
+    def test_owner_is_not_a_target(self):
+        make_user("c-owner2", is_staff=True, is_superuser=True)
+        self.assertIn("hammasi (platforma egasi)", self.run_command("list", "--user", "c-owner2"))
+        with self.assertRaises(CommandError):
+            self.run_command("revoke", "c-owner2", "learner_pii_view", "--reason", "x")
+        self.assertFalse(SystemAuditEvent.objects.filter(action__startswith="backoffice.capability.").exists())
 
     def test_refuses_unknown_capability_learner_and_owner(self):
         make_user("c-learner")
