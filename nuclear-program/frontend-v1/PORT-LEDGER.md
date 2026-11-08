@@ -1,5 +1,13 @@
 # Frontend V1 — bajarish va qabul jurnali
 
+**2026-11-08 DESIGN-02 S0:** [DESIGN-02 port rejasi](DESIGN-02-CALM-PORT-PLAN.md) yozildi. Owner 2026-11-07 da
+eskiz dizayn tizimini production dizayn tizimi qildi; PUBLIC-02 PE1–PE8 kodda qoladi, PE9–PE10 to'xtatildi.
+Docs-only: runtime, shablon, DB va AWS o'zgarmadi; flag `platform_calm_v1` hali registrda yo'q. Keyingi kesim S1.
+
+**2026-11-08 DASH1.0a:** [PR #252](https://github.com/azurebek/azurelms/pull/252) (`6dff8c4`) global
+dashboard/users/chats, chek qarori, begona chek fayli va bot admin yuzalarini aniq ruxsatga bog'ladi. I1/I2
+renderer portlari qayta ochilmadi; quyidagi 2026-10-15 yozuvidagi DASH1.0a "stop-ship" holati endi tarix.
+
 **2026-10-15 Dashboard chegarasi:** I1 learner dashboard va I2 teacher home
 renderer portlari bajarilgan holatda qoladi; ular qayta ochilmadi.
 [DASHBOARD-01](DASHBOARD-REFORM-PLAN.md) shu foundation ustidagi role routing,

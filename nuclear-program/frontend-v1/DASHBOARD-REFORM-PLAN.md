@@ -1078,7 +1078,7 @@ epic emas.
 
 | Tartib | Kesim | Queue/status | Qachon bajariladi |
 |---:|---|---|---|
-| 1 | DASH1.0a | **ADMIT — existing A0b regression / stop-ship** | affected legacy dashboard/users/chats, receipt decision/foreign file yoki Bot staff release’dan oldin |
+| 1 | DASH1.0a | **ADMIT — existing A0b regression / stop-ship → MERGED 2026-11-08 (PR #252)** | affected legacy dashboard/users/chats, receipt decision/foreign file yoki Bot staff release’dan oldin |
 | 2 | DASH1.0b | **ADMIT — private-route maintenance** | keyingi Dashboard/private surface rolloutidan oldin; A0 platform policy sifatida |
 | 3 | DASH1.0c | **ADMIT — zero-write maintenance** | Dashboard redesign va yangi authenticated GETlardan oldin |
 | 4 | DASH1.0d | **ADMIT — Mini App release security gate** | Mini App yoqiladigan yoki kengayadigan release’dan oldin |
@@ -1148,8 +1148,9 @@ ko‘rmaydi; teacher faqat o‘z course scope’idagi ruxsatli ishga kiradi.
 - **Dependency:** owner DASH-D8 capability nomlari va initial assignee ro‘yxati.
   Chat metadata UI MSG1.0d selectoriga bog‘liq, ammo containment uni kutmaydi:
   selector/MSG-D13 yo‘q bo‘lsa deny/body access0.
-- **Holat (2026-11-08): IMPLEMENTED/TESTED — branch
-  `claude/dash10a-capability-containment`, kod commit `d139d75`; PR review/merge kutadi.**
+- **Holat (2026-11-08): MERGED — kod commit `d139d75`, review tuzatishi `8d4b8b7`;
+  [PR #252](https://github.com/azurebek/azurelms/pull/252) `main`ga qo‘shildi (`6dff8c4`), uchala required
+  check yashil. Serverga chiqarilmagan.**
   Owner 2026-11-08da “avval yop” deb boshladi. Qarorlar:
   - beshta capability Django Permission sifatida jadvalsiz `core.BackofficeCapability`
     (migration `0013`, `managed=False`) nomidan; owner mapping = faol superuser;

@@ -1,5 +1,10 @@
 # Frontend V1 — prototipdan ishlaydigan platformaga
 
+**Yangi dizayn tizimi — 2026-11-08:** [DESIGN-02](DESIGN-02-CALM-PORT-PLAN.md) owner bilan qurilgan eskiz
+dizayn tizimini (tokenlar, Figtree, 900/560px, komponentlar, rolga qarab menyu, ichki va ochiq sahifalar)
+`platform_calm_v1` flag ortida o'n bitta bosqichda ko'chirishni rejalashtiradi. Owner qarori 2026-11-07;
+PUBLIC-02 PE9–PE10 to'xtatildi. S0 — shu reja; implementatsiya boshlanmagan, keyingi kesim S1.
+
 **Public/anonymous rejasi — 2026-10-15:** [PUBLIC-01](PUBLIC-REFORM-PLAN.md)
 I5a’dagi 14-route V1 portini saqlab, auth qilinmagan butun sirtni ishonchli
 acquisition va trust qatlamiga aylantirishni rejalashtiradi. Route/security,
