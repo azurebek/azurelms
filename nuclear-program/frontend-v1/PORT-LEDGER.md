@@ -1,10 +1,10 @@
 # Frontend V1 — bajarish va qabul jurnali
 
-**2026-11-08 DESIGN-02 S1 (owner ko'rigi kutilmoqda):** `codex/design-02` / `0439027` da default-OFF
+**2026-11-08 DESIGN-02 S1 (2026-11-10 owner qabul qildi):** `codex/design-02` / `0439027` da default-OFF
 `platform_calm_v1`, ichki va public CALM fallback zanjiri, ustaxonaning yorug'/qorong'i "Sokin" varianti,
 15/13px oralig'i, rasmiy OFL Figtree 400/500/600 va token-only `calm.css` qo'shildi. Flag OFF renderer baytlari va
-public route snapshot o'zgarmaydi; to'liq Django 3368 OK (70 skip), Node 203/203. Lokal vizual qabul tugamaguncha
-S1 yopilmaydi; `main`ga oraliq merge yo'q.
+public route snapshot o'zgarmaydi; to'liq Django 3368 OK (70 skip), Node 203/203, uchala CI yashil. Owner lokal
+ko'rikdan keyin 2026-11-10 da davom ettirishni tasdiqladi; S2 faol, `main`ga oraliq merge yo'q.
 
 **2026-11-08 DESIGN-02 S0:** [DESIGN-02 port rejasi](DESIGN-02-CALM-PORT-PLAN.md) yozildi. Owner 2026-11-07 da
 eskiz dizayn tizimini production dizayn tizimi qildi; PUBLIC-02 PE1–PE8 kodda qoladi, PE9–PE10 to'xtatildi.

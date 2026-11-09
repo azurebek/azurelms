@@ -282,8 +282,10 @@ serverda owner qabulidan o'tgach alohida kichik PR bilan olib tashlanadi — aks
 - [x] DASH1.0a `main`ga qo'shildi (PR #252, `6dff8c4`, 2026-11-08) — D5 darvozasi.
 - [x] S0: shu reja, README, PORT-LEDGER, PUBLIC-02 va marinebook yozuvi — branch `claude/design-02-plan`.
 - [x] Owner eskizdagi qorong'i palitra bilan boshlashga ruxsat berdi (D8, 2026-11-08).
-- [ ] S1: flag, `calm_template_names`, `CALM` renderer qiymati, "Sokin" varianti va matn oralig'i, Figtree,
-  `calm.css` va `calm.test.mjs`. Kod/test commit `0439027`; tugash mezoni va lokal owner ko'rigi kutilmoqda.
+- [x] S1: flag, `calm_template_names`, `CALM` renderer qiymati, "Sokin" varianti va matn oralig'i, Figtree,
+  `calm.css` va `calm.test.mjs`. Kod/test commit `0439027`; CI yashil, owner 2026-11-10 da davom ettirish bilan
+  lokal ko'rikni qabul qildi.
+- [ ] S2: shell va rolga qarab menyu — faol bosqich (2026-11-10).
 
 ### Davom ettiruvchi agent uchun (2026-11-08, Claude → Codex)
 

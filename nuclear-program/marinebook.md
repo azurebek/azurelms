@@ -34,6 +34,10 @@ manba-hash dalili va faqat flag ON'da ulanadigan token-only `calm.css` kirdi. Mi
   limit 13 500/14 600; V1 Figtree deklaratsiyasidan keyin 9 258/9 300.
 - Davom etilishi kerak: lokal serverda owner yorug'/qorong'i token proyeksiyasini ko'radi; qabuldan keyin S1
   hujjatda yopilib S2 shell/menyu boshlanadi. S10 va owner umumiy qabuligacha `main`ga merge qilinmaydi.
+- Owner qabuli (2026-11-10): lokal ko'rikdan keyin "davom et" dedi; uchala PR CI yashil, S1 yopildi va S2
+  shell/menyu bosqichi boshlandi. `origin/main` branchga tekshirildi — yangi commit yo'q edi.
+- S2 faol fayllar: `templates/frontend_v1/calm/platform.html`, `calm/nav.html`, `calm/account.html`,
+  `static/frontend_v1/css/shell.css`, `static/frontend_v1/js/shell.js`, `core/frontend_v1.py` va ularning testlari.
 
 ## 2026-11-08 [Claude]: DESIGN-02 / S0 — yangi dizayn tizimi port rejasi
 
