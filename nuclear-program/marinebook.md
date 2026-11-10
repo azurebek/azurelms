@@ -16,6 +16,27 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-11-10 [Codex]: DESIGN-02 / S5 — Hisob va to‘lov owner ko‘rigiga tayyor
+
+Profil, Sozlamalarning Hisob/Maxfiylik/To‘lov/AI repetitor bo‘limlari, Yordam, To‘lovlar, checkout va chek
+holati default-OFF CALM qatlamiga ko‘chirildi. Profil o‘quvchi uchun haqiqiy tarif/Telegram holatini, ustoz uchun
+esa to‘lovsiz rol yo‘llarini ko‘rsatadi; imzoli quote, serverdagi summa qayta hisobi, upload, receipt scope,
+AI preference/memory va stale-form writer kontraktlari o‘zgarmadi.
+
+- Branch: `codex/design-02`; draft PR #254. Kod commit: `6fbc66e`; S4 owner tomonidan 2026-11-10 da
+  “davom et” bilan qabul qilindi. Bosqich boshida `origin/main` merge bilan tekshirildi — yangi commit yo‘q edi.
+- Renderer: profil uchun haqiqiy kontekstli CALM sahifa, settings/help/subscriptions/checkout uchun to‘qqizta
+  wrapper va faqat CALM’da yuklanadigan `calm-account.css`; flag OFF avvalgi V1/legacy chiqishiga qaytadi.
+  Asset **1 482 / 2 400 gzip bayt**; faqat 900/560px breakpointlar.
+- Test: S5 kengaytirilgan Django to‘plami — **162 OK (1 skip)**; to‘liq frontend Node suite — **220/220**;
+  `check`, `makemigrations --check --dry-run`, a11y probe va `git diff --check` toza. Checkout GET yozmaydi,
+  quote user/tarif/guruh/davrga bog‘langan va POST’da qayta hisoblanadi; owner-scope/private receipt saqlandi.
+- Brauzer: Profil, Hisob, Maxfiylik, Yordam, To‘lovlar va Checkout 390px’da `375=375`, 320px’da `305=305`;
+  desktop `1265=1265`, console error/warning yo‘q. Lokal haqiqiy checkout va tasdiqlangan, lekin access yopiq
+  receipt holati yolg‘on va’dasiz ko‘rsatildi.
+- Davom etilishi kerak: Profil lokal tabda owner ko‘rigi uchun ochiladi. Qabul qilsa S5 checkbox yopiladi va
+  S6 Ustoz shu branchda boshlanadi; `main`ga merge faqat S10 oxirida.
+
 ## 2026-11-10 [Codex]: DESIGN-02 / S4 — Natijalarim owner ko‘rigiga tayyor
 
 Imtihonlar markazi, imtihon topshirish va natija, Sertifikatlar, sertifikat/ballar ilovasi, Davomat va Reyting
@@ -33,8 +54,7 @@ qoidalari o‘zgarmadi. Natijalarim CALM tablari S4 doirasidagi `Davomat → Rey
 - Brauzer: Davomat/Reyting/Sertifikatlar/Imtihonlar 390px’da `clientWidth=scrollWidth=375`; desktop Natijalarim
   `830=830`; console error/warning yo‘q. Lokal `demo-tolov`da sertifikat va attempt yo‘qligi sabab bu ikki to‘liq
   holat fixture testida, lokal brauzerda esa halol bo‘sh holatda tekshirildi.
-- Davom etilishi kerak: Natijalarim lokal tabda owner ko‘rigi uchun ochiq. Qabul qilsa S4 checkbox yopiladi va
-  S5 Hisob va to‘lov shu branchda boshlanadi; `main`ga merge faqat S10 oxirida.
+- Owner qabuli (2026-11-10): lokal ko‘rikdan keyin “davom et” dedi; S4 yopildi. S5 natijasi yuqoridagi yozuvda.
 
 ## 2026-11-10 [Codex]: DESIGN-02 / S3 — o‘quvchining kundalik yo‘li owner ko‘rigiga tayyor
 

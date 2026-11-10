@@ -1,10 +1,16 @@
 # Frontend V1 — bajarish va qabul jurnali
 
-**2026-11-10 DESIGN-02 S4 (owner ko‘rigi kutilmoqda):** `codex/design-02` / `d2bfc0a` Imtihonlar/urinish/natija,
+**2026-11-10 DESIGN-02 S5 (owner ko‘rigi kutilmoqda):** `codex/design-02` / `6fbc66e` Profil, Sozlamalar,
+Yordam, To‘lovlar, checkout va chek holatini CALM qatlamiga o‘tkazdi. Imzoli quote/server recalc, receipt scope,
+upload, AI memory/preference va stale form writerlari o‘zgarmaydi; ustoz profilida o‘quvchi to‘lovi yo‘q.
+Django 162 OK (1 skip), Node 220/220, a11y toza, 320/390px overflow 0; `calm-account.css` 1 482/2 400 gzip.
+Lokal server ochiq; qabul bo‘lsa S6 boshlanadi.
+
+**2026-11-10 DESIGN-02 S4 (owner qabul qildi):** `codex/design-02` / `d2bfc0a` Imtihonlar/urinish/natija,
 Sertifikatlar/hujjat/ballar ilovasi, Davomat va Reytingni CALM qatlamiga o‘tkazdi. Fokus imtihon sahifasi, oq
 ekran/print sertifikat va uchta Natijalarim tabi qo‘shildi; canonical write/publication/XP/access o‘zgarmaydi.
 Django 115 OK (7 skip), Node 217/217, 390px overflow 0; `calm-pages.css` 3 058/4 300 gzip bayt. Lokal server
-ochiq; qabul bo‘lsa S5 boshlanadi.
+ko‘rigidan keyin owner 2026-11-10 da “davom et” dedi.
 
 **2026-11-10 DESIGN-02 S3 (owner qabul qildi):** `codex/design-02` / `fdfa86f` dashboard, yangi
 foydalanuvchi/obuna yopiq holati, Darslarim, dars/practice, kutubxona, inson/AI Xabarlar va Bildirishnomalarni
