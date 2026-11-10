@@ -1,10 +1,16 @@
 # Frontend V1 — bajarish va qabul jurnali
 
-**2026-11-10 DESIGN-02 S5 (owner ko‘rigi kutilmoqda):** `codex/design-02` / `6fbc66e` Profil, Sozlamalar,
+**2026-11-10 DESIGN-02 S6 (owner ko‘rigi kutilmoqda):** `codex/design-02` / `14392c7` Ustoz dashboardi,
+tekshiruv navbati/yozma/imtihon tekshiruvi, Guruhlar/O‘quvchilar/Kurslar, Davomat/dars ruxsati, Classbook va
+Mashqlar bankini CALM qatlamiga o‘tkazdi. Teacher course-scope/capability, grading/publish, attendance/release,
+Telegram delivery va mashq javob sintaksisi o‘zgarmaydi; flag OFF V1/legacy’ga qaytadi. Django 102 OK (7 skip),
+Node 224/224, 320/390px overflow 0; `calm-teacher.css` 2 131/3 600 gzip. Lokal owner ko‘rigi kutilmoqda.
+
+**2026-11-10 DESIGN-02 S5 (owner qabul qildi):** `codex/design-02` / `6fbc66e` Profil, Sozlamalar,
 Yordam, To‘lovlar, checkout va chek holatini CALM qatlamiga o‘tkazdi. Imzoli quote/server recalc, receipt scope,
 upload, AI memory/preference va stale form writerlari o‘zgarmaydi; ustoz profilida o‘quvchi to‘lovi yo‘q.
 Django 162 OK (1 skip), Node 220/220, a11y toza, 320/390px overflow 0; `calm-account.css` 1 482/2 400 gzip.
-Lokal server ochiq; qabul bo‘lsa S6 boshlanadi.
+Owner lokal ko‘rikdan keyin 2026-11-10 da “davom et” dedi.
 
 **2026-11-10 DESIGN-02 S4 (owner qabul qildi):** `codex/design-02` / `d2bfc0a` Imtihonlar/urinish/natija,
 Sertifikatlar/hujjat/ballar ilovasi, Davomat va Reytingni CALM qatlamiga o‘tkazdi. Fokus imtihon sahifasi, oq

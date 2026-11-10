@@ -16,6 +16,26 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-11-10 [Codex]: DESIGN-02 / S6 — Ustoz maydoni owner ko‘rigiga tayyor
+
+Ustoz bosh sahifasi, Tekshiruv navbati va yozma/imtihon tekshiruvi, Guruhlar/O‘quvchilar/Kurslar, Davomat,
+dars ruxsatlari, Classbook dars tayyorlash/jonli boshqaruv va Mashqlar banki default-OFF CALM qatlamiga
+ko‘chirildi. Mavjud course-scope, baholash/publish, davomat, lesson release, Telegram delivery va mashq javob
+sintaksisi o‘zgarmadi; ustoz kurs muharriridagi amaldagi capability chegarasi kengaytirilmadi.
+
+- Branch: `codex/design-02`; draft PR #254. Kod commit: `14392c7`; S5 owner tomonidan 2026-11-10 da
+  “davom et” bilan qabul qilindi. Bosqich boshida `origin/main` merge bilan tekshirildi — yangi commit yo‘q edi.
+- Renderer: CALM ustoz dashboardi, sakkizta teacher wrapper, sakkizta Classbook wrapper va faqat CALM’da
+  yuklanadigan `calm-teacher.css`; Classbook preparation/live rendererlari flaglarni bitta snapshot’da o‘qib,
+  CALM → V1 fallback qiladi. Flag OFF eski V1/legacy chiqishiga qaytadi.
+- Test: S6 Django to‘plami — **102 OK (7 skip)**; to‘liq frontend Node suite — **224/224**; `check`,
+  `makemigrations --check --dry-run` va `git diff --check` toza. Begona kurs/guruh, GET yozmasligi,
+  stale/confirmation, javob kaliti maxfiyligi va learner/teacher chegaralari saqlandi.
+- Brauzer: Bosh sahifa, Guruhlar, Tekshiruv navbati va Classbook desktopda `1265=1265`; 390px’da `375=375`,
+  320px’da `305=305`; console error/warning yo‘q. `calm-teacher.css` **2 131 / 3 600 gzip bayt**.
+- Davom etilishi kerak: lokal tabda ustozning yangi Classbook sahifasi ochiladi. Owner qabul qilsa S6 yopilib
+  S7 Boshqaruv shu branchda boshlanadi; `main`ga merge faqat S10 oxirida.
+
 ## 2026-11-10 [Codex]: DESIGN-02 / S5 — Hisob va to‘lov owner ko‘rigiga tayyor
 
 Profil, Sozlamalarning Hisob/Maxfiylik/To‘lov/AI repetitor bo‘limlari, Yordam, To‘lovlar, checkout va chek
@@ -34,8 +54,7 @@ AI preference/memory va stale-form writer kontraktlari o‘zgarmadi.
 - Brauzer: Profil, Hisob, Maxfiylik, Yordam, To‘lovlar va Checkout 390px’da `375=375`, 320px’da `305=305`;
   desktop `1265=1265`, console error/warning yo‘q. Lokal haqiqiy checkout va tasdiqlangan, lekin access yopiq
   receipt holati yolg‘on va’dasiz ko‘rsatildi.
-- Davom etilishi kerak: Profil lokal tabda owner ko‘rigi uchun ochiladi. Qabul qilsa S5 checkbox yopiladi va
-  S6 Ustoz shu branchda boshlanadi; `main`ga merge faqat S10 oxirida.
+- Owner qabuli (2026-11-10): lokal ko‘rikdan keyin “davom et” dedi; S5 yopildi. S6 natijasi yuqoridagi yozuvda.
 
 ## 2026-11-10 [Codex]: DESIGN-02 / S4 — Natijalarim owner ko‘rigiga tayyor
 

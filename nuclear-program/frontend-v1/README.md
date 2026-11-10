@@ -2,8 +2,9 @@
 
 **Yangi dizayn tizimi — 2026-11-08:** [DESIGN-02](DESIGN-02-CALM-PORT-PLAN.md) owner bilan qurilgan eskiz
 dizayn tizimini (tokenlar, Figtree, 900/560px, komponentlar, rolga qarab menyu, ichki va ochiq sahifalar)
-`platform_calm_v1` flag ortida o'n bitta bosqichda ko'chirishni rejalashtiradi. Owner qarori 2026-11-07;
-PUBLIC-02 PE9–PE10 to'xtatildi. S0 — shu reja; implementatsiya boshlanmagan, keyingi kesim S1.
+`platform_calm_v1` flag ortida o'n bitta bosqichda ko'chiradi. Owner qarori 2026-11-07; PUBLIC-02 PE9–PE10
+to'xtatildi. S1–S5 owner qabulida; S6 Ustoz/Classbook kod, test va lokal brauzer ko‘rigidan o‘tdi,
+owner qabuli kutilmoqda. Keyingi kesim qabuldan so‘ng S7 Boshqaruv; `main`ga oraliq merge yo‘q.
 
 **Public/anonymous rejasi — 2026-10-15:** [PUBLIC-01](PUBLIC-REFORM-PLAN.md)
 I5a’dagi 14-route V1 portini saqlab, auth qilinmagan butun sirtni ishonchli
