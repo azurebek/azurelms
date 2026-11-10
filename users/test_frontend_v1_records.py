@@ -64,6 +64,29 @@ class RecordsV1Tests(TestCase):
         self.assertContains(response, f'href="{self.notice.url}"')
         self.assertNotContains(response, 'FOREIGN PRIVATE NOTICE')
 
+    def test_calm_results_routes_keep_canonical_records(self):
+        set_flag('platform_calm_v1', enabled=True, reason='DESIGN-02 S4 records regression')
+        for name, template, marker in (
+            ('certificates', 'certificates', 'd2-certificates-body'),
+            ('attendance_calendar', 'attendance', 'd2-attendance-body'),
+            ('leaderboard', 'leaderboard', 'd2-leaderboard-body'),
+        ):
+            with self.subTest(name=name):
+                response = self.client.get(reverse(name))
+                self.assertTemplateUsed(response, f'frontend_v1/calm/records/{template}.html')
+                self.assertContains(response, marker)
+                self.assertContains(response, '/static/frontend_v1/css/calm-pages.css')
+                self.assertContains(response, '<h1>Natijalarim</h1>', html=True)
+                self.assertEqual([item['name'] for item in response.context['records_tabs']],
+                                 ['attendance_calendar', 'leaderboard', 'certificates'])
+                self.assertNotContains(response, 'FOREIGN PRIVATE')
+
+        set_flag('platform_calm_v1', enabled=False, reason='DESIGN-02 S4 renderer boundary')
+        response = self.client.get(reverse('attendance_calendar'))
+        self.assertTemplateUsed(response, 'frontend_v1/records/attendance.html')
+        self.assertTemplateNotUsed(response, 'frontend_v1/calm/records/attendance.html')
+        self.assertNotContains(response, '/static/frontend_v1/css/calm-pages.css')
+
     def test_default_off_and_independent_rollback(self):
         self.assertFalse(flag_by_slug('frontend_v1_records').default)
         set_flag('frontend_v1_records', enabled=False, reason='Rollback')

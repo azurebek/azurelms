@@ -63,6 +63,16 @@ class ExamAttemptV1Tests(TestCase):
         self.assertNotContains(response, 'exam-shell.js')
         self.assertIn('no-store', response['Cache-Control'])
 
+    def test_calm_attempt_uses_focus_shell_without_changing_attempt(self):
+        set_flag('platform_calm_v1', enabled=True, reason='DESIGN-02 S4 attempt regression')
+        response = self.client.get(self.page)
+        self.assertTemplateUsed(response, 'frontend_v1/calm/exams/attempt.html')
+        self.assertContains(response, 'd2-focus-shell')
+        self.assertContains(response, 'd2-exam-attempt-body')
+        self.assertContains(response, '/static/frontend_v1/css/calm-pages.css')
+        self.attempt.refresh_from_db()
+        self.assertFalse(self.attempt.is_completed)
+
     def test_start_confirmation_and_same_operation_replay(self):
         self.attempt.delete()
         data = self.payload('start', attempt_id=None, confirmed=False)

@@ -71,6 +71,24 @@ class ExamV1Tests(TestCase):
         self.assertContains(response, 'aria-current="page"')
         self.assertIn('no-store', response['Cache-Control'])
 
+    def test_calm_center_and_result_are_flag_gated_presentations(self):
+        set_flag('platform_calm_v1', enabled=True, reason='DESIGN-02 S4 exams regression')
+        center = self.client.get(self.center)
+        self.assertTemplateUsed(center, 'frontend_v1/calm/exams/center.html')
+        self.assertContains(center, 'd2-exam-center-body')
+        self.assertContains(center, '/static/frontend_v1/css/calm-pages.css')
+        attempt, _, _ = self.pending()
+        result = self.client.get(self.result)
+        self.assertTemplateUsed(result, 'frontend_v1/calm/exams/result.html')
+        self.assertContains(result, 'd2-exam-result-body')
+        self.assertFalse(attempt.is_reviewed)
+
+        set_flag('platform_calm_v1', enabled=False, reason='DESIGN-02 S4 renderer boundary')
+        legacy_v1 = self.client.get(self.center)
+        self.assertTemplateUsed(legacy_v1, 'frontend_v1/exams/center.html')
+        self.assertTemplateNotUsed(legacy_v1, 'frontend_v1/calm/exams/center.html')
+        self.assertNotContains(legacy_v1, '/static/frontend_v1/css/calm-pages.css')
+
     def test_no_attempt_created_by_get_head_refresh_or_query(self):
         for method, url in [('get', self.center), ('head', self.center), ('get', self.center + '?start=1&exam=1'), ('get', self.detail)]:
             self.assertEqual(getattr(self.client, method)(url).status_code, 200)

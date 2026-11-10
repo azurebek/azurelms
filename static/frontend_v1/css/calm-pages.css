@@ -94,13 +94,70 @@
 .s-calm .d2-messenger .s-mw-chat-header, .s-calm .d2-messenger .s-mw-composer { background: var(--az-surface); }
 .s-calm .d2-messenger .s-mw-bubble { box-shadow: none; }
 
+/* Results: compact records, calm exam states and a distraction-free attempt. */
+.s-calm .d2-results-body .s-calm-main > .f-exam-stack,
+.s-calm .d2-results-body .s-calm-main > .p-page-heading,
+.s-calm .d2-results-body .s-calm-main > .f-records-stack { width: min(100%, 54rem); margin-inline: auto; }
+.s-calm .d2-results-body .p-page-heading { margin-bottom: var(--az-space-6); }
+.s-calm .d2-results-body .p-page-heading h1 { margin-top: var(--az-space-1); font-size: var(--az-text-2xl); font-weight: 600; letter-spacing: 0; }
+.s-calm .d2-results-body .p-page-heading .c-lead { margin-top: var(--az-space-2); color: var(--az-muted); font-size: var(--az-text-md); }
+.s-calm .d2-results-body .c-tabs { gap: 0 var(--az-space-6); border-bottom: 1px solid var(--az-border); }
+.s-calm .d2-results-body .c-tabs__item { min-height: var(--az-control); padding: 0; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; color: var(--az-muted); font-size: var(--az-text-sm); }
+.s-calm .d2-results-body .c-tabs__item.is-active { border-bottom-color: var(--az-action); background: transparent; color: var(--az-text); }
+.s-calm .d2-results-body .p-panel { box-shadow: none; }
+.s-calm .d2-results-body .f-records-layout { grid-template-columns: minmax(0, 1fr) 15rem; gap: var(--az-space-8); }
+.s-calm .d2-results-body .f-records-layout > section,
+.s-calm .d2-results-body .f-records-layout > div { min-width: 0; }
+.s-calm .d2-results-body .f-records-layout > aside .p-panel { padding: var(--az-space-5); background: var(--az-side); }
+.s-calm .d2-results-body .f-records-filter { padding: var(--az-space-5); }
+.s-calm .d2-results-body .f-records-facts { margin-top: var(--az-space-4); }
+.s-calm .d2-results-body .f-ranking-row { min-height: 4rem; padding-inline: var(--az-space-3); }
+.s-calm .d2-results-body .f-ranking-row--self { background: var(--az-action-soft); }
+.s-calm .d2-attendance-body .f-attendance-calendar td { height: 3.25rem; }
+.s-calm .d2-attendance-body .f-attendance-day { width: 2.75rem; min-height: 2.75rem; margin-inline: auto; border: 0; border-radius: var(--az-radius-round); background: var(--az-soft); }
+.s-calm .d2-attendance-body .f-attendance-day--present { background: var(--az-success-soft); color: var(--az-success); }
+.s-calm .d2-attendance-body .f-attendance-day--partial { background: var(--az-warning-soft); color: var(--az-warning); }
+.s-calm .d2-attendance-body .f-attendance-day--absent { background: var(--az-danger-soft); color: var(--az-danger); }
+.s-calm .d2-exam-center-body .f-exam-catalog { grid-template-columns: minmax(0, 1fr) 14rem; padding: var(--az-space-6); }
+.s-calm .d2-exam-center-body .f-exam-catalog .c-empty__icon { border-radius: var(--az-radius-round); }
+.s-calm .d2-exam-center-body .f-exam-meta { gap: var(--az-space-2) var(--az-space-5); margin-top: var(--az-space-4); }
+.s-calm .d2-exam-result-body .f-records-layout { grid-template-columns: minmax(0, 1fr) 15rem; }
+.s-calm .d2-exam-result-body .f-exam-score { color: var(--az-action); font-size: var(--az-text-2xl); font-weight: 600; }
+.s-calm .d2-focus-shell .s-calm-sidebar { display: none; }
+.s-calm .s-calm-shell.d2-focus-shell > main { margin-left: 0; }
+.s-calm body[data-frontend="v1"].d2-exam-attempt-body .s-main.s-calm-main { width: min(100%, 58rem); margin-inline: auto; padding-inline: var(--az-space-6); }
+.s-calm .d2-exam-attempt-body .p-page-heading { padding-bottom: var(--az-space-5); border-bottom: 1px solid var(--az-border); }
+.s-calm .d2-exam-attempt-body .f-exam-summary { position: sticky; z-index: var(--az-layer-sticky); top: 0; border-radius: 0 0 var(--az-radius-lg) var(--az-radius-lg); box-shadow: none; }
+.s-calm .d2-exam-attempt-body .f-exam-index { box-shadow: none; }
+.s-calm .d2-exam-attempt-body .f-exam-question { box-shadow: none; }
+
+/* Certificates stay paper-white on screen and in print, independent of theme. */
+.s-calm .d2-certificate-body .f-certificate-page { width: min(100%, 58rem); }
+.s-calm .d2-certificate-body .f-certificate-document { border-color: rgb(218 220 224); background: white; box-shadow: none; color: rgb(32 33 36); }
+.s-calm .d2-certificate-body .f-certificate-document .c-muted,
+.s-calm .d2-certificate-body .f-certificate-document .c-caption,
+.s-calm .d2-certificate-body .f-certificate-document-foot,
+.s-calm .d2-certificate-body .f-certificate-facts dt,
+.s-calm .d2-certificate-body .f-certificate-table caption { color: rgb(95 99 104); }
+.s-calm .d2-certificate-body .f-certificate-course,
+.s-calm .d2-certificate-body .f-certificate-document a { color: rgb(29 87 216); }
+.s-calm .d2-certificate-body .f-certificate-document-head,
+.s-calm .d2-certificate-body .f-certificate-facts,
+.s-calm .d2-certificate-body .f-certificate-table th,
+.s-calm .d2-certificate-body .f-certificate-table td { border-color: rgb(218 220 224); }
+
 @media (width < 900px) {
-  .s-calm .d2-journey, .s-calm .d2-dashboard-grid, .s-calm .d2-lesson-grid { grid-template-columns: minmax(0, 1fr); }
+  .s-calm .d2-journey, .s-calm .d2-dashboard-grid, .s-calm .d2-lesson-grid,
+  .s-calm .d2-results-body .f-records-layout, .s-calm .d2-exam-center-body .f-exam-catalog,
+  .s-calm .d2-exam-result-body .f-records-layout { grid-template-columns: minmax(0, 1fr); }
   .s-calm .d2-journey__aside { grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--az-border); border-left: 0; }
   .s-calm .d2-journey__aside div { display: grid; justify-items: center; border-right: 1px solid var(--az-border); border-bottom: 0; text-align: center; }
   .s-calm .d2-journey__aside div:last-child { border-right: 0; }
   .s-calm .d2-outline { position: static; }
   .s-calm .d2-lesson-aside { order: -1; }
+  .s-calm .d2-results-body .f-records-layout > aside { order: -1; }
+  .s-calm .d2-results-body .f-records-layout > aside .p-panel { background: var(--az-surface); }
+  .s-calm body[data-frontend="v1"].d2-exam-attempt-body .s-main.s-calm-main { padding-bottom: var(--az-space-8); }
 }
 
 @media (width < 560px) {
@@ -114,4 +171,10 @@
   .s-calm .d2-course-row__icon { display: none; }
   .s-calm .d2-tabs { gap-inline: var(--az-space-4); }
   .s-calm .d2-tabs a { font-size: var(--az-text-xs); }
+  .s-calm .d2-results-body .c-tabs { gap-inline: var(--az-space-4); }
+  .s-calm .d2-results-body .c-tabs__item { font-size: var(--az-text-xs); }
+  .s-calm .d2-attendance-body .f-attendance-day { width: 2.25rem; min-height: 2.25rem; font-size: var(--az-text-xs); }
+  .s-calm body[data-frontend="v1"].d2-exam-attempt-body .s-main.s-calm-main { padding: var(--az-space-4); }
+  .s-calm .d2-exam-attempt-body .f-exam-summary { position: static; }
+  .s-calm .d2-certificate-body .f-certificate-page { padding-inline: var(--az-space-3); }
 }

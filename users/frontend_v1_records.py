@@ -12,6 +12,8 @@ from frontend.models import SiteSettings
 
 RECORD_TABS = (("certificates", "Sertifikatlar"), ("attendance_calendar", "Davomat"),
                ("subscriptions", "Obunalar"), ("leaderboard", "Reyting"))
+CALM_RESULT_TABS = (("attendance_calendar", "Davomat"), ("leaderboard", "Reyting"),
+                    ("certificates", "Sertifikatlar"))
 MONTHS = tuple(enumerate(("Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun",
                           "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr"), 1))
 
@@ -40,7 +42,10 @@ class RecordsV1Mixin(FrontendV1Mixin):
         context = super().get_context_data(**kwargs)
         if self.frontend_v1_enabled:
             context['certificate_documents_v1'] = flag_enabled('frontend_v1_certificates')
-            context['records_tabs'] = [dict(name=name, label=label, url=reverse(name)) for name, label in RECORD_TABS]
+            route = self.request.resolver_match.url_name
+            tabs = CALM_RESULT_TABS if self.platform_calm_enabled and route in dict(CALM_RESULT_TABS) else RECORD_TABS
+            context['records_tabs'] = [dict(name=name, label=label, url=reverse(name)) for name, label in tabs]
+            context['records_heading'] = 'Natijalarim' if tabs is CALM_RESULT_TABS else self.frontend_v1_title
             if self.request.user.is_staff and flag_enabled('frontend_v1_teacher'):
                 context.update(teacher_v1_navigation('teacher_dashboard'))
                 context['frontend_v1_title'] = self.frontend_v1_title
