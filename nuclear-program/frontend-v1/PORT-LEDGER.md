@@ -1,10 +1,16 @@
 # Frontend V1 — bajarish va qabul jurnali
 
-**2026-11-10 DESIGN-02 S3 (owner ko‘rigi kutilmoqda):** `codex/design-02` / `fdfa86f` dashboard, yangi
+**2026-11-10 DESIGN-02 S4 (owner ko‘rigi kutilmoqda):** `codex/design-02` / `d2bfc0a` Imtihonlar/urinish/natija,
+Sertifikatlar/hujjat/ballar ilovasi, Davomat va Reytingni CALM qatlamiga o‘tkazdi. Fokus imtihon sahifasi, oq
+ekran/print sertifikat va uchta Natijalarim tabi qo‘shildi; canonical write/publication/XP/access o‘zgarmaydi.
+Django 115 OK (7 skip), Node 217/217, 390px overflow 0; `calm-pages.css` 3 058/4 300 gzip bayt. Lokal server
+ochiq; qabul bo‘lsa S5 boshlanadi.
+
+**2026-11-10 DESIGN-02 S3 (owner qabul qildi):** `codex/design-02` / `fdfa86f` dashboard, yangi
 foydalanuvchi/obuna yopiq holati, Darslarim, dars/practice, kutubxona, inson/AI Xabarlar va Bildirishnomalarni
 CALM qatlamiga o‘tkazdi. Canonical access/write/chat/notification kontraktlari o‘zgarmaydi; flag OFF avvalgi
 V1/legacy rendererga qaytadi. Django 173 OK (3 skip), Node 214/214, a11y/query/asset gate’lari va 320/390px
-overflow 0; `calm-pages.css` 2 231/4 300 gzip bayt. Lokal server ochiq; qabul bo‘lsa S4 boshlanadi.
+overflow 0; `calm-pages.css` 2 231/4 300 gzip bayt. Owner lokal ko‘rikdan keyin “davom et” dedi.
 
 **2026-11-10 DESIGN-02 S2 (owner qabul qildi):** `codex/design-02` / `56d50e4` learner va teacher
 ichki sahifalariga flag-gated 232px sidebar, 900px ostida 4 rol bandi + Hisob bottom nav, account/notification

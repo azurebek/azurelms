@@ -16,6 +16,26 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-11-10 [Codex]: DESIGN-02 / S4 — Natijalarim owner ko‘rigiga tayyor
+
+Imtihonlar markazi, imtihon topshirish va natija, Sertifikatlar, sertifikat/ballar ilovasi, Davomat va Reyting
+default-OFF CALM qatlamiga ko‘chirildi. Imtihon topshirish yon menyusiz fokus sahifasi, sertifikat esa mavzudan
+qat’i nazar oq hujjat va neytral print ko‘rinishida; canonical attempt, publication, certificate, davomat va XP
+qoidalari o‘zgarmadi. Natijalarim CALM tablari S4 doirasidagi `Davomat → Reyting → Sertifikatlar` bilan cheklangan.
+
+- Branch: `codex/design-02`; draft PR #254. Kod commit: `d2bfc0a`; S3 owner tomonidan 2026-11-10 da
+  “davom et” bilan qabul qilindi. Bosqich boshida `origin/main` merge bilan tekshirildi — yangi commit yo‘q edi.
+- Renderer: sakkizta `calm/exams|records|certificates` wrapper va internal-only `calm-pages.css`; flag OFF eski
+  V1/legacy shabloniga qaytadi. `calm-pages.css` **3 058 / 4 300 gzip bayt**.
+- Test: S4 Django to‘plami — **115 OK (7 skip)**; to‘liq frontend Node suite — **217/217**; `check`,
+  `makemigrations --check --dry-run` va `git diff --check` toza. Print faqat foydalanuvchi bosganda ishga tushishi,
+  qoralama/e’lon qilingan natija chegarasi, offline/double-submit va record scope testlari o‘tdi.
+- Brauzer: Davomat/Reyting/Sertifikatlar/Imtihonlar 390px’da `clientWidth=scrollWidth=375`; desktop Natijalarim
+  `830=830`; console error/warning yo‘q. Lokal `demo-tolov`da sertifikat va attempt yo‘qligi sabab bu ikki to‘liq
+  holat fixture testida, lokal brauzerda esa halol bo‘sh holatda tekshirildi.
+- Davom etilishi kerak: Natijalarim lokal tabda owner ko‘rigi uchun ochiq. Qabul qilsa S4 checkbox yopiladi va
+  S5 Hisob va to‘lov shu branchda boshlanadi; `main`ga merge faqat S10 oxirida.
+
 ## 2026-11-10 [Codex]: DESIGN-02 / S3 — o‘quvchining kundalik yo‘li owner ko‘rigiga tayyor
 
 CALM flag ON holatda o‘quvchi bosh sahifasi keyingi haqiqiy qadamga, Darslarim ixcham kurs qatorlariga, dars esa
@@ -32,8 +52,7 @@ URL siyosati o‘zgarmadi. Flag OFF mavjud V1/legacy rendererga qaytadi.
   CALM so‘rovlari V1 bazasidan ko‘pi bilan +3 chegarada; `calm-pages.css` **2 231 / 4 300 gzip bayt**.
 - Brauzer: 1280px Darslarim/Xabarlar/Bildirishnomalar; 390px `clientWidth=scrollWidth=375`, 320px `305=305`;
   mobil menyu 5 ta va 64px, asosiy amal 560px ostida to‘liq kenglikda. Konsolda error/warning yo‘q.
-- Davom etilishi kerak: dashboard ochiq lokal tabda owner ko‘rigi uchun tayyor. Qabul qilsa S3
-  checkbox yopiladi va S4 Natijalarim shu branchda boshlanadi; `main`ga merge faqat S10 oxirida.
+- Owner qabuli (2026-11-10): lokal ko‘rikdan keyin “davom et” dedi; S3 yopildi. S4 natijasi yuqoridagi yozuvda.
 
 ## 2026-11-10 [Codex]: DESIGN-02 / S2 — sokin ichki shell owner ko‘rigiga tayyor
 

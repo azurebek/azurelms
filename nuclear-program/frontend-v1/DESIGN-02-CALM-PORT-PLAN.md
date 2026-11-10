@@ -1,6 +1,6 @@
 # DESIGN-02 — "sokin" dizayn tizimini production'ga ko'chirish rejasi
 
-**Holat — 2026-11-10: S1–S2 owner qabulida; S3 kod/test/browserdan o‘tdi, owner lokal ko‘rigi kutilmoqda.**
+**Holat — 2026-11-10: S1–S3 owner qabulida; S4 kod/test/browserdan o‘tdi, owner lokal ko‘rigi kutilmoqda.**
 Owner qarori 2026-11-07: owner bilan qurilgan eskizdagi dizayn tizimi AzureLMS'ning **yangi dizayn tizimi**
 bo'ladi — tokenlar, shrift, o'lchamlar, chegaralar, komponentlar, sahifa turlari va ochiq sayt ham. Bu
 2026-10-30 dagi `#1257e6` tugma qarorini, PE9 dagi 1200px qarorini va PUBLIC-02 editorial ko'rinishini
@@ -287,10 +287,14 @@ serverda owner qabulidan o'tgach alohida kichik PR bilan olib tashlanadi — aks
   lokal ko'rikni qabul qildi.
 - [x] S2: shell va rolga qarab menyu — `56d50e4`; flag OFF parent/shablon manbasi aynan saqlandi,
   internal-only CSS public byudjetni oshirmadi. Owner 2026-11-10 da lokal ko‘rikdan keyin “davom et” dedi.
-- [ ] S3: o‘quvchining kundalik yo‘li — kod/test/browser tayyor (`fdfa86f`, 2026-11-10), owner lokal qabuli
-  kutilmoqda. Dashboard, Darslarim, dars/practice, kutubxona, inson/AI xabarlari va bildirishnomalar CALM’da;
+- [x] S3: o‘quvchining kundalik yo‘li — kod/test/browser tayyor (`fdfa86f`, 2026-11-10), owner lokal ko‘rikdan
+  keyin “davom et” dedi. Dashboard, Darslarim, dars/practice, kutubxona, inson/AI xabarlari va bildirishnomalar CALM’da;
   OFF renderer, access/write/chat kontraktlari o‘zgarmaydi. Django 173 OK (3 skip), Node 214/214,
   `calm-pages.css` 2 231/4 300 gzip; 320/390px overflow 0.
+- [ ] S4: Natijalarim — kod/test/browser tayyor (`d2bfc0a`, 2026-11-10), owner lokal qabuli kutilmoqda.
+  Imtihonlar/urinish/natija, Sertifikatlar/hujjat/ballar ilovasi, Davomat va Reyting CALM’da; imtihon fokus
+  sahifasi, neytral ekran/print hujjat va uchta Natijalarim tabi bor. Django 115 OK (7 skip), Node 217/217,
+  `calm-pages.css` 3 058/4 300 gzip; 390px overflow 0, console toza.
 
 ### Davom ettiruvchi agent uchun (2026-11-08, Claude → Codex)
 
