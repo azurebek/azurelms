@@ -66,6 +66,23 @@ class LiveV1Tests(ClassbookFixtureMixin, TestCase):
         close_activity(actor=self.teacher, activity=self.activity)
         self.assertTemplateUsed(self.client.get(self.url('activity_result', self.activity.pk)), 'frontend_v1/classbook/activity_result.html')
 
+    def test_calm_teacher_live_layer_is_flagged_and_keeps_answer_privacy(self):
+        set_flag('platform_calm_v1', enabled=True, reason='DESIGN-02 S6 regression')
+        for name, pk in [('teacher_session', self.session.pk), ('teacher_activity_result', self.activity.pk)]:
+            response = self.client.get(self.url(name, pk))
+            self.assertTemplateUsed(response, f'frontend_v1/calm/classbook/{name}.html')
+            self.assertContains(response, 'frontend_v1/css/calm-teacher.css')
+            self.assertNotContains(response, 'answer_key')
+        self.client.force_login(self.student)
+        response = self.client.get(self.url('live_session', self.session.pk))
+        self.assertNotContains(response, 'frontend_v1/css/calm-teacher.css')
+        self.assertNotContains(response, 'answer_key')
+        set_flag('platform_calm_v1', enabled=False, reason='DESIGN-02 S6 rollback')
+        self.client.force_login(self.teacher)
+        response = self.client.get(self.url('teacher_session', self.session.pk))
+        self.assertTemplateUsed(response, 'frontend_v1/classbook/teacher_session.html')
+        self.assertNotContains(response, 'frontend_v1/css/calm-teacher.css')
+
     def test_scope_and_get_no_write(self):
         for name, pk in [('teacher_session', self.session.pk), ('teacher_activity_result', self.activity.pk), ('live_home', None)]:
             self.client.get(self.url(name, pk)); self.client.head(self.url(name, pk))

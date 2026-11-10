@@ -79,7 +79,7 @@ def teacher_calm_navigation():
             "teacher_cohorts",
             "Guruhlarim",
             "users",
-            active_names=("teacher_cohorts", "teacher_students", "teacher_attendance"),
+            active_names=("teacher_cohorts", "teacher_students", "teacher_courses", "teacher_attendance"),
         ),
         _calm_navigation_item(
             "teacher_grading",

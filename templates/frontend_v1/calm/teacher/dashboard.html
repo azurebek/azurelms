@@ -1,0 +1,46 @@
+{% extends "frontend_v1/calm/platform.html" %}
+{% block body_class %}d2-teacher-body d2-teacher-dashboard-body{% endblock %}
+{% block extra_head %}{% include "frontend_v1/calm/teacher_assets.html" %}{% endblock %}
+{% block content %}
+<div class="d2-teacher-page" data-calm-page="teacher-dashboard">
+  <header class="d2-teacher-head">
+    <div><p class="d2-teacher-kicker">{% now "d.m.Y" %}</p><h1>Salom, {{ request.user.first_name|default:request.user.username }}</h1><p>Darslar, guruhlar va tekshiruvlar — bir sokin ish maydonida.</p></div>
+    <span class="d2-teacher-status">Ustoz maydoni</span>
+  </header>
+
+  <dl class="d2-teacher-stats" aria-label="Ustoz ko‘rsatkichlari">
+    <div><dt>Faol guruh</dt><dd>{{ kpis.cohorts }}</dd></div>
+    <div><dt>Faol o‘quvchi</dt><dd>{{ kpis.students }}</dd></div>
+    <div><dt>Tekshiruv kutilmoqda</dt><dd>{{ grading_pending_count }}</dd></div>
+  </dl>
+
+  <section class="d2-teacher-focus" aria-labelledby="teacher-focus-title">
+    <div><p class="d2-teacher-kicker">E’tibor talab qiladi</p><h2 id="teacher-focus-title">{{ grading_pending_count }} ta ish tekshiruvingizni kutmoqda</h2><p>{{ kpis.pending_assignments }} ta yozma topshiriq va {{ kpis.pending_exams }} ta imtihon. Qaror va izoh o‘quvchiga ko‘rinadi.</p></div>
+    <a class="c-button c-button--primary" href="{% url 'teacher_grading' %}">Tekshiruv navbatini ochish</a>
+  </section>
+
+  <div class="d2-teacher-grid">
+    <section aria-labelledby="teacher-queue-title">
+      <div class="d2-teacher-section-head"><div><p class="d2-teacher-kicker">Navbat</p><h2 id="teacher-queue-title">Keyingi tekshiruvlar</h2></div><a href="{% url 'teacher_grading' %}">Hammasi</a></div>
+      <div class="d2-teacher-list">
+        {% for submission in queue_assignments %}<a href="{% url 'teacher_grade_assignment' submission.id %}"><span class="d2-teacher-avatar">{{ submission.student.first_name.0|default:submission.student.username.0|upper }}</span><span><strong>{{ submission.student.get_full_name|default:submission.student.username }}</strong><small>{{ submission.assignment.title }} · Topshiriq</small></span><span class="d2-teacher-arrow" aria-hidden="true">→</span></a>{% endfor %}
+        {% for attempt in queue_exams %}<a href="{% url 'teacher_grade_exam' attempt.id %}"><span class="d2-teacher-avatar">{{ attempt.student.first_name.0|default:attempt.student.username.0|upper }}</span><span><strong>{{ attempt.student.get_full_name|default:attempt.student.username }}</strong><small>{{ attempt.exam.title }} · Imtihon</small></span><span class="d2-teacher-arrow" aria-hidden="true">→</span></a>{% endfor %}
+        {% if not queue_exams and not queue_assignments %}<p class="d2-teacher-empty">Hozir tekshirishni kutayotgan ish yo‘q.</p>{% endif %}
+      </div>
+    </section>
+
+    <section aria-labelledby="teacher-groups-title">
+      <div class="d2-teacher-section-head"><div><p class="d2-teacher-kicker">O‘quv jarayoni</p><h2 id="teacher-groups-title">Guruhlarim</h2></div><a href="{% url 'teacher_cohorts' %}">Hammasi</a></div>
+      <div class="d2-teacher-list">
+        {% for group in cohorts %}<a href="{% url 'teacher_students' %}?cohort={{ group.pk }}"><span class="d2-teacher-group-icon">{{ group.name.0|upper }}</span><span><strong>{{ group.name }}</strong><small>{{ group.course.title }} · {{ group.members_count }} faol o‘quvchi</small></span><span class="d2-teacher-arrow" aria-hidden="true">→</span></a>{% empty %}<p class="d2-teacher-empty">Sizga biriktirilgan faol guruhlar shu yerda ko‘rinadi.</p>{% endfor %}
+      </div>
+    </section>
+  </div>
+
+  <nav class="d2-teacher-quick" aria-label="Ustoz tezkor havolalari">
+    <a href="{% url 'classbook:teacher_home' %}"><strong>Jonli dars</strong><small>Darsni tayyorlash va boshqarish</small></a>
+    <a href="{% url 'teacher_attendance' %}"><strong>Davomat</strong><small>Guruh va dars bo‘yicha belgilash</small></a>
+    <a href="{% url 'teacher_courses' %}"><strong>Kurslarim</strong><small>Kontent va guruhlar holati</small></a>
+  </nav>
+</div>
+{% endblock %}

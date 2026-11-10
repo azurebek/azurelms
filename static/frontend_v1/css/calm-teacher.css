@@ -1,0 +1,120 @@
+/* DESIGN-02 S6: teacher, review and classbook surfaces. CALM-only. */
+.s-calm .d2-teacher-body .s-calm-main > .p-page-heading,
+.s-calm .d2-teacher-body .s-calm-main > .c-tabs,
+.s-calm .d2-teacher-body .s-calm-main > .f-records-filter,
+.s-calm .d2-teacher-body .s-calm-main > .f-records-stack,
+.s-calm .d2-teacher-body .s-calm-main > .f-exam-stack,
+.s-calm .d2-teacher-body .s-calm-main > [data-practice-scope],
+.s-calm .d2-teacher-body .s-calm-main > .f-classbook-stack,
+.s-calm .d2-teacher-page { width: min(100%, 70rem); margin-inline: auto; }
+.s-calm .d2-teacher-body .p-page-heading { align-items: flex-start; margin-bottom: var(--az-space-6); }
+.s-calm .d2-teacher-body .p-page-heading .c-eyebrow { color: var(--az-faint); font-size: var(--az-text-xs); letter-spacing: .06em; }
+.s-calm .d2-teacher-body .p-page-heading h1 { margin-top: var(--az-space-1); font-size: var(--az-text-2xl); font-weight: 600; letter-spacing: 0; line-height: 1.2; }
+.s-calm .d2-teacher-body .p-page-heading .c-lead { margin-top: var(--az-space-2); color: var(--az-muted); font-size: var(--az-text-md); }
+.s-calm .d2-teacher-body .p-panel { border-color: var(--az-border); box-shadow: none; }
+.s-calm .d2-teacher-body .c-button { border-radius: var(--az-radius-round); }
+.s-calm .d2-teacher-body .c-badge { border: 0; border-radius: var(--az-radius-round); background: var(--az-soft); color: var(--az-muted); }
+.s-calm .d2-teacher-body .c-field { min-height: var(--az-control); border-color: var(--az-border); border-radius: var(--az-radius-sm); background: var(--az-surface); }
+.s-calm .d2-teacher-body .c-tabs { gap: 0 var(--az-space-6); margin-bottom: var(--az-space-6); border-bottom: 1px solid var(--az-border); }
+.s-calm .d2-teacher-body .c-tabs__item { min-height: var(--az-control); padding: 0; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; color: var(--az-muted); font-size: var(--az-text-sm); }
+.s-calm .d2-teacher-body .c-tabs__item.is-active { border-bottom-color: var(--az-action); background: transparent; color: var(--az-text); }
+.s-calm .d2-teacher-body .f-records-filter { align-items: end; padding: var(--az-space-5); border: 1px solid var(--az-border); border-radius: var(--az-radius-lg); background: var(--az-side); }
+
+/* Teacher home follows the sketch: quiet metrics, one priority and two work lists. */
+.s-calm .d2-teacher-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--az-space-6); margin-bottom: var(--az-space-6); }
+.s-calm .d2-teacher-head h1 { margin-top: var(--az-space-1); font-size: var(--az-text-2xl); font-weight: 600; line-height: 1.2; }
+.s-calm .d2-teacher-head p:last-child { margin-top: var(--az-space-2); color: var(--az-muted); }
+.s-calm .d2-teacher-kicker { margin: 0; color: var(--az-faint); font-size: var(--az-text-xs); font-weight: 500; letter-spacing: .06em; text-transform: uppercase; }
+.s-calm .d2-teacher-status { min-height: 1.75rem; padding: .25rem var(--az-space-3); border-radius: var(--az-radius-round); background: var(--az-action-soft); color: var(--az-action); font-size: var(--az-text-sm); white-space: nowrap; }
+.s-calm .d2-teacher-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0 0 var(--az-space-8); border-block: 1px solid var(--az-border); }
+.s-calm .d2-teacher-stats div { display: flex; min-width: 0; align-items: baseline; justify-content: space-between; gap: var(--az-space-3); padding: var(--az-space-5); border-right: 1px solid var(--az-border); }
+.s-calm .d2-teacher-stats div:first-child { padding-left: 0; }
+.s-calm .d2-teacher-stats div:last-child { padding-right: 0; border-right: 0; }
+.s-calm .d2-teacher-stats dt { color: var(--az-muted); font-size: var(--az-text-sm); }
+.s-calm .d2-teacher-stats dd { margin: 0; font-size: var(--az-text-xl); font-weight: 600; font-variant-numeric: tabular-nums; }
+.s-calm .d2-teacher-focus { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--az-space-6); margin-bottom: var(--az-space-10); padding: var(--az-space-6); border: 1px solid var(--az-border); border-radius: var(--az-radius-lg); background: var(--az-surface); }
+.s-calm .d2-teacher-focus h2 { margin-top: var(--az-space-1); font-size: var(--az-text-xl); font-weight: 600; }
+.s-calm .d2-teacher-focus p:not(.d2-teacher-kicker) { margin-top: var(--az-space-2); color: var(--az-muted); }
+.s-calm .d2-teacher-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--az-space-10); }
+.s-calm .d2-teacher-section-head { display: flex; min-height: var(--az-control); align-items: flex-end; justify-content: space-between; gap: var(--az-space-4); margin-bottom: var(--az-space-3); }
+.s-calm .d2-teacher-section-head h2 { margin-top: var(--az-space-1); font-size: var(--az-text-lg); font-weight: 600; }
+.s-calm .d2-teacher-section-head > a { color: var(--az-action); font-size: var(--az-text-sm); font-weight: 500; }
+.s-calm .d2-teacher-list { border-top: 1px solid var(--az-border); }
+.s-calm .d2-teacher-list > a { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; min-height: 4.5rem; align-items: center; gap: var(--az-space-3); border-bottom: 1px solid var(--az-border); color: var(--az-text); }
+.s-calm .d2-teacher-list strong, .s-calm .d2-teacher-list small { display: block; overflow-wrap: anywhere; }
+.s-calm .d2-teacher-list strong { font-size: var(--az-text-md); font-weight: 500; }
+.s-calm .d2-teacher-list small { margin-top: .125rem; color: var(--az-faint); font-size: var(--az-text-sm); }
+.s-calm .d2-teacher-avatar, .s-calm .d2-teacher-group-icon { display: grid; width: var(--az-control); height: var(--az-control); place-items: center; border-radius: var(--az-radius-round); background: var(--az-action-soft); color: var(--az-action); font-weight: 600; }
+.s-calm .d2-teacher-group-icon { border-radius: var(--az-radius-sm); background: var(--az-soft); color: var(--az-muted); }
+.s-calm .d2-teacher-arrow { color: var(--az-faint); }
+.s-calm .d2-teacher-empty { padding: var(--az-space-6) 0; border-bottom: 1px solid var(--az-border); color: var(--az-muted); }
+.s-calm .d2-teacher-quick { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--az-space-4); margin-top: var(--az-space-10); }
+.s-calm .d2-teacher-quick a { min-width: 0; padding: var(--az-space-5); border: 1px solid var(--az-border); border-radius: var(--az-radius-lg); color: var(--az-text); }
+.s-calm .d2-teacher-quick strong, .s-calm .d2-teacher-quick small { display: block; }
+.s-calm .d2-teacher-quick strong { font-weight: 600; }
+.s-calm .d2-teacher-quick small { margin-top: var(--az-space-1); color: var(--az-muted); font-size: var(--az-text-sm); }
+
+/* Directory, course, attendance and release pages keep canonical scope and actions. */
+.s-calm .d2-teacher-directory-body .f-directory-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--az-space-4); }
+.s-calm .d2-teacher-directory-body .f-directory-group { padding: var(--az-space-5); }
+.s-calm .d2-teacher-directory-body .f-directory-group h2 { font-size: var(--az-text-lg); font-weight: 600; }
+.s-calm .d2-teacher-directory-body .f-directory-facts { gap: var(--az-space-3); }
+.s-calm .d2-teacher-directory-body .f-directory-facts div { border-color: var(--az-border); background: var(--az-side); }
+.s-calm .d2-teacher-students-body .f-directory-roster { display: grid; gap: var(--az-space-3); }
+.s-calm .d2-teacher-students-body .f-directory-row { grid-template-columns: minmax(13rem, .7fr) minmax(0, 1.3fr); padding: var(--az-space-5); }
+.s-calm .d2-teacher-attendance-body .f-attendance-inputs { border: 0; }
+.s-calm .d2-teacher-attendance-body .f-directory-roster,
+.s-calm .d2-teacher-release-body .f-directory-roster { border-top: 1px solid var(--az-border); }
+.s-calm .d2-teacher-attendance-body .f-directory-row,
+.s-calm .d2-teacher-release-body .f-directory-row { padding: var(--az-space-4) 0; border-bottom: 1px solid var(--az-border); }
+.s-calm .d2-teacher-release-body [data-release-confirm] { border-color: var(--az-action); background: var(--az-action-soft); }
+
+/* Review queues read like lists; grading forms retain their explicit confirmations. */
+.s-calm .d2-teacher-queue-body .s-calm-main > .f-records-stack { gap: var(--az-space-8); }
+.s-calm .d2-teacher-queue-body .f-records-stack > .p-panel { padding: 0; border-width: 1px 0 0; border-radius: 0; }
+.s-calm .d2-teacher-queue-body .c-section-title { min-height: 3.75rem; }
+.s-calm .d2-teacher-queue-body .c-empty { min-height: 8rem; padding-block: var(--az-space-6); }
+.s-calm .d2-teacher-queue-body .p-queue-row { grid-template-columns: minmax(11rem, .8fr) minmax(12rem, 1fr) auto; padding: var(--az-space-4) 0; border-color: var(--az-border); }
+.s-calm .d2-teacher-review-body .p-review-layout { grid-template-columns: minmax(0, 1.35fr) minmax(18rem, .65fr); gap: var(--az-space-6); align-items: start; }
+.s-calm .d2-teacher-review-body .p-review-layout > section { position: sticky; top: var(--az-space-6); }
+.s-calm .d2-teacher-review-body .p-answer-text,
+.s-calm .d2-teacher-review-body .f-review-text { overflow-wrap: anywhere; }
+.s-calm .d2-teacher-exam-review-body .f-review-answer-grid { gap: var(--az-space-6); }
+.s-calm .d2-teacher-exam-review-body audio { max-width: 100%; }
+
+/* Classbook uses the same quiet surface without changing lifecycle or answer syntax. */
+.s-calm .d2-classbook-body .f-classbook-stack { gap: var(--az-space-6); }
+.s-calm .d2-classbook-body .f-classbook-list { border-top: 1px solid var(--az-border); }
+.s-calm .d2-classbook-body .f-classbook-list > li { gap: var(--az-space-4); padding: var(--az-space-4) 0; border-bottom: 1px solid var(--az-border); }
+.s-calm .d2-classbook-body .f-classbook-grid { gap: var(--az-space-5); }
+.s-calm .d2-classbook-body .f-classbook-numbers { gap: var(--az-space-3); }
+.s-calm .d2-classbook-body .f-classbook-numbers > div { border-color: var(--az-border); border-radius: var(--az-radius-sm); background: var(--az-side); }
+.s-calm .d2-classbook-editor-body .f-classbook-form { max-width: 54rem; margin-inline: auto; }
+.s-calm .d2-classbook-live-body .s-calm-main > .f-classbook-stack { width: min(100%, 76rem); }
+.s-calm .d2-classbook-live-body .f-classbook-steps { border-top: 1px solid var(--az-border); }
+.s-calm .d2-classbook-live-body .f-classbook-steps > li { padding-block: var(--az-space-4); border-bottom: 1px solid var(--az-border); }
+
+@media (width < 900px) {
+  .s-calm .d2-teacher-grid,
+  .s-calm .d2-teacher-directory-body .f-directory-groups,
+  .s-calm .d2-teacher-review-body .p-review-layout { grid-template-columns: minmax(0, 1fr); }
+  .s-calm .d2-teacher-review-body .p-review-layout > section { position: static; }
+  .s-calm .d2-teacher-students-body .f-directory-row { grid-template-columns: minmax(0, 1fr); }
+  .s-calm .d2-classbook-live-body .f-classbook-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (width < 560px) {
+  .s-calm .d2-teacher-head, .s-calm .d2-teacher-focus { grid-template-columns: minmax(0, 1fr); align-items: flex-start; }
+  .s-calm .d2-teacher-head { flex-direction: column; }
+  .s-calm .d2-teacher-focus .c-button { width: 100%; }
+  .s-calm .d2-teacher-stats { grid-template-columns: minmax(0, 1fr); }
+  .s-calm .d2-teacher-stats div { padding: var(--az-space-3) 0; border-right: 0; border-bottom: 1px solid var(--az-border); }
+  .s-calm .d2-teacher-stats div:last-child { border-bottom: 0; }
+  .s-calm .d2-teacher-quick { grid-template-columns: minmax(0, 1fr); }
+  .s-calm .d2-teacher-body .c-tabs { gap-inline: var(--az-space-4); }
+  .s-calm .d2-teacher-body .c-tabs__item { font-size: var(--az-text-xs); }
+  .s-calm .d2-teacher-body .s-calm-nav__item span { font-size: .65rem; letter-spacing: -.02em; white-space: nowrap; }
+  .s-calm .d2-teacher-queue-body .p-queue-row { grid-template-columns: minmax(0, 1fr); }
+  .s-calm .d2-teacher-queue-body .p-queue-row .c-button { width: 100%; }
+  .s-calm .d2-classbook-body .f-classbook-list > li { align-items: flex-start; flex-direction: column; }
+}
