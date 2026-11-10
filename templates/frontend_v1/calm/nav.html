@@ -1,0 +1,6 @@
+<nav class="s-calm-nav" aria-label="Asosiy menyu">
+  {% for item in frontend_calm_nav %}
+  <a class="s-calm-nav__item{% if item.mobile %} is-mobile{% endif %}{% if active_nav in item.active_names %} is-active{% endif %}" href="{{ item.url }}"{% if active_nav in item.active_names %} aria-current="page"{% endif %}{% if not item.mobile %} data-calm-desktop-only{% endif %}>{% include "frontend_v1/icon.html" with name=item.icon %}<span>{{ item.label }}</span></a>
+  {% endfor %}
+  <a class="s-calm-nav__item s-calm-nav__account{% if active_nav == 'profile' or active_nav == 'settings' or active_nav == 'subscriptions' %} is-active{% endif %}" href="{% url 'profile' %}"{% if active_nav == 'profile' or active_nav == 'settings' or active_nav == 'subscriptions' %} aria-current="page"{% endif %}>{% include "frontend_v1/icon.html" with name="settings" %}<span>Hisob</span></a>
+</nav>

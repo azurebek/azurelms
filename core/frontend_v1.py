@@ -21,6 +21,86 @@ def calm_template_names(template, *, enabled):
     return [f"{prefix}calm/{relative}", template]
 
 
+def _calm_navigation_item(name, label, icon, *, active_names=None, mobile=True):
+    """Sokin shell uchun ixcham, rolga xos navigatsiya yozuvi."""
+    return dict(
+        url=reverse(name),
+        name=name,
+        label=label,
+        icon=icon,
+        active_names=tuple(active_names or (name,)),
+        mobile=mobile,
+    )
+
+
+def learner_calm_navigation():
+    """Learner shell: desktopda besh, mobil pastki panelda to'rt bo'lim."""
+    return [
+        _calm_navigation_item("dashboard", "Bosh sahifa", "home"),
+        _calm_navigation_item(
+            "my_courses",
+            "Darslarim",
+            "book",
+            active_names=("my_courses", "courses", "course_study"),
+        ),
+        _calm_navigation_item(
+            "classbook:live_home",
+            "Jonli dars",
+            "live",
+            active_names=("classbook:live_home", "classbook_live"),
+        ),
+        _calm_navigation_item(
+            "attendance_calendar",
+            "Natijalarim",
+            "award",
+            active_names=("attendance_calendar", "exam_center", "certificates", "leaderboard"),
+            mobile=False,
+        ),
+        _calm_navigation_item(
+            "messenger:group",
+            "Xabarlar",
+            "message",
+            active_names=("messenger:group", "messenger:tutor", "messenger:ai"),
+        ),
+    ]
+
+
+def teacher_calm_navigation():
+    """Teacher shell: vazifaga yo'naltirilgan besh asosiy bo'lim."""
+    return [
+        _calm_navigation_item("teacher_dashboard", "Bosh sahifa", "home", mobile=False),
+        _calm_navigation_item(
+            "classbook:teacher_home",
+            "Jonli dars",
+            "live",
+            active_names=("classbook:teacher_home", "classbook_live"),
+        ),
+        _calm_navigation_item(
+            "teacher_cohorts",
+            "Guruhlarim",
+            "users",
+            active_names=("teacher_cohorts", "teacher_students", "teacher_attendance"),
+        ),
+        _calm_navigation_item(
+            "teacher_grading",
+            "Tekshiruv",
+            "exam",
+            active_names=(
+                "teacher_grading",
+                "teacher_grade_assignment",
+                "teacher_grade_exam",
+                "teacher_release",
+            ),
+        ),
+        _calm_navigation_item(
+            "messenger:group",
+            "Xabarlar",
+            "message",
+            active_names=("messenger:group", "messenger:tutor", "messenger:ai"),
+        ),
+    ]
+
+
 class FrontendV1Mixin:
     frontend_v1_template = None
     frontend_v1_title = ""
@@ -52,6 +132,8 @@ class FrontendV1Mixin:
             context["frontend_v1_records_ready"] = flag_enabled("frontend_v1_records")
             context["frontend_v1_checkout_ready"] = flag_enabled("frontend_v1_checkout")
             context["frontend_v1_exam_attempt_ready"] = flag_enabled("frontend_v1_exam_attempt")
+            context["frontend_calm_nav"] = learner_calm_navigation()
+            context["frontend_v1_role"] = "learner"
             context["frontend_v1_nav"] = [
                 {"url": reverse(name), "name": name, "label": label, "icon": icon}
                 for name, label, icon in (
@@ -259,6 +341,8 @@ def teacher_v1_navigation(active_nav):
         frontend_v1_workspace="Ustoz maydoni",
         frontend_v1_tagline="Darslar va o‘quvchilar",
         frontend_v1_home=reverse("teacher_dashboard"),
+        frontend_calm_nav=teacher_calm_navigation(),
+        frontend_v1_role="teacher",
         frontend_v1_nav=[dict(url=reverse(name), name=name, label=label, icon=icon) for name, label, icon in pages],
         frontend_v1_legacy_nav=[dict(url=reverse(name), label=label, icon=icon) for name, label, icon in legacy],
     )

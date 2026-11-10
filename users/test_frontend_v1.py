@@ -17,6 +17,8 @@ from django.utils import timezone
 from cohorts.models import Cohort, Enrollment, enrollment_grace_limit
 from core.flags import flag_by_slug, flag_enabled, set_flag
 from courses.models import Course, Lesson, LessonProgress, Module
+from frontend.a11y_probe import probe
+from users.models import Notification
 
 
 class FrontendV1Tests(TestCase):
@@ -79,6 +81,7 @@ class FrontendV1Tests(TestCase):
         explicit_off = self.client.get(reverse("dashboard"))
         self.assertTemplateUsed(explicit_off, "frontend_v1/dashboard.html")
         self.assertNotContains(explicit_off, "frontend_v1/css/calm.css")
+        self.assertNotContains(explicit_off, "frontend_v1/css/calm-shell.css")
         from aicontrol.models import FeatureFlag
         FeatureFlag.objects.filter(slug="platform_calm_v1").delete()
         default_off = self.client.get(reverse("dashboard"))
@@ -88,6 +91,48 @@ class FrontendV1Tests(TestCase):
         self.assertTemplateUsed(calm, "frontend_v1/dashboard.html")
         self.assertContains(calm, 'class="s-calm "')
         self.assertContains(calm, "/static/frontend_v1/css/calm.css")
+        self.assertContains(calm, "/static/frontend_v1/css/calm-shell.css")
+
+    def test_calm_learner_shell_has_compact_role_navigation_and_safe_popovers(self):
+        self.sign_in()
+        set_flag("platform_calm_v1", enabled=True, reason="CALM shell regression")
+        notice = Notification.objects.create(
+            recipient=self.student,
+            title="Yangi dars",
+            message="Keyingi dars siz uchun ochildi.",
+            url="https://untrusted.example/notification-target",
+        )
+
+        response = self.client.get(reverse("dashboard"))
+
+        self.assertTemplateUsed(response, "frontend_v1/calm/platform.html")
+        self.assertContains(response, "data-calm-shell")
+        self.assertNotContains(response, '<dialog id="nav-dialog"')
+        self.assertEqual(response.context["frontend_v1_role"], "learner")
+        navigation = response.context["frontend_calm_nav"]
+        self.assertEqual([item["label"] for item in navigation], ["Bosh sahifa", "Darslarim", "Jonli dars", "Natijalarim", "Xabarlar"])
+        self.assertEqual(sum(item["mobile"] for item in navigation), 4)
+        self.assertContains(response, ">Hisob</span>")
+        self.assertContains(response, 'data-action="theme.set"', count=2)
+        self.assertContains(response, f'href="{reverse("notifications")}#notice-{notice.pk}"')
+        self.assertNotContains(response, notice.url)
+        self.assertContains(response, f'method="post" action="{reverse("logout")}"')
+        self.assertEqual([(finding.rule, finding.detail) for finding in probe(response.content.decode())], [])
+
+    def test_calm_teacher_shell_uses_teacher_tasks_and_omits_learner_payment_link(self):
+        set_flag("frontend_v1_teacher", enabled=True, reason="CALM teacher shell regression")
+        set_flag("platform_calm_v1", enabled=True, reason="CALM teacher shell regression")
+        self.client.force_login(self.teacher)
+
+        response = self.client.get(reverse("teacher_dashboard"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "frontend_v1/calm/platform.html")
+        self.assertEqual(response.context["frontend_v1_role"], "teacher")
+        navigation = response.context["frontend_calm_nav"]
+        self.assertEqual([item["label"] for item in navigation], ["Bosh sahifa", "Jonli dars", "Guruhlarim", "Tekshiruv", "Xabarlar"])
+        self.assertEqual(sum(item["mobile"] for item in navigation), 4)
+        self.assertNotContains(response, f'href="{reverse("subscriptions")}"')
 
     def test_unauthenticated_requests_still_require_login_with_next(self):
         self.enable()
@@ -291,7 +336,7 @@ class FrontendV1StaticTests(SimpleTestCase):
                 STORAGES={"staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"}},
             ):
                 call_command("collectstatic", interactive=False, verbosity=0, stdout=StringIO())
-                for asset in ("css/tokens.css", "css/learning.css", "css/study.css", "css/exam-attempt.css", "js/exam-attempt.js", "js/exam-attempt-state.mjs", "js/theme.js", "js/shell.js", "js/login.js", "js/release.js", "js/practice.js", "icons.svg"):
+                for asset in ("css/tokens.css", "css/calm.css", "css/calm-shell.css", "css/learning.css", "css/study.css", "css/exam-attempt.css", "js/exam-attempt.js", "js/exam-attempt-state.mjs", "js/theme.js", "js/shell.js", "js/login.js", "js/release.js", "js/practice.js", "icons.svg"):
                     url = staticfiles_storage.url("frontend_v1/" + asset)
                     self.assertNotEqual(url, "/static/frontend_v1/" + asset)
                     self.assertTrue(staticfiles_storage.exists(staticfiles_storage.stored_name("frontend_v1/" + asset)))
