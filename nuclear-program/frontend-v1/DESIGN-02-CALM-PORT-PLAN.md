@@ -195,7 +195,7 @@ qo'shiladi (rules §9 gate'lari o'sha merge'ga qo'llanadi: uchala check yashil, 
 |---|---|---|---|---|
 | S0 Reja | — | shu hujjat; [README](../README.md), [PORT-LEDGER](PORT-LEDGER.md), [PUBLIC-02](PUBLIC-EDITORIAL-PORT-PLAN.md) yozuvi | D1–D4 | `git diff --check`; docs-only commit `bd383ec` |
 | S1 Poydevor | Tokenlar va komponentlar | `core/flags.py`, `calm_template_names`, `CALM` renderer qiymati, `css/calm.css`, `calm.test.mjs`, Figtree, `design_catalog.json` ("Sokin", matn oralig'i), qorong'i tokenlar | S0, D8 | Flag OFF'da `public_route_snapshot.json` va renderer chiqishi baytda bir xil; ustaxona testlari va eski nashrlar; glif sinovi; `node --test`, `manage.py check` |
-| S2 Shell va menyu | Yon menyu, pastki menyu, akkaunt/bildirishnoma oynalari, mini rejim | `platform.html`, `nav.html`, `account.html`, `shell.css`, `shell.js`, `core/frontend_v1.py` menyusi | S1 | `users.test_frontend_v1`, shell Node testi, a11y probe, 320/390px |
+| S2 Shell va menyu | Yon menyu, pastki menyu, akkaunt/bildirishnoma oynalari, mini rejim | `platform.html`, `calm/platform.html`, `calm/nav.html`, `calm/account.html`, internal-only `calm-shell.css`, `shell.js`, `core/frontend_v1.py` menyusi | S1 | `users.test_frontend_v1`, shell Node testi, a11y probe, 320/390px |
 | S3 O'quvchining kundalik yo'li | Bosh sahifa, yangi foydalanuvchi, Darslarim, Dars, Mashqlar, Kutubxona, Xabarlar, Azure AI, Bildirishnomalar | `dashboard.html`, `courses.html`, `lesson.html`, `practice_*.html`, `library/`, `messenger.html`, `ai_messenger.html`, `records/notifications.html` | S2 | Renderer testlari flag ON va OFF; so'rov byudjeti |
 | S4 Natijalarim | Imtihonlar, Imtihon, Natija, Sertifikatlar, Sertifikat, Ballar ilovasi, Davomat, Reyting | `exams/`, `records/certificates.html`, `certificates/`, `records/attendance.html`, `records/leaderboard.html` | S2 | `exam-attempt`, `certificates`, `records` Node testlari; chop etish |
 | S5 Hisob va to'lov | Profil, Sozlamalar, Yordam, To'lovlar, Chek | `profile.html`, `account.html`, `settings_*.html`, `records/help.html`, `records/subscriptions.html`, `checkout/` | S2; checkout — COMMERCE-01 bilan kelishib | `settings.test.mjs`, checkout testlari; imzoli narx va server qayta hisobi o'zgarmaydi |
@@ -285,7 +285,8 @@ serverda owner qabulidan o'tgach alohida kichik PR bilan olib tashlanadi — aks
 - [x] S1: flag, `calm_template_names`, `CALM` renderer qiymati, "Sokin" varianti va matn oralig'i, Figtree,
   `calm.css` va `calm.test.mjs`. Kod/test commit `0439027`; CI yashil, owner 2026-11-10 da davom ettirish bilan
   lokal ko'rikni qabul qildi.
-- [ ] S2: shell va rolga qarab menyu — faol bosqich (2026-11-10).
+- [ ] S2: shell va rolga qarab menyu — kod/test/browser tayyor (`56d50e4`, 2026-11-10), owner lokal qabuli
+  kutilmoqda. Flag OFF parent/shablon manbasi aynan saqlandi; ichki-only CSS public byudjetni oshirmadi.
 
 ### Davom ettiruvchi agent uchun (2026-11-08, Claude → Codex)
 

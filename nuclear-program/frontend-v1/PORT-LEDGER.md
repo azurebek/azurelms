@@ -1,5 +1,11 @@
 # Frontend V1 — bajarish va qabul jurnali
 
+**2026-11-10 DESIGN-02 S2 (owner ko‘rigi kutilmoqda):** `codex/design-02` / `56d50e4` learner va teacher
+ichki sahifalariga flag-gated 232px sidebar, 900px ostida 4 rol bandi + Hisob bottom nav, account/notification
+popoverlari, theme segmented control va mini rejim qo‘shdi. Legacy platforma/shablon va public asset byudjeti
+o‘zgarmaydi; internal-only `calm-shell.css` 1 861 gzip bayt. Django 36 OK, frontend Node 210/210, a11y probe
+toza; 320/390px overflow 0. Lokal server ochiq; qabul bo‘lsa S3 boshlanadi, `main`ga merge faqat S10 oxirida.
+
 **2026-11-08 DESIGN-02 S1 (2026-11-10 owner qabul qildi):** `codex/design-02` / `0439027` da default-OFF
 `platform_calm_v1`, ichki va public CALM fallback zanjiri, ustaxonaning yorug'/qorong'i "Sokin" varianti,
 15/13px oralig'i, rasmiy OFL Figtree 400/500/600 va token-only `calm.css` qo'shildi. Flag OFF renderer baytlari va

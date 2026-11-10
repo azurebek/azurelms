@@ -16,6 +16,26 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-11-10 [Codex]: DESIGN-02 / S2 — sokin ichki shell owner ko‘rigiga tayyor
+
+Learner va teacher ichki sahifalari flag ON holatda 232px sokin yon menyu, 900px ostida besh bandli pastki
+menyu, hisob/bildirishnoma popoverlari va `tgmini`/`?mini` rejimini oldi. Legacy platforma manbasi aynan
+`platform_legacy.html`ga ko‘chirildi; dinamik parent flag OFF’da o‘sha baytlarni, ON’da CALM shell’ni tanlaydi.
+`calm-shell.css` faqat ichki CALM bazasida yuklanadi — public/auth asset byudjeti va OFF bundle o‘zgarmaydi.
+
+- Branch: `codex/design-02`; draft PR #254. Kod commit: `56d50e4`; `main`ga oraliq merge yo‘q.
+- Menyu: learner desktop — Bosh sahifa, Darslarim, Jonli dars, Natijalarim, Xabarlar; teacher desktop —
+  Bosh sahifa, Jonli dars, Guruhlarim, Tekshiruv, Xabarlar. Telefonda rol bandlaridan to‘rttasi + Hisob.
+- Xavfsizlik/a11y: notification popup raw model URL’ini ochmaydi, notification markazidagi ichki anchor’ga boradi;
+  logout POST+CSRF; popoverlar bir-birini va tashqi klik/Back’da yopadi, Escape summary fokusini qaytaradi.
+- Test: `manage.py test users.test_frontend_v1 frontend.test_public_budgets` — **36 OK**; to‘liq frontend Node
+  suite — **210/210**; `check`, `makemigrations --check --dry-run`, a11y probe va diff check toza. Ichki shell
+  gzip: CSS **1 861 / 2 700**, JS **1 056 / 1 100** bayt; public byudjetlar o‘zgartirilmadi.
+- Brauzer: desktop 1280px; 320px `clientWidth=scrollWidth=305`, 390px `375=375`; mobil bandlar 5 ta,
+  har biri 64px, main pastki bo‘shlig‘i 88px. Account/notification, Escape/fokus va mini rejim tekshirildi.
+- Davom etilishi kerak: owner ochiq lokal tabda S2’ni ko‘radi. Qabul qilsa S2 checkbox yopiladi, `main` branchga
+  merge bilan yangilanadi va S3 learner daily journey shu branchda boshlanadi.
+
 ## 2026-11-08 [Codex]: DESIGN-02 / S1 — sokin poydevor owner ko'rigiga tayyor
 
 Default-OFF `platform_calm_v1` flagi ichki, auth, sertifikat, backoffice va public renderer tanlovlariga bitta
@@ -36,8 +56,7 @@ manba-hash dalili va faqat flag ON'da ulanadigan token-only `calm.css` kirdi. Mi
   hujjatda yopilib S2 shell/menyu boshlanadi. S10 va owner umumiy qabuligacha `main`ga merge qilinmaydi.
 - Owner qabuli (2026-11-10): lokal ko'rikdan keyin "davom et" dedi; uchala PR CI yashil, S1 yopildi va S2
   shell/menyu bosqichi boshlandi. `origin/main` branchga tekshirildi — yangi commit yo'q edi.
-- S2 faol fayllar: `templates/frontend_v1/calm/platform.html`, `calm/nav.html`, `calm/account.html`,
-  `static/frontend_v1/css/shell.css`, `static/frontend_v1/js/shell.js`, `core/frontend_v1.py` va ularning testlari.
+- S2 natijasi yuqoridagi 2026-11-10 yozuvida; ko‘rikdan keyingi navbat S3.
 
 ## 2026-11-08 [Claude]: DESIGN-02 / S0 — yangi dizayn tizimi port rejasi
 
