@@ -16,6 +16,25 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-11-10 [Codex]: DESIGN-02 / S3 — o‘quvchining kundalik yo‘li owner ko‘rigiga tayyor
+
+CALM flag ON holatda o‘quvchi bosh sahifasi keyingi haqiqiy qadamga, Darslarim ixcham kurs qatorlariga, dars esa
+o‘qish maydoni va kurs rejasiga ajratildi. Yangi foydalanuvchi/obuna yopiq holatlari, practice, kutubxona,
+inson/AI xabarlari va bildirishnomalar ham shu sokin qatlamda; access, form action, CSRF, chat JS va notification
+URL siyosati o‘zgarmadi. Flag OFF mavjud V1/legacy rendererga qaytadi.
+
+- Branch: `codex/design-02`; draft PR #254. Kod commit: `fdfa86f`; S2 owner tomonidan 2026-11-10 da
+  “davom et” bilan qabul qilindi. Bosqich boshida `origin/main` branchga merge qilindi — yangi commit yo‘q edi.
+- Renderer: `calm/dashboard.html`, `courses.html`, `lesson.html`, practice wrapperlari, Messenger/AI/notification
+  wrapperlari va internal-only `calm-pages.css`; kutubxona flaglari bitta request snapshot’ida o‘qiladi.
+- Test: ta’sirlangan Django to‘plami — **173 OK (3 skip)**; to‘liq frontend Node suite — **214/214**;
+  `check`, `makemigrations --check --dry-run`, `findstatic`, a11y probe va `git diff --check` toza. Dashboard
+  CALM so‘rovlari V1 bazasidan ko‘pi bilan +3 chegarada; `calm-pages.css` **2 231 / 4 300 gzip bayt**.
+- Brauzer: 1280px Darslarim/Xabarlar/Bildirishnomalar; 390px `clientWidth=scrollWidth=375`, 320px `305=305`;
+  mobil menyu 5 ta va 64px, asosiy amal 560px ostida to‘liq kenglikda. Konsolda error/warning yo‘q.
+- Davom etilishi kerak: dashboard ochiq lokal tabda owner ko‘rigi uchun tayyor. Qabul qilsa S3
+  checkbox yopiladi va S4 Natijalarim shu branchda boshlanadi; `main`ga merge faqat S10 oxirida.
+
 ## 2026-11-10 [Codex]: DESIGN-02 / S2 — sokin ichki shell owner ko‘rigiga tayyor
 
 Learner va teacher ichki sahifalari flag ON holatda 232px sokin yon menyu, 900px ostida besh bandli pastki
@@ -33,8 +52,8 @@ menyu, hisob/bildirishnoma popoverlari va `tgmini`/`?mini` rejimini oldi. Legacy
   gzip: CSS **1 861 / 2 700**, JS **1 056 / 1 100** bayt; public byudjetlar o‘zgartirilmadi.
 - Brauzer: desktop 1280px; 320px `clientWidth=scrollWidth=305`, 390px `375=375`; mobil bandlar 5 ta,
   har biri 64px, main pastki bo‘shlig‘i 88px. Account/notification, Escape/fokus va mini rejim tekshirildi.
-- Davom etilishi kerak: owner ochiq lokal tabda S2’ni ko‘radi. Qabul qilsa S2 checkbox yopiladi, `main` branchga
-  merge bilan yangilanadi va S3 learner daily journey shu branchda boshlanadi.
+- Owner qabuli (2026-11-10): lokal ko‘rikdan keyin “davom et” dedi; S2 yopildi. `origin/main` branchga merge
+  bilan tekshirildi — yangi commit yo‘q edi; S3 natijasi yuqoridagi yozuvda.
 
 ## 2026-11-08 [Codex]: DESIGN-02 / S1 — sokin poydevor owner ko'rigiga tayyor
 
