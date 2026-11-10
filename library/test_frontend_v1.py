@@ -94,6 +94,15 @@ class LibraryV1Tests(TestCase):
                 self.assertNotContains(response, '/_preview/')
                 self.assertNotContains(response, '/static/js/app.js')
 
+    def test_calm_flag_uses_shared_library_contract_and_one_renderer_snapshot(self):
+        set_flag('platform_calm_v1', enabled=True, reason='DESIGN-02 S3 library regression')
+        response = self.client.get(self.url('resources'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'd2-library-body')
+        self.assertContains(response, '/static/frontend_v1/css/calm-pages.css')
+        self.assertContains(response, self.resource.title)
+        self.assertIn('no-store', response['Cache-Control'])
+
     def test_default_off_and_independent_rollback(self):
         self.assertFalse(flag_by_slug('frontend_v1_library').default)
         set_flag('frontend_v1_library', enabled=False, reason='Rollback')

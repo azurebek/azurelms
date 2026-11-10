@@ -9,7 +9,9 @@ from unittest.mock import patch
 from django.conf import settings
 from django.contrib.auth import get_user_model, SESSION_KEY
 from django.db import OperationalError
+from django.db import connection
 from django.test import Client, SimpleTestCase, TestCase, override_settings
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.shortcuts import resolve_url
 from django.utils import timezone
@@ -88,10 +90,31 @@ class FrontendV1Tests(TestCase):
         self.assertEqual(stable_html(default_off), stable_html(explicit_off))
         set_flag("platform_calm_v1", enabled=True, reason="CALM foundation regression")
         calm = self.client.get(reverse("dashboard"))
-        self.assertTemplateUsed(calm, "frontend_v1/dashboard.html")
+        self.assertTemplateUsed(calm, "frontend_v1/calm/dashboard.html")
         self.assertContains(calm, 'class="s-calm "')
         self.assertContains(calm, "/static/frontend_v1/css/calm.css")
         self.assertContains(calm, "/static/frontend_v1/css/calm-shell.css")
+
+    def test_calm_daily_pages_use_real_context_and_stay_inside_request_budget(self):
+        self.sign_in()
+        set_flag("platform_calm_v1", enabled=False, reason="CALM query baseline")
+        with CaptureQueriesContext(connection) as baseline_queries:
+            baseline = self.client.get(reverse("dashboard"))
+        set_flag("platform_calm_v1", enabled=True, reason="CALM daily flow regression")
+        with CaptureQueriesContext(connection) as calm_queries:
+            dashboard = self.client.get(reverse("dashboard"))
+        courses = self.client.get(reverse("my_courses"))
+
+        self.assertTemplateUsed(baseline, "frontend_v1/dashboard.html")
+        self.assertTemplateUsed(dashboard, "frontend_v1/calm/dashboard.html")
+        self.assertTemplateUsed(courses, "frontend_v1/calm/courses.html")
+        self.assertContains(dashboard, 'data-calm-page="dashboard"')
+        self.assertContains(courses, 'data-calm-page="courses"')
+        self.assertContains(dashboard, self.course.title)
+        self.assertContains(courses, self.cohort.name)
+        self.assertContains(dashboard, "/static/frontend_v1/css/calm-pages.css")
+        self.assertLessEqual(len(calm_queries), len(baseline_queries) + 3)
+        self.assertEqual([(finding.rule, finding.detail) for finding in probe(dashboard.content.decode())], [])
 
     def test_calm_learner_shell_has_compact_role_navigation_and_safe_popovers(self):
         self.sign_in()

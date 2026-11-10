@@ -55,6 +55,15 @@ class RecordsV1Tests(TestCase):
                 self.assertNotContains(response, '/static/js/app.js')
                 self.assertNotContains(response, 'FOREIGN PRIVATE')
 
+    def test_calm_notification_page_keeps_safe_targets_and_renderer_boundary(self):
+        set_flag('platform_calm_v1', enabled=True, reason='DESIGN-02 S3 notifications regression')
+        response = self.client.get(reverse('notifications'))
+        self.assertTemplateUsed(response, 'frontend_v1/calm/records/notifications.html')
+        self.assertContains(response, 'd2-records-body')
+        self.assertContains(response, '/static/frontend_v1/css/calm-pages.css')
+        self.assertContains(response, f'href="{self.notice.url}"')
+        self.assertNotContains(response, 'FOREIGN PRIVATE NOTICE')
+
     def test_default_off_and_independent_rollback(self):
         self.assertFalse(flag_by_slug('frontend_v1_records').default)
         set_flag('frontend_v1_records', enabled=False, reason='Rollback')

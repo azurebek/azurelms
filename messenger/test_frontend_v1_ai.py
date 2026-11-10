@@ -57,6 +57,15 @@ class AIMessengerV1Tests(TestCase):
         self.assertEqual(response.context['active_chat_room'].pk, self.room.pk)
         self.assertEqual(response.context['active_nav'], 'messenger:ai')
 
+    def test_calm_flag_wraps_ai_chat_without_starting_provider_work(self):
+        FeatureFlag.objects.create(slug='platform_calm_v1', enabled=True)
+        with patch('messenger.tasks.generate_ai_response.delay') as call:
+            response = self.client.get(self.url)
+        call.assert_not_called()
+        self.assertTemplateUsed(response, 'frontend_v1/calm/ai_messenger.html')
+        self.assertContains(response, 'd2-messenger')
+        self.assertContains(response, 'data-ai-url=')
+
     def test_foreign_room_and_history_denied_and_login_required(self):
         self.assertEqual(self.client.get(reverse('messenger:ai_room', args=[self.foreign.pk])).status_code, 404)
         self.assertEqual(self.client.get(reverse('messenger:get_room_messages', args=[self.foreign.pk])).status_code, 403)

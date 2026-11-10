@@ -1,0 +1,13 @@
+<article class="d2-course-row" data-enrollment="{{ enrollment.pk }}">
+  <span class="d2-course-row__icon" aria-hidden="true">{% include "frontend_v1/icon.html" with name="book" %}</span>
+  <div class="d2-course-row__body">
+    <div class="d2-course-row__title"><div><p>{{ enrollment.cohort.course.get_level_display }} · {{ enrollment.cohort.name }}</p><h3>{{ enrollment.cohort.course.title }}</h3></div><span class="d2-status{% if enrollment.dashboard_effective_status == 'active' %} d2-status--active{% endif %}">{{ enrollment.dashboard_status_label }}</span></div>
+    {% include "frontend_v1/progress.html" %}
+    {% if enrollment.dashboard_effective_status == 'active' %}
+      <a class="d2-text-action" href="{% url 'course_study' course_id=enrollment.cohort.course_id %}?cohort={{ enrollment.cohort_id }}">{% if enrollment.dashboard_progress >= 100 %}Darslarni takrorlash{% else %}Darsni ochish{% endif %} →</a>
+    {% else %}
+      <p class="d2-course-row__note">{% if enrollment.dashboard_effective_status == 'pending' %}Tasdiq kutilmoqda. Darslarga kirish hali ochilmagan.{% else %}Darslarga kirish uchun obuna holatini tekshiring.{% endif %}</p>
+      <a class="d2-text-action" href="{% url 'subscriptions' %}">Obuna holatini ko‘rish →</a>
+    {% endif %}
+  </div>
+</article>
