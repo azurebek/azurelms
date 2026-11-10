@@ -45,7 +45,12 @@ class RecordsV1Mixin(FrontendV1Mixin):
             route = self.request.resolver_match.url_name
             tabs = CALM_RESULT_TABS if self.platform_calm_enabled and route in dict(CALM_RESULT_TABS) else RECORD_TABS
             context['records_tabs'] = [dict(name=name, label=label, url=reverse(name)) for name, label in tabs]
-            context['records_heading'] = 'Natijalarim' if tabs is CALM_RESULT_TABS else self.frontend_v1_title
+            if tabs is CALM_RESULT_TABS:
+                context['records_heading'] = 'Natijalarim'
+            elif self.platform_calm_enabled and route == 'subscriptions':
+                context['records_heading'] = 'To‘lovlar'
+            else:
+                context['records_heading'] = self.frontend_v1_title
             if self.request.user.is_staff and flag_enabled('frontend_v1_teacher'):
                 context.update(teacher_v1_navigation('teacher_dashboard'))
                 context['frontend_v1_title'] = self.frontend_v1_title
@@ -54,7 +59,9 @@ class RecordsV1Mixin(FrontendV1Mixin):
     def render_to_response(self, context, **kwargs):
         if self.frontend_v1_enabled:
             route = self.request.resolver_match.url_name
-            context['records_has_tabs'] = route in dict(RECORD_TABS)
+            context['records_has_tabs'] = route in dict(RECORD_TABS) and not (
+                self.platform_calm_enabled and route == 'subscriptions'
+            )
             if route in ('attendance_calendar', 'leaderboard'):
                 attendance = route == 'attendance_calendar'
                 context['records_choices'] = context['attendance_cohort_choices' if attendance else 'leaderboard_cohort_choices']

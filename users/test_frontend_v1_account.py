@@ -10,6 +10,7 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from core.flags import flag_by_slug, set_flag
+from frontend.a11y_probe import probe
 from .frontend_v1_account import profile_revision
 
 
@@ -54,6 +55,39 @@ class AccountV1Tests(TestCase):
                 self.assertNotContains(response, 'css/settings.css')
                 self.assertNotContains(response, 'static/js/app.js')
                 self.assertIn('no-store', response['Cache-Control'])
+
+    def test_calm_profile_and_account_keep_shared_writers_behind_renderer_boundary(self):
+        set_flag('platform_calm_v1', enabled=True, reason='DESIGN-02 S5 account regression')
+        profile = self.client.get(reverse('profile'))
+        self.assertTemplateUsed(profile, 'frontend_v1/calm/profile.html')
+        self.assertContains(profile, 'data-calm-page="profile"')
+        self.assertContains(profile, '/static/frontend_v1/css/calm-account.css')
+        self.assertContains(profile, 'O‘quvchi')
+        self.assertContains(profile, 'Haqiqiy bio')
+        self.assertContains(profile, 'name="profile_revision"')
+        self.assertContains(profile, f'action="{reverse("logout")}"')
+
+        account = self.client.get(reverse('settings_account'))
+        self.assertTemplateUsed(account, 'frontend_v1/calm/settings_account.html')
+        self.assertContains(account, 'd2-settings-body')
+        self.assertContains(account, 'data-password-form')
+        self.assertEqual([item['label'] for item in account.context['settings_tabs']],
+                         ['Hisob', 'Maxfiylik', 'To‘lov', 'AI repetitor'])
+        for response in (profile, account):
+            self.assertEqual([(finding.rule, finding.detail) for finding in probe(response.content.decode())], [])
+
+        set_flag('frontend_v1_teacher', enabled=True, reason='DESIGN-02 S5 teacher account scope')
+        self.client.force_login(self.other)
+        teacher = self.client.get(reverse('profile'))
+        self.assertContains(teacher, reverse('teacher_grading'))
+        self.assertContains(teacher, reverse('teacher_cohorts'))
+        self.assertNotContains(teacher, f'href="{reverse("subscriptions")}">To‘lovlar</a>')
+
+        set_flag('platform_calm_v1', enabled=False, reason='DESIGN-02 S5 renderer boundary')
+        legacy = self.client.get(reverse('profile'))
+        self.assertTemplateUsed(legacy, 'frontend_v1/profile.html')
+        self.assertTemplateNotUsed(legacy, 'frontend_v1/calm/profile.html')
+        self.assertNotContains(legacy, '/static/frontend_v1/css/calm-account.css')
 
     def test_native_success_both_routes_stays_on_exact_surface(self):
         for name in ('profile', 'settings_account'):

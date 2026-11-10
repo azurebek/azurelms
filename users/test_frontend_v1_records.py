@@ -9,6 +9,7 @@ from django.utils import timezone
 from cohorts.models import Attendance, Cohort, Enrollment, PaymentReceipt
 from core.flags import flag_by_slug, set_flag
 from courses.models import Certificate, Course, Lesson, LessonProgress, Module
+from frontend.a11y_probe import probe
 from frontend.models import LegalPage, SiteSettings
 from gamification.models import Badge, EarnedBadge
 from subscriptions.models import Plan
@@ -86,6 +87,30 @@ class RecordsV1Tests(TestCase):
         self.assertTemplateUsed(response, 'frontend_v1/records/attendance.html')
         self.assertTemplateNotUsed(response, 'frontend_v1/calm/records/attendance.html')
         self.assertNotContains(response, '/static/frontend_v1/css/calm-pages.css')
+
+    def test_calm_help_and_payments_leave_results_tabs_and_keep_owned_data(self):
+        set_flag('platform_calm_v1', enabled=True, reason='DESIGN-02 S5 support and payment regression')
+        help_response = self.client.get(reverse('help_center'))
+        self.assertTemplateUsed(help_response, 'frontend_v1/calm/records/help.html')
+        self.assertContains(help_response, 'd2-help-body')
+        self.assertContains(help_response, '/static/frontend_v1/css/calm-account.css')
+        self.assertEqual([(finding.rule, finding.detail) for finding in probe(help_response.content.decode())], [])
+
+        payment = self.client.get(reverse('subscriptions'))
+        self.assertTemplateUsed(payment, 'frontend_v1/calm/records/subscriptions.html')
+        self.assertContains(payment, 'd2-payments-body')
+        self.assertContains(payment, '<h1>To‘lovlar</h1>', html=True)
+        self.assertFalse(payment.context['records_has_tabs'])
+        self.assertNotContains(payment, 'aria-label="O‘quv yozuvlari"')
+        self.assertNotContains(payment, 'FOREIGN PRIVATE')
+        self.assertEqual([(finding.rule, finding.detail) for finding in probe(payment.content.decode())], [])
+
+        set_flag('platform_calm_v1', enabled=False, reason='DESIGN-02 S5 payment boundary')
+        old = self.client.get(reverse('subscriptions'))
+        self.assertTemplateUsed(old, 'frontend_v1/records/subscriptions.html')
+        self.assertTemplateNotUsed(old, 'frontend_v1/calm/records/subscriptions.html')
+        self.assertTrue(old.context['records_has_tabs'])
+        self.assertContains(old, '<h1>Obunalar</h1>', html=True)
 
     def test_default_off_and_independent_rollback(self):
         self.assertFalse(flag_by_slug('frontend_v1_records').default)
