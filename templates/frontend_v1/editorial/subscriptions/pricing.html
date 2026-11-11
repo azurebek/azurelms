@@ -1,4 +1,4 @@
-{% extends "frontend_v1/editorial/base.html" %}{% load public_content %}
+{% extends public_frame|default:"frontend_v1/editorial/base.html" %}{% load public_content %}
 {% comment %}
   PUBLIC-02 / PE4 — editorial tariflar. Narx `Plan.price` (kursga bog'liq emas — PUB1.3b), davr kurs taklifi bilan bir
   manbadan (`billing_period_days`). Tugma kurs tanlashga olib boradi (PUB-D1: avval kurs, tarif yozilishda).

@@ -73,6 +73,10 @@ class AuthV1Mixin(FrontendV1Mixin):
         if self.auth_editorial_enabled:
             context.update(
                 auth_base_template='frontend_v1/editorial/auth_base.html',
+                auth_public_frame=(
+                    'frontend_v1/calm/public/base.html'
+                    if self.platform_calm_enabled else 'frontend_v1/editorial/base.html'
+                ),
                 auth_aside_title=self.auth_aside_title,
                 auth_aside_items=self.auth_aside_items,
                 auth_aside_note=self.auth_aside_note,

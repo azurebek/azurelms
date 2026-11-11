@@ -1324,21 +1324,24 @@ def certificate_verify(request, token):
     ular IP bo'yicha sanaladi, kod esa hech qayerga yozilmaydi. Sarlavhalar (noindex/noarchive, no-store,
     same-origin referrer) route siyosatidan — `frontend/public_response.py`.
     """
-    from core.flags import flag_enabled
+    from core.flags import flags_enabled
     from users import auth_abuse
 
     from . import certificate_verifier as verifier
 
-    if not flag_enabled("certificate_public_verifier"):
-        return render(request, "courses/certificate_verify.html", {"result": None}, status=404)
+    enabled = flags_enabled("certificate_public_verifier", "platform_calm_v1")
+    template = (["frontend_v1/calm/public/certificate_verify.html", "courses/certificate_verify.html"]
+                if enabled["platform_calm_v1"] else "courses/certificate_verify.html")
+    if not enabled["certificate_public_verifier"]:
+        return render(request, template, {"result": None}, status=404)
     decision = auth_abuse.certificate_verify_blocked(request)
     if not decision.allowed:
-        response = render(request, "courses/certificate_verify.html", {"blocked_message": decision.message}, status=429)
+        response = render(request, template, {"blocked_message": decision.message}, status=429)
         return auth_abuse.apply_throttle_headers(response, decision)
     result = verifier.lookup(token)
     if result is None:
         auth_abuse.record_certificate_verify_miss(request)
-    return render(request, "courses/certificate_verify.html", {"result": result}, status=200 if result else 404)
+    return render(request, template, {"result": result}, status=200 if result else 404)
 
 
 @login_required

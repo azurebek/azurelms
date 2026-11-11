@@ -1,4 +1,4 @@
-{% extends "frontend_v1/editorial/base.html" %}{% load public_v1 %}
+{% extends public_frame|default:"frontend_v1/editorial/base.html" %}{% load public_v1 %}
 {% block content %}
 <a class="c-text-link p-public-back" href="{{ public_back_url }}">Universitetlarga qaytish</a>
 <section class="p-public-detail">

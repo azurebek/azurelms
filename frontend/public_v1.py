@@ -40,8 +40,7 @@ def safe_return_to(request, fallback):
 # hali ko'chirilmagan sahifa ham yangi header/footer ichida chiqadi, mazmuni o'zgarmaydi.
 PUBLIC_FRAME = {
     EDITORIAL: "frontend_v1/editorial/base.html",
-    # S1 fallback: CALM public ramkasi S8 da kelguncha editorial baza ishlaydi.
-    CALM: "frontend_v1/editorial/base.html",
+    CALM: "frontend_v1/calm/public/base.html",
 }
 DEFAULT_FRAME = "frontend_v1/public/base.html"
 

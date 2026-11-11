@@ -1,0 +1,41 @@
+{% load static %}
+<!doctype html>
+<html lang="uz" data-theme="light" class="s-calm">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="color-scheme" content="light dark">
+  <title>Sertifikat tekshiruvi · {{ site_settings.brand_name|default:"AzureLMS" }}</title>
+  {% include "components/brand_favicon.html" %}
+  <script src="{% static 'frontend_v1/js/theme.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'frontend_v1/css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'frontend_v1/css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'frontend_v1/css/calm.css' %}">
+  <link rel="stylesheet" href="{% static 'frontend_v1/css/calm-public.css' %}">
+</head>
+<body class="d2-verify-body">
+  <main class="d2-verify">
+    <p class="d2-verify__brand">{{ site_settings.brand_name|default:"AzureLMS" }}</p>
+    <h1>Sertifikat tekshiruvi</h1>
+    {% if blocked_message %}
+    <p class="d2-verify__status d2-verify__status--bad" role="status" data-verify-state="blocked">Vaqtincha to‘xtatildi</p>
+    <p class="d2-verify__note">{{ blocked_message }}</p>
+    {% elif result %}
+    <p class="d2-verify__status {% if result.is_revoked %}d2-verify__status--bad{% else %}d2-verify__status--ok{% endif %}" role="status" data-verify-state="{{ result.status }}">{{ result.status_label }}</p>
+    <dl>
+      <dt>Sertifikat egasi</dt><dd>{% if result.holder %}{{ result.holder }}{% else %}Ism ko‘rsatilmaydi{% endif %}</dd>
+      <dt>Kurs</dt><dd>{{ result.course_title }}</dd>
+      <dt>Berilgan sana</dt><dd>{{ result.issued_on|date:"d.m.Y" }}</dd>
+      {% if result.is_revoked and result.revoked_on %}<dt>Bekor qilingan sana</dt><dd>{{ result.revoked_on|date:"d.m.Y" }}</dd>{% endif %}
+    </dl>
+    {% if legacy_link %}<p class="d2-verify__note" data-legacy-link>Bu eski havola: to‘liq hujjatni faqat sertifikat egasi ko‘radi. Egasidan yangi tekshirish havolasini so‘rashingiz mumkin.</p>{% endif %}
+    {% if result.is_revoked %}<p class="d2-verify__note">Bu sertifikat bekor qilingan va endi haqiqiy hisoblanmaydi.</p>{% else %}<p class="d2-verify__note">Bu sertifikat {{ site_settings.brand_name|default:"AzureLMS" }} tomonidan berilgan va amalda.</p>{% endif %}
+    {% else %}
+    <p class="d2-verify__status d2-verify__status--bad" role="status" data-verify-state="not_found">Topilmadi</p>
+    <p class="d2-verify__note">Sertifikat topilmadi. Havola to‘liq nusxalanganini tekshiring yoki sertifikat egasidan yangi havola so‘rang.</p>
+    {% endif %}
+    <p class="d2-verify__note">Bu sahifa faqat sertifikat holati, ism, kurs va sanani ko‘rsatadi. Ball, email va boshqa ma’lumot ko‘rsatilmaydi.</p>
+  </main>
+</body>
+</html>

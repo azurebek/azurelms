@@ -237,6 +237,10 @@ class FrontendLoginView(FrontendV1Mixin, LoginView):
         context["auth_intent"] = public_intent.describe(context.get("next", ""))
         if self.auth_editorial_enabled:
             context.update(
+                auth_public_frame=(
+                    "frontend_v1/calm/public/base.html"
+                    if self.platform_calm_enabled else "frontend_v1/editorial/base.html"
+                ),
                 auth_intro="O‘qishni qolgan joyingizdan davom ettiring.",
                 auth_aside_title="Kirgandan keyin",
                 auth_aside_items=(

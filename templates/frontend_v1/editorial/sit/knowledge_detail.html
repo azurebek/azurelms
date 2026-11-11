@@ -1,4 +1,4 @@
-{% extends "frontend_v1/editorial/base.html" %}{% load public_v1 %}
+{% extends public_frame|default:"frontend_v1/editorial/base.html" %}{% load public_v1 %}
 {% block content %}
 <a class="c-text-link p-public-back" href="{% url 'sit:home' %}#kb">Qo‘llanmalarga qaytish</a>
 <article class="p-public-stack">
