@@ -20,6 +20,15 @@
     {% else %}<a class="brand-back" href="{% url 'backoffice_workspace_groups' %}">Guruhlarga qaytish</a>{% endif %}
   {% else %}<a class="brand-back" href="{% url 'backoffice_catalog' %}">Katalogga qaytish</a>{% endif %}
 </section>
+{% if platform_calm_v1 and request.resolver_match.url_name == 'backoffice_cohort_edit' %}
+<section class="d2-group-link" aria-labelledby="d2-group-link-title">
+  <div><h2 id="d2-group-link-title">Telegram guruhi</h2>
+    {% if form.instance.telegram_chat_id %}<p><strong>{{ form.instance.telegram_chat_title|default:"Telegram guruhi" }}</strong> ulangan. Boshqa guruhga o‘tkazsangiz, buyruqni yangi guruhda yuboring.</p>{% else %}<p>Botni Telegram guruhiga administrator qilib qo‘shing, keyin shu buyruqni guruhning o‘zida yuboring.</p>{% endif %}
+  </div>
+  <div class="d2-group-command"><span>Ulash buyrug‘i</span><code>/link_cohort {{ form.instance.pk }}</code></div>
+  <p class="d2-group-link-note">Buyruqni shu kurs ustozi yoki administrator yuboradi. Telegram profilingiz saytdagi hisobga ulangan bo‘lishi kerak.</p>
+</section>
+{% endif %}
 <form method="post" class="brand-panel catalog-form bo-editor">{% csrf_token %}
   {% if form.errors %}<div role="alert"><strong>Saqlanmadi.</strong> Belgilangan maydonlarni tekshiring.{{ form.non_field_errors }}</div>{% endif %}
   <section class="bo-editor-section" aria-labelledby="catalog-main-title">

@@ -3,10 +3,11 @@
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'backoffice/workspace.css' %}">
 {% if backoffice_unified_enabled %}<link rel="stylesheet" href="{% static 'css/brand.css' %}"><link rel="stylesheet" href="{% static 'backoffice/sections.css' %}"><link rel="stylesheet" href="{% static 'backoffice/search.css' %}">{% endif %}
+{% if platform_calm_v1 %}<link rel="stylesheet" href="{% static 'frontend_v1/css/calm-backoffice.css' %}">{% endif %}
 {% block workspace_media %}{% endblock %}
 <script defer src="{% static 'backoffice/workspace.js' %}"></script>
 {% endblock %}
-{% block body_class %}workspace-body{% endblock %}
+{% block body_class %}workspace-body{% if platform_calm_v1 %} d2-backoffice-body{% endif %}{% endblock %}
 {% block body %}
 {% if saved_scope %}<span hidden data-workspace-saved data-saved-scope="{{ saved_scope }}" data-saved-submission-id="{{ saved_submission_id }}"></span>{% endif %}
 <div class="ws-shell">

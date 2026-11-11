@@ -1,0 +1,25 @@
+{% extends "backoffice/workspace/base.html" %}
+{% block workspace_content %}
+<div class="d2-admin-page d2-admin-home" data-calm-page="admin-home">
+  <header class="d2-admin-head"><h1>Salom, {{ request.user.first_name|default:request.user.username }}</h1><time datetime="{% now 'Y-m-d' %}">{% now "d.m.Y" %}</time></header>
+  {% if workspace_search_enabled %}<a class="d2-admin-search" href="{% url 'backoffice_workspace_search' %}"><span aria-hidden="true">⌕</span><span>Kurs, dars, o‘quvchi yoki bo‘lim qidirish</span></a>{% endif %}
+
+  {% if recent_work %}<section class="d2-admin-priority" aria-labelledby="priority-title">
+    <div><span class="d2-admin-muted">Davom eting</span><strong>{{ recent_work|length }} ta ish</strong></div>
+    <div><h2 id="priority-title">Oxirgi ochgan ishingizga qayting</h2><p>{{ recent_work.0.title }}{% if recent_work.0.subtitle %} · {{ recent_work.0.subtitle }}{% endif %}</p></div>
+    <a class="ws-button ws-button-primary" href="{{ recent_work.0.url }}">Davom ettirish</a>
+  </section>{% endif %}
+
+  <section class="d2-admin-section" aria-labelledby="queue-title"><h2 id="queue-title">Keyingi navbat</h2>
+    <div class="d2-admin-rows">
+      <a href="{% url 'teacher_grading' %}"><span><strong>Tekshirilmagan ishlar</strong><small>Vazifa va imtihon javoblarini ko‘ring</small></span><span>Tekshiruvga o‘tish</span></a>
+      {% if request.user.is_superuser %}<a href="{% url 'backoffice_receipts' %}"><span><strong>Cheklar</strong><small>To‘lov dalili va guruhga kirish qarori</small></span><span>Cheklarni ko‘rish</span></a>{% endif %}
+      <a href="{% if backoffice_unified_enabled %}{% url 'backoffice_workspace_groups' %}{% else %}{% url 'teacher_cohorts' %}{% endif %}"><span><strong>Guruhlar</strong><small>A’zolar, davomat va dars ruxsatlari</small></span><span>Guruhlarni ochish</span></a>
+    </div>
+  </section>
+
+  <section class="d2-admin-section" aria-labelledby="courses-title"><div class="d2-admin-section-head"><h2 id="courses-title">Kurslar</h2><a href="{% url 'backoffice_workspace_courses' %}">Barcha kurslar</a></div>
+    <div class="d2-admin-rows">{% for course in recent_courses %}<a href="{% url 'backoffice_workspace_course' course_id=course.pk %}"><span><strong>{{ course.title }}</strong><small>{{ course.get_level_display }}</small></span><span>{% if course.is_active %}Katalogda{% else %}Yashirilgan{% endif %}</span></a>{% empty %}<p class="d2-admin-empty">Kurs yaratilganda shu yerda ko‘rinadi.</p>{% endfor %}</div>
+  </section>
+</div>
+{% endblock %}

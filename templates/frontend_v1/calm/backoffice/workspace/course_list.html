@@ -1,0 +1,13 @@
+{% extends "backoffice/workspace/base.html" %}
+{% block workspace_content %}
+<div class="d2-admin-page d2-admin-list" data-calm-page="admin-courses">
+  <header class="d2-admin-title"><h1>Kurslar</h1><a class="ws-button ws-button-primary" href="{% url 'backoffice_workspace_course_create' %}">Yangi kurs</a></header>
+  <form method="get" class="d2-admin-filters" role="search">
+    <label>Kursni nomi bilan toping<input type="search" name="q" value="{{ q }}"></label>
+    <label>Holati<select name="status"><option value="all"{% if status_filter == 'all' %} selected{% endif %}>Barchasi</option><option value="active"{% if status_filter == 'active' %} selected{% endif %}>Katalogda</option><option value="draft"{% if status_filter == 'draft' %} selected{% endif %}>Yashirilgan</option></select></label>
+    <button class="ws-button" type="submit">Qidirish</button>
+  </form>
+  <section class="d2-admin-rows d2-admin-course-rows" aria-label="Kurslar ro‘yxati">{% for course in page_obj %}<a href="{{ course.workspace_url }}"><span><strong>{{ course.title }}</strong><small>{{ course.get_level_display }}{% if course.instructor %} · {{ course.instructor.get_full_name|default:course.instructor.username }}{% endif %} · {{ course.module_count }} modul · {{ course.lesson_count }} dars</small></span><span>{% if course.is_active %}Katalogda{% else %}Yashirilgan{% endif %}</span></a>{% empty %}<div class="d2-admin-empty"><strong>Kurs topilmadi</strong><p>Boshqa nom bilan qidiring yoki yangi kurs yarating.</p></div>{% endfor %}</section>
+  {% if page_obj.has_other_pages %}<nav class="ws-pagination" aria-label="Kurslar sahifalari">{% if page_obj.has_previous %}<a class="ws-button" href="?q={{ q|urlencode }}&amp;status={{ status_filter|urlencode }}&amp;page={{ page_obj.previous_page_number }}">← Oldingi</a>{% endif %}<span>{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>{% if page_obj.has_next %}<a class="ws-button" href="?q={{ q|urlencode }}&amp;status={{ status_filter|urlencode }}&amp;page={{ page_obj.next_page_number }}">Keyingi →</a>{% endif %}</nav>{% endif %}
+</div>
+{% endblock %}
