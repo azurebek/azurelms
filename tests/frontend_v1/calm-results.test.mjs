@@ -30,6 +30,12 @@ test('exam attempt is a focus page and certificate remains neutral for print', (
   assert.match(certificateCss, /background: white/);
 });
 
+test('results use sketch widths and a single decision column', () => {
+  assert.match(css, /\.d2-results-body \.s-calm-main > \.f-records-stack \{ width: min\(100%, 40rem\)/);
+  assert.match(css, /\.d2-exam-center-body \.s-calm-main > \.p-page-heading \{ width: min\(100%, 45rem\)/);
+  assert.match(css, /\.d2-results-body \.f-records-layout \{ grid-template-columns: minmax\(0, 1fr\)/);
+});
+
 test('shared CALM page asset remains inside its internal budget after results', () => {
   const bytes = gzipSync(Buffer.from(css), {level: 9}).length;
   assert.ok(bytes <= 4300, `calm-pages.css is ${bytes} gzip bytes`);

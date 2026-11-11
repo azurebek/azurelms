@@ -7,8 +7,11 @@ const read = path => readFileSync(new URL(`../../templates/frontend_v1/calm/${pa
 const css = readFileSync(new URL('../../static/frontend_v1/css/calm-teacher.css', import.meta.url), 'utf8');
 
 test('teacher routes are complete CALM renderer groups', () => {
-  assert.match(read('teacher/dashboard.html'), /data-calm-page="teacher-dashboard"/);
-  assert.match(read('teacher/dashboard.html'), /calm\/teacher_assets\.html/);
+  const dashboard = read('teacher/dashboard.html');
+  assert.match(dashboard, /data-calm-page="teacher-dashboard"/);
+  assert.match(dashboard, /calm\/teacher_assets\.html/);
+  assert.match(dashboard, /d2-teacher-today[\s\S]*d2-teacher-review[\s\S]*d2-teacher-groups/);
+  assert.doesNotMatch(dashboard, /d2-teacher-(?:stats|grid|quick)/);
   for (const path of [
     'attendance.html', 'cohorts.html', 'courses.html', 'grade_assignment.html',
     'grade_exam.html', 'grading.html', 'release.html', 'students.html',
@@ -32,6 +35,16 @@ test('teacher classbook routes keep canonical forms behind CALM wrappers', () =>
   }
 });
 
+test('teacher review and live session use the sketch focus frame', () => {
+  for (const path of ['teacher/grade_assignment.html', 'teacher/grade_exam.html', 'classbook/teacher_session.html']) {
+    assert.match(read(path), /block frame_class %}d2-focus-shell/);
+  }
+  assert.match(read('classbook/teacher_home.html'), /d2-classbook-tabs/);
+  assert.match(read('classbook/exercise_list.html'), /d2-classbook-tabs/);
+  assert.match(read('classbook/playbook_form.html'), /d2-classbook-playbook-body/);
+  assert.match(read('classbook/exercise_form.html'), /d2-classbook-exercise-editor-body/);
+});
+
 test('CALM teacher CSS stays scoped and uses only approved breakpoints', () => {
   const rules = css.replace(/\/\*[\s\S]*?\*\//g, '');
   for (const selector of rules.matchAll(/(^|})\s*([^@][^{]+)\{/gm)) {
@@ -40,8 +53,13 @@ test('CALM teacher CSS stays scoped and uses only approved breakpoints', () => {
   }
   const breakpoints = [...css.matchAll(/@media\s*\(width\s*<\s*(\d+)px\)/g)].map(match => Number(match[1]));
   assert.deepEqual([...new Set(breakpoints)], [900, 560]);
-  assert.match(css, /\.d2-teacher-grid[\s\S]*grid-template-columns: minmax\(0, 1fr\)/);
+  assert.match(css, /\.d2-teacher-page \{ width: min\(100%, 47\.5rem\)/);
+  assert.match(css, /\.d2-teacher-directory-body \.f-directory-groups \{[^}]*grid-template-columns: minmax\(0, 1fr\)/);
+  assert.match(css, /\.d2-teacher-review-body \.p-review-layout \{[^}]*grid-template-columns: minmax\(0, 1fr\)/);
   assert.match(css, /\.d2-teacher-queue-body \.p-queue-row \{ grid-template-columns: minmax\(0, 1fr\); \}/);
+  assert.match(css, /\.d2-classbook-playbook-body \.s-calm-main > \.f-classbook-stack \{ width: min\(100%, 42\.5rem\); \}/);
+  assert.match(css, /\.d2-classbook-exercise-editor-body \.s-calm-main > \.f-classbook-stack \{ width: min\(100%, 45rem\); \}/);
+  assert.match(css, /\.d2-classbook-live-body \.s-calm-main > \.f-classbook-stack \{ width: min\(100%, 66\.25rem\); \}/);
 });
 
 test('dedicated CALM teacher asset stays within its internal budget', () => {

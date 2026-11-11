@@ -31,6 +31,8 @@ test('CALM account CSS stays scoped and uses only approved breakpoints', () => {
   assert.deepEqual([...new Set(breakpoints)], [900, 560]);
   assert.match(css, /\.d2-payments-body \.f-records-layout[\s\S]*grid-template-columns: minmax\(0, 1fr\)/);
   assert.match(css, /\.d2-profile-head > \.c-button \{ grid-column: 1 \/ -1; width: 100%; \}/);
+  assert.match(css, /\.d2-account-page \{ width: min\(100%, 40rem\)/);
+  assert.match(css, /\.d2-payments-body \.s-calm-main > \.f-records-stack \{ width: min\(100%, 45rem\)/);
 });
 
 test('dedicated CALM account asset stays within its internal budget', () => {

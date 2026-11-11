@@ -26,6 +26,14 @@ test('daily flow templates are real-data views with calm page identities', () =>
   assert.match(read('lesson.html'), /calm\/practice_quizzes\.html/);
 });
 
+test('learner home follows the sketch single-column reading order', () => {
+  const dashboard = read('dashboard.html');
+  assert.match(dashboard, /d2-next-card[\s\S]*d2-before[\s\S]*d2-my-learning/);
+  assert.doesNotMatch(dashboard, /d2-(?:journey|dashboard-grid|action-list)/);
+  assert.match(css, /\.d2-page--dashboard \{ width: min\(100%, 47\.5rem\)/);
+  assert.match(css, /\.d2-page\[data-calm-page="lesson"\] \{ width: min\(100%, 65rem\)/);
+});
+
 test('messenger, AI, notifications and practice preserve their canonical parents', () => {
   assert.match(read('messenger.html'), /extends "frontend_v1\/messenger\.html"/);
   assert.match(read('ai_messenger.html'), /extends "frontend_v1\/ai_messenger\.html"/);

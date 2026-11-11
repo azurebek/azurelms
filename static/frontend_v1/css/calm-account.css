@@ -3,7 +3,10 @@
 .s-calm .d2-account-body .s-calm-main > .c-tabs,
 .s-calm .d2-account-body .s-calm-main > .v1-account-layout,
 .s-calm .d2-account-body .s-calm-main > .f-records-stack,
-.s-calm .d2-account-page { width: min(100%, 42rem); margin-inline: auto; }
+.s-calm .d2-account-page { width: min(100%, 40rem); margin-inline: auto; }
+.s-calm .d2-payments-body .s-calm-main > .p-page-heading,
+.s-calm .d2-payments-body .s-calm-main > .c-tabs,
+.s-calm .d2-payments-body .s-calm-main > .f-records-stack { width: min(100%, 45rem); }
 .s-calm .d2-account-body .p-page-heading { margin-bottom: var(--az-space-4); }
 .s-calm .d2-account-body .p-page-heading .c-eyebrow { display: none; }
 .s-calm .d2-account-body .p-page-heading h1 { font-size: var(--az-text-2xl); font-weight: 600; letter-spacing: 0; line-height: 1.2; }
@@ -58,7 +61,7 @@
 .s-calm .d2-payments-body .f-records-facts,
 .s-calm .d2-checkout-body .f-records-facts { margin-top: var(--az-space-4); }
 .s-calm .d2-checkout-body .s-calm-main > .p-page-heading,
-.s-calm .d2-checkout-body .s-calm-main > [data-library-root] { width: min(100%, 46rem); margin-inline: auto; }
+.s-calm .d2-checkout-body .s-calm-main > [data-library-root] { width: min(100%, 40rem); margin-inline: auto; }
 .s-calm .d2-checkout-body [data-library-root] > .c-caption:first-child { padding-bottom: var(--az-space-4); border-bottom: 1px solid var(--az-border); }
 .s-calm .d2-checkout-body .f-records-layout .p-panel { padding: var(--az-space-5); border-width: 1px; border-radius: var(--az-radius-lg); }
 .s-calm .d2-checkout-status-body .f-records-layout > section { order: -1; }

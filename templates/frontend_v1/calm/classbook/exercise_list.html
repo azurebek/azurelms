@@ -1,3 +1,10 @@
-{% extends "frontend_v1/classbook/exercise_list.html" %}
+{% extends "frontend_v1/classbook/base.html" %}
 {% block body_class %}{{ block.super }} d2-teacher-body d2-classbook-body d2-classbook-exercises-body{% endblock %}
 {% block extra_head %}{{ block.super }}{% include "frontend_v1/calm/teacher_assets.html" %}{% endblock %}
+{% block heading %}Jonli dars{% endblock %}
+{% block intro %}Mashq bitta kursga tegishli va shu kursdagi dars rejalarida ishlatiladi.{% endblock %}
+{% block heading_action %}<a class="c-button c-button--primary" href="{% url 'classbook:exercise_create' %}">Yangi mashq</a>{% endblock %}
+{% block classbook_body %}
+<nav class="d2-classbook-tabs" aria-label="Jonli dars bo‘limi"><a href="{% url 'classbook:teacher_home' %}">Dars rejasi</a><a aria-current="page" href="{% url 'classbook:exercise_list' %}">Mashqlar banki</a></nav>
+<section class="d2-classbook-bank" aria-label="Mashqlar ro‘yxati"><ul class="f-classbook-list">{% for item in exercises %}<li><div><strong>{{ item.title }}</strong><p class="c-caption">{{ item.course.title }} · {{ item.get_kind_display }}{% if not item.is_active %} · Nofaol{% endif %}</p><p>{{ item.prompt|truncatechars:180 }}</p></div><div><span class="c-badge">{{ item.time_limit_seconds }} soniya</span><p class="c-caption">{{ item.max_points }} ball + {{ item.speed_bonus_percent }}% tezlik</p></div><a class="c-button c-button--secondary" href="{% url 'classbook:exercise_edit' item.pk %}">Tahrirlash</a></li>{% empty %}<li><div><h2>Mashq hali yo‘q</h2><p>Yangi mashq yarating, keyin uni kerakli dars rejasiga qo‘shing.</p></div></li>{% endfor %}</ul></section>
+{% endblock %}
