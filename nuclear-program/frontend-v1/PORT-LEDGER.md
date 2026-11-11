@@ -1,9 +1,17 @@
 # Frontend V1 — bajarish va qabul jurnali
 
-**2026-11-11 DESIGN-02 S3–S6 eskiz mosligi tuzatildi (owner qayta ko‘rigi kutilmoqda):**
+**2026-11-11 DESIGN-02 S7 (owner ko‘rigi kutilmoqda):** `codex/design-02` / `d9b5d1f` Ish stoli va
+Kurslarni eskizga xos rendererga, qolgan workspace/legacy boshqaruv sahifalarini 232px sidebar, yassi qatorlar va
+720–820px CALM ramkaga o‘tkazdi. Guruh sozlamasi haqiqiy ID bilan `/link_cohort ID` ni ko‘rsatadi;
+`/backoffice/chats/` va unified-only hub’lar ruxsatsiz ochilmaydi. OFF render CSRF maskidan tashqari baytga teng.
+Backoffice Django 280 OK, yakuniy catalog/navigation 22 OK, Node 230/230; `calm-backoffice.css` 2 372/4 200 gzip,
+320px overflow 0, console toza. Owner S3–S6 moslik tuzatishini “davom et” bilan qabul qildi; S7 ko‘rigi kutilmoqda.
+
+**2026-11-11 DESIGN-02 S3–S6 eskiz mosligi tuzatildi (owner qabul qildi):**
 `codex/design-02` / `ae1802d` o‘quvchi va ustoz dashboardlarini eskizdagi 760px bitta ustunga qaytardi;
 Natijalar/Hisob/tekshiruv kengliklarini qisqartirdi; Classbook va Mashqlar bankini tabli yassi oqimga,
-tekshirish/jonli darsni fokus ramkaga o‘tkazdi. Oldingi S6 checkpointi owner qabuli emas. Django 130 OK
+tekshirish/jonli darsni fokus ramkaga o‘tkazdi. Oldingi S6 checkpointi owner qabuli emas edi; tuzatish lokal
+ko‘rikdan keyin 2026-11-11 da “davom et” bilan qabul qilindi. Django 130 OK
 (7 skip), Node 227/227, 320px overflow 0, console toza; CALM CSS assetlari o‘z byudjetida. Flag OFF o‘zgarmaydi.
 
 **2026-11-10 DESIGN-02 S6 (owner ko‘rigi kutilmoqda):** `codex/design-02` / `14392c7` Ustoz dashboardi,

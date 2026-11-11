@@ -16,6 +16,26 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-11-11 [Codex]: DESIGN-02 / S7 — Boshqaruv CALM ramkasi owner ko‘rigiga tayyor
+
+Ish stoli va Kurslar eskizdagi 820/720px o‘qish oqimiga ko‘chirildi; mavjud backoffice workspace va legacy
+sahifalar esa bitta 232px sidebar, yassi tab/qatorlar va mobil besh slotli CALM ramkada saqlandi. Hech bir domen
+writeri almashtirilmadi: course/student/capability, chek/tarif, AI/holat, sayt/brend/dizayn/kontent/SIT oqimlari
+kanonik view va formalarda qoladi. Guruh sozlamasi endi haqiqiy ID bilan `/link_cohort ID` buyrug‘ini ko‘rsatadi.
+
+- Branch: `codex/design-02`; draft PR #254. Kod commit: `d9b5d1f`. Bosqich boshida `origin/main` merge qilindi —
+  branch ortda emas edi. S3–S6 moslik tuzatishini owner lokal ko‘rikdan keyin “davom et” bilan qabul qildi.
+- Rollback/ruxsat: `platform_calm_v1` OFF renderi CSRF maskidan tashqari baytga teng; CALM unified-only hub’larni
+  ochmaydi, `/backoffice/chats/` yopiq, capability va owner chegaralari o‘zgarmaydi.
+- Test: backoffice ta’sir to‘plami — **280 OK**; yakuniy catalog/navigation kesimi — **22 OK**; to‘liq frontend
+  Node — **230/230**; `check`, `makemigrations --check --dry-run` va `git diff --check` toza.
+- Brauzer: Ish stoli, Kurslar, O‘quvchilar, Guruhlar, Cheklar, Sayt va dizayn, Sozlamalar desktopda ko‘rildi;
+  Ish stoli/Kurslar 320px’da `scrollWidth=305` (viewport 320), besh mobil slot, console error/warning yo‘q.
+  Guruh sozlamasida `/link_cohort 8` haqiqiy lokal ID bilan ko‘rindi.
+- Asset: `calm-backoffice.css` **2 372/4 200** gzip bayt.
+- Davom etilishi kerak: owner S7’ni lokal serverda ko‘radi; qabul qilsa S8 Ochiq sayt va kirish shu branchda
+  boshlanadi. `main`ga merge faqat S10 oxirida.
+
 ## 2026-11-11 [Codex]: DESIGN-02 / S3–S6 — eskiz mosligi qayta tekshirildi
 
 Owner ko‘rigida ichki CALM sahifalar eskizdan keng va kartochkali bo‘lib qolgani aniqlandi; shu sabab oldingi
