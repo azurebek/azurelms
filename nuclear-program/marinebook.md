@@ -16,6 +16,25 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-11-11 [Codex]: DESIGN-02 / S3–S6 — eskiz mosligi qayta tekshirildi
+
+Owner ko‘rigida ichki CALM sahifalar eskizdan keng va kartochkali bo‘lib qolgani aniqlandi; shu sabab oldingi
+S6 “owner ko‘rigiga tayyor” checkpointi qabul deb hisoblanmadi. O‘quvchi va ustoz dashboardlari eskizdagi
+760px bitta qaror ustuniga qaytarildi, natija/hisob/tekshiruv sahifalari 640–820px fokus kengliklariga tushirildi,
+Classbook bosh sahifasi va Mashqlar banki tabli yassi qatorlarga, tekshirish/jonli dars esa fokus ramkaga o‘tdi.
+
+- Branch: `codex/design-02`; draft PR #254. Kod commit: `ae1802d`; bosqich boshida `origin/main` merge bilan
+  tekshirildi — branch 0 commit ortda edi. Flag OFF V1/legacy shablon va asset yo‘lini o‘zgartirmaydi.
+- Test: ta’sirlangan Django to‘plami — **130 OK (7 skip)**; to‘liq frontend Node suite — **227/227**;
+  `check`, `makemigrations --check --dry-run` va `git diff --check` toza. Moslik testlari bir ustun, fokus ramka,
+  eskiz kengliklari va bezak statistikasi qaytmasligini mahkamladi.
+- Brauzer: Ustoz dashboardi, Classbook/Mashqlar banki, playbook muharriri va Guruhlar desktopda ko‘rildi;
+  320px’da Guruhlar va playbook `scrollWidth=305` (viewport 320), console error/warning yo‘q.
+- Asset: `calm-pages.css` **3 069/4 300**, `calm-account.css` **1 495/2 400**,
+  `calm-teacher.css` **2 261/3 600** gzip bayt.
+- Davom etilishi kerak: owner tuzatilgan S3–S6 ichki sahifalarni lokal serverda qayta ko‘radi; qabul qilsa S6
+  yopilib S7 Boshqaruv shu branchda boshlanadi. `main`ga merge faqat S10 oxirida.
+
 ## 2026-11-10 [Codex]: DESIGN-02 / S6 — Ustoz maydoni owner ko‘rigiga tayyor
 
 Ustoz bosh sahifasi, Tekshiruv navbati va yozma/imtihon tekshiruvi, Guruhlar/O‘quvchilar/Kurslar, Davomat,

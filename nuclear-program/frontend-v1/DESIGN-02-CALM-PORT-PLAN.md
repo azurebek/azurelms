@@ -1,6 +1,6 @@
 # DESIGN-02 — "sokin" dizayn tizimini production'ga ko'chirish rejasi
 
-**Holat — 2026-11-10: S1–S5 owner qabulida; S6 kod/test/browserdan o‘tdi, owner lokal ko‘rigi kutilmoqda.**
+**Holat — 2026-11-11: S1–S5 owner qabulida; S3–S6 eskiz mosligi qayta tuzatildi, S6 owner qayta ko‘rigi kutilmoqda.**
 Owner qarori 2026-11-07: owner bilan qurilgan eskizdagi dizayn tizimi AzureLMS'ning **yangi dizayn tizimi**
 bo'ladi — tokenlar, shrift, o'lchamlar, chegaralar, komponentlar, sahifa turlari va ochiq sayt ham. Bu
 2026-10-30 dagi `#1257e6` tugma qarorini, PE9 dagi 1200px qarorini va PUBLIC-02 editorial ko'rinishini
@@ -301,10 +301,12 @@ serverda owner qabulidan o'tgach alohida kichik PR bilan olib tashlanadi — aks
   Profil, Sozlamalar, Yordam, To‘lovlar, checkout va chek holati CALM’da; ustoz profilida learner to‘lovi yo‘q.
   Signed quote/server recalc, upload/receipt scope, AI preference/memory va stale-form writerlari o‘zgarmaydi.
   Django 162 OK (1 skip), Node 220/220, `calm-account.css` 1 482/2 400 gzip; 320/390px overflow 0, console toza.
-- [ ] S6: Ustoz — kod/test/browser tayyor (`14392c7`, 2026-11-10), owner lokal qabuli kutilmoqda.
+- [ ] S6: Ustoz — dastlabki port `14392c7`; owner topgan eskizdan keng/kartochkali og‘ishlar `ae1802d`
+  bilan tuzatildi (2026-11-11), owner lokal qayta qabuli kutilmoqda.
   Dashboard, tekshiruvlar, guruh/kurs/o‘quvchi/davomat/dars ruxsati, Classbook va Mashqlar banki CALM’da.
   Course-scope/capability, grading/publish, attendance/release, Telegram delivery va mashq sintaksisi o‘zgarmaydi.
-  Django 102 OK (7 skip), Node 224/224, `calm-teacher.css` 2 131/3 600 gzip; 320/390px overflow 0, console toza.
+  Dashboardlar 760px bitta ustun, tekshirish/jonli dars fokus ramka, Classbook tabli yassi oqimda.
+  Django 130 OK (7 skip), Node 227/227, `calm-teacher.css` 2 261/3 600 gzip; 320px overflow 0, console toza.
 
 ### Davom ettiruvchi agent uchun (2026-11-08, Claude → Codex)
 

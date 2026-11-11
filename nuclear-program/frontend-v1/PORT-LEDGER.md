@@ -1,5 +1,11 @@
 # Frontend V1 — bajarish va qabul jurnali
 
+**2026-11-11 DESIGN-02 S3–S6 eskiz mosligi tuzatildi (owner qayta ko‘rigi kutilmoqda):**
+`codex/design-02` / `ae1802d` o‘quvchi va ustoz dashboardlarini eskizdagi 760px bitta ustunga qaytardi;
+Natijalar/Hisob/tekshiruv kengliklarini qisqartirdi; Classbook va Mashqlar bankini tabli yassi oqimga,
+tekshirish/jonli darsni fokus ramkaga o‘tkazdi. Oldingi S6 checkpointi owner qabuli emas. Django 130 OK
+(7 skip), Node 227/227, 320px overflow 0, console toza; CALM CSS assetlari o‘z byudjetida. Flag OFF o‘zgarmaydi.
+
 **2026-11-10 DESIGN-02 S6 (owner ko‘rigi kutilmoqda):** `codex/design-02` / `14392c7` Ustoz dashboardi,
 tekshiruv navbati/yozma/imtihon tekshiruvi, Guruhlar/O‘quvchilar/Kurslar, Davomat/dars ruxsati, Classbook va
 Mashqlar bankini CALM qatlamiga o‘tkazdi. Teacher course-scope/capability, grading/publish, attendance/release,
