@@ -16,6 +16,27 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-11-12 [Codex]: DESIGN-02 / S8 — Ochiq sayt va kirish CALM ramkasi owner ko‘rigiga tayyor
+
+Landing, katalog/kurs/tarif, Biz haqimizda, Blog/maqola, SIT va huquqiy sahifalar PUBLIC-02 dagi haqiqiy
+kontekst va query kontraktini saqlagan holda 1200px sokin public ramkaga ko‘chirildi. Login, ro‘yxat,
+onboarding va reset kanonik forma/CSRF/safe-next/Telegram oqimlari bilan 400px auth fokusiga tushdi; sertifikat
+tekshiruvi minimal ma’lumotli alohida CALM shell oldi. Eskizdagi demo qutilar production ma’lumoti sifatida
+ko‘chirilmagan — owner media yoki domen ma’lumoti yo‘q joy halol neytral/bo‘sh holatda qoladi.
+
+- Branch: `codex/design-02`; draft PR #254. Kod commit: `34c438a`. Bosqich boshida `origin/main` merge qilindi —
+  branch ortda emas edi. Owner S7’ni 2026-11-12 da “davom et” bilan lokal ko‘rikdan qabul qildi.
+- Rollback/kontrakt: `platform_calm_v1` OFF explicit/default public renderi baytga teng. Public query/rost da’vo,
+  SEO/cache/sitemap, auth CSRF/xato/safe-next/Telegram va verifier no-store/noindex/minimal projection o‘zgarmaydi.
+- Test: public/auth/verifier Django to‘plami — **163 OK**; to‘liq frontend Node — **234/234**; `check`,
+  `makemigrations --check --dry-run` va `git diff --check` toza.
+- Brauzer: Landing, Katalog, Kurs va Kirish eskiz bilan yonma-yon ko‘rildi; 320px’da 10 ta public/auth route
+  `scrollWidth=320`, console error/warning yo‘q. Kirish/ro‘yxat tablari va mobil parol ko‘rsatish nazorati bir
+  qatorda. Asosiy server `127.0.0.1:8000` da ishlayapti.
+- Asset: `calm-public.css` **2 676/3 600** gzip bayt; faqat 900/560px breakpointlar, gradient yo‘q.
+- Davom etilishi kerak: owner S8’ni lokal serverda ko‘radi; qabul qilsa S9 Telegram mini-ilova shu branchda
+  boshlanadi. `main`ga merge faqat S10 oxirida.
+
 ## 2026-11-11 [Codex]: DESIGN-02 / S7 — Boshqaruv CALM ramkasi owner ko‘rigiga tayyor
 
 Ish stoli va Kurslar eskizdagi 820/720px o‘qish oqimiga ko‘chirildi; mavjud backoffice workspace va legacy

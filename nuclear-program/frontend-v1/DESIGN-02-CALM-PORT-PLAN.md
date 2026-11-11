@@ -1,6 +1,6 @@
 # DESIGN-02 — "sokin" dizayn tizimini production'ga ko'chirish rejasi
 
-**Holat — 2026-11-11: S1–S6 owner qabulida; S7 Boshqaruv kod/test/brauzerda tayyor, owner ko‘rigi kutilmoqda.**
+**Holat — 2026-11-12: S1–S7 owner qabulida; S8 Ochiq sayt va kirish kod/test/brauzerda tayyor, owner ko‘rigi kutilmoqda.**
 Owner qarori 2026-11-07: owner bilan qurilgan eskizdagi dizayn tizimi AzureLMS'ning **yangi dizayn tizimi**
 bo'ladi — tokenlar, shrift, o'lchamlar, chegaralar, komponentlar, sahifa turlari va ochiq sayt ham. Bu
 2026-10-30 dagi `#1257e6` tugma qarorini, PE9 dagi 1200px qarorini va PUBLIC-02 editorial ko'rinishini
@@ -307,7 +307,8 @@ serverda owner qabulidan o'tgach alohida kichik PR bilan olib tashlanadi — aks
   Course-scope/capability, grading/publish, attendance/release, Telegram delivery va mashq sintaksisi o‘zgarmaydi.
   Dashboardlar 760px bitta ustun, tekshirish/jonli dars fokus ramka, Classbook tabli yassi oqimda.
   Django 130 OK (7 skip), Node 227/227, `calm-teacher.css` 2 261/3 600 gzip; 320px overflow 0, console toza.
-- [ ] S7: Boshqaruv — kod/test/brauzer tayyor (`d9b5d1f`, 2026-11-11), owner lokal ko‘rigi kutilmoqda.
+- [x] S7: Boshqaruv — kod/test/brauzer tayyor (`d9b5d1f`, 2026-11-11), owner 2026-11-12 da
+  “davom et” bilan lokal ko‘rikni qabul qildi.
   Ish stoli va Kurslar eskizga xos alohida rendererda; qidiruv, kurs/dars/topshiriq/test/imtihon muharrirlari,
   materiallar, o‘quvchilar, guruhlar, to‘lovlar, tariflar, AI, xodimlar, holat, sayt/brend/dizayn/kontent/SIT
   mavjud yagona backoffice kontraktini 232px/yassi CALM ramkada saqlaydi. Guruh sozlamasi haqiqiy ID bilan
@@ -315,6 +316,13 @@ serverda owner qabulidan o'tgach alohida kichik PR bilan olib tashlanadi — aks
   render baytlari teng; unified-only hub ochilmaydi. Backoffice Django **280 OK**, yakuniy catalog/navigation
   kesimi **22 OK**, frontend Node **230/230**; `calm-backoffice.css` **2 372/4 200** gzip, 320px overflow 0,
   console toza.
+- [ ] S8: Ochiq sayt va kirish — kod/test/brauzer tayyor (`34c438a`, 2026-11-12), owner lokal ko‘rigi kutilmoqda.
+  Landing, katalog/kurs/tarif, Biz haqimizda, Blog/maqola, SIT, huquqiy hujjatlar, login/ro‘yxat/onboarding/reset
+  kanonik PUBLIC-02 kontekst va formalarini yangi 1200px CALM public ramkada chizadi; sertifikat tekshiruvi alohida
+  maxfiy CALM shell oldi. Soxta eskiz ma’lumoti qo‘shilmadi: owner media yoki domen ma’lumoti yo‘q joy halol bo‘sh
+  holatda qoladi. Flag OFF explicit/default public baytlari teng; query, CSRF, safe-next, Telegram, SEO/cache va
+  verifierning minimal proyeksiyasi o‘zgarmaydi. Django **163 OK**, frontend Node **234/234**;
+  `calm-public.css` **2 676/3 600** gzip, 320px’da 10 marshrut overflow 0, console toza.
 
 ### Davom ettiruvchi agent uchun (2026-11-08, Claude → Codex)
 
