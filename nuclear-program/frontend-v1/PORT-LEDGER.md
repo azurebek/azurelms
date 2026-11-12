@@ -1,11 +1,20 @@
 # Frontend V1 — bajarish va qabul jurnali
 
-**2026-11-12 DESIGN-02 S8 (owner ko‘rigi kutilmoqda):** `codex/design-02` / `34c438a` Landing,
+**2026-11-12 DESIGN-02 S9 (owner lokal/Telegram ko‘rigi kutilmoqda):** `codex/design-02` / `895d66b`
+Mini App’ning sokin profil/bosh sahifasi, real o‘qish ko‘rsatkichlari, tezkor plitkalari, Menyu va to‘rtta pastki
+tabini qo‘shdi. Darslar, Azure AI, bildirishnoma va boshqa bo‘limlar alohida qayta chizilmaydi: kanonik sayt
+sahifalari `tgmini` ramkasida menyusiz ochiladi; deep-link auth ham maqsadni shu shell’ga joylaydi. Flag OFF
+explicit/default baytlari teng, eski to‘rtta Mini App renderer qoladi; query soni oshmaydi. `bot` 260 OK (2 skip),
+ta’sir kesimi 67 OK, Node 239/239; CSS 1 858/3 000 va shell JS 1 209/1 500 gzip, 320/390px overflow 0,
+console toza. Lokal preview ko‘rildi; haqiqiy Telegram qurilmasi owner ko‘rigida ochiq.
+
+**2026-11-12 DESIGN-02 S8 (owner qabul qildi):** `codex/design-02` / `34c438a` Landing,
 katalog/kurs/tarif, Biz haqimizda, Blog/maqola, SIT, huquqiy sahifalar va auth oqimlarini PUBLIC-02 kanonik
 kontekst/formalaridan uzmasdan 1200px CALM public ramkaga o‘tkazdi; sertifikat tekshiruvi alohida maxfiy shell’da.
 Soxta eskiz ma’lumoti qo‘shilmadi. OFF explicit/default public baytlari teng; query, SEO/cache, CSRF/safe-next,
 Telegram va verifier minimal proyeksiyasi saqlandi. Django 163 OK, Node 234/234; `calm-public.css` 2 676/3 600
-gzip, 320px’da 10 marshrut overflow 0, console toza. Owner lokal ko‘rigi kutilmoqda.
+gzip, 320px’da 10 marshrut overflow 0, console toza. Owner 2026-11-12 da “davom et” bilan lokal ko‘rikni
+qabul qildi.
 
 **2026-11-11 DESIGN-02 S7 (2026-11-12 owner qabul qildi):** `codex/design-02` / `d9b5d1f` Ish stoli va
 Kurslarni eskizga xos rendererga, qolgan workspace/legacy boshqaruv sahifalarini 232px sidebar, yassi qatorlar va

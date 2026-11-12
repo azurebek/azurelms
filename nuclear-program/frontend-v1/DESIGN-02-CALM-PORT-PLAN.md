@@ -316,13 +316,23 @@ serverda owner qabulidan o'tgach alohida kichik PR bilan olib tashlanadi — aks
   render baytlari teng; unified-only hub ochilmaydi. Backoffice Django **280 OK**, yakuniy catalog/navigation
   kesimi **22 OK**, frontend Node **230/230**; `calm-backoffice.css` **2 372/4 200** gzip, 320px overflow 0,
   console toza.
-- [ ] S8: Ochiq sayt va kirish — kod/test/brauzer tayyor (`34c438a`, 2026-11-12), owner lokal ko‘rigi kutilmoqda.
+- [x] S8: Ochiq sayt va kirish — kod/test/brauzer tayyor (`34c438a`, 2026-11-12), owner “davom et” bilan
+  lokal ko‘rikni qabul qildi.
   Landing, katalog/kurs/tarif, Biz haqimizda, Blog/maqola, SIT, huquqiy hujjatlar, login/ro‘yxat/onboarding/reset
   kanonik PUBLIC-02 kontekst va formalarini yangi 1200px CALM public ramkada chizadi; sertifikat tekshiruvi alohida
   maxfiy CALM shell oldi. Soxta eskiz ma’lumoti qo‘shilmadi: owner media yoki domen ma’lumoti yo‘q joy halol bo‘sh
   holatda qoladi. Flag OFF explicit/default public baytlari teng; query, CSRF, safe-next, Telegram, SEO/cache va
   verifierning minimal proyeksiyasi o‘zgarmaydi. Django **163 OK**, frontend Node **234/234**;
   `calm-public.css` **2 676/3 600** gzip, 320px’da 10 marshrut overflow 0, console toza.
+- [ ] S9: Telegram Mini App — kod/test/brauzer tayyor (`895d66b`, 2026-11-12), owner lokal va haqiqiy Telegram
+  qurilmasidagi ko‘rigi kutilmoqda. Mini-ilovada eskizdagi kichik profil/bosh sahifa, real XP/kurs/dars ma’lumoti,
+  tezkor plitkalar, Menyu va to‘rtta pastki tab bor; Darslar, Azure AI, bildirishnoma va boshqa bo‘limlar D7 bo‘yicha
+  kanonik sayt sahifalarini `tgmini` ramkasida menyusiz ochadi. Telegram BackButton/tema/safe-area ulangan; deep-link
+  auth canonical maqsadni shu ramkaga joylaydi, lokal preview ham production frame/CSP sessiya kontraktini oladi.
+  Flag OFF explicit/default bosh sahifa baytlari teng va to‘rtta eski `bot/miniapp_*` renderer o‘zgarmaydi; CALM
+  query soni legacy’dan oshmaydi. `bot` **260 OK (2 skip)**, ta’sir kesimi **67 OK**, frontend Node **239/239**;
+  `calm-miniapp.css` **1 858/3 000** gzip, shell JS **1 209/1 500** gzip; 320/390px parent va canonical frame
+  overflow 0, brauzer console toza. Haqiqiy Telegram qurilmasi bu muhitda yakuniy tasdiqlanmagan.
 
 ### Davom ettiruvchi agent uchun (2026-11-08, Claude → Codex)
 

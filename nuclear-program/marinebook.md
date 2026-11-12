@@ -16,6 +16,28 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-11-12 [Codex]: DESIGN-02 / S9 — Telegram Mini App CALM ramkasi owner ko‘rigiga tayyor
+
+Mini-ilova eskizdagi kichik profil/bosh sahifa, real XP/kurs/dars ko‘rsatkichlari, tezkor plitkalar, Menyu va
+to‘rtta pastki tab bilan CALM’ga ko‘chirildi. Darslar, Azure AI, bildirishnoma va boshqa bo‘limlar alohida
+shablonda takrorlanmaydi: kanonik sayt sahifalari D7 bo‘yicha `tgmini` nomli ramkada menyusiz ochiladi;
+Telegram BackButton/tema/deep-link auth va safe-area shu bitta shell’da ishlaydi.
+
+- Branch: `codex/design-02`; draft PR #254. Kod commit: `895d66b`. Bosqich boshida `origin/main` merge bilan
+  tekshirildi — branch ortda emas edi. Owner S8’ni 2026-11-12 da “davom et” bilan lokal ko‘rikdan qabul qildi.
+- Rollback/kontrakt: `platform_calm_v1` OFF explicit/default home renderi baytga teng, eski entry/home/courses/AI/
+  profile shablonlari aynan qoladi. Mini App sessiyasi canonical access/release/write qoidalariga imtiyoz bermaydi;
+  query soni legacy’dan oshmaydi. Lokal preview production’dagi frame/CSP sessiya kontraktini takrorlaydi.
+- Test: to‘liq `bot` — **260 OK (2 skip)**; bot/CSP/shell ta’sir kesimi — **67 OK**; to‘liq frontend Node —
+  **239/239**; `check`, `makemigrations --check --dry-run`, statik a11y probe va `git diff --check` toza.
+- Brauzer: 390px va 320px’da bosh sahifa/Menyu hamda canonical Darslar/Azure AI ramkasi ko‘rildi; parent
+  `390/390`, `320/320`, child `360/360`, `305/305`, `data-mini` faol, ichki sidebar yashirin. Yangi console
+  error/warning yo‘q. Edge’da lokal ko‘rik tabi ochiq qoldirildi.
+- Asset: `calm-miniapp.css` **1 858/3 000**, `calm-miniapp.js` **1 209/1 500** gzip bayt; gradient/soya va
+  eskizdagi namuna raqam/vaqt production’ga ko‘chmadi.
+- Davom etilishi kerak: owner lokal Mini App’ni va haqiqiy Telegram qurilmasida initData/BackButton/theme/safe-area
+  oqimini ko‘radi. Qabul qilsa S9 yopilib S10 yoqish/tozalash boshlanadi; `main`ga merge faqat S10 oxirida.
+
 ## 2026-11-12 [Codex]: DESIGN-02 / S8 — Ochiq sayt va kirish CALM ramkasi owner ko‘rigiga tayyor
 
 Landing, katalog/kurs/tarif, Biz haqimizda, Blog/maqola, SIT va huquqiy sahifalar PUBLIC-02 dagi haqiqiy
