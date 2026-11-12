@@ -102,6 +102,24 @@ class TokenTests(VerifierWorld):
 
 
 class PublicPageTests(VerifierWorld):
+    def test_calm_flag_changes_only_the_verifier_presentation(self):
+        set_flag("platform_calm_v1", False)
+        legacy = self.client.get(self.url())
+        self.assertTemplateUsed(legacy, "courses/certificate_verify.html")
+        self.assertNotContains(legacy, "frontend_v1/css/calm-public.css")
+
+        set_flag("platform_calm_v1", True)
+        calm = self.client.get(self.url())
+        self.assertEqual(calm.status_code, legacy.status_code)
+        self.assertTemplateUsed(calm, "frontend_v1/calm/public/certificate_verify.html")
+        self.assertContains(calm, 'class="s-calm"')
+        self.assertContains(calm, "frontend_v1/css/calm-public.css")
+        self.assertContains(calm, 'data-verify-state="verifiable"')
+        for value in ("Ali V.", "Turk tili A1"):
+            self.assertContains(calm, value)
+        for secret in ("91", "ali.maxfiy", self.certificate.certificate_id):
+            self.assertNotContains(calm, secret)
+
     def test_the_verifier_is_off_until_the_owner_turns_it_on(self):
         set_flag("certificate_public_verifier", False)
         response = self.client.get(self.url())

@@ -1,4 +1,5 @@
 """Navigation rollout, scope and writer entry parity at the real HTTP boundary."""
+import re
 from datetime import date
 
 from django.contrib.auth import get_user_model
@@ -63,6 +64,47 @@ class BackofficeNavigationTests(TestCase):
         self.assertContains(response, 'Saved navigation brand')
         self.assertContains(response, 'brand/synthetic-navigation-mark.svg')
         self.assertContains(response, 'brand-logo-mark--image')
+
+    def test_calm_flag_selects_sketch_backoffice_without_changing_rollback(self):
+        set_flag('backoffice_course_workspace', enabled=True, reason='DESIGN-02 S7 renderer regression')
+        response = self.get('backoffice_workspace_home')
+        rollback_baseline = re.sub(
+            br'(name="csrfmiddlewaretoken" value=")[^"]+("\s*/?>)', br'\1<csrf>\2', response.content,
+        )
+        self.assertTemplateNotUsed(response, 'frontend_v1/calm/backoffice/workspace/home.html')
+        self.assertNotContains(response, 'calm-backoffice.css')
+        self.assertNotContains(response, 'data-calm-page="admin-home"')
+        self.assertNotContains(response, 'ws-nav-key-home')
+
+        set_flag('platform_calm_v1', enabled=True, reason='DESIGN-02 S7 renderer regression')
+        response = self.get('backoffice_workspace_home')
+        self.assertTemplateUsed(response, 'frontend_v1/calm/backoffice/workspace/home.html')
+        self.assertContains(response, 'calm-backoffice.css')
+        self.assertContains(response, 'class="workspace-body d2-backoffice-body"')
+        self.assertContains(response, 'data-calm-page="admin-home"')
+        self.assertContains(response, 'ws-nav-key-home')
+
+        legacy = self.get('backoffice_receipts')
+        self.assertTemplateUsed(legacy, 'backoffice/workspace/base.html')
+        self.assertContains(legacy, 'calm-backoffice.css')
+
+        set_flag('platform_calm_v1', enabled=False, reason='DESIGN-02 S7 rollback regression')
+        response = self.get('backoffice_workspace_home')
+        self.assertTemplateNotUsed(response, 'frontend_v1/calm/backoffice/workspace/home.html')
+        self.assertNotContains(response, 'calm-backoffice.css')
+        rollback_response = re.sub(
+            br'(name="csrfmiddlewaretoken" value=")[^"]+("\s*/?>)', br'\1<csrf>\2', response.content,
+        )
+        self.assertEqual(rollback_response, rollback_baseline)
+
+    def test_calm_shell_does_not_open_unified_only_hubs(self):
+        set_flag('backoffice_unified_navigation', enabled=False, reason='Independent CALM shell regression')
+        set_flag('platform_calm_v1', enabled=True, reason='Independent CALM shell regression')
+        self.assertEqual(self.get('backoffice_workspace_settings').status_code, 404)
+        response = self.get('backoffice_receipts')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'calm-backoffice.css')
+        self.assertNotContains(response, reverse('backoffice_workspace_settings'))
 
     def test_flag_off_closes_new_hubs_but_preserves_old_shells(self):
         set_flag('backoffice_unified_navigation', enabled=False, reason='Renderer rollback')

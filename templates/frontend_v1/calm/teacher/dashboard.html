@@ -1,0 +1,41 @@
+{% extends "frontend_v1/calm/platform.html" %}
+{% block body_class %}d2-teacher-body d2-teacher-dashboard-body{% endblock %}
+{% block extra_head %}{% include "frontend_v1/calm/teacher_assets.html" %}{% endblock %}
+{% block content %}
+<div class="d2-teacher-page" data-calm-page="teacher-dashboard">
+  <header class="d2-sketch-head">
+    <div><h1>Salom, {{ request.user.first_name|default:request.user.username }}</h1><p>Bugungi dars va tekshiruvlarni shu yerdan boshqaring.</p></div>
+    <time datetime="{% now 'Y-m-d' %}">{% now "d.m.Y" %}</time>
+  </header>
+
+  <section class="d2-teacher-today" aria-labelledby="teacher-live-title">
+    <div class="d2-teacher-today__mark"><span>Bugun</span><strong>Jonli dars</strong></div>
+    <div class="d2-teacher-today__copy">
+      {% with first_cohort=cohorts.0 %}
+      <h2 id="teacher-live-title">{% if first_cohort %}{{ first_cohort.name }}{% else %}Darsni tayyorlash{% endif %}</h2>
+      <p>{% if first_cohort %}{{ first_cohort.course.title }} · {{ first_cohort.members_count }} faol o‘quvchi{% else %}Biriktirilgan guruh va dars shu yerda tanlanadi.{% endif %}</p>
+      {% endwith %}
+    </div>
+    <div class="d2-teacher-today__actions"><a class="c-button c-button--primary" href="{% url 'classbook:teacher_home' %}">Jonli darsni ochish</a><a class="c-button c-button--secondary" href="{% url 'teacher_attendance' %}">Davomat</a></div>
+  </section>
+
+  <section class="d2-teacher-review" aria-labelledby="teacher-queue-title">
+    <div class="d2-teacher-review__head">
+      <div><h2 id="teacher-queue-title">Tekshiruvni kutmoqda</h2><p>{{ kpis.pending_assignments }} ta vazifa va {{ kpis.pending_exams }} ta imtihon</p></div>
+      <a class="c-button c-button--primary" href="{% url 'teacher_grading' %}">Tekshirishni boshlash</a>
+    </div>
+    <div class="d2-teacher-list">
+      {% for submission in queue_assignments %}<a href="{% url 'teacher_grade_assignment' submission.id %}"><span><strong>{{ submission.student.get_full_name|default:submission.student.username }}</strong><small>{{ submission.assignment.title }} · Vazifa</small></span><time datetime="{{ submission.updated_at|date:'c' }}">{{ submission.updated_at|date:'d.m.Y H:i' }}</time></a>{% endfor %}
+      {% for attempt in queue_exams %}<a href="{% url 'teacher_grade_exam' attempt.id %}"><span><strong>{{ attempt.student.get_full_name|default:attempt.student.username }}</strong><small>{{ attempt.exam.title }} · Imtihon</small></span><time datetime="{{ attempt.completed_time|date:'c' }}">{{ attempt.completed_time|date:'d.m.Y H:i' }}</time></a>{% endfor %}
+      {% if not queue_exams and not queue_assignments %}<p class="d2-teacher-empty">Hozir tekshirishni kutayotgan ish yo‘q.</p>{% endif %}
+    </div>
+  </section>
+
+  <section class="d2-teacher-groups" aria-labelledby="teacher-groups-title">
+    <div class="d2-teacher-section-head"><h2 id="teacher-groups-title">Guruhlarim</h2><a href="{% url 'teacher_cohorts' %}">Hammasi</a></div>
+    <div class="d2-teacher-list">
+      {% for group in cohorts %}<a href="{% url 'teacher_students' %}?cohort={{ group.pk }}"><span><strong>{{ group.name }}</strong><small>{{ group.course.title }} · {{ group.members_count }} faol o‘quvchi</small></span><span class="d2-teacher-arrow" aria-hidden="true">→</span></a>{% empty %}<p class="d2-teacher-empty">Sizga biriktirilgan faol guruhlar shu yerda ko‘rinadi.</p>{% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

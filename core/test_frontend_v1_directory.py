@@ -58,6 +58,21 @@ class DirectoryAttendanceTests(TestCase):
         for page in ('courses', 'cohorts', 'students', 'attendance'):
             self.assertTemplateUsed(self.client.get(reverse('teacher_' + page)), f'teacher/{page}.html')
 
+    def test_calm_directory_layer_is_flagged_and_keeps_teacher_scope(self):
+        set_flag('platform_calm_v1', enabled=True, reason='DESIGN-02 S6 regression')
+        for page in ('courses', 'cohorts', 'students', 'attendance'):
+            response = self.client.get(reverse('teacher_' + page))
+            self.assertTemplateUsed(response, f'frontend_v1/calm/teacher/{page}.html')
+            self.assertContains(response, 'frontend_v1/css/calm-teacher.css')
+            self.assertNotContains(response, 'Hidden cohort')
+            self.assertNotContains(response, 'Hidden course')
+        self.assertFalse(Attendance.objects.exists())
+        self.assertFalse(CohortLessonRelease.objects.exists())
+        set_flag('platform_calm_v1', enabled=False, reason='DESIGN-02 S6 rollback')
+        response = self.client.get(reverse('teacher_cohorts'))
+        self.assertTemplateUsed(response, 'frontend_v1/teacher/cohorts.html')
+        self.assertNotContains(response, 'frontend_v1/css/calm-teacher.css')
+
     def test_empty_unassigned_staff_learner_anonymous_owner(self):
         staff = get_user_model().objects.create_user('empty-staff', 'empty@example.test', is_staff=True)
         for user in (staff, self.student):

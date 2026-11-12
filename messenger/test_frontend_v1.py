@@ -51,6 +51,14 @@ class HumanMessengerV1Tests(TestCase):
         FeatureFlag.objects.filter(slug='frontend_v1_messenger').delete()
         self.assertTemplateUsed(self.client.get(reverse('messenger:group')), 'messenger/group.html')
 
+    def test_calm_flag_wraps_human_chat_without_replacing_chat_contract(self):
+        FeatureFlag.objects.create(slug='platform_calm_v1', enabled=True)
+        response = self.client.get(reverse('messenger:group'))
+        self.assertTemplateUsed(response, 'frontend_v1/calm/messenger.html')
+        self.assertContains(response, 'd2-messenger')
+        self.assertContains(response, 'data-chat-root')
+        self.assertContains(response, 'data-history-url=')
+
     def test_all_allowed_rooms_and_exact_selection(self):
         response = self.client.get(reverse('messenger:group'), {'room': self.room.pk})
         self.assertEqual(response.context['active_chat_room'].pk, self.room.pk)

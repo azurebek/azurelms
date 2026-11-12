@@ -191,3 +191,15 @@ class CatalogNavigationTests(TestCase):
                 self.assertContains(response, 'Katalogga qaytish')
                 self.assertNotContains(response, 'Tariflarga qaytish')
                 self.assertNotContains(response, 'Guruhlarga qaytish')
+
+    def test_calm_group_settings_shows_real_telegram_link_command_only_when_enabled(self):
+        self.navigation(True)
+        url = reverse('backoffice_cohort_edit', args=[self.cohort.pk])
+        response = self.client.get(url)
+        self.assertNotContains(response, f'/link_cohort {self.cohort.pk}')
+
+        set_flag('platform_calm_v1', enabled=True, reason='DESIGN-02 S7 group link command')
+        response = self.client.get(url)
+        self.assertContains(response, 'Telegram guruhi')
+        self.assertContains(response, f'/link_cohort {self.cohort.pk}')
+        self.assertContains(response, 'Ulash buyrug‘i')

@@ -1,3 +1,26 @@
+/* Figtree 400/500/600 — official OFL build, vendored in `../fonts/` for CALM only. */
+@font-face {
+  font-family: "Figtree";
+  src: url("../fonts/Figtree-Regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Figtree";
+  src: url("../fonts/Figtree-Medium.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Figtree";
+  src: url("../fonts/Figtree-SemiBold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+
 :root {
   color-scheme: light;
   --az-canvas: #f6f8fb;

@@ -34,7 +34,10 @@ class AccountV1Mixin(FrontendV1Mixin):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.frontend_v1_enabled:
-            context['settings_tabs'] = settings_navigation(getattr(self, 'settings_section', 'profile'))
+            context['settings_tabs'] = settings_navigation(
+                getattr(self, 'settings_section', 'profile'),
+                calm=self.platform_calm_enabled,
+            )
             context['settings_legacy'] = not flag_enabled('frontend_v1_settings')
             if self.request.user.is_staff and flag_enabled("frontend_v1_teacher"):
                 context.update(teacher_v1_navigation("teacher_dashboard"))

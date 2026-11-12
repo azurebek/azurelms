@@ -1,0 +1,20 @@
+<details class="s-calm-popover s-calm-account" data-calm-popover>
+  <summary class="s-calm-account__summary">
+    <span class="c-avatar">{% if request.user.avatar %}<img src="{{ request.user.avatar.url }}" alt="" data-avatar-image>{% else %}{{ request.user.first_name.0|default:request.user.username.0|upper }}{{ request.user.last_name.0|upper }}{% endif %}</span>
+    <span class="s-calm-account__identity"><strong>{{ request.user.get_full_name|default:request.user.username }}</strong><small>{% if frontend_v1_role == "teacher" %}Ustoz{% else %}O‘quvchi{% endif %}</small></span>
+    {% include "frontend_v1/icon.html" with name="chevron" %}
+  </summary>
+  <div class="s-calm-popover__panel s-calm-account__panel" data-calm-popover-panel>
+    <a class="s-calm-popover__link" href="{% url 'profile' %}">{% include "frontend_v1/icon.html" with name="users" %}<span>Profil</span></a>
+    <a class="s-calm-popover__link" href="{% url 'settings' %}">{% include "frontend_v1/icon.html" with name="settings" %}<span>Sozlamalar</span></a>
+    {% if frontend_v1_role != "teacher" %}<a class="s-calm-popover__link" href="{% url 'subscriptions' %}">{% include "frontend_v1/icon.html" with name="book" %}<span>To‘lovlar</span></a>{% endif %}
+    {% if request.user.is_staff %}
+    <a class="s-calm-popover__link" href="{% url 'teacher_dashboard' %}">{% include "frontend_v1/icon.html" with name="home" %}<span>O‘qituvchi paneli</span></a>
+    {% if request.user.is_superuser or perms.core.platform_stats_view and perms.core.finance_receipt_review and perms.core.learner_pii_view %}<a class="s-calm-popover__link" href="{% url 'backoffice_dashboard' %}">{% include "frontend_v1/icon.html" with name="sliders" %}<span>Admin paneli</span></a>{% endif %}
+    {% endif %}
+    <div class="s-calm-theme" role="group" aria-label="Mavzu">
+      <span>Mavzu</span><div class="s-calm-theme__choices"><button type="button" data-action="theme.set" data-theme-value="light">Yorug‘</button><button type="button" data-action="theme.set" data-theme-value="dark">Qorong‘i</button></div>
+    </div>
+    <form method="post" action="{% url 'logout' %}" data-v1-logout>{% csrf_token %}<button class="s-calm-popover__link s-calm-account__logout" type="submit">{% include "frontend_v1/icon.html" with name="external" %}<span>Hisobdan chiqish</span></button></form>
+  </div>
+</details>

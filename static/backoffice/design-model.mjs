@@ -70,7 +70,7 @@ export function builtin(catalog, id) {
   const preset = catalog.presets.find(item => item.id === id);
   if (!preset) throw Error('Variant topilmadi.');
   const value = defaults(catalog);
-  Object.assign(value.values, preset.values);
+  for (const section of ['light','dark','values']) Object.assign(value[section], preset[section] || {});
   return validate(catalog, value);
 }
 export function presetName(name) {

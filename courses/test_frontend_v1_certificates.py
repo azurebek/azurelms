@@ -54,6 +54,21 @@ class CertificateDocumentV1Tests(TestCase):
             self.assertContains(response, 'frontend_v1/js/certificates.js')
             self.assertNotContains(response, 'SINOV NAMUNASI')
 
+    def test_calm_documents_keep_print_contract_and_renderer_boundary(self):
+        set_flag('platform_calm_v1', enabled=True, reason='DESIGN-02 S4 certificates regression')
+        for url, template in ((self.detail, 'detail'), (self.appendix, 'appendix')):
+            response = self.client.get(url)
+            self.assertTemplateUsed(response, f'frontend_v1/calm/certificates/{template}.html')
+            self.assertContains(response, 'd2-certificate-body')
+            self.assertContains(response, '/static/frontend_v1/css/calm-pages.css')
+            self.assertContains(response, 'data-certificate-print')
+
+        set_flag('platform_calm_v1', enabled=False, reason='DESIGN-02 S4 renderer boundary')
+        response = self.client.get(self.detail)
+        self.assertTemplateUsed(response, 'frontend_v1/certificates/detail.html')
+        self.assertTemplateNotUsed(response, 'frontend_v1/calm/certificates/detail.html')
+        self.assertNotContains(response, '/static/frontend_v1/css/calm-pages.css')
+
     def test_only_published_sections_not_draft_pending_or_other_users(self):
         attempt = ExamAttempt.objects.create(student=self.student, exam=self.exam, is_completed=True)
         review = ExamSectionReview.objects.create(attempt=attempt, section=self.section, awarded_score=7)

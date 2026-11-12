@@ -1,0 +1,86 @@
+{% extends "frontend_v1/calm/bot/miniapp_base.html" %}
+{% block title %}Bosh sahifa{% endblock %}
+{% block body %}
+<div class="d2-mini-shell" data-calm-miniapp data-initial-view="{% if miniapp_initial_url %}frame{% else %}home{% endif %}" data-initial-tab="{{ active_tab }}">
+  <header class="d2-mini-head">
+    <button class="d2-mini-head__side" type="button" data-mini-back>{% if miniapp_initial_url %}‹ Orqaga{% else %}Yopish{% endif %}</button>
+    <a class="d2-mini-title" href="{% url 'bot:miniapp_home' %}" data-mini-home aria-label="Mini ilova bosh sahifasi"><strong>{{ site_settings.brand_name|default:"AzureLMS" }}</strong><small>mini ilova</small></a>
+    <a class="d2-mini-head__side d2-mini-bell" href="{% url 'notifications' %}" target="tgmini" data-mini-open data-frame-title="Bildirishnomalar" aria-label="Bildirishnomalar{% if unread_notifications_count %}: {{ unread_notifications_count }} ta yangi{% endif %}">{% include "frontend_v1/icon.html" with name="message" %}{% if unread_notifications_count %}<span>{{ unread_notifications_count }}</span>{% endif %}</a>
+  </header>
+
+  <main class="d2-mini-main">
+    <section class="d2-mini-view d2-mini-home" data-mini-view="home"{% if miniapp_initial_url %} hidden{% endif %}>
+      {% if is_local_preview %}<p class="d2-mini-preview"><span aria-hidden="true"></span>Lokal ko‘rik</p>{% endif %}
+      <div class="d2-mini-band" aria-hidden="true"></div>
+      <section class="d2-mini-profile" aria-labelledby="mini-profile-name">
+        <span class="d2-mini-avatar" aria-hidden="true">{% if request.user.avatar %}<img src="{{ request.user.avatar.url }}" alt="">{% else %}{{ request.user.first_name.0|default:request.user.username.0|upper }}{{ request.user.last_name.0|upper }}{% endif %}</span>
+        <h1 id="mini-profile-name">{{ request.user.get_full_name|default:request.user.username }}</h1>
+        <p>{% if primary_enrollment %}{{ primary_enrollment.cohort.course.title }} · {{ primary_enrollment.cohort.name }}{% else %}Turk tilini o‘rganish maydoni{% endif %}</p>
+        <div class="d2-mini-stats" aria-label="O‘qish natijalari">
+          <a href="{% url 'leaderboard' %}" target="tgmini" data-mini-open data-frame-title="Reyting"><strong>{{ request.user.total_xp|default:0 }}</strong><span>XP</span></a>
+          <a href="{% url 'my_courses' %}" target="tgmini" data-mini-open data-frame-title="Darslarim"><strong>{{ active_enrollments|length }}</strong><span>faol kurs</span></a>
+          <a href="{% if primary_enrollment %}{% url 'course_study' primary_enrollment.cohort.course_id %}?cohort={{ primary_enrollment.cohort_id }}{% else %}{% url 'my_courses' %}{% endif %}" target="tgmini" data-mini-open data-frame-title="Darslar"><strong>{% if primary_enrollment %}{{ primary_enrollment.dashboard_completed_lessons }} / {{ primary_enrollment.dashboard_total_lessons }}{% else %}0{% endif %}</strong><span>dars</span></a>
+        </div>
+      </section>
+
+      <section class="d2-mini-next">
+        {% if primary_enrollment %}
+        <p class="d2-mini-kicker">Davom ettirish</p>
+        <h2>{{ primary_enrollment.cohort.course.title }}</h2>
+        <p>{{ primary_enrollment.dashboard_completed_lessons }} / {{ primary_enrollment.dashboard_total_lessons }} dars yakunlangan · {{ primary_enrollment.dashboard_progress }}%</p>
+        <a class="d2-mini-button" href="{% url 'course_study' primary_enrollment.cohort.course_id %}?cohort={{ primary_enrollment.cohort_id }}" target="tgmini" data-mini-open data-frame-title="{{ primary_enrollment.cohort.course.title }}">Darsni ochish</a>
+        {% else %}
+        <p class="d2-mini-kicker">Boshlash uchun</p>
+        <h2>Kurslaringiz shu yerda chiqadi</h2>
+        <p>Faol kurs biriktirilgach keyingi darsga shu yerdan o‘tasiz.</p>
+        <a class="d2-mini-button d2-mini-button--secondary" href="{% url 'my_courses' %}" target="tgmini" data-mini-open data-frame-title="Darslarim">Darslarimni ochish</a>
+        {% endif %}
+      </section>
+
+      <div class="d2-mini-section-head"><h2>Tezkor menyu</h2><a href="#mini-menu" data-mini-menu>Hammasi</a></div>
+      <div class="d2-mini-tiles">
+        <a href="{% url 'my_courses' %}" target="tgmini" data-mini-open data-frame-title="Darslarim">{% include "frontend_v1/icon.html" with name="book" %}<span>Darslarim</span></a>
+        <a href="{% url 'messenger:ai' %}" target="tgmini" data-mini-open data-frame-title="Azure AI">{% include "frontend_v1/icon.html" with name="sprout" %}<span>Azure AI</span></a>
+        <a href="{% url 'exam_center' %}" target="tgmini" data-mini-open data-frame-title="Imtihonlar">{% include "frontend_v1/icon.html" with name="exam" %}<span>Imtihonlar</span></a>
+        <a href="{% url 'attendance_calendar' %}" target="tgmini" data-mini-open data-frame-title="Davomat">{% include "frontend_v1/icon.html" with name="calendar" %}<span>Davomat</span></a>
+        <a href="{% url 'certificates' %}" target="tgmini" data-mini-open data-frame-title="Sertifikatlar">{% include "frontend_v1/icon.html" with name="award" %}<span>Sertifikatlar</span></a>
+        <a href="{% url 'messenger:group' %}" target="tgmini" data-mini-open data-frame-title="Xabarlar">{% include "frontend_v1/icon.html" with name="message" %}<span>Xabarlar</span></a>
+      </div>
+
+      <section class="d2-mini-before" aria-labelledby="mini-before-title">
+        <h2 id="mini-before-title">Darsdan oldin</h2>
+        {% for item in notifications|slice:":2" %}
+        <a href="{% url 'notifications' %}#notice-{{ item.pk }}" target="tgmini" data-mini-open data-frame-title="Bildirishnomalar"><span><strong>{{ item.title|default:"Bildirishnoma" }}</strong><small>{{ item.message|truncatechars:72 }}</small></span><span>O‘qish</span></a>
+        {% empty %}
+        {% for enrollment in active_enrollments|slice:":2" %}
+        <a href="{% url 'course_study' enrollment.cohort.course_id %}?cohort={{ enrollment.cohort_id }}" target="tgmini" data-mini-open data-frame-title="{{ enrollment.cohort.course.title }}"><span><strong>{{ enrollment.cohort.course.title }}</strong><small>{{ enrollment.dashboard_completed_lessons }} / {{ enrollment.dashboard_total_lessons }} dars yakunlangan</small></span><span>Ochish</span></a>
+        {% empty %}<p>Hozircha tayyorlanadigan qadam yo‘q.</p>{% endfor %}
+        {% endfor %}
+      </section>
+    </section>
+
+    <section id="mini-menu" class="d2-mini-view d2-mini-menu" data-mini-view="menu" hidden>
+      <h2>Menyu</h2>
+      <div class="d2-mini-tiles">
+        <a href="{% url 'profile' %}" target="tgmini" data-mini-open data-frame-title="Profil">{% include "frontend_v1/icon.html" with name="users" %}<span>Profil</span></a>
+        <a href="{% url 'settings' %}" target="tgmini" data-mini-open data-frame-title="Sozlamalar">{% include "frontend_v1/icon.html" with name="settings" %}<span>Sozlamalar</span></a>
+        <a href="{% url 'subscriptions' %}" target="tgmini" data-mini-open data-frame-title="To‘lovlar">{% include "frontend_v1/icon.html" with name="book" %}<span>To‘lovlar</span></a>
+        <a href="{% url 'leaderboard' %}" target="tgmini" data-mini-open data-frame-title="Reyting">{% include "frontend_v1/icon.html" with name="award" %}<span>Reyting</span></a>
+        <a href="{% url 'classbook:live_home' %}" target="tgmini" data-mini-open data-frame-title="Jonli dars">{% include "frontend_v1/icon.html" with name="live" %}<span>Jonli dars</span></a>
+        <a href="{% url 'help_center' %}" target="tgmini" data-mini-open data-frame-title="Yordam">{% include "frontend_v1/icon.html" with name="bulb" %}<span>Yordam</span></a>
+      </div>
+    </section>
+
+    <section class="d2-mini-view d2-mini-frame" data-mini-view="frame"{% if not miniapp_initial_url %} hidden{% endif %}>
+      <iframe name="tgmini" title="{% if active_tab == 'courses' %}Darslarim{% elif active_tab == 'ai' %}Azure AI{% elif active_tab == 'menu' %}Profil{% else %}Platforma sahifasi{% endif %}"{% if miniapp_initial_url %} src="{{ miniapp_initial_url }}"{% endif %} data-mini-frame></iframe>
+    </section>
+  </main>
+
+  <nav class="d2-mini-tabs" aria-label="Asosiy navigatsiya">
+    <a href="{% url 'bot:miniapp_home' %}" data-mini-home data-mini-tab="home"{% if active_tab == 'home' and not miniapp_initial_url %} aria-current="page"{% endif %}>{% include "frontend_v1/icon.html" with name="home" %}<span>Bosh sahifa</span></a>
+    <a href="{% url 'my_courses' %}" target="tgmini" data-mini-open data-mini-tab="courses" data-mini-return="home" data-frame-title="Darslarim"{% if active_tab == 'courses' %} aria-current="page"{% endif %}>{% include "frontend_v1/icon.html" with name="book" %}<span>Darslar</span></a>
+    <a href="#mini-menu" data-mini-menu data-mini-tab="menu"{% if active_tab == 'menu' and not miniapp_initial_url %} aria-current="page"{% endif %}>{% include "frontend_v1/icon.html" with name="menu" %}<span>Menyu</span></a>
+    <a href="{% url 'messenger:ai' %}" target="tgmini" data-mini-open data-mini-tab="ai" data-mini-return="home" data-frame-title="Azure AI"{% if active_tab == 'ai' %} aria-current="page"{% endif %}>{% include "frontend_v1/icon.html" with name="sprout" %}<span>Azure AI</span></a>
+  </nav>
+</div>
+{% endblock %}

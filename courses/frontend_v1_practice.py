@@ -5,6 +5,8 @@ from django.utils.cache import patch_cache_control
 from django.utils.crypto import salted_hmac
 
 from cohorts.models import Enrollment, enrollment_active_access_q
+from core.flags import flag_enabled
+from core.frontend_v1 import PLATFORM_CALM_FLAG, calm_template_names
 from .access_service import check_lesson_access
 
 
@@ -60,9 +62,11 @@ def form_error(request, *, lesson, enrollment, kind, record_id, message, answers
     """Keep a bound form on validation failure, never expose locked content."""
     access = check_lesson_access(user=request.user, lesson=lesson, enrollment=enrollment)
     if not access.is_allowed:
-        response = render(request, 'frontend_v1/practice_unavailable.html', {
+        calm_enabled = flag_enabled(PLATFORM_CALM_FLAG)
+        response = render(request, calm_template_names('frontend_v1/practice_unavailable.html', enabled=calm_enabled), {
             'frontend_v1_title': 'Darsga kirish yopilgan', 'practice_error': access.message,
             'answer_text': answer_text, 'lesson': lesson, 'cohort_id': enrollment.cohort_id,
+            'platform_calm_v1': calm_enabled,
         }, status=403)
         patch_cache_control(response, private=True, no_store=True)
         return response

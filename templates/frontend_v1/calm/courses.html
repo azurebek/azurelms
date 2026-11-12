@@ -1,0 +1,22 @@
+{% extends "frontend_v1/calm/platform.html" %}
+{% block extra_head %}{% include "frontend_v1/calm/page_assets.html" %}{% endblock %}
+{% block content %}
+<div class="d2-page d2-page--reading" data-calm-page="courses">
+  <header class="d2-page-head">
+    <div><p class="d2-kicker">O‘quv yo‘li</p><h1>Darslarim</h1><p>Kursni oching va to‘xtagan darsingizdan davom eting.</p></div>
+    {% if enrollments %}<span class="d2-status">{{ count_active }} ta faol guruh</span>{% endif %}
+  </header>
+  {% if enrollments %}
+  <p class="d2-list-summary">Jami {{ count_all }} ta guruh · {{ count_completed }} tasida barcha darslar tugatilgan</p>
+  <section class="d2-list d2-course-list" aria-label="Kurslaringiz">
+    {% for enrollment in enrollments %}{% include "frontend_v1/calm/course_card.html" %}{% endfor %}
+  </section>
+  {% else %}
+  <section class="d2-state" aria-labelledby="empty-courses-title">
+    <span class="d2-state__icon">{% include "frontend_v1/icon.html" with name="book" %}</span>
+    <div><h2 id="empty-courses-title">Hali kursga yozilmagansiz</h2><p>O‘zingizga mos kursni tanlang. Yozilgan kurslaringiz shu yerda ko‘rinadi.</p></div>
+    <a class="c-button c-button--primary" href="{% url 'courses' %}">Kurslarni ko‘rish</a>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

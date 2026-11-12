@@ -22,7 +22,8 @@ from django.views.decorators.http import require_http_methods
 
 from core.access import teacher_course_queryset
 from core.audit import record_audit_event
-from core.flags import flag_enabled
+from core.flags import flag_enabled, flags_enabled
+from core.frontend_v1 import PLATFORM_CALM_FLAG, calm_template_names
 from core.workspace_forms import (WorkspaceCourseForm, WorkspaceLessonForm,
                                   WorkspaceModuleForm, WorkspaceUploadForm)
 from courses import authoring_service as authoring
@@ -43,7 +44,9 @@ def workspace_view(view):
     def wrapped(request, *args, **kwargs):
         if not request.user.is_active or not (request.user.is_staff or request.user.is_superuser):
             raise PermissionDenied
-        if not flag_enabled(FLAG):
+        renderer_flags = flags_enabled(FLAG, PLATFORM_CALM_FLAG)
+        request._platform_calm_v1 = renderer_flags[PLATFORM_CALM_FLAG]
+        if not renderer_flags[FLAG]:
             if request.method == 'POST':
                 response = render(request, 'backoffice/workspace/unavailable.html', status=409)
                 patch_cache_control(response, private=True, no_store=True)
@@ -70,8 +73,10 @@ def _render(request, page, context, status=200):
     context.update(workspace_nav=_nav(request, 'home' if page == 'home' else 'courses'),
                    workspace_support_enabled=flag_enabled('backoffice_student_support'),
                    workspace_design_enabled=flag_enabled('backoffice_design_workspace'),
-                   frontend_v1_title=context.get('page_title', 'Kurs tayyorlash'))
-    return render(request, f'backoffice/workspace/{page}.html', context, status=status)
+                   frontend_v1_title=context.get('page_title', 'Kurs tayyorlash'),
+                   platform_calm_v1=getattr(request, '_platform_calm_v1', False))
+    template = f'backoffice/workspace/{page}.html'
+    return render(request, calm_template_names(template, enabled=context['platform_calm_v1']), context, status=status)
 
 
 def _id(value):

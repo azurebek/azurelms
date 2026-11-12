@@ -15,7 +15,7 @@ from django.test.utils import CaptureQueriesContext
 
 from aicontrol.models import SystemAuditEvent
 from core.design_models import DesignDraft, DesignOperation, DesignPreset, DesignState, DesignVersion
-from core.design_schema import CATALOG, FIELDS, DesignValidationError, compile_css, defaults, validate
+from core.design_schema import CATALOG, FIELDS, DesignValidationError, builtin, compile_css, defaults, validate
 from core.design_service import DesignError, execute, read_published, read_state
 from core.flags import set_flag
 
@@ -101,10 +101,18 @@ class DesignSchemaTests(SimpleTestCase):
 
     def test_all_builtin_presets_validate_and_compile(self):
         for preset in CATALOG["presets"]:
-            value = defaults()
-            value["values"].update(preset["values"])
             with self.subTest(preset=preset["id"]):
-                self.assertTrue(compile_css(value).startswith("@media screen{"))
+                self.assertTrue(compile_css(builtin(preset["id"])).startswith("@media screen{"))
+
+    def test_calm_range_keeps_older_typography_and_accepts_new_smaller_scale(self):
+        older = defaults()
+        older["values"].update({"text-sm": 14, "text-md": 16})
+        self.assertEqual(validate(older)["values"]["text-md"], 16)
+        calm = builtin("calm")
+        self.assertEqual((calm["values"]["text-sm"], calm["values"]["text-md"]), (13, 15))
+        self.assertEqual(calm["dark"]["surface"], "#131314")
+        self.assertEqual((calm["light"]["warning-soft"], calm["dark"]["warning-soft"]),
+                         ("#fef7e0", "#3a2f10"))
 
     def test_compilation_has_mode_isolation_safe_units_and_optional_inheritance(self):
         value = defaults()

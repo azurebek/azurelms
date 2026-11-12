@@ -1,0 +1,4 @@
+{% extends "frontend_v1/teacher/grade_assignment.html" %}
+{% block frame_class %}d2-focus-shell{% endblock %}
+{% block body_class %}{{ block.super }} d2-teacher-body d2-teacher-review-body{% endblock %}
+{% block extra_head %}{{ block.super }}{% include "frontend_v1/calm/teacher_assets.html" %}{% endblock %}

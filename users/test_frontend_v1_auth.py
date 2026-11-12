@@ -44,6 +44,11 @@ class AuthV1Tests(TestCase):
         set_flag('frontend_v1_public', enabled=True, reason='Editorial auth regression')
         set_flag('public_editorial_v1', enabled=True, reason='Editorial auth regression')
 
+    def enable_calm(self):
+        set_flag('frontend_v1_public', enabled=True, reason='CALM auth regression')
+        set_flag('public_editorial_v1', enabled=False, reason='CALM owns the public frame')
+        set_flag('platform_calm_v1', enabled=True, reason='CALM auth regression')
+
     def test_default_off_and_all_six_routes_on_off(self):
         self.assertFalse(flag_by_slug('frontend_v1_auth').default)
         paths = [
@@ -108,6 +113,44 @@ class AuthV1Tests(TestCase):
                 self.assertNotContains(response, '/static/frontend_v1/css/learning.css')
                 self.assertNotContains(response, '/static/frontend_v1/js/shell.js')
                 self.assertIn('no-store', response['Cache-Control'])
+
+    def test_calm_frame_ports_login_and_every_auth_route_without_changing_forms(self):
+        self.enable_calm()
+        paths = [
+            ('login', (), 'frontend_v1/editorial/login.html'),
+            ('register', (), 'frontend_v1/auth_register.html'),
+            ('onboarding_choice', (), 'frontend_v1/auth_onboarding.html'),
+            ('password_reset', (), 'frontend_v1/auth_reset.html'),
+            ('password_reset_done', (), 'frontend_v1/auth_reset_done.html'),
+            ('password_reset_confirm', ('bad', 'bad'), 'frontend_v1/auth_reset_confirm.html'),
+            ('password_reset_complete', (), 'frontend_v1/auth_reset_complete.html'),
+        ]
+        for name, args, template in paths:
+            with self.subTest(route=name):
+                self.client.logout()
+                if name == 'onboarding_choice':
+                    self.client.force_login(self.user)
+                response = self.client.get(reverse(name, args=args))
+                self.assertEqual(response.status_code, 200)
+                self.assertTemplateUsed(response, template)
+                self.assertTemplateUsed(response, 'frontend_v1/editorial/auth_base.html')
+                self.assertTemplateUsed(response, 'frontend_v1/calm/public/base.html')
+                self.assertContains(response, 'class="s-calm s-editorial d2-public"')
+                self.assertContains(response, 'class="d2-public-body d2-public-auth-body"')
+                self.assertContains(response, 'class="p-public-auth"')
+                self.assertContains(response, '/static/frontend_v1/css/calm-public.css')
+                self.assertContains(response, '/static/frontend_v1/css/auth.css')
+                self.assertNotContains(response, '/static/frontend_v1/css/public-editorial.css')
+                self.assertIn('no-store', response['Cache-Control'])
+
+        login = self.client.get(reverse('login'), {'next': NEXT})
+        self.assertContains(login, 'action="/users/login/"')
+        self.assertContains(login, 'name="csrfmiddlewaretoken"')
+        self.assertContains(login, f'name="next" value="{NEXT.replace("&", "&amp;")}"')
+        register = self.client.get(reverse('register'), {'next': NEXT})
+        self.assertContains(register, 'action="/users/register/"')
+        self.assertContains(register, 'data-telegram-auth')
+        self.assertContains(register, '/static/frontend_v1/js/auth-form.js')
 
     def test_editorial_requires_the_underlying_v1_and_public_flags(self):
         set_flag('frontend_v1_public', enabled=True, reason='Editorial matrix')

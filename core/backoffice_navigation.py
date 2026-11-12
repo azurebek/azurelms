@@ -1,9 +1,10 @@
 """Presentation-only route registry. Views/services remain permission authorities."""
 from django.urls import reverse
 
-from core.flags import flag_enabled
+from core.flags import flag_enabled, flags_enabled
 
 FLAG = 'backoffice_unified_navigation'
+CALM_FLAG = 'platform_calm_v1'
 
 COURSE_ROUTES = {
     'backoffice_courses', 'backoffice_course_create', 'backoffice_course_edit',
@@ -31,8 +32,10 @@ TEACHER_RETURN_ROUTES = {'teacher_courses', 'teacher_cohorts', 'teacher_students
 
 def flags(request):
     if not hasattr(request, '_backoffice_navigation_flags'):
-        request._backoffice_navigation_flags = {name: flag_enabled(name) for name in
-            (FLAG, 'backoffice_course_workspace', 'backoffice_student_support', 'backoffice_design_workspace')}
+        request._backoffice_navigation_flags = flags_enabled(
+            FLAG, CALM_FLAG, 'backoffice_course_workspace', 'backoffice_student_support',
+            'backoffice_design_workspace',
+        )
     return request._backoffice_navigation_flags
 
 
@@ -113,9 +116,11 @@ def section_links(request, section):
     enabled = flags(request)
     rows = []
     if section == 'courses':
-        rows = [('Kurslar', 'backoffice_workspace_courses' if enabled['backoffice_course_workspace'] else 'backoffice_courses'),
-                ('Guruhlar', 'backoffice_workspace_groups'), ('Materiallar', 'library_backoffice:resources'),
-                ('Imtihonlar', 'backoffice_exams'), ('Tekshiruv', 'teacher_grading')]
+        rows = [('Kurslar', 'backoffice_workspace_courses' if enabled['backoffice_course_workspace'] else 'backoffice_courses')]
+        if enabled[FLAG]:
+            rows += [('Guruhlar', 'backoffice_workspace_groups')]
+        rows += [('Materiallar', 'library_backoffice:resources'), ('Imtihonlar', 'backoffice_exams'),
+                 ('Tekshiruv', 'teacher_grading')]
     elif section == 'students':
         # "Suhbatlar" (backoffice_chats) yopiq: Messenger selectorisiz hech kimga ochilmaydi (DASH1.0a).
         rows = [('O‘quvchilar', _students_route(request, enabled))]
@@ -169,12 +174,14 @@ def workspace_context(request):
             return {'backoffice_return_url': reverse(route)}
         return {}
     section = section_for(request)
-    if section is None or not flags(request)[FLAG]:
+    enabled = flags(request)
+    if section is None or not (enabled[FLAG] or enabled[CALM_FLAG]):
         return {}
     nav = navigation(request, section)
     section_url = next((item['url'] for item in nav if item['key'] == section), nav[0]['url'])
     context = {
-        'backoffice_unified_enabled': True,
+        'backoffice_unified_enabled': enabled[FLAG],
+        'platform_calm_v1': enabled[CALM_FLAG],
         'backoffice_base_template': 'backoffice/workspace/legacy_bridge.html',
         'blog_workspace_base': 'backoffice/workspace/blog_bridge.html',
         'workspace_nav': nav,
@@ -182,7 +189,7 @@ def workspace_context(request):
         'workspace_section_title': SECTION_TITLES[section],
         'workspace_section_url': section_url,
         'backoffice_search_url': reverse('backoffice_workspace_search'),
-        'workspace_search_enabled': True,
+        'workspace_search_enabled': enabled[FLAG],
     }
     from core.backoffice_return import return_context
     context.update(return_context(request))

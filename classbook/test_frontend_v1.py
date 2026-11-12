@@ -58,6 +58,21 @@ class PreparationV1Tests(ClassbookFixtureMixin, TestCase):
                 self.assertNotContains(response, 'classbook/classbook.css')
                 self.assertIn('no-store', response['Cache-Control'])
 
+    def test_calm_preparation_layer_is_flagged_and_preserves_scope(self):
+        set_flag('platform_calm_v1', enabled=True, reason='DESIGN-02 S6 regression')
+        pages = [('teacher_home', []), ('exercise_list', []), ('exercise_create', []),
+                 ('exercise_edit', [self.exercise.pk]), ('playbook_edit', [self.cohort.pk, self.lesson.pk])]
+        templates = ('teacher_home', 'exercise_list', 'exercise_form', 'exercise_form', 'playbook_form')
+        for (name, args), template in zip(pages, templates):
+            with self.subTest(page=name):
+                response = self.client.get(reverse('classbook:' + name, args=args))
+                self.assertTemplateUsed(response, f'frontend_v1/calm/classbook/{template}.html')
+                self.assertContains(response, 'frontend_v1/css/calm-teacher.css')
+        set_flag('platform_calm_v1', enabled=False, reason='DESIGN-02 S6 rollback')
+        response = self.client.get(reverse('classbook:teacher_home'))
+        self.assertTemplateUsed(response, 'frontend_v1/classbook/teacher_home.html')
+        self.assertNotContains(response, 'frontend_v1/css/calm-teacher.css')
+
     def test_get_and_head_do_not_create_playbook_or_session(self):
         lesson = Lesson.objects.create(module=self.module, title='New lesson', order=2)
         url = reverse('classbook:playbook_edit', args=[self.cohort.pk, lesson.pk])

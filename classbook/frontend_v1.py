@@ -9,8 +9,8 @@ from django.urls import reverse
 from django.utils.cache import patch_cache_control
 from django.utils.crypto import constant_time_compare, salted_hmac
 
-from core.flags import flag_enabled
-from core.frontend_v1 import teacher_v1_navigation
+from core.flags import flag_enabled, flags_enabled
+from core.frontend_v1 import PLATFORM_CALM_FLAG, calm_template_names, teacher_v1_navigation
 from .models import Exercise
 
 
@@ -92,13 +92,25 @@ def style_form(form):
 
 
 def render_page(request, page, context, status=200):
-    if not enabled(request):
+    renderer_flags = flags_enabled(FLAG, PLATFORM_CALM_FLAG)
+    v1_enabled = renderer_flags[FLAG] or request.POST.get(MARKER) == '1'
+    if not v1_enabled:
         return render(request, f'classbook/{page}.html', context, status=status)
     context.update(teacher_v1_navigation('teacher_dashboard'))
-    context.update(active_nav='classbook:teacher_home', frontend_v1_title='Classbook')
+    context.update(
+        active_nav='classbook:teacher_home',
+        frontend_v1_title='Classbook',
+        platform_calm_v1=renderer_flags[PLATFORM_CALM_FLAG],
+    )
     if 'form' in context:
         style_form(context['form'])
-    response = render(request, f'frontend_v1/classbook/{page}.html', context, status=status)
+    template = f'frontend_v1/classbook/{page}.html'
+    response = render(
+        request,
+        calm_template_names(template, enabled=renderer_flags[PLATFORM_CALM_FLAG]),
+        context,
+        status=status,
+    )
     patch_cache_control(response, private=True, no_store=True)
     return response
 

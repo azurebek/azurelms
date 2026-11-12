@@ -1,5 +1,80 @@
 # Frontend V1 — bajarish va qabul jurnali
 
+**2026-11-12 DESIGN-02 S9 (owner lokal/Telegram ko‘rigi kutilmoqda):** `codex/design-02` / `895d66b`
+Mini App’ning sokin profil/bosh sahifasi, real o‘qish ko‘rsatkichlari, tezkor plitkalari, Menyu va to‘rtta pastki
+tabini qo‘shdi. Darslar, Azure AI, bildirishnoma va boshqa bo‘limlar alohida qayta chizilmaydi: kanonik sayt
+sahifalari `tgmini` ramkasida menyusiz ochiladi; deep-link auth ham maqsadni shu shell’ga joylaydi. Flag OFF
+explicit/default baytlari teng, eski to‘rtta Mini App renderer qoladi; query soni oshmaydi. `bot` 260 OK (2 skip),
+ta’sir kesimi 67 OK, Node 239/239; CSS 1 858/3 000 va shell JS 1 209/1 500 gzip, 320/390px overflow 0,
+console toza. Lokal preview ko‘rildi; haqiqiy Telegram qurilmasi owner ko‘rigida ochiq.
+
+**2026-11-12 DESIGN-02 S8 (owner qabul qildi):** `codex/design-02` / `34c438a` Landing,
+katalog/kurs/tarif, Biz haqimizda, Blog/maqola, SIT, huquqiy sahifalar va auth oqimlarini PUBLIC-02 kanonik
+kontekst/formalaridan uzmasdan 1200px CALM public ramkaga o‘tkazdi; sertifikat tekshiruvi alohida maxfiy shell’da.
+Soxta eskiz ma’lumoti qo‘shilmadi. OFF explicit/default public baytlari teng; query, SEO/cache, CSRF/safe-next,
+Telegram va verifier minimal proyeksiyasi saqlandi. Django 163 OK, Node 234/234; `calm-public.css` 2 676/3 600
+gzip, 320px’da 10 marshrut overflow 0, console toza. Owner 2026-11-12 da “davom et” bilan lokal ko‘rikni
+qabul qildi.
+
+**2026-11-11 DESIGN-02 S7 (2026-11-12 owner qabul qildi):** `codex/design-02` / `d9b5d1f` Ish stoli va
+Kurslarni eskizga xos rendererga, qolgan workspace/legacy boshqaruv sahifalarini 232px sidebar, yassi qatorlar va
+720–820px CALM ramkaga o‘tkazdi. Guruh sozlamasi haqiqiy ID bilan `/link_cohort ID` ni ko‘rsatadi;
+`/backoffice/chats/` va unified-only hub’lar ruxsatsiz ochilmaydi. OFF render CSRF maskidan tashqari baytga teng.
+Backoffice Django 280 OK, yakuniy catalog/navigation 22 OK, Node 230/230; `calm-backoffice.css` 2 372/4 200 gzip,
+320px overflow 0, console toza. Owner 2026-11-12 da “davom et” bilan lokal ko‘rikni qabul qildi.
+
+**2026-11-11 DESIGN-02 S3–S6 eskiz mosligi tuzatildi (owner qabul qildi):**
+`codex/design-02` / `ae1802d` o‘quvchi va ustoz dashboardlarini eskizdagi 760px bitta ustunga qaytardi;
+Natijalar/Hisob/tekshiruv kengliklarini qisqartirdi; Classbook va Mashqlar bankini tabli yassi oqimga,
+tekshirish/jonli darsni fokus ramkaga o‘tkazdi. Oldingi S6 checkpointi owner qabuli emas edi; tuzatish lokal
+ko‘rikdan keyin 2026-11-11 da “davom et” bilan qabul qilindi. Django 130 OK
+(7 skip), Node 227/227, 320px overflow 0, console toza; CALM CSS assetlari o‘z byudjetida. Flag OFF o‘zgarmaydi.
+
+**2026-11-10 DESIGN-02 S6 (owner ko‘rigi kutilmoqda):** `codex/design-02` / `14392c7` Ustoz dashboardi,
+tekshiruv navbati/yozma/imtihon tekshiruvi, Guruhlar/O‘quvchilar/Kurslar, Davomat/dars ruxsati, Classbook va
+Mashqlar bankini CALM qatlamiga o‘tkazdi. Teacher course-scope/capability, grading/publish, attendance/release,
+Telegram delivery va mashq javob sintaksisi o‘zgarmaydi; flag OFF V1/legacy’ga qaytadi. Django 102 OK (7 skip),
+Node 224/224, 320/390px overflow 0; `calm-teacher.css` 2 131/3 600 gzip. Lokal owner ko‘rigi kutilmoqda.
+
+**2026-11-10 DESIGN-02 S5 (owner qabul qildi):** `codex/design-02` / `6fbc66e` Profil, Sozlamalar,
+Yordam, To‘lovlar, checkout va chek holatini CALM qatlamiga o‘tkazdi. Imzoli quote/server recalc, receipt scope,
+upload, AI memory/preference va stale form writerlari o‘zgarmaydi; ustoz profilida o‘quvchi to‘lovi yo‘q.
+Django 162 OK (1 skip), Node 220/220, a11y toza, 320/390px overflow 0; `calm-account.css` 1 482/2 400 gzip.
+Owner lokal ko‘rikdan keyin 2026-11-10 da “davom et” dedi.
+
+**2026-11-10 DESIGN-02 S4 (owner qabul qildi):** `codex/design-02` / `d2bfc0a` Imtihonlar/urinish/natija,
+Sertifikatlar/hujjat/ballar ilovasi, Davomat va Reytingni CALM qatlamiga o‘tkazdi. Fokus imtihon sahifasi, oq
+ekran/print sertifikat va uchta Natijalarim tabi qo‘shildi; canonical write/publication/XP/access o‘zgarmaydi.
+Django 115 OK (7 skip), Node 217/217, 390px overflow 0; `calm-pages.css` 3 058/4 300 gzip bayt. Lokal server
+ko‘rigidan keyin owner 2026-11-10 da “davom et” dedi.
+
+**2026-11-10 DESIGN-02 S3 (owner qabul qildi):** `codex/design-02` / `fdfa86f` dashboard, yangi
+foydalanuvchi/obuna yopiq holati, Darslarim, dars/practice, kutubxona, inson/AI Xabarlar va Bildirishnomalarni
+CALM qatlamiga o‘tkazdi. Canonical access/write/chat/notification kontraktlari o‘zgarmaydi; flag OFF avvalgi
+V1/legacy rendererga qaytadi. Django 173 OK (3 skip), Node 214/214, a11y/query/asset gate’lari va 320/390px
+overflow 0; `calm-pages.css` 2 231/4 300 gzip bayt. Owner lokal ko‘rikdan keyin “davom et” dedi.
+
+**2026-11-10 DESIGN-02 S2 (owner qabul qildi):** `codex/design-02` / `56d50e4` learner va teacher
+ichki sahifalariga flag-gated 232px sidebar, 900px ostida 4 rol bandi + Hisob bottom nav, account/notification
+popoverlari, theme segmented control va mini rejim qo‘shdi. Legacy platforma/shablon va public asset byudjeti
+o‘zgarmaydi; internal-only `calm-shell.css` 1 861 gzip bayt. Django 36 OK, frontend Node 210/210, a11y probe
+toza; 320/390px overflow 0. Owner 2026-11-10 da lokal ko‘rikdan keyin “davom et” dedi; `main`ga merge faqat
+S10 oxirida.
+
+**2026-11-08 DESIGN-02 S1 (2026-11-10 owner qabul qildi):** `codex/design-02` / `0439027` da default-OFF
+`platform_calm_v1`, ichki va public CALM fallback zanjiri, ustaxonaning yorug'/qorong'i "Sokin" varianti,
+15/13px oralig'i, rasmiy OFL Figtree 400/500/600 va token-only `calm.css` qo'shildi. Flag OFF renderer baytlari va
+public route snapshot o'zgarmaydi; to'liq Django 3368 OK (70 skip), Node 203/203, uchala CI yashil. Owner lokal
+ko'rikdan keyin 2026-11-10 da davom ettirishni tasdiqladi; S2 faol, `main`ga oraliq merge yo'q.
+
+**2026-11-08 DESIGN-02 S0:** [DESIGN-02 port rejasi](DESIGN-02-CALM-PORT-PLAN.md) yozildi. Owner 2026-11-07 da
+eskiz dizayn tizimini production dizayn tizimi qildi; PUBLIC-02 PE1–PE8 kodda qoladi, PE9–PE10 to'xtatildi.
+Docs-only edi: runtime, shablon, DB va AWS o'zgarmagan; keyingi S1 holati yuqoridagi yozuvda.
+
+**2026-11-08 DASH1.0a:** [PR #252](https://github.com/azurebek/azurelms/pull/252) (`6dff8c4`) global
+dashboard/users/chats, chek qarori, begona chek fayli va bot admin yuzalarini aniq ruxsatga bog'ladi. I1/I2
+renderer portlari qayta ochilmadi; quyidagi 2026-10-15 yozuvidagi DASH1.0a "stop-ship" holati endi tarix.
+
 **2026-10-15 Dashboard chegarasi:** I1 learner dashboard va I2 teacher home
 renderer portlari bajarilgan holatda qoladi; ular qayta ochilmadi.
 [DASHBOARD-01](DASHBOARD-REFORM-PLAN.md) shu foundation ustidagi role routing,

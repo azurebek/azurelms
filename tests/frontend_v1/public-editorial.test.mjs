@@ -15,7 +15,8 @@ const TOKENS = new Set([...tokensCss.matchAll(/(--az-[a-z0-9-]+)\s*:/g)].map(mat
 const classesIn = css => new Set([...css.replace(/\{[^{}]*\}/g, '{}').matchAll(/\.(-?[a-z_][a-z0-9_-]*)/gi)].map(match => match[1]));
 // Boshqa V1 fayllaridagi klasslar — editorial ular uchun selector yozmaydi (cascade override yo'q).
 const OTHER_CLASSES = new Set(readdirSync(new URL('static/frontend_v1/css/', root))
-  .filter(name => name.endsWith('.css') && name !== 'public-editorial.css')
+  // calm-public is the mutually exclusive DESIGN-02 projection of the same semantic public classes.
+  .filter(name => name.endsWith('.css') && !['public-editorial.css', 'calm-public.css'].includes(name))
   .flatMap(name => [...classesIn(stripComments(read(`static/frontend_v1/css/${name}`)))]));
 
 function declarations(css) {

@@ -1,0 +1,33 @@
+{% extends "frontend_v1/base.html" %}{% load static %}
+{% block app_bundle %}{{ block.super }}
+  <link rel="stylesheet" href="{% static 'frontend_v1/css/calm-shell.css' %}">{% endblock %}
+{% block body %}
+<div class="s-calm-shell {% block frame_class %}{% endblock %}" data-calm-shell>
+  <aside class="s-calm-sidebar" aria-label="Platforma menyusi" data-calm-sidebar>
+    <div class="s-calm-sidebar__brand">
+      <a class="s-calm-brand" href="{% if frontend_v1_home %}{{ frontend_v1_home }}{% else %}{% url 'dashboard' %}{% endif %}" aria-label="{{ site_settings.brand_name|default:'AzureLMS' }} bosh sahifasi">{% include "components/brand_logo.html" with mark_class="s-calm-brand__mark" name_class="s-calm-brand__name" %}</a>
+      {% if not request.user.is_staff %}
+      <details class="s-calm-popover s-calm-notifications" data-calm-popover>
+        <summary class="s-calm-icon-button" aria-label="Bildirishnomalar{% if unread_notifications_count %}: {{ unread_notifications_count }} ta o‘qilmagan{% endif %}">{% include "frontend_v1/icon.html" with name="message" %}{% if unread_notifications_count %}<span class="s-calm-notifications__count" aria-hidden="true">{{ unread_notifications_count }}</span>{% endif %}</summary>
+        <div class="s-calm-popover__panel s-calm-notifications__panel" data-calm-popover-panel>
+          <div class="s-calm-popover__heading"><strong>Bildirishnomalar</strong><span>{{ unread_notifications_count }} ta yangi</span></div>
+          <div class="s-calm-notifications__list">
+            {% for item in notifications %}<a class="s-calm-notice{% if not item.is_read %} is-unread{% endif %}" href="{% url 'notifications' %}#notice-{{ item.pk }}" aria-label="{{ item.title|default:'Bildirishnoma' }}: {{ item.message|truncatechars:88 }}">
+              <span class="s-calm-notice__dot" aria-hidden="true"></span><span><strong>{{ item.title|default:"Bildirishnoma" }}</strong><small>{{ item.message|truncatechars:88 }}</small><time datetime="{{ item.created_at|date:'c' }}">{{ item.created_at|timesince }} oldin</time></span>
+            </a>{% empty %}<p class="s-calm-popover__empty">Hozircha bildirishnoma yo‘q.</p>{% endfor %}
+          </div>
+          <a class="c-button c-button--secondary s-calm-popover__all" href="{% url 'notifications' %}">Hammasini ko‘rish</a>
+        </div>
+      </details>
+      {% endif %}
+    </div>
+    {% include "frontend_v1/calm/nav.html" %}
+    <div class="s-calm-sidebar__account">{% include "frontend_v1/calm/account.html" %}</div>
+  </aside>
+  {% block main %}<main id="main" class="s-main s-calm-main" tabindex="-1">
+    {% include "frontend_v1/messages.html" %}
+    {% if backoffice_return_url and not support_return_url %}<p><a class="c-button c-button--quiet" href="{{ backoffice_return_url }}">← Boshqaruvga qaytish</a></p>{% endif %}
+    {% block content %}{% endblock %}
+  </main>{% endblock %}
+</div>
+{% endblock %}

@@ -16,6 +16,227 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-11-12 [Codex]: DESIGN-02 / S9 — Telegram Mini App CALM ramkasi owner ko‘rigiga tayyor
+
+Mini-ilova eskizdagi kichik profil/bosh sahifa, real XP/kurs/dars ko‘rsatkichlari, tezkor plitkalar, Menyu va
+to‘rtta pastki tab bilan CALM’ga ko‘chirildi. Darslar, Azure AI, bildirishnoma va boshqa bo‘limlar alohida
+shablonda takrorlanmaydi: kanonik sayt sahifalari D7 bo‘yicha `tgmini` nomli ramkada menyusiz ochiladi;
+Telegram BackButton/tema/deep-link auth va safe-area shu bitta shell’da ishlaydi.
+
+- Branch: `codex/design-02`; draft PR #254. Kod commit: `895d66b`. Bosqich boshida `origin/main` merge bilan
+  tekshirildi — branch ortda emas edi. Owner S8’ni 2026-11-12 da “davom et” bilan lokal ko‘rikdan qabul qildi.
+- Rollback/kontrakt: `platform_calm_v1` OFF explicit/default home renderi baytga teng, eski entry/home/courses/AI/
+  profile shablonlari aynan qoladi. Mini App sessiyasi canonical access/release/write qoidalariga imtiyoz bermaydi;
+  query soni legacy’dan oshmaydi. Lokal preview production’dagi frame/CSP sessiya kontraktini takrorlaydi.
+- Test: to‘liq `bot` — **260 OK (2 skip)**; bot/CSP/shell ta’sir kesimi — **67 OK**; to‘liq frontend Node —
+  **239/239**; `check`, `makemigrations --check --dry-run`, statik a11y probe va `git diff --check` toza.
+- Brauzer: 390px va 320px’da bosh sahifa/Menyu hamda canonical Darslar/Azure AI ramkasi ko‘rildi; parent
+  `390/390`, `320/320`, child `360/360`, `305/305`, `data-mini` faol, ichki sidebar yashirin. Yangi console
+  error/warning yo‘q. Edge’da lokal ko‘rik tabi ochiq qoldirildi.
+- Asset: `calm-miniapp.css` **1 858/3 000**, `calm-miniapp.js` **1 209/1 500** gzip bayt; gradient/soya va
+  eskizdagi namuna raqam/vaqt production’ga ko‘chmadi.
+- Davom etilishi kerak: owner lokal Mini App’ni va haqiqiy Telegram qurilmasida initData/BackButton/theme/safe-area
+  oqimini ko‘radi. Qabul qilsa S9 yopilib S10 yoqish/tozalash boshlanadi; `main`ga merge faqat S10 oxirida.
+
+## 2026-11-12 [Codex]: DESIGN-02 / S8 — Ochiq sayt va kirish CALM ramkasi owner ko‘rigiga tayyor
+
+Landing, katalog/kurs/tarif, Biz haqimizda, Blog/maqola, SIT va huquqiy sahifalar PUBLIC-02 dagi haqiqiy
+kontekst va query kontraktini saqlagan holda 1200px sokin public ramkaga ko‘chirildi. Login, ro‘yxat,
+onboarding va reset kanonik forma/CSRF/safe-next/Telegram oqimlari bilan 400px auth fokusiga tushdi; sertifikat
+tekshiruvi minimal ma’lumotli alohida CALM shell oldi. Eskizdagi demo qutilar production ma’lumoti sifatida
+ko‘chirilmagan — owner media yoki domen ma’lumoti yo‘q joy halol neytral/bo‘sh holatda qoladi.
+
+- Branch: `codex/design-02`; draft PR #254. Kod commit: `34c438a`. Bosqich boshida `origin/main` merge qilindi —
+  branch ortda emas edi. Owner S7’ni 2026-11-12 da “davom et” bilan lokal ko‘rikdan qabul qildi.
+- Rollback/kontrakt: `platform_calm_v1` OFF explicit/default public renderi baytga teng. Public query/rost da’vo,
+  SEO/cache/sitemap, auth CSRF/xato/safe-next/Telegram va verifier no-store/noindex/minimal projection o‘zgarmaydi.
+- Test: public/auth/verifier Django to‘plami — **163 OK**; to‘liq frontend Node — **234/234**; `check`,
+  `makemigrations --check --dry-run` va `git diff --check` toza.
+- Brauzer: Landing, Katalog, Kurs va Kirish eskiz bilan yonma-yon ko‘rildi; 320px’da 10 ta public/auth route
+  `scrollWidth=320`, console error/warning yo‘q. Kirish/ro‘yxat tablari va mobil parol ko‘rsatish nazorati bir
+  qatorda. Asosiy server `127.0.0.1:8000` da ishlayapti.
+- Asset: `calm-public.css` **2 676/3 600** gzip bayt; faqat 900/560px breakpointlar, gradient yo‘q.
+- Davom etilishi kerak: owner S8’ni lokal serverda ko‘radi; qabul qilsa S9 Telegram mini-ilova shu branchda
+  boshlanadi. `main`ga merge faqat S10 oxirida.
+
+## 2026-11-11 [Codex]: DESIGN-02 / S7 — Boshqaruv CALM ramkasi owner ko‘rigiga tayyor
+
+Ish stoli va Kurslar eskizdagi 820/720px o‘qish oqimiga ko‘chirildi; mavjud backoffice workspace va legacy
+sahifalar esa bitta 232px sidebar, yassi tab/qatorlar va mobil besh slotli CALM ramkada saqlandi. Hech bir domen
+writeri almashtirilmadi: course/student/capability, chek/tarif, AI/holat, sayt/brend/dizayn/kontent/SIT oqimlari
+kanonik view va formalarda qoladi. Guruh sozlamasi endi haqiqiy ID bilan `/link_cohort ID` buyrug‘ini ko‘rsatadi.
+
+- Branch: `codex/design-02`; draft PR #254. Kod commit: `d9b5d1f`. Bosqich boshida `origin/main` merge qilindi —
+  branch ortda emas edi. S3–S6 moslik tuzatishini owner lokal ko‘rikdan keyin “davom et” bilan qabul qildi.
+- Rollback/ruxsat: `platform_calm_v1` OFF renderi CSRF maskidan tashqari baytga teng; CALM unified-only hub’larni
+  ochmaydi, `/backoffice/chats/` yopiq, capability va owner chegaralari o‘zgarmaydi.
+- Test: backoffice ta’sir to‘plami — **280 OK**; yakuniy catalog/navigation kesimi — **22 OK**; to‘liq frontend
+  Node — **230/230**; `check`, `makemigrations --check --dry-run` va `git diff --check` toza.
+- Brauzer: Ish stoli, Kurslar, O‘quvchilar, Guruhlar, Cheklar, Sayt va dizayn, Sozlamalar desktopda ko‘rildi;
+  Ish stoli/Kurslar 320px’da `scrollWidth=305` (viewport 320), besh mobil slot, console error/warning yo‘q.
+  Guruh sozlamasida `/link_cohort 8` haqiqiy lokal ID bilan ko‘rindi.
+- Asset: `calm-backoffice.css` **2 372/4 200** gzip bayt.
+- Davom etilishi kerak: owner S7’ni lokal serverda ko‘radi; qabul qilsa S8 Ochiq sayt va kirish shu branchda
+  boshlanadi. `main`ga merge faqat S10 oxirida.
+
+## 2026-11-11 [Codex]: DESIGN-02 / S3–S6 — eskiz mosligi qayta tekshirildi
+
+Owner ko‘rigida ichki CALM sahifalar eskizdan keng va kartochkali bo‘lib qolgani aniqlandi; shu sabab oldingi
+S6 “owner ko‘rigiga tayyor” checkpointi qabul deb hisoblanmadi. O‘quvchi va ustoz dashboardlari eskizdagi
+760px bitta qaror ustuniga qaytarildi, natija/hisob/tekshiruv sahifalari 640–820px fokus kengliklariga tushirildi,
+Classbook bosh sahifasi va Mashqlar banki tabli yassi qatorlarga, tekshirish/jonli dars esa fokus ramkaga o‘tdi.
+
+- Branch: `codex/design-02`; draft PR #254. Kod commit: `ae1802d`; bosqich boshida `origin/main` merge bilan
+  tekshirildi — branch 0 commit ortda edi. Flag OFF V1/legacy shablon va asset yo‘lini o‘zgartirmaydi.
+- Test: ta’sirlangan Django to‘plami — **130 OK (7 skip)**; to‘liq frontend Node suite — **227/227**;
+  `check`, `makemigrations --check --dry-run` va `git diff --check` toza. Moslik testlari bir ustun, fokus ramka,
+  eskiz kengliklari va bezak statistikasi qaytmasligini mahkamladi.
+- Brauzer: Ustoz dashboardi, Classbook/Mashqlar banki, playbook muharriri va Guruhlar desktopda ko‘rildi;
+  320px’da Guruhlar va playbook `scrollWidth=305` (viewport 320), console error/warning yo‘q.
+- Asset: `calm-pages.css` **3 069/4 300**, `calm-account.css` **1 495/2 400**,
+  `calm-teacher.css` **2 261/3 600** gzip bayt.
+- Davom etilishi kerak: owner tuzatilgan S3–S6 ichki sahifalarni lokal serverda qayta ko‘radi; qabul qilsa S6
+  yopilib S7 Boshqaruv shu branchda boshlanadi. `main`ga merge faqat S10 oxirida.
+
+## 2026-11-10 [Codex]: DESIGN-02 / S6 — Ustoz maydoni owner ko‘rigiga tayyor
+
+Ustoz bosh sahifasi, Tekshiruv navbati va yozma/imtihon tekshiruvi, Guruhlar/O‘quvchilar/Kurslar, Davomat,
+dars ruxsatlari, Classbook dars tayyorlash/jonli boshqaruv va Mashqlar banki default-OFF CALM qatlamiga
+ko‘chirildi. Mavjud course-scope, baholash/publish, davomat, lesson release, Telegram delivery va mashq javob
+sintaksisi o‘zgarmadi; ustoz kurs muharriridagi amaldagi capability chegarasi kengaytirilmadi.
+
+- Branch: `codex/design-02`; draft PR #254. Kod commit: `14392c7`; S5 owner tomonidan 2026-11-10 da
+  “davom et” bilan qabul qilindi. Bosqich boshida `origin/main` merge bilan tekshirildi — yangi commit yo‘q edi.
+- Renderer: CALM ustoz dashboardi, sakkizta teacher wrapper, sakkizta Classbook wrapper va faqat CALM’da
+  yuklanadigan `calm-teacher.css`; Classbook preparation/live rendererlari flaglarni bitta snapshot’da o‘qib,
+  CALM → V1 fallback qiladi. Flag OFF eski V1/legacy chiqishiga qaytadi.
+- Test: S6 Django to‘plami — **102 OK (7 skip)**; to‘liq frontend Node suite — **224/224**; `check`,
+  `makemigrations --check --dry-run` va `git diff --check` toza. Begona kurs/guruh, GET yozmasligi,
+  stale/confirmation, javob kaliti maxfiyligi va learner/teacher chegaralari saqlandi.
+- Brauzer: Bosh sahifa, Guruhlar, Tekshiruv navbati va Classbook desktopda `1265=1265`; 390px’da `375=375`,
+  320px’da `305=305`; console error/warning yo‘q. `calm-teacher.css` **2 131 / 3 600 gzip bayt**.
+- Davom etilishi kerak: lokal tabda ustozning yangi Classbook sahifasi ochiladi. Owner qabul qilsa S6 yopilib
+  S7 Boshqaruv shu branchda boshlanadi; `main`ga merge faqat S10 oxirida.
+
+## 2026-11-10 [Codex]: DESIGN-02 / S5 — Hisob va to‘lov owner ko‘rigiga tayyor
+
+Profil, Sozlamalarning Hisob/Maxfiylik/To‘lov/AI repetitor bo‘limlari, Yordam, To‘lovlar, checkout va chek
+holati default-OFF CALM qatlamiga ko‘chirildi. Profil o‘quvchi uchun haqiqiy tarif/Telegram holatini, ustoz uchun
+esa to‘lovsiz rol yo‘llarini ko‘rsatadi; imzoli quote, serverdagi summa qayta hisobi, upload, receipt scope,
+AI preference/memory va stale-form writer kontraktlari o‘zgarmadi.
+
+- Branch: `codex/design-02`; draft PR #254. Kod commit: `6fbc66e`; S4 owner tomonidan 2026-11-10 da
+  “davom et” bilan qabul qilindi. Bosqich boshida `origin/main` merge bilan tekshirildi — yangi commit yo‘q edi.
+- Renderer: profil uchun haqiqiy kontekstli CALM sahifa, settings/help/subscriptions/checkout uchun to‘qqizta
+  wrapper va faqat CALM’da yuklanadigan `calm-account.css`; flag OFF avvalgi V1/legacy chiqishiga qaytadi.
+  Asset **1 482 / 2 400 gzip bayt**; faqat 900/560px breakpointlar.
+- Test: S5 kengaytirilgan Django to‘plami — **162 OK (1 skip)**; to‘liq frontend Node suite — **220/220**;
+  `check`, `makemigrations --check --dry-run`, a11y probe va `git diff --check` toza. Checkout GET yozmaydi,
+  quote user/tarif/guruh/davrga bog‘langan va POST’da qayta hisoblanadi; owner-scope/private receipt saqlandi.
+- Brauzer: Profil, Hisob, Maxfiylik, Yordam, To‘lovlar va Checkout 390px’da `375=375`, 320px’da `305=305`;
+  desktop `1265=1265`, console error/warning yo‘q. Lokal haqiqiy checkout va tasdiqlangan, lekin access yopiq
+  receipt holati yolg‘on va’dasiz ko‘rsatildi.
+- Owner qabuli (2026-11-10): lokal ko‘rikdan keyin “davom et” dedi; S5 yopildi. S6 natijasi yuqoridagi yozuvda.
+
+## 2026-11-10 [Codex]: DESIGN-02 / S4 — Natijalarim owner ko‘rigiga tayyor
+
+Imtihonlar markazi, imtihon topshirish va natija, Sertifikatlar, sertifikat/ballar ilovasi, Davomat va Reyting
+default-OFF CALM qatlamiga ko‘chirildi. Imtihon topshirish yon menyusiz fokus sahifasi, sertifikat esa mavzudan
+qat’i nazar oq hujjat va neytral print ko‘rinishida; canonical attempt, publication, certificate, davomat va XP
+qoidalari o‘zgarmadi. Natijalarim CALM tablari S4 doirasidagi `Davomat → Reyting → Sertifikatlar` bilan cheklangan.
+
+- Branch: `codex/design-02`; draft PR #254. Kod commit: `d2bfc0a`; S3 owner tomonidan 2026-11-10 da
+  “davom et” bilan qabul qilindi. Bosqich boshida `origin/main` merge bilan tekshirildi — yangi commit yo‘q edi.
+- Renderer: sakkizta `calm/exams|records|certificates` wrapper va internal-only `calm-pages.css`; flag OFF eski
+  V1/legacy shabloniga qaytadi. `calm-pages.css` **3 058 / 4 300 gzip bayt**.
+- Test: S4 Django to‘plami — **115 OK (7 skip)**; to‘liq frontend Node suite — **217/217**; `check`,
+  `makemigrations --check --dry-run` va `git diff --check` toza. Print faqat foydalanuvchi bosganda ishga tushishi,
+  qoralama/e’lon qilingan natija chegarasi, offline/double-submit va record scope testlari o‘tdi.
+- Brauzer: Davomat/Reyting/Sertifikatlar/Imtihonlar 390px’da `clientWidth=scrollWidth=375`; desktop Natijalarim
+  `830=830`; console error/warning yo‘q. Lokal `demo-tolov`da sertifikat va attempt yo‘qligi sabab bu ikki to‘liq
+  holat fixture testida, lokal brauzerda esa halol bo‘sh holatda tekshirildi.
+- Owner qabuli (2026-11-10): lokal ko‘rikdan keyin “davom et” dedi; S4 yopildi. S5 natijasi yuqoridagi yozuvda.
+
+## 2026-11-10 [Codex]: DESIGN-02 / S3 — o‘quvchining kundalik yo‘li owner ko‘rigiga tayyor
+
+CALM flag ON holatda o‘quvchi bosh sahifasi keyingi haqiqiy qadamga, Darslarim ixcham kurs qatorlariga, dars esa
+o‘qish maydoni va kurs rejasiga ajratildi. Yangi foydalanuvchi/obuna yopiq holatlari, practice, kutubxona,
+inson/AI xabarlari va bildirishnomalar ham shu sokin qatlamda; access, form action, CSRF, chat JS va notification
+URL siyosati o‘zgarmadi. Flag OFF mavjud V1/legacy rendererga qaytadi.
+
+- Branch: `codex/design-02`; draft PR #254. Kod commit: `fdfa86f`; S2 owner tomonidan 2026-11-10 da
+  “davom et” bilan qabul qilindi. Bosqich boshida `origin/main` branchga merge qilindi — yangi commit yo‘q edi.
+- Renderer: `calm/dashboard.html`, `courses.html`, `lesson.html`, practice wrapperlari, Messenger/AI/notification
+  wrapperlari va internal-only `calm-pages.css`; kutubxona flaglari bitta request snapshot’ida o‘qiladi.
+- Test: ta’sirlangan Django to‘plami — **173 OK (3 skip)**; to‘liq frontend Node suite — **214/214**;
+  `check`, `makemigrations --check --dry-run`, `findstatic`, a11y probe va `git diff --check` toza. Dashboard
+  CALM so‘rovlari V1 bazasidan ko‘pi bilan +3 chegarada; `calm-pages.css` **2 231 / 4 300 gzip bayt**.
+- Brauzer: 1280px Darslarim/Xabarlar/Bildirishnomalar; 390px `clientWidth=scrollWidth=375`, 320px `305=305`;
+  mobil menyu 5 ta va 64px, asosiy amal 560px ostida to‘liq kenglikda. Konsolda error/warning yo‘q.
+- Owner qabuli (2026-11-10): lokal ko‘rikdan keyin “davom et” dedi; S3 yopildi. S4 natijasi yuqoridagi yozuvda.
+
+## 2026-11-10 [Codex]: DESIGN-02 / S2 — sokin ichki shell owner ko‘rigiga tayyor
+
+Learner va teacher ichki sahifalari flag ON holatda 232px sokin yon menyu, 900px ostida besh bandli pastki
+menyu, hisob/bildirishnoma popoverlari va `tgmini`/`?mini` rejimini oldi. Legacy platforma manbasi aynan
+`platform_legacy.html`ga ko‘chirildi; dinamik parent flag OFF’da o‘sha baytlarni, ON’da CALM shell’ni tanlaydi.
+`calm-shell.css` faqat ichki CALM bazasida yuklanadi — public/auth asset byudjeti va OFF bundle o‘zgarmaydi.
+
+- Branch: `codex/design-02`; draft PR #254. Kod commit: `56d50e4`; `main`ga oraliq merge yo‘q.
+- Menyu: learner desktop — Bosh sahifa, Darslarim, Jonli dars, Natijalarim, Xabarlar; teacher desktop —
+  Bosh sahifa, Jonli dars, Guruhlarim, Tekshiruv, Xabarlar. Telefonda rol bandlaridan to‘rttasi + Hisob.
+- Xavfsizlik/a11y: notification popup raw model URL’ini ochmaydi, notification markazidagi ichki anchor’ga boradi;
+  logout POST+CSRF; popoverlar bir-birini va tashqi klik/Back’da yopadi, Escape summary fokusini qaytaradi.
+- Test: `manage.py test users.test_frontend_v1 frontend.test_public_budgets` — **36 OK**; to‘liq frontend Node
+  suite — **210/210**; `check`, `makemigrations --check --dry-run`, a11y probe va diff check toza. Ichki shell
+  gzip: CSS **1 861 / 2 700**, JS **1 056 / 1 100** bayt; public byudjetlar o‘zgartirilmadi.
+- Brauzer: desktop 1280px; 320px `clientWidth=scrollWidth=305`, 390px `375=375`; mobil bandlar 5 ta,
+  har biri 64px, main pastki bo‘shlig‘i 88px. Account/notification, Escape/fokus va mini rejim tekshirildi.
+- Owner qabuli (2026-11-10): lokal ko‘rikdan keyin “davom et” dedi; S2 yopildi. `origin/main` branchga merge
+  bilan tekshirildi — yangi commit yo‘q edi; S3 natijasi yuqoridagi yozuvda.
+
+## 2026-11-08 [Codex]: DESIGN-02 / S1 — sokin poydevor owner ko'rigiga tayyor
+
+Default-OFF `platform_calm_v1` flagi ichki, auth, sertifikat, backoffice va public renderer tanlovlariga bitta
+snapshot bilan qo'shildi; CALM nusxasi hali yo'q sahifa editorial/V1 ko'rinishiga xavfsiz qaytadi. Ustaxonaga
+yorug'/qorong'i "Sokin" varianti va 15/13px oralig'i, repoga esa rasmiy OFL Figtree 400/500/600, litsenziya,
+manba-hash dalili va faqat flag ON'da ulanadigan token-only `calm.css` kirdi. Migration va canonical state yo'q.
+
+- Branch: `codex/design-02`; draft PR #254. Kod commit: `0439027`. PR #253 owner tomonidan yopilishi kerak;
+  Claude branchiga push qilinmadi, `main`ga oraliq merge yo'q.
+- Rollback: flag default OFF. OFF holat explicit/default renderer bayt pariteti va
+  `frontend/public_route_snapshot.json` o'zgarmasligi testda; CALM zanjiri va fallback ON holatda alohida testda.
+- Figtree: upstream `erikdkennedy/figtree@032dfa7`; 400/500/600 jami 70 428 bayt, SHA-256 pin, OFL. Turkcha
+  gliflar va UI'dagi U+2018/U+2019 bor; upstreamda yo'q U+02BB/U+02BC system fallback/search normalization bilan.
+- Test: `manage.py test` — **3368 OK (70 skip)**; `node --test tests/frontend_v1/*.test.mjs` — **203/203**;
+  `manage.py check`, public route audit va `git diff --check` toza. CALM public/auth CSS gzip 13 442/14 531,
+  limit 13 500/14 600; V1 Figtree deklaratsiyasidan keyin 9 258/9 300.
+- Davom etilishi kerak: lokal serverda owner yorug'/qorong'i token proyeksiyasini ko'radi; qabuldan keyin S1
+  hujjatda yopilib S2 shell/menyu boshlanadi. S10 va owner umumiy qabuligacha `main`ga merge qilinmaydi.
+- Owner qabuli (2026-11-10): lokal ko'rikdan keyin "davom et" dedi; uchala PR CI yashil, S1 yopildi va S2
+  shell/menyu bosqichi boshlandi. `origin/main` branchga tekshirildi — yangi commit yo'q edi.
+- S2 natijasi yuqoridagi 2026-11-10 yozuvida; ko‘rikdan keyingi navbat S3.
+
+## 2026-11-08 [Claude]: DESIGN-02 / S0 — yangi dizayn tizimi port rejasi
+
+Owner 2026-11-07 da o'zi bilan qurilgan eskiz dizayn tizimini butun platformaning yangi dizayn tizimi qildi
+(tokenlar, Figtree, 900/560px, komponentlar, rolga qarab menyu, ichki sahifalar va ochiq sayt). Reja repo'ga
+kirdi: qarorlar D1–D8, admission, arxitektura (flag `platform_calm_v1`, `calm_template_names`, `CALM` renderer,
+ustaxona "Sokin" varianti), tokenlar xaritasi, S0–S10 bosqichlar, domen chegaralari va rollback. Eskiz va qoidalar
+hujjati owner'ning shaxsiy artefaktlari, git'dan tashqarida — normativ qismi hujjatning o'zida.
+
+- Branch: `claude/design-02-plan`. Commit: `bd383ec` (docs-only; runtime, shablon, DB, flag o'zgarmadi).
+- Qarorlar: PUBLIC-02 PE9–PE10 to'xtatildi, PE1–PE8 kontekst/so'rov/test ishi DESIGN-02 S8 ga meros; D5 — DASH1.0a
+  merge bo'lgach owner "boshla" dedi (2026-11-08). Ochiq: D8 (qorong'i rejim eskizi owner ko'rigida) — S1 darvozasi.
+  README, frontend indeksi, PORT-LEDGER va DASHBOARD rejasi DASH1.0a merge holatiga moslandi.
+- Tekshiruv: `git diff --check` toza; nisbiy havolalar skripti — 0 buzilgan. Rejadagi fayl, token, menyu va katalog
+  oralig'i da'volari 2026-11-08 kodiga solishtirildi. Django/Node testlari yugurilmadi (docs-only).
+- Owner qarori (2026-11-08): DESIGN-02 bitta branchda (`claude/design-02-plan`, PR #253) qoladi va S10 dan keyin
+  bitta merge bilan qo'shiladi; bosqichlar shu branchda commit, ko'rik lokal serverda (rejaning §6).
+- Davom etilishi kerak: S1 — Claude S0 da to'xtadi; keyingi agent o'z prefiksidagi bitta branchda, rejaning §10 dagi
+  tartibda (eskiz nusxasi `playground/DESIGN-02 eskiz/`; flag, tanlov funksiyasi, "Sokin" varianti va matn
+  oralig'i, Figtree, `calm.css`, `calm.test.mjs`); D8 owner ko'rigidan keyin.
+
 ## 2026-11-08 [Claude]: DASH1.0a — boshqaruv ruxsatlari va PII containment
 
 Oddiy `is_staff` (kurs ustozi ham) endi global statistika, tushum, o'quvchilar ro'yxati (email/telefon), boshqa
@@ -38,6 +259,13 @@ superuser, qolgan xodim faqat aniq berilgan Permission bilan. `/backoffice/chats
   `makemigrations --check --dry-run`, `git diff --check` toza.
 - Davom etilishi kerak: owner-only legacy route'lardagi `user_passes_test` 302 → 403 (login aylanmasi), keyin
   DASH1.0b. Hujjat: `DASHBOARD-REFORM-PLAN.md` DASH1.0a holati, `05-launch-ops.md` §3.
+- Merge (2026-11-08): Codex review topilmasi to'g'ri edi — guruh orqali berilgan ruxsatni `revoke` "olindi" deb
+  ko'rsatardi; `8d4b8b7` da tuzatildi (amaldagi ruxsat qayta o'qiladi, guruh nomi bilan xato, audit
+  `still_effective`; `core.test_backoffice_capabilities` 26/26), thread'ga javob yozilib resolve qilindi.
+  Uchala required check yashil, [PR #252](https://github.com/azurebek/azurelms/pull/252) `6dff8c4` bilan merge.
+  Shu uch commit muallifi repo-local identity sabab `Codex` bo'lib qolgan (`Co-Authored-By: Claude` trailer bor);
+  keyingi commitlar `-c user.name=Claude` bilan. Merge bo'lgan branchni o'chirishga sessiya ruxsati berilmadi —
+  `claude/dash10a-capability-containment` remote'da qoldi.
 
 ## 2026-11-06 [Codex]: PUBLIC-02 / PE8 — editorial auth sahifalari
 

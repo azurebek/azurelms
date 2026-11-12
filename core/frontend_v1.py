@@ -9,27 +9,131 @@ from django.utils.functional import cached_property
 from core.flags import flag_enabled, flags_enabled
 
 
+PLATFORM_CALM_FLAG = "platform_calm_v1"
+
+
+def calm_template_names(template, *, enabled):
+    """CALM nusxasi bo'lsa uni, bo'lmasa ayni mavjud V1 shablonini tanlang."""
+    if not enabled:
+        return [template]
+    prefix = "frontend_v1/"
+    relative = template[len(prefix):] if template.startswith(prefix) else template
+    return [f"{prefix}calm/{relative}", template]
+
+
+def _calm_navigation_item(name, label, icon, *, active_names=None, mobile=True):
+    """Sokin shell uchun ixcham, rolga xos navigatsiya yozuvi."""
+    return dict(
+        url=reverse(name),
+        name=name,
+        label=label,
+        icon=icon,
+        active_names=tuple(active_names or (name,)),
+        mobile=mobile,
+    )
+
+
+def learner_calm_navigation():
+    """Learner shell: desktopda besh, mobil pastki panelda to'rt bo'lim."""
+    return [
+        _calm_navigation_item("dashboard", "Bosh sahifa", "home"),
+        _calm_navigation_item(
+            "my_courses",
+            "Darslarim",
+            "book",
+            active_names=("my_courses", "courses", "course_study"),
+        ),
+        _calm_navigation_item(
+            "classbook:live_home",
+            "Jonli dars",
+            "live",
+            active_names=("classbook:live_home", "classbook_live"),
+        ),
+        _calm_navigation_item(
+            "attendance_calendar",
+            "Natijalarim",
+            "award",
+            active_names=("attendance_calendar", "exam_center", "certificates", "leaderboard"),
+            mobile=False,
+        ),
+        _calm_navigation_item(
+            "messenger:group",
+            "Xabarlar",
+            "message",
+            active_names=("messenger:group", "messenger:tutor", "messenger:ai"),
+        ),
+    ]
+
+
+def teacher_calm_navigation():
+    """Teacher shell: vazifaga yo'naltirilgan besh asosiy bo'lim."""
+    return [
+        _calm_navigation_item("teacher_dashboard", "Bosh sahifa", "home", mobile=False),
+        _calm_navigation_item(
+            "classbook:teacher_home",
+            "Jonli dars",
+            "live",
+            active_names=("classbook:teacher_home", "classbook_live"),
+        ),
+        _calm_navigation_item(
+            "teacher_cohorts",
+            "Guruhlarim",
+            "users",
+            active_names=("teacher_cohorts", "teacher_students", "teacher_courses", "teacher_attendance"),
+        ),
+        _calm_navigation_item(
+            "teacher_grading",
+            "Tekshiruv",
+            "exam",
+            active_names=(
+                "teacher_grading",
+                "teacher_grade_assignment",
+                "teacher_grade_exam",
+                "teacher_release",
+            ),
+        ),
+        _calm_navigation_item(
+            "messenger:group",
+            "Xabarlar",
+            "message",
+            active_names=("messenger:group", "messenger:tutor", "messenger:ai"),
+        ),
+    ]
+
+
 class FrontendV1Mixin:
     frontend_v1_template = None
     frontend_v1_title = ""
     frontend_v1_flag = "frontend_v1_learning"
 
     @cached_property
+    def frontend_renderer_flags(self):
+        # Renderer va CALM qatlami bitta DB snapshot'i va bitta so'rovdan.
+        return flags_enabled(self.frontend_v1_flag, PLATFORM_CALM_FLAG)
+
+    @cached_property
     def frontend_v1_enabled(self):
-        return flag_enabled(self.frontend_v1_flag)
+        return self.frontend_renderer_flags[self.frontend_v1_flag]
+
+    @property
+    def platform_calm_enabled(self):
+        return self.frontend_renderer_flags[PLATFORM_CALM_FLAG]
 
     def get_template_names(self):
         if self.frontend_v1_enabled:
-            return [self.frontend_v1_template]
+            return calm_template_names(self.frontend_v1_template, enabled=self.platform_calm_enabled)
         return super().get_template_names()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.frontend_v1_enabled:
             context["frontend_v1_title"] = self.frontend_v1_title
+            context["platform_calm_v1"] = self.platform_calm_enabled
             context["frontend_v1_records_ready"] = flag_enabled("frontend_v1_records")
             context["frontend_v1_checkout_ready"] = flag_enabled("frontend_v1_checkout")
             context["frontend_v1_exam_attempt_ready"] = flag_enabled("frontend_v1_exam_attempt")
+            context["frontend_calm_nav"] = learner_calm_navigation()
+            context["frontend_v1_role"] = "learner"
             context["frontend_v1_nav"] = [
                 {"url": reverse(name), "name": name, "label": label, "icon": icon}
                 for name, label, icon in (
@@ -95,7 +199,12 @@ class FrontendLoginView(FrontendV1Mixin, LoginView):
             "frontend_v1_auth",
             "frontend_v1_public",
             "public_editorial_v1",
+            PLATFORM_CALM_FLAG,
         )
+
+    @property
+    def frontend_renderer_flags(self):
+        return self.login_renderer_flags
 
     @cached_property
     def frontend_v1_enabled(self):
@@ -107,11 +216,13 @@ class FrontendLoginView(FrontendV1Mixin, LoginView):
         return (
             self.frontend_v1_enabled
             and flags["frontend_v1_public"]
-            and flags["public_editorial_v1"]
+            and (flags["public_editorial_v1"] or flags[PLATFORM_CALM_FLAG])
         )
 
     def get_template_names(self):
         if self.auth_editorial_enabled:
+            if self.platform_calm_enabled:
+                return ["frontend_v1/calm/login.html", "frontend_v1/editorial/login.html", self.frontend_v1_template]
             return ["frontend_v1/editorial/login.html"]
         return super().get_template_names()
 
@@ -126,6 +237,10 @@ class FrontendLoginView(FrontendV1Mixin, LoginView):
         context["auth_intent"] = public_intent.describe(context.get("next", ""))
         if self.auth_editorial_enabled:
             context.update(
+                auth_public_frame=(
+                    "frontend_v1/calm/public/base.html"
+                    if self.platform_calm_enabled else "frontend_v1/editorial/base.html"
+                ),
                 auth_intro="O‘qishni qolgan joyingizdan davom ettiring.",
                 auth_aside_title="Kirgandan keyin",
                 auth_aside_items=(
@@ -230,18 +345,26 @@ def teacher_v1_navigation(active_nav):
         frontend_v1_workspace="Ustoz maydoni",
         frontend_v1_tagline="Darslar va o‘quvchilar",
         frontend_v1_home=reverse("teacher_dashboard"),
+        frontend_calm_nav=teacher_calm_navigation(),
+        frontend_v1_role="teacher",
         frontend_v1_nav=[dict(url=reverse(name), name=name, label=label, icon=icon) for name, label, icon in pages],
         frontend_v1_legacy_nav=[dict(url=reverse(name), label=label, icon=icon) for name, label, icon in legacy],
     )
 
 
-def render_teacher_v1(request, legacy_template, context, *, enabled=None, status=200):
+def render_teacher_v1(request, legacy_template, context, *, enabled=None, calm_enabled=None, status=200):
     """Select presentation only; caller has already applied the teacher scope."""
     if enabled is None:
-        enabled = flag_enabled("frontend_v1_teacher")
+        renderer_flags = flags_enabled("frontend_v1_teacher", PLATFORM_CALM_FLAG)
+        enabled = renderer_flags["frontend_v1_teacher"]
+        calm_enabled = renderer_flags[PLATFORM_CALM_FLAG]
     if not enabled:
         return render(request, legacy_template, context, status=status)
+    if calm_enabled is None:
+        calm_enabled = flag_enabled(PLATFORM_CALM_FLAG)
     context.update(teacher_v1_navigation(context["active_nav"]))
-    response = render(request, f"frontend_v1/{legacy_template}", context, status=status)
+    context["platform_calm_v1"] = calm_enabled
+    template = f"frontend_v1/{legacy_template}"
+    response = render(request, calm_template_names(template, enabled=calm_enabled), context, status=status)
     patch_cache_control(response, private=True, no_store=True)
     return response

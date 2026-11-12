@@ -1,4 +1,4 @@
-{% extends "frontend_v1/editorial/base.html" %}{% load public_v1 %}
+{% extends public_frame|default:"frontend_v1/editorial/base.html" %}{% load public_v1 %}
 {% block content %}
 <section class="c-card p-public-feature" aria-labelledby="sit-hero-title">
   <div class="p-public-media p-public-media--atmos p-public-feature__media">{% if site_settings.logo_mark_image %}<img class="p-public-media__mark" src="{{ site_settings.logo_mark_image.url }}" alt="">{% endif %}</div>

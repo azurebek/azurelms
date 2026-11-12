@@ -1,5 +1,11 @@
 (() => {
   "use strict";
+
+  const hasWindow = typeof window !== "undefined";
+  if (hasWindow && (window.name === "tgmini" || new URLSearchParams(window.location.search).has("mini"))) {
+    document.documentElement.setAttribute("data-mini", "");
+  }
+
   const drawer = document.querySelector("#nav-dialog");
   const opener = document.querySelector("[data-nav-open]");
   if (drawer && opener) {
@@ -21,8 +27,32 @@
       if (event.matches && drawer.open) drawer.close();
     });
   }
+
+  const popovers = [...document.querySelectorAll("[data-calm-popover]")];
+  const closePopover = (popover, restoreFocus = false) => {
+    if (!popover?.open) return;
+    popover.open = false;
+    if (restoreFocus) popover.querySelector("summary")?.focus();
+  };
+  const closePopovers = (except = null) => {
+    popovers.forEach((popover) => {
+      if (popover !== except) closePopover(popover);
+    });
+  };
+  popovers.forEach((popover) => popover.addEventListener("toggle", () => {
+    if (popover.open) closePopovers(popover);
+  }));
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest?.("[data-calm-popover]")) closePopovers();
+  });
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
+    const calmPopover = event.target.closest?.("[data-calm-popover][open]") || popovers.find((popover) => popover.open);
+    if (calmPopover) {
+      event.preventDefault();
+      closePopover(calmPopover, true);
+      return;
+    }
     const account = event.target.closest(".v1-account[open]");
     if (account) {
       event.preventDefault();
@@ -30,6 +60,7 @@
       account.querySelector("summary").focus();
     }
   });
+  if (hasWindow) window.addEventListener("pageshow", () => closePopovers());
   document.querySelector("[data-form-errors]")?.focus();
   document.querySelectorAll('[data-v1-logout]').forEach(form => form.addEventListener('submit', () => {
     try {

@@ -8,7 +8,7 @@
 {% endcomment %}
 {% block document_class %}s-editorial{% endblock %}
 {% block app_bundle %}{% endblock %}
-{% block extra_head %}<link rel="stylesheet" href="{% static 'frontend_v1/css/public.css' %}"><link rel="stylesheet" href="{% static 'frontend_v1/css/public-editorial.css' %}"><script defer src="{% static 'frontend_v1/js/public-header.js' %}"></script>{% block public_head %}{% endblock %}{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'frontend_v1/css/public.css' %}">{% if not platform_calm_v1 %}<link rel="stylesheet" href="{% static 'frontend_v1/css/public-editorial.css' %}">{% endif %}<script defer src="{% static 'frontend_v1/js/public-header.js' %}"></script>{% block public_head %}{% endblock %}{% if platform_calm_v1 %}<link rel="stylesheet" href="{% static 'frontend_v1/css/calm-public.css' %}">{% endif %}{% endblock %}
 {% block body %}
 <header class="s-public-header"><div class="s-public-header__inner">
   <a class="s-brand" href="{% url 'home' %}">{% if site_settings.logo_image %}<span class="s-theme-light">{% include "components/brand_logo.html" with use_wordmark=True image_class="s-public-logo" %}</span><span class="s-theme-dark">{% if site_settings.logo_dark_image %}{% include "components/brand_logo.html" with use_wordmark=True dark=True image_class="s-public-logo" %}{% else %}{% include "components/brand_logo.html" with mark_class="s-brand__mark" %}{% endif %}</span>{% else %}{% include "components/brand_logo.html" with mark_class="s-brand__mark" %}{% endif %}</a>

@@ -1,0 +1,22 @@
+{% load static public_meta %}<!doctype html>
+<html lang="uz" data-theme="light" class="s-calm s-calm-miniapp">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>{% block title %}{{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %} · Mini ilova</title>
+  {% public_meta_tags %}
+  {% include "components/brand_favicon.html" %}
+  <script src="{% static 'frontend_v1/js/theme.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'frontend_v1/css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'frontend_v1/css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'frontend_v1/css/calm.css' %}">
+  <link rel="stylesheet" href="{% static 'frontend_v1/css/calm-miniapp.css' %}">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  {% block body %}{% endblock %}
+  <script defer src="{% static 'frontend_v1/js/calm-miniapp.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{% extends "frontend_v1/calm/platform.html" %}
+{% load static %}
+{% block body_class %}d2-account-body d2-profile-body{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'frontend_v1/css/account.css' %}">{% include "frontend_v1/calm/account_assets.html" %}<script defer src="{% static 'frontend_v1/js/account.js' %}"></script>{% endblock %}
+{% block content %}
+<div class="d2-account-page" data-calm-page="profile">
+  <header class="d2-profile-head">
+    <span class="c-avatar d2-profile-avatar">{% if request.user.avatar %}<img src="{{ request.user.avatar.url }}" alt="" data-avatar-image>{% else %}{{ request.user.first_name.0|default:request.user.username.0|upper }}{{ request.user.last_name.0|upper }}{% endif %}</span>
+    <div class="d2-profile-identity"><h1>{{ request.user.get_full_name|default:request.user.username }}</h1><p>{{ request.user.current_level|default:"A1" }} daraja{% if current_plan %} · {{ current_plan.name }}{% endif %}</p></div>
+    <a class="c-button c-button--secondary" href="{% url 'settings_account' %}">Tahrirlash</a>
+  </header>
+  <p class="d2-profile-bio">{{ request.user.bio|default:"O‘zingiz haqingizda qisqa ma’lumot hali kiritilmagan." }}</p>
+
+  <dl class="d2-profile-stats">
+    <div><dt>Daraja</dt><dd>{{ request.user.current_level|default:"A1" }}</dd></div>
+    <div><dt>XP</dt><dd>{{ request.user.total_xp }}</dd></div>
+    <div><dt>Nishon</dt><dd>{{ earned_badges|length }}</dd></div>
+  </dl>
+
+  <section class="d2-account-section" aria-labelledby="account-links-title">
+    <h2 id="account-links-title">Hisob</h2>
+    {% if frontend_v1_role != "teacher" %}
+    <div class="d2-account-row"><div><strong>{% if current_plan %}{{ current_plan.name }} tarif{% else %}Faol tarif yo‘q{% endif %}</strong><small>Obuna holati va yuborilgan cheklar</small></div><a href="{% url 'subscriptions' %}">To‘lovlar</a></div>
+    {% endif %}
+    <div class="d2-account-row"><div><strong>{% if telegram_linked %}Telegram ulangan{% else %}Telegram ulanmagan{% endif %}</strong><small>{% if telegram_username %}@{{ telegram_username }} · {% endif %}Bildirishnomalarni boshqarish</small></div><a href="{% url 'settings_account' %}">Boshqarish</a></div>
+    <div class="d2-account-row"><div><strong>Sozlamalar</strong><small>Profil, parol, maxfiylik va AI repetitor</small></div><a href="{% url 'settings_account' %}">Ochish</a></div>
+    <div class="d2-account-row"><div><strong>Yordam</strong><small>Ko‘p so‘raladigan savollar va aloqa</small></div><a href="{% url 'help_center' %}">Ochish</a></div>
+  </section>
+
+  {% if earned_badges %}<section class="d2-account-section"><h2>Nishonlar</h2><ul class="d2-badge-list">{% for earned in earned_badges %}<li>{% if earned.badge.icon %}<img src="{{ earned.badge.icon.url }}" alt="" loading="lazy">{% endif %}<span>{{ earned.badge.name }}</span></li>{% endfor %}</ul></section>{% endif %}
+
+  <details class="v1-profile-editor d2-inline-editor"{% if form.errors %} open{% endif %}>
+    <summary>Profilni shu sahifada tahrirlash</summary>
+    <div class="d2-inline-editor__body"><h2>Shaxsiy ma’lumotlar</h2>{% include "frontend_v1/profile_fields.html" %}<div class="d2-avatar-editor">{% include "frontend_v1/avatar_editor.html" %}</div></div>
+  </details>
+
+  <nav class="d2-account-mobile-links" aria-label="Boshqa bo‘limlar"><h2>Boshqa bo‘limlar</h2>{% if frontend_v1_role == "teacher" %}<a href="{% url 'teacher_grading' %}">Tekshiruv navbati</a><a href="{% url 'teacher_cohorts' %}">Guruhlarim</a>{% else %}<a href="{% url 'exam_center' %}">Imtihonlar</a><a href="{% url 'attendance_calendar' %}">Natijalarim</a>{% endif %}<a href="{% url 'notifications' %}">Bildirishnomalar{% if unread_notifications_count %} · {{ unread_notifications_count }} ta yangi{% endif %}</a></nav>
+  <form method="post" action="{% url 'logout' %}" data-v1-logout>{% csrf_token %}<button class="d2-logout" type="submit">Hisobdan chiqish</button></form>
+</div>
+{% endblock %}

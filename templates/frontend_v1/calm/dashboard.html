@@ -1,0 +1,55 @@
+{% extends "frontend_v1/calm/platform.html" %}
+{% block extra_head %}{% include "frontend_v1/calm/page_assets.html" %}{% endblock %}
+{% block content %}
+<div class="d2-page d2-page--dashboard" data-calm-page="dashboard">
+  <header class="d2-sketch-head">
+    <h1>Salom, {{ request.user.first_name|default:request.user.username }}</h1>
+    <time datetime="{% now 'Y-m-d' %}">{% now "d.m.Y" %}</time>
+  </header>
+
+  {% if resume_enrollment %}
+  <section class="d2-next-card" aria-labelledby="today-title">
+    <div class="d2-next-card__progress" aria-hidden="true"><span>Davom eting</span><strong>{{ resume_enrollment.dashboard_progress }}%</strong></div>
+    <div class="d2-next-card__copy">
+      <p class="d2-kicker">Qolgan joyingizdan</p>
+      <h2 id="today-title">{{ resume_enrollment.cohort.course.title }}</h2>
+      <p>{{ resume_enrollment.cohort.name }} · {{ resume_enrollment.dashboard_completed_lessons }} / {{ resume_enrollment.dashboard_total_lessons }} dars</p>
+    </div>
+    <a class="c-button c-button--primary" href="{% url 'course_study' course_id=resume_enrollment.cohort.course_id %}?cohort={{ resume_enrollment.cohort_id }}">Keyingi darsni ochish</a>
+  </section>
+  {% elif primary_enrollment %}
+  <section class="d2-state" aria-labelledby="access-title">
+    <span class="d2-state__icon">{% include "frontend_v1/icon.html" with name="book" %}</span>
+    <div><p class="d2-kicker">{{ primary_enrollment.cohort.course.title }}</p><h2 id="access-title">Darsga kirish uchun obuna holatini tekshiring</h2><p>{{ primary_enrollment.dashboard_status_label }}. Kurs va natijalaringiz saqlangan.</p></div>
+    <a class="c-button c-button--primary" href="{% url 'subscriptions' %}">Obunani tekshirish</a>
+  </section>
+  {% else %}
+  <section class="d2-state" aria-labelledby="welcome-title">
+    <span class="d2-state__icon">{% include "frontend_v1/icon.html" with name="book" %}</span>
+    <div><p class="d2-kicker">Birinchi qadam</p><h2 id="welcome-title">Hali kursga yozilmagansiz</h2><p>Darajangiz va maqsadingizga mos kursni tanlang. Yozilgan kurs shu yerda ko‘rinadi.</p></div>
+    <a class="c-button c-button--primary" href="{% url 'courses' %}">Kurslarni ko‘rish</a>
+  </section>
+  {% endif %}
+
+  <section class="d2-before" aria-labelledby="before-title">
+    <h2 id="before-title">Darsdan oldin</h2>
+    <div class="d2-sketch-list">
+      {% for item in notifications|slice:":3" %}
+      <a class="d2-sketch-row" href="{% url 'notifications' %}#notice-{{ item.pk }}">
+        <span><strong>{{ item.title|default:"Bildirishnoma" }}</strong><small>{{ item.message|truncatechars:96 }}</small></span>
+        <time datetime="{{ item.created_at|date:'c' }}">{{ item.created_at|timesince }} oldin</time>
+      </a>
+      {% empty %}
+      <p class="d2-empty-row">Hozir darsdan oldin bajariladigan yangi ish yo‘q.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="d2-my-learning" aria-labelledby="courses-title">
+    <div class="d2-section-head"><h2 id="courses-title">Darslarim</h2><a class="d2-text-action" href="{% url 'my_courses' %}">Barcha darslar</a></div>
+    <div class="d2-list d2-course-list">
+      {% for enrollment in active_dashboard_enrollments|slice:":3" %}{% include "frontend_v1/calm/course_card.html" %}{% empty %}<p class="d2-empty-row">Faol kurs bo‘lsa, shu yerda ko‘rinadi.</p>{% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -8,18 +8,26 @@
   };
   let preference = read();
   function apply() {
-    const dark = (preference || (system.matches ? "dark" : "light")) === "dark";
-    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    const mode = (preference || (system.matches ? "dark" : "light")) === "dark" ? "dark" : "light";
+    const dark = mode === "dark";
+    document.documentElement.dataset.theme = mode;
     document.querySelectorAll('[data-action="theme.toggle"]').forEach((button) => {
       button.setAttribute("aria-pressed", String(dark));
       button.setAttribute("aria-label", dark ? "Yorug‘ temaga o‘tish" : "Qorong‘i temaga o‘tish");
+    });
+    document.querySelectorAll('[data-action="theme.set"]').forEach((button) => {
+      button.setAttribute("aria-pressed", String(button.dataset.themeValue === mode));
     });
   }
   apply();
   document.addEventListener("DOMContentLoaded", apply, {once: true});
   document.addEventListener("click", (event) => {
-    if (!event.target.closest('[data-action="theme.toggle"]')) return;
-    preference = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    const choice = event.target.closest('[data-action="theme.set"]');
+    const toggle = event.target.closest('[data-action="theme.toggle"]');
+    if (!choice && !toggle) return;
+    preference = choice && ["light", "dark"].includes(choice.dataset.themeValue)
+      ? choice.dataset.themeValue
+      : document.documentElement.dataset.theme === "dark" ? "light" : "dark";
     try { localStorage.setItem(key, preference); } catch { /* In-memory preference still works. */ }
     apply();
   });

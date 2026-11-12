@@ -199,6 +199,22 @@ class FrontendStudyTests(TestCase):
         self.assertTemplateUsed(self.client.get(self.lesson_url), 'courses/lesson_detail.html')
         self.assertFalse(LessonProgress.objects.filter(is_completed=True).exists())
 
+    def test_calm_lesson_selects_daily_flow_template_without_changing_access(self):
+        self.enable()
+        set_flag('platform_calm_v1', enabled=True, reason='DESIGN-02 S3 lesson regression')
+        self.client.force_login(self.student)
+
+        response = self.client.get(self.lesson_url, {'cohort': self.cohort.pk, 'tab': 'text'})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'frontend_v1/calm/lesson.html')
+        self.assertContains(response, 'data-calm-page="lesson"')
+        self.assertContains(response, 'Merhaba — real content.')
+        self.assertContains(response, f'?cohort={self.cohort.pk}&amp;tab=text')
+        self.assertIn('no-store', response['Cache-Control'])
+        self.client.force_login(self.other)
+        self.assertEqual(self.client.get(self.lesson_url).status_code, 302)
+
     def test_empty_content_invalid_tab_and_video(self):
         self.enable()
         self.client.force_login(self.student)

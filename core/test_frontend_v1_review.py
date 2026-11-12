@@ -61,6 +61,25 @@ class TeacherReviewTests(TestCase):
         for name, path in (('grading', self.queue_url), ('grade_assignment', self.url)):
             self.assertTemplateUsed(self.client.get(path), f'teacher/{name}.html')
 
+    def test_calm_dashboard_queue_and_review_are_flagged_without_writes(self):
+        set_flag('platform_calm_v1', enabled=True, reason='DESIGN-02 S6 regression')
+        stamp = self.submission.updated_at
+        for name, path in (
+            ('dashboard', reverse('teacher_dashboard')),
+            ('grading', self.queue_url),
+            ('grade_assignment', self.url),
+        ):
+            response = self.client.get(path)
+            self.assertTemplateUsed(response, f'frontend_v1/calm/teacher/{name}.html')
+            self.assertContains(response, 'frontend_v1/css/calm-teacher.css')
+        self.submission.refresh_from_db()
+        self.assertEqual(stamp, self.submission.updated_at)
+        self.assertFalse(SystemAuditEvent.objects.filter(action='assignment.review').exists())
+        set_flag('platform_calm_v1', enabled=False, reason='DESIGN-02 S6 rollback')
+        response = self.client.get(self.queue_url)
+        self.assertTemplateUsed(response, 'frontend_v1/teacher/grading.html')
+        self.assertNotContains(response, 'frontend_v1/css/calm-teacher.css')
+
     def test_normalized_input_ack_is_one_shot_and_revision_scoped(self):
         response = self.client.post(self.url, self.payload(action='revision', awarded_xp='015'), follow=True)
         self.assertContains(response, 'data-draft-confirmed="true"')

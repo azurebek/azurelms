@@ -16,12 +16,13 @@ from django.urls import reverse
 from aicontrol.models import FeatureFlag
 from core.flags import flags_enabled
 from frontend.models import LegalPage, SiteSettings
-from frontend.public_content import EDITORIAL, LEGACY, V1, current_renderer
+from frontend.public_content import CALM, EDITORIAL, LEGACY, V1, current_renderer
 from frontend.public_v1 import public_template_names
 # Modul orqali — klass bu modul nomlar fazosiga tushsa, uning testlari bu yerda ham ikkinchi marta yuguradi.
 from frontend import test_public_v1 as v1_world
 
 EDITORIAL_BASE = "frontend_v1/editorial/base.html"
+CALM_PUBLIC_BASE = "frontend_v1/calm/public/base.html"
 # Editorial nusxasi bor sahifalar (PE3+ har kesimda to'ldiradi); qolganlari hozirgi V1 shablonida.
 PORTED = {
     "index.html",
@@ -52,9 +53,10 @@ def real_png():
     return buffer.getvalue()
 
 
-def set_flags(*, v1, editorial):
+def set_flags(*, v1, editorial, calm=False):
     FeatureFlag.objects.update_or_create(slug="frontend_v1_public", defaults={"enabled": v1})
     FeatureFlag.objects.update_or_create(slug="public_editorial_v1", defaults={"enabled": editorial})
+    FeatureFlag.objects.update_or_create(slug="platform_calm_v1", defaults={"enabled": calm})
 
 
 class RendererChoiceTests(TestCase):
@@ -72,10 +74,39 @@ class RendererChoiceTests(TestCase):
             with self.subTest(v1=v1, editorial=editorial), self.assertNumQueries(1):
                 self.assertEqual(current_renderer(), expected)
 
+        set_flags(v1=True, editorial=False, calm=True)
+        with self.assertNumQueries(1):
+            self.assertEqual(current_renderer(), CALM)
+        set_flags(v1=False, editorial=True, calm=True)
+        with self.assertNumQueries(1):
+            self.assertEqual(current_renderer(), LEGACY)
+
     def test_template_names_fall_back_to_the_current_v1_page(self):
         self.assertEqual(public_template_names("index.html", V1), ["frontend_v1/public/index.html"])
         self.assertEqual(public_template_names("index.html", EDITORIAL),
                          ["frontend_v1/editorial/index.html", "frontend_v1/public/index.html"])
+        self.assertEqual(public_template_names("index.html", CALM), [
+            "frontend_v1/calm/index.html", "frontend_v1/editorial/index.html", "frontend_v1/public/index.html",
+        ])
+
+    def test_calm_flag_uses_the_quiet_public_frame_and_canonical_editorial_page(self):
+        set_flags(v1=True, editorial=False, calm=True)
+        response = self.client.get(reverse("home"))
+        self.assertTemplateUsed(response, "frontend_v1/editorial/index.html")
+        self.assertTemplateUsed(response, CALM_PUBLIC_BASE)
+        self.assertContains(response, 'class="s-calm s-editorial d2-public"')
+        self.assertContains(response, 'class="d2-public-body"')
+        self.assertContains(response, "/static/frontend_v1/css/calm.css")
+        self.assertContains(response, "/static/frontend_v1/css/calm-public.css")
+        self.assertNotContains(response, "/static/frontend_v1/css/public-editorial.css")
+
+    def test_calm_default_off_and_explicit_off_have_identical_public_bytes(self):
+        set_flags(v1=True, editorial=True, calm=False)
+        explicit_off = self.client.get(reverse("home"))
+        FeatureFlag.objects.filter(slug="platform_calm_v1").delete()
+        default_off = self.client.get(reverse("home"))
+        self.assertEqual(default_off.content, explicit_off.content)
+        self.assertNotContains(default_off, "frontend_v1/css/calm.css")
 
 
 class EditorialFrameTests(TestCase):
@@ -117,6 +148,20 @@ class EditorialFrameTests(TestCase):
                         self.assertIn('class="s-public-footer"', band)
                         self.assertEqual(html.count('aria-label="Asosiy navigatsiya"'), 1)
                         self.assertNotIn("frontend_v1/css/auth.css", html)
+
+    def test_every_public_route_keeps_its_editorial_contract_inside_the_calm_frame(self):
+        self.publish_legal()
+        set_flags(v1=True, editorial=False, calm=True)
+        for name, args, template in self.routes():
+            with self.subTest(name=name):
+                response = self.client.get(reverse(name, args=args))
+                self.assertEqual(response.status_code, 200)
+                self.assertTemplateUsed(response, "frontend_v1/editorial/" + template)
+                self.assertTemplateUsed(response, CALM_PUBLIC_BASE)
+                self.assertContains(response, 'class="s-calm s-editorial d2-public"')
+                self.assertContains(response, "/static/frontend_v1/css/calm-public.css")
+                self.assertNotContains(response, "/static/frontend_v1/css/public-editorial.css")
+                self.assertContains(response, "data-editorial-footer")
 
     def test_the_frame_adds_no_query(self):
         # Faqat hali ko'chirilmagan sahifalar: ramkaning o'zi so'rov qo'shmaydi (bandlar o'z testida).

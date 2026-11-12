@@ -48,17 +48,26 @@ def settings_revision(user, action, fact_id=None, *, lock=False, snapshot=None):
     return _sign_revision(user, action, fact_id, state)
 
 
-def settings_navigation(section):
+def settings_navigation(section, *, calm=False):
     account_on = flag_enabled('frontend_v1_account')
     settings_on = flag_enabled('frontend_v1_settings')
-    return [dict(url=reverse(name), label=label, active=key == section, legacy=not enabled)
-            for key, name, label, enabled in (
-                ('profile', 'profile', 'Profil', account_on),
-                ('account', 'settings_account', 'Hisob', account_on),
-                ('privacy', 'settings_privacy', 'Maxfiylik', settings_on),
-                ('billing', 'settings_billing', 'To‘lov', settings_on),
-                ('capabilities', 'settings_capabilities', 'Imkoniyatlar', settings_on),
-            )]
+    items = (
+        ('profile', 'profile', 'Profil', account_on),
+        ('account', 'settings_account', 'Hisob', account_on),
+        ('privacy', 'settings_privacy', 'Maxfiylik', settings_on),
+        ('billing', 'settings_billing', 'To‘lov', settings_on),
+        ('capabilities', 'settings_capabilities', 'Imkoniyatlar', settings_on),
+    )
+    if calm:
+        # DESIGN-02 keeps the public profile as its own destination. Settings
+        # contains the four editable account sections from the approved sketch.
+        items = tuple(item for item in items if item[0] != 'profile')
+    return [dict(
+        url=reverse(name),
+        label='AI repetitor' if calm and key == 'capabilities' else label,
+        active=key == section,
+        legacy=not enabled,
+    ) for key, name, label, enabled in items]
 
 
 class SettingsV1Mixin(FrontendV1Mixin):
@@ -71,7 +80,10 @@ class SettingsV1Mixin(FrontendV1Mixin):
         if self.request.user.is_staff and flag_enabled('frontend_v1_teacher'):
             context.update(teacher_v1_navigation('teacher_dashboard'))
             context['frontend_v1_title'] = self.frontend_v1_title
-        context['settings_tabs'] = settings_navigation(self.settings_section)
+        context['settings_tabs'] = settings_navigation(
+            self.settings_section,
+            calm=self.platform_calm_enabled,
+        )
         user = self.request.user
         if self.settings_section == 'capabilities':
             context['preferences'] = [dict(

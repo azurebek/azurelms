@@ -13,6 +13,7 @@ from django.template.defaultfilters import floatformat
 
 from core.flags import flag_by_slug, set_flag
 from core.models import OperationalSettings
+from frontend.a11y_probe import probe
 from subscriptions.models import Plan, PromoCampaign, PromoCode, PromoRedemption
 from . import frontend_v1 as v1
 from .models import Enrollment, PaymentReceipt
@@ -68,6 +69,31 @@ class CheckoutV1Tests(CheckoutFixtureMixin, TestCase):
         self.assertNotContains(response, '/_preview/')
         self.assertNotContains(response, 'checkout-plan.js')
         self.assertContains(response, 'Summani tekshirish')
+
+    def test_calm_checkout_wraps_signed_quote_and_owned_status_only(self):
+        set_flag('platform_calm_v1', enabled=True, reason='DESIGN-02 S5 checkout regression')
+        response = self.client.get(self.url, {'plan_id': self.plan.pk})
+        self.assertTemplateUsed(response, 'frontend_v1/calm/checkout/form.html')
+        self.assertContains(response, 'd2-checkout-body')
+        self.assertContains(response, '/static/frontend_v1/css/calm-account.css')
+        self.assertContains(response, 'name="quote_token"')
+        self.assertContains(response, 'Yuborishda summa qayta tekshiriladi')
+        self.assertFalse(Enrollment.objects.exists())
+        self.assertFalse(PaymentReceipt.objects.exists())
+        self.assertEqual([(finding.rule, finding.detail) for finding in probe(response.content.decode())], [])
+
+        receipt = self.receipt()
+        status = self.client.get(reverse('cohorts:checkout_pending', args=[receipt.pk]))
+        self.assertTemplateUsed(status, 'frontend_v1/calm/checkout/status.html')
+        self.assertContains(status, 'd2-checkout-status-body')
+        self.assertContains(status, 'bu hali to‘lov tasdig‘i emas')
+        self.assertEqual([(finding.rule, finding.detail) for finding in probe(status.content.decode())], [])
+
+        set_flag('platform_calm_v1', enabled=False, reason='DESIGN-02 S5 checkout boundary')
+        legacy = self.client.get(reverse('cohorts:checkout_pending', args=[receipt.pk]))
+        self.assertTemplateUsed(legacy, 'frontend_v1/checkout/status.html')
+        self.assertTemplateNotUsed(legacy, 'frontend_v1/calm/checkout/status.html')
+        self.assertNotContains(legacy, '/static/frontend_v1/css/calm-account.css')
 
     def test_guest_login_and_csrf(self):
         client = Client(enforce_csrf_checks=True)

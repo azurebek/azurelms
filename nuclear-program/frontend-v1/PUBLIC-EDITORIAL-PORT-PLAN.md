@@ -1,5 +1,11 @@
 # PUBLIC-02 — editorial public dizaynini production'ga ko'chirish rejasi
 
+**Holat — 2026-11-08: PE1–PE8 kodda va lokal tekshirilgan; PE9–PE10 to'xtatildi.** Owner 2026-11-07 da
+yangi dizayn tizimini tanladi ([DESIGN-02](DESIGN-02-CALM-PORT-PLAN.md), D3/D4): ochiq sayt editorial emas, DESIGN-02
+ko'rinishiga o'tadi, PE9 dagi 1200px qarori 900/560px bilan almashadi. PE1–PE8 dagi kontekst pariteti, so'rov
+byudjetlari, rost da'vo, SEO va a11y ishi DESIGN-02 S8 ga meros o'tadi; `public_editorial_v1` rendereri DESIGN-02
+S10 gacha zaxira zanjirda qoladi (calm → editorial → V1). Quyidagi holat va kesimlar 2026-11-06 gacha tarix.
+
 **Holat — 2026-11-06: owner qarorlari D1–D5 qabul qilingan (§3); PE1–PE8 kodda va lokal
 tekshirilgan; PE9–PE10 boshlanmagan.** Manba — owner bilan qurilgan lokal
 prototip `playground/Thirteenth Trial/` (2026-10-21…28). `playground/` git'ga kirmaydi: prototip faqat shu
@@ -232,6 +238,9 @@ Lokal dalil: to'liq Django suite **3329 OK (skipped=70)**, Node **198/198**; `ch
 `check --deploy`, migration drift, `collectstatic`, secret scan va staged diff check toza. Brauzerda
 1440/1024/768/390/320px, yorug'/qorong'i: gorizontal toshish va konsol warning/error 0; mobil menyu/footer,
 parol ko'rsatish, xato fokusi, login/register/reset va reset natija holatlari tekshirildi.
+
+> **PE9 va PE10 to'xtatildi (owner, 2026-11-07).** Shell va breakpoint DESIGN-02 S2 da (900/560px), rollout va
+> tozalash DESIGN-02 S10 da. Quyidagi ikki band tarixiy reja sifatida qoldirildi.
 
 **PE9 — o'quv maydoni uzluksizligi.** Sidebar logo qatori header balandligida, tor ekranda logo topbar'da,
 sidebar 1024 → 1200px (`shell.css` + `shell.js` `matchMedia`) — owner qarori 2026-10-25 (b-variant).

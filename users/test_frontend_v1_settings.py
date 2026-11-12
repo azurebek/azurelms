@@ -6,6 +6,7 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from core.flags import flag_by_slug, set_flag
+from frontend.a11y_probe import probe
 from messenger.models import AIMemoryFact, AIMemoryTrace, AILongTermMemory
 from .frontend_v1_settings import settings_revision
 
@@ -41,6 +42,22 @@ class SettingsV1Tests(TestCase):
                 self.assertNotContains(response, '/_preview/')
                 self.assertNotContains(response, 'static/js/app.js')
                 self.assertNotContains(response, '/static/css/settings.css')
+
+    def test_calm_settings_use_four_real_sections_and_canonical_forms(self):
+        set_flag('frontend_v1_account', enabled=True, reason='DESIGN-02 S5 account tabs')
+        set_flag('platform_calm_v1', enabled=True, reason='DESIGN-02 S5 settings regression')
+        for name in ROUTES:
+            with self.subTest(name=name):
+                response = self.client.get(reverse(name))
+                self.assertTemplateUsed(response, f'frontend_v1/calm/{name}.html')
+                self.assertContains(response, 'd2-settings-body')
+                self.assertContains(response, '/static/frontend_v1/css/calm-account.css')
+                self.assertEqual([item['label'] for item in response.context['settings_tabs']],
+                                 ['Hisob', 'Maxfiylik', 'To‘lov', 'AI repetitor'])
+                self.assertFalse(any(item['url'] == reverse('profile') for item in response.context['settings_tabs']))
+                self.assertEqual([(finding.rule, finding.detail) for finding in probe(response.content.decode())], [])
+        self.assertContains(self.client.get(reverse('settings_privacy')), 'name="settings_revision"')
+        self.assertContains(self.client.get(reverse('settings_capabilities')), 'data-settings-form')
 
     def test_independent_default_off_and_rollback_preserve_data(self):
         self.assertFalse(flag_by_slug('frontend_v1_settings').default)

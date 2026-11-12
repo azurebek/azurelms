@@ -1,6 +1,6 @@
 {% load static design_theme public_meta %}
 <!doctype html>
-<html lang="uz" data-theme="light" class="{% block document_class %}{% endblock %}">
+<html lang="uz" data-theme="light" class="{% if platform_calm_v1 %}s-calm {% endif %}{% block document_class %}{% endblock %}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,11 +12,13 @@
   <link rel="stylesheet" href="{% static 'frontend_v1/css/tokens.css' %}">
   <link rel="stylesheet" href="{% static 'frontend_v1/css/base.css' %}">
   <link rel="stylesheet" href="{% static 'frontend_v1/css/components.css' %}">
-  <link rel="stylesheet" href="{% static 'frontend_v1/css/shell.css' %}">
+  <link rel="stylesheet" href="{% static 'frontend_v1/css/shell.css' %}">{% if platform_calm_v1 %}
+  <link rel="stylesheet" href="{% static 'frontend_v1/css/calm.css' %}">{% endif %}
   {% comment %}Ilova/auth bundle'i (PUB1.7b): ochiq sahifalar (`frontend_v1/public/base.html`) uni bo'sh blok bilan almashtiradi — mehmon ishlatilmaydigan CSS/JS yuklamaydi.{% endcomment %}
   {% block app_bundle %}<link rel="stylesheet" href="{% static 'frontend_v1/css/auth.css' %}">
   <link rel="stylesheet" href="{% static 'frontend_v1/css/learning.css' %}">
   <script defer src="{% static 'frontend_v1/js/shell.js' %}"></script>{% endblock %}
+  {% if platform_calm_v1 and request.session.telegram_miniapp %}<script defer src="{% static 'frontend_v1/js/mini-frame.js' %}"></script>{% endif %}
   {% block extra_head %}{% endblock %}
   {% published_design_css %}
 </head>

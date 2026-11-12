@@ -6,15 +6,22 @@ from django.urls import reverse
 from django.utils.cache import patch_cache_control
 from django.utils.crypto import constant_time_compare, salted_hmac
 
-from core.flags import flag_enabled
-from core.frontend_v1 import teacher_v1_navigation
+from core.flags import flag_enabled, flags_enabled
+from core.frontend_v1 import PLATFORM_CALM_FLAG, calm_template_names, teacher_v1_navigation
 from .backoffice_forms import LibraryResourceForm
 from .models import FILE_KIND_LABELS, ResourceLanguage, ResourceLevel, ResourceType
 
 
+def renderer_flags(request):
+    """Kutubxona renderer flaglarini bir so'rovda va request davomida bir marta o'qing."""
+    if not hasattr(request, '_library_renderer_flags'):
+        request._library_renderer_flags = flags_enabled('frontend_v1_library', PLATFORM_CALM_FLAG)
+    return request._library_renderer_flags
+
+
 def enabled(request):
     # An in-flight V1 form keeps its error/guard contract during rollback.
-    return flag_enabled('frontend_v1_library') or request.POST.get('frontend_v1_library') == '1'
+    return renderer_flags(request)['frontend_v1_library'] or request.POST.get('frontend_v1_library') == '1'
 
 
 def revision(user, resource, action, lesson_id=None):
@@ -70,6 +77,8 @@ def render_library(request, page, context, *, status=200):
         legacy = {'list': 'list', 'form': 'form', 'picker': 'picker'}[page]
         return render(request, f'backoffice/library_{legacy}.html', context, status=status)
     context.update(teacher_v1_navigation('teacher_dashboard'))
+    calm_enabled = renderer_flags(request)[PLATFORM_CALM_FLAG]
+    context['platform_calm_v1'] = calm_enabled
     if not flag_enabled('frontend_v1_teacher'):
         context['frontend_v1_legacy_nav'] += [item for item in context['frontend_v1_nav'] if item['name'].startswith('teacher_')]
         context['frontend_v1_nav'] = [item for item in context['frontend_v1_nav'] if not item['name'].startswith('teacher_')]
@@ -91,7 +100,8 @@ def render_library(request, page, context, *, status=200):
         params = request.GET.copy()
         params['page'] = str(context['page_obj'].number)
         context['picker_return_query'] = params.urlencode()
-    response = render(request, f'frontend_v1/library/{page}.html', context, status=status)
+    template = f'frontend_v1/library/{page}.html'
+    response = render(request, calm_template_names(template, enabled=calm_enabled), context, status=status)
     patch_cache_control(response, private=True, no_store=True)
     return response
 
