@@ -1,4 +1,5 @@
 import json
+from urllib.parse import urlencode
 
 from aiogram import types
 from asgiref.sync import async_to_sync
@@ -13,6 +14,9 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.utils.crypto import constant_time_compare
+
+from core.flags import flag_enabled
+from core.frontend_v1 import PLATFORM_CALM_FLAG, calm_template_names
 
 from .aiogram_app import get_bot, get_dispatcher
 from .miniapp import safe_next_path, validate_init_data
@@ -72,6 +76,9 @@ def miniapp_entry(request):
     """
     requested_next = request.GET.get("next") or reverse("bot:miniapp_home")
     next_path = safe_next_path(requested_next)
+    calm_enabled = flag_enabled(PLATFORM_CALM_FLAG)
+    if calm_enabled:
+        next_path = _calm_miniapp_destination(next_path)
 
     # Telegram WebView localhost'ni ochmaydi va initData faqat Telegram ichida
     # mavjud. Lokal UI ishlab chiqish uchun oddiy Django login orqali xuddi shu
@@ -79,19 +86,39 @@ def miniapp_entry(request):
     if getattr(settings, "IS_LOCAL", False) and request.GET.get("preview") == "1":
         if not request.user.is_authenticated:
             return redirect_to_login(request.get_full_path())
+        if calm_enabled:
+            # Production auth buni HMAC tekshiruvidan keyin yozadi. Lokal preview
+            # ham canonical sahifalarni tgmini iframe'ida ko'rsatishi uchun ayni
+            # frame/CSP sessiya kontrakti kerak; localdan tashqarida bu yo'l yo'q.
+            request.session["telegram_miniapp"] = True
         return redirect(next_path)
 
     return render(
         request,
-        "bot/miniapp_entry.html",
-        {"next_path": next_path},
+        calm_template_names("bot/miniapp_entry.html", enabled=calm_enabled),
+        {"next_path": next_path, "platform_calm_v1": calm_enabled},
     )
 
 
-def _miniapp_context(request, active_tab):
+def _calm_miniapp_destination(next_path):
+    """CALM Mini App'da canonical sahifani bitta `tgmini` ramkasiga joylang."""
+    miniapp_pages = {
+        reverse("bot:miniapp_home"),
+        reverse("bot:miniapp_courses"),
+        reverse("bot:miniapp_ai"),
+        reverse("bot:miniapp_profile"),
+    }
+    if next_path.split("?", 1)[0] in miniapp_pages:
+        return next_path
+    return f'{reverse("bot:miniapp_home")}?{urlencode({"target": next_path})}'
+
+
+def _miniapp_context(request, active_tab, *, calm_enabled=None, initial_url=""):
     """Mini App sahifalari ulashadigan mobil kontekst."""
     from users.views import build_student_enrollments
 
+    if calm_enabled is None:
+        calm_enabled = flag_enabled(PLATFORM_CALM_FLAG)
     enrollments = build_student_enrollments(request.user)
     active_enrollments = [
         item for item in enrollments if item.dashboard_effective_status == "active"
@@ -102,17 +129,40 @@ def _miniapp_context(request, active_tab):
         "active_enrollments": active_enrollments,
         "primary_enrollment": active_enrollments[0] if active_enrollments else None,
         "is_local_preview": getattr(settings, "IS_LOCAL", False),
+        "platform_calm_v1": calm_enabled,
+        "miniapp_initial_url": initial_url,
     }
+
+
+def _render_miniapp(request, legacy_template, context):
+    """Flag ON'da yagona CALM shell, OFF'da ayni eski maxsus sahifa."""
+    template = (
+        "frontend_v1/calm/bot/miniapp_home.html"
+        if context["platform_calm_v1"]
+        else legacy_template
+    )
+    return render(request, template, context)
 
 
 @xframe_options_exempt
 @login_required
 def miniapp_home(request):
     """Telegram WebView uchun ixcham platforma markazi."""
-    return render(
+    calm_enabled = flag_enabled(PLATFORM_CALM_FLAG)
+    initial_url = ""
+    if calm_enabled and request.GET.get("target"):
+        candidate = safe_next_path(request.GET["target"])
+        if not candidate.startswith("/bot/miniapp/"):
+            initial_url = candidate
+    return _render_miniapp(
         request,
         "bot/miniapp_home.html",
-        _miniapp_context(request, "home"),
+        _miniapp_context(
+            request,
+            "" if initial_url else "home",
+            calm_enabled=calm_enabled,
+            initial_url=initial_url,
+        ),
     )
 
 
@@ -120,10 +170,16 @@ def miniapp_home(request):
 @login_required
 def miniapp_courses(request):
     """Mini App ichidagi kurslar va o'qishni davom ettirish sahifasi."""
-    return render(
+    calm_enabled = flag_enabled(PLATFORM_CALM_FLAG)
+    return _render_miniapp(
         request,
         "bot/miniapp_courses.html",
-        _miniapp_context(request, "courses"),
+        _miniapp_context(
+            request,
+            "courses",
+            calm_enabled=calm_enabled,
+            initial_url=reverse("my_courses") if calm_enabled else "",
+        ),
     )
 
 
@@ -131,20 +187,36 @@ def miniapp_courses(request):
 @login_required
 def miniapp_ai(request):
     """Azure AI uchun Mini App markazi va so'nggi suhbatlar."""
-    context = _miniapp_context(request, "ai")
+    calm_enabled = flag_enabled(PLATFORM_CALM_FLAG)
+    context = _miniapp_context(
+        request,
+        "ai",
+        calm_enabled=calm_enabled,
+        initial_url=reverse("messenger:ai") if calm_enabled else "",
+    )
+    if calm_enabled:
+        return _render_miniapp(request, "bot/miniapp_ai.html", context)
     context["ai_rooms"] = list(
         request.user.chat_rooms.filter(room_type="ai")
         .annotate(message_count=Count("messages"), last_message_at=Max("messages__created_at"))
         .order_by(F("last_message_at").desc(nulls_last=True), "-created_at")[:4]
     )
-    return render(request, "bot/miniapp_ai.html", context)
+    return _render_miniapp(request, "bot/miniapp_ai.html", context)
 
 
 @xframe_options_exempt
 @login_required
 def miniapp_profile(request):
     """Mini App uchun profil, AI sozlamalari va tezkor havolalar."""
-    context = _miniapp_context(request, "profile")
+    calm_enabled = flag_enabled(PLATFORM_CALM_FLAG)
+    context = _miniapp_context(
+        request,
+        "menu" if calm_enabled else "profile",
+        calm_enabled=calm_enabled,
+        initial_url=reverse("profile") if calm_enabled else "",
+    )
+    if calm_enabled:
+        return _render_miniapp(request, "bot/miniapp_profile.html", context)
     onboarding = getattr(request.user, "onboarding", None)
     context.update(
         {
@@ -157,7 +229,7 @@ def miniapp_profile(request):
             "ai_model_label": request.user.get_ai_model_display(),
         }
     )
-    return render(request, "bot/miniapp_profile.html", context)
+    return _render_miniapp(request, "bot/miniapp_profile.html", context)
 
 
 @csrf_exempt
@@ -203,6 +275,9 @@ def miniapp_auth(request):
 
     login(request, user, backend="django.contrib.auth.backends.ModelBackend")
     request.session["telegram_miniapp"] = True
+    next_path = safe_next_path(payload.get("next"))
+    if flag_enabled(PLATFORM_CALM_FLAG):
+        next_path = _calm_miniapp_destination(next_path)
     return JsonResponse(
-        {"status": "success", "redirect": safe_next_path(payload.get("next"))}
+        {"status": "success", "redirect": next_path}
     )

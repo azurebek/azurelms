@@ -1,0 +1,20 @@
+{% extends "frontend_v1/calm/bot/miniapp_base.html" %}{% load static %}
+{% block title %}Kirish{% endblock %}
+{% block body %}
+<div class="d2-mini-entry" data-miniapp-entry data-auth-url="{% url 'bot:miniapp_auth' %}" data-login-url="{% url 'login' %}" data-next-path="{{ next_path }}">
+  <header class="d2-mini-head">
+    <button class="d2-mini-head__side" type="button" data-mini-close>Yopish</button>
+    <span class="d2-mini-title"><strong>{{ site_settings.brand_name|default:"AzureLMS" }}</strong><small>mini ilova</small></span>
+    <span class="d2-mini-head__side" aria-hidden="true"></span>
+  </header>
+  <main class="d2-mini-entry__main">
+    <div class="d2-mini-entry__status" role="status" aria-live="polite">
+      <span class="d2-mini-spinner" data-mini-spinner aria-hidden="true"></span>
+      <h1 data-mini-entry-title hidden>Kirish amalga oshmadi</h1>
+      <p data-mini-entry-message>Kirilmoqda…</p>
+      <button class="d2-mini-button" type="button" data-mini-retry hidden>Qayta urinish</button>
+    </div>
+  </main>
+</div>
+{% endblock %}
+{% block extra_head %}<script defer src="{% static 'frontend_v1/js/calm-miniapp-entry.js' %}"></script>{% endblock %}

@@ -18,6 +18,7 @@
   {% block app_bundle %}<link rel="stylesheet" href="{% static 'frontend_v1/css/auth.css' %}">
   <link rel="stylesheet" href="{% static 'frontend_v1/css/learning.css' %}">
   <script defer src="{% static 'frontend_v1/js/shell.js' %}"></script>{% endblock %}
+  {% if platform_calm_v1 and request.session.telegram_miniapp %}<script defer src="{% static 'frontend_v1/js/mini-frame.js' %}"></script>{% endif %}
   {% block extra_head %}{% endblock %}
   {% published_design_css %}
 </head>
